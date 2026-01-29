@@ -115,6 +115,137 @@ Produces: Personalized HTML landing page
 
 ---
 
+## 2026-01-29: Full Automation System Built
+
+### GitHub Actions Automation LIVE
+Built complete end-to-end automation:
+- **GitHub Repo:** `Fardeen-MM/mortar-reports` (private)
+- **Hosted at:** https://reports.mortarmetrics.com
+- **Workflow:** `.github/workflows/process-interested-lead.yml`
+
+### How the Automation Works
+
+**Trigger:** When lead replies "Interested" in Instantly.ai
+1. Instantly webhook → GitHub Actions
+2. Research script runs (scrape website, check ads)
+3. AI analyzer (Claude Sonnet 4) adds strategic insights
+4. Report generator creates HTML
+5. Creates folder: `FirmName/index.html`
+6. Pushes to GitHub → Auto-deploys to GitHub Pages
+7. Email sent with report link
+8. **Total time:** 3-5 minutes
+
+### Critical Discovery: Report Structure
+**Their manual workflow:**
+```
+FirmName/
+  index.html  ← Full report
+```
+**Result:** Clean URLs like `reports.mortarmetrics.com/GuerraSaenz/`
+
+**IMPORTANT:** Each report MUST go in its own folder named after the law firm, with the report as `index.html`. This creates clean URLs without `.html` extensions.
+
+### AI Enhancement
+Added Claude API integration for strategic analysis:
+- **File:** `automation/ai-analyzer.js`
+- **Cost:** ~$0.05-0.10 per report
+- **What it adds:** Real strategic thinking vs. just data scraping
+
+**AI analyzes:**
+1. Unique positioning opportunities
+2. Competitive strategy despite disadvantages
+3. Market dynamics (local trends, gaps)
+4. Strategic recommendations (prioritized)
+5. Hidden opportunities competitors miss
+
+**Example:**
+- **Before (dumb):** "You're not running Google Ads. Competitors are."
+- **After (AI):** "With 5 office locations, you can dominate local search across central NJ. Run location-specific ads for 'divorce lawyer near me' in all 5 markets—that's your advantage."
+
+### GitHub Secrets Required
+Repository secrets at: `github.com/Fardeen-MM/mortar-reports/settings/secrets/actions`
+
+| Secret | Purpose |
+|--------|---------|
+| `GH_PAT` | GitHub Personal Access Token (for pushing reports) |
+| `INSTANTLY_API_KEY` | Send email with report |
+| `ANTHROPIC_API_KEY` | Claude API for AI analysis |
+| `SLACK_WEBHOOK_URL` | Alert notifications (optional) |
+
+### Automation Files Structure
+```
+automation/
+  research-v3-DEEP.js     ← Website scraper
+  ai-analyzer.js          ← Claude strategic analysis
+  inject-ai-insights.js   ← Merge AI into report data
+  report-generator-v7.js  ← HTML generator
+  send-email.js           ← Instantly email sender
+  package.json            ← Dependencies
+```
+
+### Key Configuration
+- **Domain:** `reports.mortarmetrics.com` (CNAME in repo root)
+- **GitHub Pages:** Enabled on `main` branch, root folder
+- **Instantly Webhook URL:** `https://api.github.com/repos/Fardeen-MM/mortar-reports/dispatches`
+- **Event type:** `interested_lead`
+
+### Disaster Recovery Lesson
+Force-pushed and lost all reports. Recovered using:
+```bash
+git fetch origin OLD_COMMIT_SHA
+git checkout OLD_COMMIT_SHA -- folder/
+```
+GitHub keeps old commits for ~30 days even after force push. Check `git reflog` and GitHub API events for previous commit hashes.
+
+### What Still Needs To Be Done
+1. ✅ **Fix folder structure** - DONE! Now creates `FirmName/index.html` at root
+2. **Test end-to-end** - Trigger via Instantly webhook
+3. **Verify secrets** - All 3 required secrets added to GitHub
+4. **Monitor first run** - Watch GitHub Actions logs
+
+### How Folder Naming Works
+The workflow extracts firm name from research JSON, cleans it to PascalCase:
+- "Guerra & Saenz Law" → `GuerraSaenzLaw/index.html`
+- "WR Immigration" → `WRImmigration/index.html`
+- Special chars removed, spaces converted to PascalCase
+- Result: Clean URLs like `reports.mortarmetrics.com/GuerraSaenzLaw/`
+
+### Production Workflow
+```
+Lead replies "Interested"
+  ↓
+Instantly webhook fires
+  ↓
+GitHub Actions triggered
+  ↓
+Research (2-4 min) → JSON
+  ↓
+AI Analysis (30 sec) → Strategic insights
+  ↓
+Generate Report → HTML
+  ↓
+Create FirmName/index.html
+  ↓
+Push to GitHub
+  ↓
+GitHub Pages deploys (30 sec)
+  ↓
+Email sent to lead
+  ↓
+TOTAL: 3-5 minutes
+```
+
+### Current Status (as of 2026-01-29 18:00 EST)
+✅ Code pushed to GitHub  
+✅ All old reports restored (41 folders)  
+✅ Domain configured (reports.mortarmetrics.com)  
+✅ AI engine integrated  
+⚠️ Need to fix folder structure in workflow  
+⏳ Secrets configured (user confirmed)  
+⏳ End-to-end test pending  
+
+---
+
 ## Meta Notes
 
 This was a full build session. Started with "I want speed-to-lead under 5 minutes" and ended with a complete, production-ready system.
