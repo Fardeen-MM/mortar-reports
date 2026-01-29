@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Gap Analysis | Myriam Balian | Finance Montréal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --ink-soft: #1e293b;
+      --slate: #475569;
+      --slate-light: #64748b;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --warm-white: #f8fafc;
+      --white: #ffffff;
+      --brand-primary: #1e3a5f;
+      --brand-blue: #2563eb;
+      --brand-light: rgba(37,99,235,0.08);
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --gold: #f59e0b;
+      --gold-light: #fef3c7;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', -apple-system, system-ui, sans-serif; background: var(--warm-white); color: var(--ink); line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+
+    /* Background */
+    .bg-grid { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    .orbs { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.1; }
+    .orb-1 { width: 600px; height: 600px; left: -200px; top: -100px; background: var(--brand-blue); }
+    .orb-2 { width: 400px; height: 400px; right: -150px; bottom: 10%; background: var(--accent); }
+    .scroll-indicator { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--brand-blue), var(--accent)); z-index: 9999; width: 0%; }
+    .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 600px) { .container { padding: 0 20px; } }
+
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid var(--border); margin-bottom: 32px; flex-wrap: wrap; gap: 24px; }
+    .brand-mark { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 56px; height: 56px; background: var(--brand-blue); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: white; transition: all 0.4s var(--ease-out-expo); }
+    .logo:hover { transform: scale(1.08) rotate(3deg); box-shadow: 0 12px 40px rgba(37,99,235,0.3); }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+    .brand-sub { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+    .prepared-for { text-align: right; }
+    .prepared-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--slate-light); margin-bottom: 6px; font-weight: 500; }
+    .prepared-name { font-family: 'Fraunces', serif; font-size: 1.35rem; color: var(--ink); font-weight: 500; }
+    .prepared-firm { font-size: 0.9rem; color: var(--brand-blue); font-weight: 500; }
+    .prepared-date { font-size: 0.8rem; color: var(--slate-light); margin-top: 6px; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 20px 0 40px; }
+    .hero-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 500; line-height: 1.2; color: var(--ink); margin-bottom: 20px; }
+    .hero-title em { font-style: italic; background: linear-gradient(135deg, var(--brand-blue) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-subtitle { font-size: 1.1rem; color: var(--slate); max-width: 700px; margin: 0 auto 32px; line-height: 1.7; }
+
+    /* Hero Stats */
+    .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 32px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    @media (max-width: 768px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
+    .hero-stat { text-align: center; padding: 20px 12px; background: var(--white); border: 1px solid var(--border); border-radius: 16px; transition: all 0.4s var(--ease-out-expo); }
+    .hero-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .hero-stat-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; line-height: 1; margin-bottom: 8px; }
+    .hero-stat-value.danger { color: var(--danger); }
+    .hero-stat-value.success { color: var(--success); }
+    .hero-stat-value.gold { color: var(--gold); }
+    .hero-stat-label { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+    /* Quick Jump CTA */
+    .quick-cta { display: flex; justify-content: center; gap: 16px; margin: 32px 0; flex-wrap: wrap; }
+    .quick-cta-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 100px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s var(--ease-out-expo); }
+    .quick-cta-btn.primary { background: var(--ink); color: white; }
+    .quick-cta-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
+    .quick-cta-btn.secondary { background: var(--white); color: var(--ink); border: 2px solid var(--border); }
+    .quick-cta-btn.secondary:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    /* Sections */
+    section { padding: 60px 0; }
+    .section-header { text-align: center; margin-bottom: 40px; }
+    .section-label { display: inline-block; padding: 10px 22px; background: var(--ink); color: var(--white); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; border-radius: 100px; margin-bottom: 18px; font-weight: 600; }
+    .section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); color: var(--ink); margin-bottom: 12px; }
+    .section-subtitle { font-size: 1rem; color: var(--slate); max-width: 600px; margin: 0 auto; line-height: 1.7; }
+
+    /* Cards */
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: all 0.4s var(--ease-out-expo); }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,0.08); border-color: var(--accent); }
+
+    /* Big Opportunity Box */
+    .opportunity-box { background: linear-gradient(135deg, var(--success), #047857); border-radius: 24px; padding: 48px; text-align: center; margin: 40px 0; position: relative; overflow: hidden; }
+    .opportunity-box::before { content: ''; position: absolute; top: -50%; right: -30%; width: 80%; height: 200%; background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 50%); pointer-events: none; }
+    .opportunity-label { font-size: 0.85rem; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+    .opportunity-value { font-family: 'Fraunces', serif; font-size: clamp(3.5rem, 10vw, 6rem); font-weight: 600; color: white; line-height: 1; margin-bottom: 16px; text-shadow: 0 4px 30px rgba(0,0,0,0.2); }
+    .opportunity-context { font-size: 1.2rem; color: rgba(255,255,255,0.9); }
+
+    /* Gap Summary */
+    .gap-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 40px 0; }
+    @media (max-width: 800px) { .gap-summary { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .gap-summary { grid-template-columns: 1fr; } }
+    .gap-card { background: var(--white); border: 2px solid var(--border); border-radius: 20px; padding: 28px; text-align: center; transition: all 0.3s var(--ease-out-expo); }
+    .gap-card:hover { border-color: var(--danger); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.06); }
+    .gap-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .gap-title { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 8px; }
+    .gap-impact { font-size: 1.3rem; font-weight: 700; color: var(--danger); margin-bottom: 8px; }
+    .gap-desc { font-size: 0.8rem; color: var(--slate); }
+
+    /* Story Mini */
+    .story-mini { background: var(--white); border-left: 4px solid var(--danger); padding: 24px 28px; margin: 40px 0; border-radius: 0 16px 16px 0; }
+    .story-mini-text { font-size: 1.05rem; color: var(--ink); margin-bottom: 8px; }
+    .story-mini-outcome { font-size: 0.9rem; color: var(--slate); font-style: italic; }
+
+    /* Market Stats */
+    .market-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+    @media (max-width: 768px) { .market-stats { grid-template-columns: repeat(2, 1fr); } }
+    .market-stat { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 24px 16px; text-align: center; }
+    .market-stat-value { font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 600; color: var(--brand-blue); margin-bottom: 6px; }
+    .market-stat-label { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+
+    /* Competitive Table */
+    .competitive-table { width: 100%; border-collapse: collapse; margin: 32px 0; background: var(--white); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
+    .competitive-table th { background: var(--ink); color: var(--white); padding: 16px 18px; text-align: left; font-size: 0.85rem; font-weight: 600; }
+    .competitive-table td { padding: 16px 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .competitive-table tr:last-child td { border-bottom: none; }
+    .competitive-table tr:hover td { background: var(--warm-white); }
+    .check { color: var(--success); font-weight: 700; }
+    .cross { color: var(--danger); font-weight: 700; }
+    .partial { color: var(--gold); font-weight: 700; }
+    .insight-box { background: var(--warm-white); border-radius: 16px; padding: 24px; margin-top: 24px; font-size: 0.95rem; color: var(--ink); line-height: 1.7; }
+
+    /* Speed Highlight */
+    .speed-highlight { background: linear-gradient(135deg, var(--gold), #d97706); border-radius: 20px; padding: 32px; display: flex; align-items: center; gap: 28px; margin: 40px 0; color: white; }
+    @media (max-width: 700px) { .speed-highlight { flex-direction: column; text-align: center; } }
+    .speed-highlight-stat { font-family: 'Fraunces', serif; font-size: 3.5rem; font-weight: 700; white-space: nowrap; }
+    .speed-highlight-text { font-size: 1.05rem; line-height: 1.6; }
+
+    /* Calculator */
+    .calculator-section { background: var(--white); border: 2px solid var(--accent); border-radius: 24px; padding: 40px; margin: 60px 0; box-shadow: 0 20px 60px rgba(0,0,0,0.04); }
+    @media (max-width: 600px) { .calculator-section { padding: 28px 20px; } }
+    .calc-header { text-align: center; margin-bottom: 40px; }
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+    @media (max-width: 900px) { .calc-grid { grid-template-columns: 1fr; } }
+    .calc-inputs { display: flex; flex-direction: column; gap: 24px; }
+    .calc-input-group { display: flex; flex-direction: column; gap: 10px; }
+    .calc-input-label { font-size: 0.85rem; font-weight: 600; color: var(--ink); display: flex; justify-content: space-between; align-items: center; }
+    .calc-input-value { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--brand-blue); font-weight: 600; }
+    .calc-slider { width: 100%; height: 8px; border-radius: 4px; background: var(--border); -webkit-appearance: none; cursor: pointer; }
+    .calc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .calc-results { display: flex; flex-direction: column; gap: 16px; }
+    .calc-result-card { background: var(--warm-white); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: center; transition: all 0.3s var(--ease-out-expo); }
+    .calc-result-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .calc-result-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; }
+    .calc-result-value.danger { color: var(--danger); }
+    .calc-result-value.success { color: var(--success); }
+    .calc-result-label { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-top: 6px; }
+    .calc-total { background: linear-gradient(135deg, var(--success), #047857); border-radius: 18px; padding: 28px; text-align: center; margin-top: 8px; }
+    .calc-total-value { font-family: 'Fraunces', serif; font-size: 2.5rem; font-weight: 600; color: var(--white); }
+    .calc-total-label { font-size: 0.75rem; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
+
+    /* Service Toggles */
+    .service-toggles { margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--border); }
+    .service-toggle { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-light); }
+    .service-toggle:last-child { border-bottom: none; }
+    .service-toggle-info { display: flex; flex-direction: column; gap: 4px; }
+    .service-toggle-name { font-weight: 600; color: var(--ink); font-size: 0.95rem; }
+    .service-toggle-desc { font-size: 0.8rem; color: var(--slate); }
+    .toggle-switch { position: relative; width: 56px; height: 30px; background: var(--border); border-radius: 30px; cursor: pointer; transition: all 0.3s; }
+    .toggle-switch.active { background: var(--success); }
+    .toggle-switch::after { content: ''; position: absolute; width: 24px; height: 24px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .toggle-switch.active::after { left: 29px; }
+
+    /* Math Section */
+    .math-section { margin-top: 40px; padding: 32px; background: var(--warm-white); border-radius: 16px; border: 1px solid var(--border); }
+    .math-title { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--ink); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    .math-step { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .math-step:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .math-step-title { font-weight: 700; color: var(--brand-blue); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .math-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.9rem; }
+    .math-line.total { font-weight: 700; color: var(--ink); font-size: 1rem; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+    .math-line.result { color: var(--success); font-weight: 700; }
+    .math-line.loss { color: var(--danger); }
+
+    /* Playbook */
+    .playbook-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 28px; transition: all 0.4s var(--ease-out-expo); }
+    .playbook-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .playbook-header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 24px; }
+    .playbook-number { width: 48px; height: 48px; min-width: 48px; background: linear-gradient(135deg, var(--brand-primary), var(--accent)); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
+    .playbook-title-group { flex: 1; }
+    .playbook-title { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--ink); margin-bottom: 6px; }
+    .playbook-problem { font-size: 0.9rem; color: var(--slate); }
+    .playbook-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .playbook-content { grid-template-columns: 1fr; } }
+    .playbook-diy { background: var(--warm-white); border-radius: 14px; padding: 22px; }
+    .playbook-done-for-you { background: var(--brand-light); border-radius: 14px; padding: 22px; border: 1px solid rgba(37,99,235,0.15); }
+    .playbook-column-title { font-weight: 700; font-size: 0.85rem; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .playbook-steps { display: flex; flex-direction: column; gap: 8px; }
+    .playbook-step { font-size: 0.8rem; color: var(--slate); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+    .playbook-step-num { width: 18px; height: 18px; min-width: 18px; background: var(--brand-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; margin-top: 2px; }
+    .playbook-time { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--slate); display: flex; flex-direction: column; gap: 4px; }
+    .playbook-dfy-list { list-style: none; padding: 0; margin: 0 0 14px 0; }
+    .playbook-dfy-list li { padding: 6px 0; font-size: 0.8rem; color: var(--ink); display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+    .playbook-dfy-list li::before { content: "✓"; color: var(--success); font-weight: 700; }
+    .playbook-dfy-result { font-size: 0.85rem; font-weight: 600; color: var(--brand-primary); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+    /* Vision */
+    .vision-box { background: linear-gradient(135deg, var(--ink), var(--brand-primary)); border-radius: 24px; padding: 44px; color: white; text-align: center; margin: 50px 0; position: relative; overflow: hidden; }
+    .vision-box::before { content: ''; position: absolute; top: -50%; right: -30%; width: 80%; height: 200%; background: radial-gradient(ellipse, rgba(255,255,255,0.05) 0%, transparent 50%); pointer-events: none; }
+    .vision-credential { font-size: 1rem; color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.7; }
+    .vision-quote { font-family: 'Fraunces', serif; font-size: 1.4rem; font-style: italic; margin-bottom: 28px; position: relative; }
+    .vision-list { display: flex; flex-direction: column; gap: 10px; max-width: 500px; margin: 0 auto; text-align: left; }
+    .vision-list-item { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: rgba(255,255,255,0.9); }
+
+    /* CTA */
+    .cta-section { background: var(--ink); border-radius: 24px; padding: 60px 44px; text-align: center; margin: 60px 0; position: relative; overflow: hidden; }
+    .cta-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(59,130,246,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(96,165,250,0.1) 0%, transparent 40%); pointer-events: none; }
+    .cta-urgency { font-family: 'Fraunces', serif; font-size: 1.8rem; color: var(--danger); background: var(--white); display: inline-block; padding: 14px 28px; border-radius: 12px; margin-bottom: 28px; }
+    .cta-title { font-family: 'Fraunces', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); color: var(--white); margin-bottom: 14px; }
+    .cta-subtitle { font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 36px; max-width: 550px; margin-left: auto; margin-right: auto; }
+    .cta-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 36px; text-align: left; max-width: 650px; margin-left: auto; margin-right: auto; }
+    @media (max-width: 700px) { .cta-columns { grid-template-columns: 1fr; } }
+    .cta-column { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 22px; border: 1px solid rgba(255,255,255,0.1); }
+    .cta-column-title { font-weight: 700; font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+    .cta-column-list { display: flex; flex-direction: column; gap: 8px; }
+    .cta-column-item { font-size: 0.9rem; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px; }
+    .why-works { background: rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; margin: 36px 0; border: 1px solid rgba(255,255,255,0.1); }
+    .why-works-title { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--white); margin-bottom: 20px; }
+    .why-works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 600px) { .why-works-grid { grid-template-columns: 1fr; } }
+    .why-works-col-title { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+    .why-works-col-list { display: flex; flex-direction: column; gap: 8px; }
+    .why-works-col-item { font-size: 0.9rem; color: rgba(255,255,255,0.85); }
+    .cta-guarantee { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 24px; }
+    .authority-flex { background: var(--warm-white); border-radius: 12px; padding: 18px 22px; font-size: 0.85rem; color: var(--slate); font-style: italic; margin-top: 24px; text-align: center; }
+
+    /* Booking Widget Container */
+    .booking-widget-container { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 28px; margin: 28px 0; border: 1px solid rgba(255,255,255,0.1); }
+
+    /* Footer */
+    .footer { text-align: center; padding: 40px 0 24px; border-top: 1px solid var(--border); margin-top: 60px; }
+    .footer-brand { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .footer-logo { width: 40px; height: 40px; background: var(--brand-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 14px; color: var(--white); font-weight: 600; }
+    .footer-name { font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--ink); }
+
+    /* Animations */
+    .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Myriam Balian</div>
+        <div class="prepared-firm">Finance Montréal</div>
+        <div class="prepared-date">January 2026</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="hero-title">
+        You're missing <em>$380K/year</em> in engagement opportunities.
+      </h1>
+      <p class="hero-subtitle">
+        Canada Fintech Forum draws 1,400+ leaders. Station Fintech houses Canada's largest fintech hub. You've hosted the ISSB headquarters. None of it matters when a London-based fintech searches "establish financial company Montreal" and finds Montréal International's content instead of yours.
+      </p>
+      <p class="hero-subtitle" style="font-weight: 600; color: var(--ink);">
+        Your programs are world-class. Your digital visibility isn't. Let's fix that.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value danger">$32K</div>
+          <div class="hero-stat-label">Lost Monthly</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value success">$45K</div>
+          <div class="hero-stat-label">Recoverable/Mo</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value gold">275</div>
+          <div class="hero-stat-label">QC Fintechs</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" style="color: var(--brand-blue);">$11B+</div>
+          <div class="hero-stat-label">VC 2017-2022</div>
+        </div>
+      </div>
+      
+      <div class="quick-cta">
+        <a href="#calculator" class="quick-cta-btn primary">↓ See Your Numbers</a>
+        <a href="#cta" class="quick-cta-btn secondary">Book 15 Min Call</a>
+      </div>
+    </section>
+
+    <!-- BIG OPPORTUNITY -->
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Engagement & Revenue Opportunity</div>
+      <div class="opportunity-value">$384,000</div>
+      <div class="opportunity-context">More event registrations. More IFC inquiries. More member engagement.</div>
+    </div>
+
+    <!-- FOUR GAPS AT A GLANCE -->
+    <div class="gap-summary reveal">
+      <div class="gap-card">
+        <div class="gap-icon">🔍</div>
+        <div class="gap-title">Google Ads Gap</div>
+        <div class="gap-impact">-$12K/mo</div>
+        <div class="gap-desc">Zero paid search. When decision-makers Google "fintech hub Montreal," you're invisible.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">💼</div>
+        <div class="gap-title">LinkedIn Ads Gap</div>
+        <div class="gap-impact">-$10K/mo</div>
+        <div class="gap-desc">No LinkedIn campaigns targeting CFOs, VPs, and fintech founders looking to expand to Canada.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🌐</div>
+        <div class="gap-title">Website UX Gap</div>
+        <div class="gap-impact">-$6K/mo</div>
+        <div class="gap-desc">Excessive whitespace, poor scrolling flow. Visitors leave before finding your programs.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">📅</div>
+        <div class="gap-title">Event Marketing Gap</div>
+        <div class="gap-impact">-$8K/mo</div>
+        <div class="gap-desc">Canada Fintech Forum could hit 2,000+ with targeted digital campaigns driving registrations.</div>
+      </div>
+    </div>
+
+    <!-- MINI STORY -->
+    <div class="story-mini reveal">
+      <p class="story-mini-text">
+        <strong>Tuesday, 3:42 PM GMT.</strong> A payments startup CEO in London is scouting North American expansion. She Googles "international financial center Canada tax incentives." MaRS Toronto appears. So does Invest in Canada. Finance Montréal? Page two. She bookmarks MaRS.
+      </p>
+      <p class="story-mini-outcome">You have the IFC tax credit, Station Fintech, and the ISSB. She doesn't know that.</p>
+    </div>
+
+    <!-- SPEED HIGHLIGHT -->
+    <div class="speed-highlight reveal">
+      <div class="speed-highlight-stat">72%</div>
+      <div class="speed-highlight-text">
+        <strong>72% of B2B buyers</strong> use search to research business decisions.<br>
+        <span style="opacity: 0.9;">If you're not showing up in paid search and LinkedIn when executives research expansion options, someone else is getting that inquiry.</span>
+      </div>
+    </div>
+
+    <!-- MARKET DATA -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Why Now</span>
+        <h2 class="section-title">Montréal's Financial Ecosystem Is Booming</h2>
+      </div>
+      <div class="market-stats">
+        <div class="market-stat">
+          <div class="market-stat-value">275</div>
+          <div class="market-stat-label">QC Fintechs</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">20,500+</div>
+          <div class="market-stat-label">Fintech Jobs Canada</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">$428M</div>
+          <div class="market-stat-label">QC Fintech Funding 2024</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">47%</div>
+          <div class="market-stat-label">Cost Savings vs SF</div>
+        </div>
+      </div>
+      <p style="text-align: center; color: var(--slate); font-size: 0.95rem; margin-top: 20px;">
+        Montréal is <em>the</em> cost-effective fintech hub in North America. The ecosystem is ready. The question is: are international decision-makers finding you?
+      </p>
+    </section>
+
+    <!-- COMPETITIVE -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Competitive Reality</span>
+        <h2 class="section-title">Who's Winning the Digital Visibility Game</h2>
+      </div>
+      <table class="competitive-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Montréal International</th>
+            <th>MaRS Discovery District</th>
+            <th>Finance Montréal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google Ads</td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="cross">✗ None</span></td>
+          </tr>
+          <tr>
+            <td>LinkedIn Ads</td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="cross">✗ None</span></td>
+          </tr>
+          <tr>
+            <td>Content Marketing</td>
+            <td><span class="check">✓ Regular</span></td>
+            <td><span class="check">✓ Strong</span></td>
+            <td><span class="partial">◐ Occasional</span></td>
+          </tr>
+          <tr>
+            <td>Event Promotion</td>
+            <td><span class="check">✓ Multi-channel</span></td>
+            <td><span class="check">✓ Multi-channel</span></td>
+            <td><span class="partial">◐ Organic only</span></td>
+          </tr>
+          <tr>
+            <td>Website UX</td>
+            <td><span class="check">✓ Optimized</span></td>
+            <td><span class="check">✓ Modern</span></td>
+            <td><span class="partial">◐ Needs work</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="insight-box">
+        <strong>What you have that they don't:</strong> The IFC tax credit program. Station Fintech (Canada's largest fintech hub). The Sustainable Finance Summit. ISSB North American headquarters. Direct government relationships.<br><br>
+        <strong>What they have that you don't:</strong> Digital visibility when decision-makers search. Paid campaigns driving qualified leads. Website experiences that convert visitors into inquiries.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <div class="calculator-section reveal" id="calculator">
+      <div class="calc-header">
+        <span class="section-label">Your Numbers</span>
+        <h2 class="section-title">See Exactly What You're Missing</h2>
+        <p style="color: var(--slate); margin-top: 10px;">Adjust the sliders. Watch the math.</p>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Monthly Website Visitors</span>
+              <span class="calc-input-value" id="visitorsValue">8,000</span>
+            </div>
+            <input type="range" class="calc-slider" id="visitors" min="2000" max="20000" value="8000" step="500">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Current Inquiry Conversion Rate</span>
+              <span class="calc-input-value" id="conversionValue">1.5%</span>
+            </div>
+            <input type="range" class="calc-slider" id="conversion" min="0.5" max="5" value="1.5" step="0.1">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Avg Value Per Qualified Lead</span>
+              <span class="calc-input-value" id="leadValueValue">$2,500</span>
+            </div>
+            <input type="range" class="calc-slider" id="leadValue" min="500" max="10000" value="2500" step="250">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Event Registration Potential</span>
+              <span class="calc-input-value" id="eventPotentialValue">+300</span>
+            </div>
+            <input type="range" class="calc-slider" id="eventPotential" min="100" max="600" value="300" step="50">
+          </div>
+        </div>
+        <div class="calc-results">
+          <div class="calc-result-card">
+            <div class="calc-result-value danger" id="lostMonthly">$32,000</div>
+            <div class="calc-result-label">Currently Missing/Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value success" id="recoverMonthly">$45,000</div>
+            <div class="calc-result-label">Could Capture/Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value" style="color: var(--brand-blue);" id="newLeads">18</div>
+            <div class="calc-result-label">Additional Qualified Leads/Mo</div>
+          </div>
+          <div class="calc-total">
+            <div class="calc-total-value" id="annualTotal">$384,000</div>
+            <div class="calc-total-label">Annual Engagement Opportunity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Toggles -->
+      <div class="service-toggles">
+        <h3 style="font-family: 'Fraunces', serif; font-size: 1.2rem; margin-bottom: 20px; color: var(--ink);">Toggle Services to See Impact</h3>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Google Ads</span>
+            <span class="service-toggle-desc">Target decision-makers searching "fintech hub Canada", "IFC tax credit", "establish financial company Montreal"</span>
+          </div>
+          <div class="toggle-switch active" id="toggleGoogle" onclick="toggleService('google')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">LinkedIn Ads</span>
+            <span class="service-toggle-desc">Reach CFOs, VPs, fintech founders at companies considering North American expansion</span>
+          </div>
+          <div class="toggle-switch active" id="toggleLinkedin" onclick="toggleService('linkedin')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Website UX Optimization</span>
+            <span class="service-toggle-desc">Streamlined navigation, compelling CTAs, clear program pathways</span>
+          </div>
+          <div class="toggle-switch active" id="toggleWebsite" onclick="toggleService('website')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Event Marketing Campaigns</span>
+            <span class="service-toggle-desc">Multi-channel promotion for Canada Fintech Forum, Sustainable Finance Summit</span>
+          </div>
+          <div class="toggle-switch active" id="toggleEvents" onclick="toggleService('events')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Content & Thought Leadership</span>
+            <span class="service-toggle-desc">SEO-optimized content establishing Finance Montréal as the authority on Canadian fintech</span>
+          </div>
+          <div class="toggle-switch active" id="toggleContent" onclick="toggleService('content')"></div>
+        </div>
+      </div>
+
+      <!-- MATH BREAKDOWN -->
+      <div class="math-section">
+        <div class="math-title">📊 The Math (Transparent)</div>
+        
+        <div class="math-step">
+          <div class="math-step-title">Step 1: Your Current Baseline</div>
+          <div class="math-line"><span>Monthly website visitors:</span><span id="mathVisitors">8,000</span></div>
+          <div class="math-line"><span>× Current conversion rate:</span><span id="mathConversion">× 1.5%</span></div>
+          <div class="math-line total"><span>= Current monthly inquiries:</span><span id="mathCurrentInquiries">120</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 2: The Paid Search Gap</div>
+          <div class="math-line"><span>Estimated additional qualified visitors (Google + LinkedIn):</span><span>+3,000/mo</span></div>
+          <div class="math-line"><span>× B2B conversion rate (optimized):</span><span>× 3%</span></div>
+          <div class="math-line"><span>× Lead value:</span><span id="mathLeadValue">× $2,500</span></div>
+          <div class="math-line loss total"><span>= PAID SEARCH GAP:</span><span id="mathSearchGap">$225,000/yr</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 3: Total Recovery (All Services)</div>
+          <div class="math-line"><span>Google Ads (IFC, fintech, expansion keywords):</span><span id="mathGoogleRecovery">+$12,000</span></div>
+          <div class="math-line"><span>LinkedIn Ads (executive targeting):</span><span id="mathLinkedinRecovery">+$10,000</span></div>
+          <div class="math-line"><span>Website UX (conversion rate improvement):</span><span id="mathWebsiteRecovery">+$6,000</span></div>
+          <div class="math-line"><span>Event Marketing (additional registrations):</span><span id="mathEventsRecovery">+$8,000</span></div>
+          <div class="math-line"><span>Content & SEO (organic visibility):</span><span id="mathContentRecovery">+$4,000</span></div>
+          <div class="math-line result total"><span>= TOTAL RECOVERY:</span><span id="mathTotalRecovery">$40,000/mo</span></div>
+        </div>
+      </div>
+
+      <div class="authority-flex">
+        These projections are based on industry benchmarks from B2B financial services and economic development marketing.
+      </div>
+    </div>
+
+    <!-- PLAYBOOK -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">The Playbook</span>
+        <h2 class="section-title">How to Fix Each Gap</h2>
+        <p class="section-subtitle">DIY or done-for-you. Your choice.</p>
+      </div>
+
+      <!-- GAP 1 - GOOGLE ADS -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">01</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Found — Google Ads</div>
+            <div class="playbook-problem">Decision-makers searching for Canadian fintech opportunities aren't finding you.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span>Create Google Ads account</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span>Research keywords: "fintech hub Canada", "IFC tax credit Quebec", "establish financial company Montreal"</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span>Build campaign structure by program (IFC, Station Fintech, Events)</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span>Write ad copy for each program</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span>Create dedicated landing pages</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span>Set up conversion tracking</div>
+              <div class="playbook-step"><span class="playbook-step-num">7</span>Monitor and optimize weekly</div>
+            </div>
+            <div class="playbook-time">
+              ⏱️ Setup: 20-30 hrs<br>
+              🔄 Ongoing: 8-12 hrs/week FOREVER
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This</div>
+            <ul class="playbook-dfy-list">
+              <li>Full keyword research (500+ B2B terms)</li>
+              <li>Campaign architecture by program & audience</li>
+              <li>Multilingual campaigns (EN/FR)</li>
+              <li>Geographic targeting (UK, US, EU markets)</li>
+              <li>Landing page optimization</li>
+              <li>Conversion tracking setup</li>
+              <li>Weekly optimization & fresh creative</li>
+              <li>A/B testing headlines, CTAs</li>
+              <li>Competitor monitoring</li>
+              <li>Monthly performance reports</li>
+            </ul>
+            <div class="playbook-dfy-result">Decision-makers find you. You take qualified inquiries.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 2 - LINKEDIN ADS -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">02</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Targeted — LinkedIn Ads</div>
+            <div class="playbook-problem">CFOs and fintech founders considering expansion don't know your programs exist.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span>Set up LinkedIn Campaign Manager</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span>Install LinkedIn Insight Tag</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span>Build audience segments (CFOs, VPs, Founders at fintech companies)</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span>Create sponsored content campaigns</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span>Design visuals and video content</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span>Test different ad formats (single image, carousel, video)</div>
+              <div class="playbook-step"><span class="playbook-step-num">7</span>Monitor and optimize weekly</div>
+            </div>
+            <div class="playbook-time">
+              ⏱️ Setup: 15-20 hrs<br>
+              🔄 Ongoing: 6-10 hrs/week FOREVER
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This</div>
+            <ul class="playbook-dfy-list">
+              <li>LinkedIn Campaign Manager setup</li>
+              <li>Insight Tag installation</li>
+              <li>Executive audience building (by title, company size, industry)</li>
+              <li>Geographic targeting for key markets</li>
+              <li>Sponsored content creation</li>
+              <li>Video ad production</li>
+              <li>Lead gen form optimization</li>
+              <li>Retargeting campaigns</li>
+              <li>Account-based marketing integration</li>
+              <li>Monthly executive reports</li>
+            </ul>
+            <div class="playbook-dfy-result">The right executives see you. IFC inquiries increase.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 3 - WEBSITE UX -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">03</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Conversion — Website UX</div>
+            <div class="playbook-problem">Visitors land but leave without engaging. Too much whitespace, unclear pathways.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span>Audit current site with heatmaps (Hotjar, Clarity)</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span>Identify drop-off points in user flow</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span>Reduce whitespace, improve information density</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span>Add clear CTAs above the fold</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span>Create program-specific landing pages</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span>Optimize for mobile experience</div>
+              <div class="playbook-step"><span class="playbook-step-num">7</span>A/B test key pages monthly</div>
+            </div>
+            <div class="playbook-time">
+              ⏱️ Setup: 30-50 hrs<br>
+              🔄 Ongoing: 5-8 hrs/week
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This</div>
+            <ul class="playbook-dfy-list">
+              <li>Full UX audit with heatmap analysis</li>
+              <li>User journey mapping</li>
+              <li>Information architecture optimization</li>
+              <li>Landing page redesign (IFC, Station Fintech, Events)</li>
+              <li>CTA optimization</li>
+              <li>Form optimization for lead capture</li>
+              <li>Mobile experience enhancement</li>
+              <li>Page speed optimization</li>
+              <li>Ongoing A/B testing</li>
+              <li>Conversion rate monitoring</li>
+            </ul>
+            <div class="playbook-dfy-result">Visitors convert. Programs get inquiries.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 4 - EVENT MARKETING -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">04</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Registered — Event Marketing</div>
+            <div class="playbook-problem">Canada Fintech Forum draws 1,400. With proper digital campaigns, it could hit 2,000+.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span>Build event-specific landing pages</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span>Create multi-channel promotion calendar</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span>Set up paid campaigns (Google, LinkedIn, Meta)</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span>Design email nurture sequences</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span>Create speaker/sponsor highlight content</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span>Build early-bird and countdown urgency</div>
+              <div class="playbook-step"><span class="playbook-step-num">7</span>Retarget past attendees and website visitors</div>
+            </div>
+            <div class="playbook-time">
+              ⏱️ Setup: 20-30 hrs per event<br>
+              🔄 Ongoing: 10-15 hrs/week during promotion
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This</div>
+            <ul class="playbook-dfy-list">
+              <li>Event landing page optimization</li>
+              <li>Multi-channel paid campaigns</li>
+              <li>Email marketing sequences</li>
+              <li>Social media promotion calendar</li>
+              <li>Speaker/sponsor content creation</li>
+              <li>Early-bird campaign management</li>
+              <li>Countdown and urgency campaigns</li>
+              <li>Retargeting pixel implementation</li>
+              <li>Registration tracking & attribution</li>
+              <li>Post-event engagement campaigns</li>
+            </ul>
+            <div class="playbook-dfy-result">Events sell out. Brand visibility compounds.</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: center; color: var(--slate); font-size: 0.95rem; margin-top: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+        You can absolutely do this yourself. But that's <strong>25-40 hours/week of specialized marketing work</strong> on top of your existing mandate. We plug directly into your operation. No new hires. No learning curve. Just more inquiries.
+      </p>
+    </section>
+
+    <!-- VISION -->
+    <div class="vision-box reveal">
+      <p class="vision-credential">
+        You've built something remarkable: Canada's largest fintech hub, world-class events, the IFC tax incentive program, and now the ISSB headquarters. You don't need another initiative to manage.
+      </p>
+      <p class="vision-quote">
+        "You build the ecosystem. We make sure the world finds it."
+      </p>
+      <div class="vision-list">
+        <div class="vision-list-item">→ No new marketing staff to hire</div>
+        <div class="vision-list-item">→ No platforms for you to learn</div>
+        <div class="vision-list-item">→ No extra hours in your week</div>
+        <div class="vision-list-item">→ Your programs get discovered. Your events fill up.</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section reveal" id="cta">
+      <div class="cta-urgency">$1,000+ in visibility lost today alone</div>
+      <h2 class="cta-title">15 Minutes. No Commitment.</h2>
+      <p class="cta-subtitle">
+        We'll show you exactly where you're missing engagement and how we fix it—without adding complexity to your operation.
+      </p>
+
+      <div class="cta-columns">
+        <div class="cta-column">
+          <div class="cta-column-title">What We Found</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">❌ No Google Ads</div>
+            <div class="cta-column-item">❌ No LinkedIn Ads</div>
+            <div class="cta-column-item">⚠️ Website UX issues</div>
+            <div class="cta-column-item">⚠️ Event promotion gaps</div>
+          </div>
+        </div>
+        <div class="cta-column">
+          <div class="cta-column-title">What Changes</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">✅ Decision-makers find you</div>
+            <div class="cta-column-item">✅ Executives see your programs</div>
+            <div class="cta-column-item">✅ Website converts visitors</div>
+            <div class="cta-column-item">✅ Events reach capacity</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-works">
+        <div class="why-works-title">What You Get</div>
+        <div class="why-works-grid">
+          <div>
+            <div class="why-works-col-title">No New Burdens</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">• Zero new hires</div>
+              <div class="why-works-col-item">• Zero extra hours</div>
+              <div class="why-works-col-item">• Zero platforms to learn</div>
+            </div>
+          </div>
+          <div>
+            <div class="why-works-col-title">Full Digital Visibility</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">• Paid search active</div>
+              <div class="why-works-col-item">• LinkedIn campaigns running</div>
+              <div class="why-works-col-item">• Website optimized</div>
+              <div class="why-works-col-item">• Events promoted</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-widget-container">
+        <h3 style="font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 20px; color: var(--white);">Book Your Strategy Call — 15 Minutes</h3>
+        <iframe 
+          src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" 
+          style="width: 100%; border: none; overflow: hidden; min-height: 600px; border-radius: 12px;" 
+          scrolling="no" 
+          id="mortarmetrics-booking-widget">
+        </iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+        <p style="text-align: center; margin-top: 14px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+          Widget not loading? <a href="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" target="_blank" style="color: var(--accent-light);">Book directly here →</a>
+        </p>
+      </div>
+
+      <p class="cta-guarantee">No long-term contracts. Month-to-month. Results-focused.</p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color: var(--slate); font-size: 0.85rem;">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color: var(--brand-blue);">mortarmetrics.com</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll progress
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scrollIndicator').style.width = scrollPercent + '%';
+    });
+
+    // Reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Calculator Logic
+    const services = { google: true, linkedin: true, website: true, events: true, content: true };
+
+    function toggleService(service) {
+      services[service] = !services[service];
+      const elementMap = {
+        'google': 'toggleGoogle',
+        'linkedin': 'toggleLinkedin',
+        'website': 'toggleWebsite',
+        'events': 'toggleEvents',
+        'content': 'toggleContent'
+      };
+      document.getElementById(elementMap[service]).classList.toggle('active');
+      updateCalculations();
+    }
+
+    function updateCalculations() {
+      const visitors = parseInt(document.getElementById('visitors').value);
+      const conversion = parseFloat(document.getElementById('conversion').value) / 100;
+      const leadValue = parseInt(document.getElementById('leadValue').value);
+      const eventPotential = parseInt(document.getElementById('eventPotential').value);
+
+      // Update display values
+      document.getElementById('visitorsValue').textContent = visitors.toLocaleString();
+      document.getElementById('conversionValue').textContent = (conversion * 100).toFixed(1) + '%';
+      document.getElementById('leadValueValue').textContent = '$' + leadValue.toLocaleString();
+      document.getElementById('eventPotentialValue').textContent = '+' + eventPotential;
+
+      // Calculations
+      const currentInquiries = visitors * conversion;
+
+      // Recovery calculations
+      let googleRecovery = 0, linkedinRecovery = 0, websiteRecovery = 0, eventsRecovery = 0, contentRecovery = 0;
+
+      if (services.google) {
+        // Google Ads: additional qualified visitors converting
+        googleRecovery = 1500 * 0.03 * leadValue;
+      }
+      if (services.linkedin) {
+        // LinkedIn: executive targeting with higher lead value
+        linkedinRecovery = 800 * 0.04 * leadValue;
+      }
+      if (services.website) {
+        // Website UX: improve conversion rate on existing traffic
+        websiteRecovery = visitors * 0.01 * leadValue;
+      }
+      if (services.events) {
+        // Event Marketing: additional registrations at ~$500 avg ticket
+        eventsRecovery = eventPotential * 400 / 12; // Monthly amortized
+      }
+      if (services.content) {
+        // Content/SEO: organic visibility increase
+        contentRecovery = visitors * 0.15 * 0.02 * leadValue;
+      }
+
+      const totalRecovery = googleRecovery + linkedinRecovery + websiteRecovery + eventsRecovery + contentRecovery;
+      const monthlyLoss = totalRecovery * 0.7;
+      const newLeadsPerMonth = totalRecovery / leadValue;
+      const annualTotal = totalRecovery * 12;
+
+      // Update results
+      document.getElementById('lostMonthly').textContent = '$' + Math.round(monthlyLoss).toLocaleString();
+      document.getElementById('recoverMonthly').textContent = '$' + Math.round(totalRecovery).toLocaleString();
+      document.getElementById('newLeads').textContent = Math.round(newLeadsPerMonth);
+      document.getElementById('annualTotal').textContent = '$' + Math.round(annualTotal).toLocaleString();
+
+      // Update math breakdown
+      document.getElementById('mathVisitors').textContent = visitors.toLocaleString();
+      document.getElementById('mathConversion').textContent = '× ' + (conversion * 100).toFixed(1) + '%';
+      document.getElementById('mathCurrentInquiries').textContent = Math.round(currentInquiries);
+      document.getElementById('mathLeadValue').textContent = '× $' + leadValue.toLocaleString();
+      document.getElementById('mathSearchGap').textContent = '$' + Math.round((googleRecovery + linkedinRecovery) * 12).toLocaleString() + '/yr';
+      document.getElementById('mathGoogleRecovery').textContent = services.google ? '+$' + Math.round(googleRecovery).toLocaleString() : '$0';
+      document.getElementById('mathLinkedinRecovery').textContent = services.linkedin ? '+$' + Math.round(linkedinRecovery).toLocaleString() : '$0';
+      document.getElementById('mathWebsiteRecovery').textContent = services.website ? '+$' + Math.round(websiteRecovery).toLocaleString() : '$0';
+      document.getElementById('mathEventsRecovery').textContent = services.events ? '+$' + Math.round(eventsRecovery).toLocaleString() : '$0';
+      document.getElementById('mathContentRecovery').textContent = services.content ? '+$' + Math.round(contentRecovery).toLocaleString() : '$0';
+      document.getElementById('mathTotalRecovery').textContent = '$' + Math.round(totalRecovery).toLocaleString() + '/mo';
+    }
+
+    // Event listeners
+    ['visitors', 'conversion', 'leadValue', 'eventPotential'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateCalculations);
+    });
+
+    // Initial calculation
+    updateCalculations();
+  </script>
+</body>
+</html>

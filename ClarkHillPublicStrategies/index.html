@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Grassroots Campaign Capabilities | Clark Hill Public Strategies</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --ink-soft: #1e293b;
+      --slate: #475569;
+      --slate-light: #64748b;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --warm-white: #f8fafc;
+      --white: #ffffff;
+      --brand-primary: #1e3a5f;
+      --brand-blue: #2563eb;
+      --brand-light: rgba(37,99,235,0.08);
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --gold: #f59e0b;
+      --gold-light: #fef3c7;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', -apple-system, system-ui, sans-serif; background: var(--warm-white); color: var(--ink); line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+
+    /* Background */
+    .bg-grid { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    .orbs { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.1; }
+    .orb-1 { width: 600px; height: 600px; left: -200px; top: -100px; background: var(--brand-blue); }
+    .orb-2 { width: 400px; height: 400px; right: -150px; bottom: 10%; background: var(--accent); }
+    .scroll-indicator { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--brand-blue), var(--accent)); z-index: 9999; width: 0%; }
+    .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 600px) { .container { padding: 0 20px; } }
+
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid var(--border); margin-bottom: 32px; flex-wrap: wrap; gap: 24px; }
+    .brand-mark { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 56px; height: 56px; background: var(--brand-blue); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: white; transition: all 0.4s var(--ease-out-expo); }
+    .logo:hover { transform: scale(1.08) rotate(3deg); box-shadow: 0 12px 40px rgba(37,99,235,0.3); }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+    .brand-sub { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+    .prepared-for { text-align: right; }
+    .prepared-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--slate-light); margin-bottom: 6px; font-weight: 500; }
+    .prepared-name { font-family: 'Fraunces', serif; font-size: 1.35rem; color: var(--ink); font-weight: 500; }
+    .prepared-firm { font-size: 0.9rem; color: var(--brand-blue); font-weight: 500; }
+    .prepared-date { font-size: 0.8rem; color: var(--slate-light); margin-top: 6px; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 20px 0 40px; }
+    .hero-title { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 500; line-height: 1.2; color: var(--ink); margin-bottom: 20px; }
+    .hero-title em { font-style: italic; background: linear-gradient(135deg, var(--brand-blue) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-subtitle { font-size: 1.1rem; color: var(--slate); max-width: 750px; margin: 0 auto 32px; line-height: 1.7; }
+
+    /* Hero Stats */
+    .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 32px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    @media (max-width: 768px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
+    .hero-stat { text-align: center; padding: 20px 12px; background: var(--white); border: 1px solid var(--border); border-radius: 16px; transition: all 0.4s var(--ease-out-expo); }
+    .hero-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .hero-stat-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; line-height: 1; margin-bottom: 8px; color: var(--brand-blue); }
+    .hero-stat-label { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+    /* Sections */
+    section { padding: 60px 0; }
+    .section-header { text-align: center; margin-bottom: 40px; }
+    .section-label { display: inline-block; padding: 10px 22px; background: var(--ink); color: var(--white); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; border-radius: 100px; margin-bottom: 18px; font-weight: 600; }
+    .section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); color: var(--ink); margin-bottom: 12px; }
+    .section-subtitle { font-size: 1rem; color: var(--slate); max-width: 600px; margin: 0 auto; line-height: 1.7; }
+
+    /* Cards */
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: all 0.4s var(--ease-out-expo); }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,0.08); border-color: var(--accent); }
+
+    /* Insight Box */
+    .insight-box { background: var(--warm-white); border-radius: 16px; padding: 24px; margin-top: 24px; font-size: 0.95rem; color: var(--ink); line-height: 1.7; border-left: 4px solid var(--brand-blue); }
+
+    /* Capability Grid */
+    .capability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 40px 0; }
+    @media (max-width: 900px) { .capability-grid { grid-template-columns: 1fr; } }
+    .capability-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 28px; transition: all 0.3s var(--ease-out-expo); }
+    .capability-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.06); }
+    .capability-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .capability-title { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px; }
+    .capability-desc { font-size: 0.9rem; color: var(--slate); line-height: 1.6; }
+
+    /* Use Case Section */
+    .use-case { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin: 24px 0; }
+    .use-case-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .use-case-number { width: 40px; height: 40px; background: var(--brand-blue); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .use-case-title { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--ink); }
+    .use-case-scenario { font-size: 0.95rem; color: var(--slate); margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .use-case-deliverables { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .use-case-deliverables { grid-template-columns: 1fr; } }
+    .deliverable-col { background: var(--warm-white); border-radius: 12px; padding: 20px; }
+    .deliverable-col-title { font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--brand-blue); margin-bottom: 12px; }
+    .deliverable-list { list-style: none; }
+    .deliverable-list li { font-size: 0.85rem; color: var(--ink); padding: 6px 0; display: flex; align-items: flex-start; gap: 8px; }
+    .deliverable-list li::before { content: "→"; color: var(--brand-blue); font-weight: 700; }
+
+    /* Flow Diagram */
+    .flow-section { background: var(--white); border: 2px solid var(--accent); border-radius: 24px; padding: 40px; margin: 60px 0; }
+    .flow-title { font-family: 'Fraunces', serif; font-size: 1.4rem; color: var(--ink); text-align: center; margin-bottom: 36px; }
+    .flow-steps { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    @media (max-width: 800px) { .flow-steps { flex-direction: column; } }
+    .flow-step { flex: 1; min-width: 180px; text-align: center; position: relative; }
+    .flow-step::after { content: "→"; position: absolute; right: -20px; top: 30px; font-size: 1.5rem; color: var(--muted); }
+    .flow-step:last-child::after { display: none; }
+    @media (max-width: 800px) { .flow-step::after { display: none; } }
+    .flow-step-icon { width: 60px; height: 60px; background: linear-gradient(135deg, var(--brand-primary), var(--accent)); color: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px; }
+    .flow-step-title { font-weight: 700; font-size: 0.85rem; color: var(--ink); margin-bottom: 8px; }
+    .flow-step-desc { font-size: 0.8rem; color: var(--slate); line-height: 1.5; }
+
+    /* Metrics Table */
+    .metrics-table { width: 100%; border-collapse: collapse; margin: 32px 0; background: var(--white); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
+    .metrics-table th { background: var(--ink); color: var(--white); padding: 16px 18px; text-align: left; font-size: 0.85rem; font-weight: 600; }
+    .metrics-table td { padding: 16px 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .metrics-table tr:last-child td { border-bottom: none; }
+    .metrics-table tr:hover td { background: var(--warm-white); }
+
+    /* Case Study */
+    .case-study { background: linear-gradient(135deg, var(--ink), var(--brand-primary)); border-radius: 24px; padding: 40px; color: white; margin: 40px 0; position: relative; overflow: hidden; }
+    .case-study::before { content: ''; position: absolute; top: -50%; right: -30%; width: 80%; height: 200%; background: radial-gradient(ellipse, rgba(255,255,255,0.05) 0%, transparent 50%); pointer-events: none; }
+    .case-study-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+    .case-study-title { font-family: 'Fraunces', serif; font-size: 1.4rem; margin-bottom: 16px; }
+    .case-study-content { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+    @media (max-width: 700px) { .case-study-content { grid-template-columns: 1fr; } }
+    .case-study-text { font-size: 0.95rem; color: rgba(255,255,255,0.85); line-height: 1.7; }
+    .case-study-stats { display: flex; flex-direction: column; gap: 16px; }
+    .case-study-stat { text-align: center; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+    .case-study-stat-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; }
+    .case-study-stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* Comparison */
+    .comparison-section { margin: 50px 0; }
+    .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 700px) { .comparison-grid { grid-template-columns: 1fr; } }
+    .comparison-card { border-radius: 20px; padding: 28px; }
+    .comparison-card.traditional { background: var(--warm-white); border: 1px solid var(--border); }
+    .comparison-card.digital { background: var(--brand-light); border: 2px solid var(--brand-blue); }
+    .comparison-card-title { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .comparison-list { list-style: none; }
+    .comparison-list li { font-size: 0.85rem; color: var(--slate); padding: 8px 0; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid var(--border-light); }
+    .comparison-list li:last-child { border-bottom: none; }
+
+    /* What We Handle */
+    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 40px 0; }
+    @media (max-width: 700px) { .services-grid { grid-template-columns: 1fr; } }
+    .service-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .service-card-title { font-weight: 700; font-size: 0.95rem; color: var(--ink); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .service-card-list { list-style: none; }
+    .service-card-list li { font-size: 0.85rem; color: var(--slate); padding: 5px 0; display: flex; align-items: flex-start; gap: 8px; }
+    .service-card-list li::before { content: "✓"; color: var(--success); font-weight: 700; }
+
+    /* CTA */
+    .cta-section { background: var(--ink); border-radius: 24px; padding: 60px 44px; text-align: center; margin: 60px 0; position: relative; overflow: hidden; }
+    .cta-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(59,130,246,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(96,165,250,0.1) 0%, transparent 40%); pointer-events: none; }
+    .cta-title { font-family: 'Fraunces', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); color: var(--white); margin-bottom: 14px; }
+    .cta-subtitle { font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 36px; max-width: 550px; margin-left: auto; margin-right: auto; }
+    .cta-benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px; max-width: 700px; margin-left: auto; margin-right: auto; }
+    @media (max-width: 700px) { .cta-benefits { grid-template-columns: 1fr; } }
+    .cta-benefit { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    .cta-benefit-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .cta-benefit-text { font-size: 0.85rem; color: rgba(255,255,255,0.9); }
+
+    /* Booking Widget Container */
+    .booking-widget-container { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 32px; margin: 32px 0; border: 1px solid rgba(255,255,255,0.1); }
+
+    /* Footer */
+    .footer { text-align: center; padding: 40px 0 24px; border-top: 1px solid var(--border); margin-top: 60px; }
+    .footer-brand { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .footer-logo { width: 40px; height: 40px; background: var(--brand-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 14px; color: var(--white); font-weight: 600; }
+    .footer-name { font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--ink); }
+
+    /* Animations */
+    .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Quote Block */
+    .quote-block { background: var(--white); border-left: 4px solid var(--brand-blue); padding: 24px 28px; margin: 40px 0; border-radius: 0 16px 16px 0; }
+    .quote-text { font-size: 1.1rem; color: var(--ink); font-style: italic; margin-bottom: 12px; }
+    .quote-source { font-size: 0.85rem; color: var(--slate); }
+
+    /* Highlight Box */
+    .highlight-box { background: linear-gradient(135deg, var(--success), #047857); border-radius: 20px; padding: 32px; color: white; text-align: center; margin: 40px 0; }
+    .highlight-box-title { font-family: 'Fraunces', serif; font-size: 1.3rem; margin-bottom: 12px; }
+    .highlight-box-text { font-size: 1rem; color: rgba(255,255,255,0.9); }
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Digital Campaign Services</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Capability Brief For</div>
+        <div class="prepared-name">Brian O'Connell</div>
+        <div class="prepared-firm">Clark Hill Public Strategies</div>
+        <div class="prepared-date">January 2026</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="hero-title">
+        Digital Grassroots <em>Campaign Support</em>
+      </h1>
+      <p class="hero-subtitle">
+        When your clients need constituent pressure behind a policy initiative, the lobbying gets them in the room. The digital campaign gets them the groundswell. Here's how we handle that side.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value">12x</div>
+          <div class="hero-stat-label">More Cost-Efficient</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">95%</div>
+          <div class="hero-stat-label">District Targeting</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">7+</div>
+          <div class="hero-stat-label">Touches to Convert</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">48hr</div>
+          <div class="hero-stat-label">Campaign Launch</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE PREMISE -->
+    <div class="quote-block reveal">
+      <p class="quote-text">
+        "Constituents who make the effort to personally communicate with their senators and representatives are more influential than lobbyists."
+      </p>
+      <p class="quote-source">— Congressional Staff Survey, Bloomberg Government</p>
+    </div>
+
+    <!-- WHAT WE DO -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">What We Do</span>
+        <h2 class="section-title">The Digital Side of Grassroots Campaigns</h2>
+        <p class="section-subtitle">When CHPS clients need public pressure, we build the digital infrastructure that mobilizes constituents at scale.</p>
+      </div>
+
+      <div class="capability-grid">
+        <div class="capability-card">
+          <div class="capability-icon">🎯</div>
+          <div class="capability-title">District-Level Targeting</div>
+          <div class="capability-desc">Geo-targeted ads served exclusively to voters in specific state legislative districts, congressional districts, or custom-drawn boundaries. No wasted impressions outside the target zone.</div>
+        </div>
+        <div class="capability-card">
+          <div class="capability-icon">📢</div>
+          <div class="capability-title">Constituent Mobilization</div>
+          <div class="capability-desc">Landing pages for petitions, "contact your rep" actions, and coalition sign-ups. Automated email/SMS sequences that turn sign-ups into sustained pressure campaigns.</div>
+        </div>
+        <div class="capability-card">
+          <div class="capability-icon">📊</div>
+          <div class="capability-title">Campaign Intelligence</div>
+          <div class="capability-desc">Real-time dashboards showing petition signatures, ad engagement, and constituent actions by district. Data you can bring to the table in legislative meetings.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <div class="flow-section reveal">
+      <div class="flow-title">How a Digital Grassroots Campaign Works</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-icon">📋</div>
+          <div class="flow-step-title">Brief</div>
+          <div class="flow-step-desc">CHPS defines the policy objective, target legislators, and timeline</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-icon">🎨</div>
+          <div class="flow-step-title">Build</div>
+          <div class="flow-step-desc">We create ads, landing pages, and action sequences (48-72 hrs)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-icon">🚀</div>
+          <div class="flow-step-title">Launch</div>
+          <div class="flow-step-desc">Ads go live targeting constituents in priority districts</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-icon">📈</div>
+          <div class="flow-step-title">Scale</div>
+          <div class="flow-step-desc">Optimize based on engagement, expand to new districts as needed</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-icon">📊</div>
+          <div class="flow-step-title">Report</div>
+          <div class="flow-step-desc">Deliver constituent action data for legislative meetings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USE CASES -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Use Cases</span>
+        <h2 class="section-title">How CHPS Clients Would Use This</h2>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-header">
+          <div class="use-case-number">01</div>
+          <div class="use-case-title">Tax Incentive Bill — Manufacturing Client</div>
+        </div>
+        <div class="use-case-scenario">
+          A manufacturing client needs support for a Michigan tax incentive bill. CHPS handles the lobbying. We run a parallel digital campaign targeting voters in swing districts to generate constituent pressure on undecided committee members.
+        </div>
+        <div class="use-case-deliverables">
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">We Build</div>
+            <ul class="deliverable-list">
+              <li>Facebook/Instagram ads in target districts</li>
+              <li>"Support Michigan Jobs" petition landing page</li>
+              <li>Email sequence to keep signers engaged</li>
+              <li>SMS alerts for key vote moments</li>
+            </ul>
+          </div>
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">You Get</div>
+            <ul class="deliverable-list">
+              <li>Petition signatures by district</li>
+              <li>Constituent contact list for future mobilization</li>
+              <li>Data showing public support to bring to meetings</li>
+              <li>Earned media hook ("X thousand signed...")</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-header">
+          <div class="use-case-number">02</div>
+          <div class="use-case-title">Regulatory Defense — Energy Client</div>
+        </div>
+        <div class="use-case-scenario">
+          An energy client faces unfavorable EPA rulemaking. CHPS coordinates the federal strategy. We run an awareness campaign targeting constituents of key committee members, building a coalition that can be activated during the public comment period.
+        </div>
+        <div class="use-case-deliverables">
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">We Build</div>
+            <ul class="deliverable-list">
+              <li>Issue awareness ads (video + static)</li>
+              <li>Coalition sign-up landing page</li>
+              <li>"Submit a comment" action page during comment period</li>
+              <li>Retargeting to keep coalition warm</li>
+            </ul>
+          </div>
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">You Get</div>
+            <ul class="deliverable-list">
+              <li>Coalition list segmented by geography</li>
+              <li>Public comment volume from grassroots</li>
+              <li>Engagement data by region</li>
+              <li>Ready-to-activate base for future fights</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-header">
+          <div class="use-case-number">03</div>
+          <div class="use-case-title">Healthcare Appropriations — Industry Coalition</div>
+        </div>
+        <div class="use-case-scenario">
+          A healthcare coalition needs to protect funding in the state budget. CHPS manages the direct advocacy. We run a "slow drip" digital campaign over several months, delivering constituent messages at strategic intervals to maintain pressure on key appropriations committee members.
+        </div>
+        <div class="use-case-deliverables">
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">We Build</div>
+            <ul class="deliverable-list">
+              <li>Multi-phase ad campaign (awareness → action)</li>
+              <li>"Contact Your Rep" action center</li>
+              <li>Automated message delivery to legislative offices</li>
+              <li>Monthly fresh creative to combat ad fatigue</li>
+            </ul>
+          </div>
+          <div class="deliverable-col">
+            <div class="deliverable-col-title">You Get</div>
+            <ul class="deliverable-list">
+              <li>Sustained constituent pressure over months</li>
+              <li>Message volume reports by legislator</li>
+              <li>Testimonials/stories from constituents</li>
+              <li>Data showing groundswell before key votes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY DIGITAL -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Why Digital</span>
+        <h2 class="section-title">Digital vs. Traditional Grassroots Tactics</h2>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comparison-card traditional">
+          <div class="comparison-card-title">📬 Traditional Tactics</div>
+          <ul class="comparison-list">
+            <li><span>Direct mail: 2-3 week lead time</span></li>
+            <li><span>Phone banks: Expensive, hard to scale</span></li>
+            <li><span>Town halls: Limited geographic reach</span></li>
+            <li><span>Broad targeting (entire DMA)</span></li>
+            <li><span>Hard to measure response rates</span></li>
+            <li><span>Difficult to adjust mid-campaign</span></li>
+          </ul>
+        </div>
+        <div class="comparison-card digital">
+          <div class="comparison-card-title">📱 Digital Tactics</div>
+          <ul class="comparison-list">
+            <li><span>Ads live in 48-72 hours</span></li>
+            <li><span>Scale instantly—no hiring</span></li>
+            <li><span>Reach constituents anywhere</span></li>
+            <li><span>Precise district-level targeting</span></li>
+            <li><span>Real-time engagement data</span></li>
+            <li><span>Optimize daily based on results</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <strong>The data:</strong> For state legislative races, digital ads are 12x more cost-efficient than traditional media in terms of incremental ad recall. The same principle applies to issue campaigns—you can reach more constituents in a specific district for less money, with better tracking.
+      </div>
+    </section>
+
+    <!-- CASE STUDY -->
+    <div class="case-study reveal">
+      <div class="case-study-label">Industry Example</div>
+      <div class="case-study-title">Michigan Ballot Initiative — Voters Not Politicians</div>
+      <div class="case-study-content">
+        <div class="case-study-text">
+          <p style="margin-bottom: 16px;">What started as a Facebook post became a statewide movement. The "Voters Not Politicians" campaign used a combination of earned media, television ads, social media, and one-on-one voter contact to collect 425,000 signatures and pass Proposal 2 with 61% of the vote.</p>
+          <p>Digital played a critical role: social media coordinated volunteers, targeted ads reached persuadable voters, and tracking polls assessed ad effectiveness in real time. The campaign was able to adjust messaging based on what was working—something impossible with traditional tactics alone.</p>
+        </div>
+        <div class="case-study-stats">
+          <div class="case-study-stat">
+            <div class="case-study-stat-value">425K</div>
+            <div class="case-study-stat-label">Signatures</div>
+          </div>
+          <div class="case-study-stat">
+            <div class="case-study-stat-value">61%</div>
+            <div class="case-study-stat-label">Yes Vote</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT WE HANDLE -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">What We Handle</span>
+        <h2 class="section-title">Full Digital Campaign Execution</h2>
+        <p class="section-subtitle">You focus on the lobbying. We handle the digital groundswell.</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-card-title">🎯 Paid Advertising</div>
+          <ul class="service-card-list">
+            <li>Meta Ads (Facebook/Instagram)</li>
+            <li>Google Display & YouTube</li>
+            <li>Connected TV (streaming)</li>
+            <li>Programmatic display</li>
+            <li>District-level geo-targeting</li>
+            <li>Weekly fresh creative</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-card-title">📄 Landing Pages & Action Centers</div>
+          <ul class="service-card-list">
+            <li>Petition/sign-up pages</li>
+            <li>"Contact Your Rep" tools</li>
+            <li>Public comment submission pages</li>
+            <li>Coalition registration</li>
+            <li>Mobile-optimized design</li>
+            <li>A/B testing for conversions</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-card-title">📧 Mobilization Sequences</div>
+          <ul class="service-card-list">
+            <li>Email nurture campaigns</li>
+            <li>SMS alerts for key moments</li>
+            <li>Automated follow-up</li>
+            <li>Re-engagement for inactive signers</li>
+            <li>Segmentation by district/interest</li>
+            <li>Message personalization</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-card-title">📊 Reporting & Intelligence</div>
+          <ul class="service-card-list">
+            <li>Real-time campaign dashboards</li>
+            <li>Actions by district/legislator</li>
+            <li>Ad performance metrics</li>
+            <li>Constituent database delivery</li>
+            <li>Weekly optimization reports</li>
+            <li>Post-campaign analysis</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Metrics</span>
+        <h2 class="section-title">What Success Looks Like</h2>
+      </div>
+
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>What It Measures</th>
+            <th>Why It Matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Petition Signatures</strong></td>
+            <td>Number of constituents who signed</td>
+            <td>Demonstrates public support in meetings</td>
+          </tr>
+          <tr>
+            <td><strong>Actions by District</strong></td>
+            <td>Breakdown of engagement by legislative district</td>
+            <td>Shows specific legislators their constituents care</td>
+          </tr>
+          <tr>
+            <td><strong>Message Volume</strong></td>
+            <td>Emails/calls delivered to legislative offices</td>
+            <td>Creates pressure on undecided members</td>
+          </tr>
+          <tr>
+            <td><strong>Reach & Frequency</strong></td>
+            <td>How many people saw ads, how often</td>
+            <td>7+ touches needed for message retention</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Per Action</strong></td>
+            <td>Cost to acquire each petition signature or contact</td>
+            <td>Measures campaign efficiency</td>
+          </tr>
+          <tr>
+            <td><strong>Coalition Size</strong></td>
+            <td>Database of engaged constituents</td>
+            <td>Asset for future mobilization</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- HIGHLIGHT -->
+    <div class="highlight-box reveal">
+      <div class="highlight-box-title">The Bottom Line</div>
+      <div class="highlight-box-text">CHPS gets clients in the room. We get constituents behind them. The combination is what moves legislation.</div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section reveal" id="cta">
+      <h2 class="cta-title">Worth a Conversation?</h2>
+      <p class="cta-subtitle">
+        If a client has a policy fight coming up that could benefit from grassroots digital support, we should talk. 15 minutes to see if there's a fit.
+      </p>
+
+      <div class="cta-benefits">
+        <div class="cta-benefit">
+          <div class="cta-benefit-icon">⚡</div>
+          <div class="cta-benefit-text">Fast deployment—campaigns live in 48-72 hours</div>
+        </div>
+        <div class="cta-benefit">
+          <div class="cta-benefit-icon">🎯</div>
+          <div class="cta-benefit-text">Precise targeting—district-level, not DMA-level</div>
+        </div>
+        <div class="cta-benefit">
+          <div class="cta-benefit-icon">📊</div>
+          <div class="cta-benefit-text">Data you can use—constituent actions by legislator</div>
+        </div>
+      </div>
+
+      <div class="booking-widget-container">
+        <h3 style="font-family: 'Fraunces', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--white);">Book a 15-Minute Intro Call</h3>
+        <iframe 
+          src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" 
+          style="width: 100%; border: none; overflow: hidden; min-height: 600px; border-radius: 12px;" 
+          scrolling="no" 
+          id="mortarmetrics-booking-widget">
+        </iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+        <p style="text-align: center; margin-top: 14px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+          Widget not loading? <a href="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" target="_blank" style="color: var(--accent-light);">Book directly here →</a>
+        </p>
+      </div>
+
+      <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 24px;">
+        Project-based or ongoing. Flexible scope. We work with the PR/grassroots firms CHPS already trusts—or directly with your team.
+      </p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color: var(--slate); font-size: 0.85rem;">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color: var(--brand-blue);">mortarmetrics.com</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll progress
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scrollIndicator').style.width = scrollPercent + '%';
+    });
+
+    // Reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

@@ -1,0 +1,3321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marketing Gap Analysis | Michael Wildes, Wildes & Weinberg P.C. × Mortar Metrics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Core Colors */
+      --ink: #0f172a;
+      --ink-soft: #1e293b;
+      --slate: #475569;
+      --slate-light: #64748b;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --warm-white: #f8fafc;
+      --white: #ffffff;
+      
+      /* Brand - Deep Navy & Gold (Premium Legal) */
+      --brand-primary: #1a2744;
+      --brand-secondary: #243656;
+      --brand-accent: #2d4a6f;
+      --brand-light: #e8eef6;
+      --brand-gold: #c9a227;
+      --brand-gold-light: #faf6e8;
+      
+      /* Functional */
+      --success: #059669;
+      --success-light: #d1fae5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      
+      /* Typography */
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'Outfit', -apple-system, system-ui, sans-serif;
+      
+      /* Easing */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--warm-white);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .display { 
+      font-family: var(--font-display);
+      font-weight: 500;
+    }
+
+    /* Background Elements */
+    .bg-pattern {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(ellipse at 15% 25%, rgba(26, 39, 68, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 75%, rgba(201, 162, 39, 0.04) 0%, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(26,39,68,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,39,68,0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orbs {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.08;
+      animation: floatOrb 35s ease-in-out infinite;
+    }
+
+    .orb-1 { width: 550px; height: 550px; left: -180px; top: -120px; background: var(--brand-primary); }
+    .orb-2 { width: 380px; height: 380px; right: -120px; bottom: 25%; background: var(--brand-gold); animation-delay: -14s; }
+    .orb-3 { width: 280px; height: 280px; left: 45%; top: 55%; background: var(--brand-accent); opacity: 0.05; animation-delay: -7s; }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(25px, -25px) scale(1.03); }
+      66% { transform: translate(-18px, 18px) scale(0.97); }
+    }
+
+    /* Scroll Progress */
+    .scroll-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+      z-index: 9999;
+      width: 0%;
+    }
+
+    /* Container */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 0 20px; }
+    }
+
+    section { padding: 70px 0; }
+
+    /* ========================================
+       HEADER
+    ======================================== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 8px 24px rgba(26, 39, 68, 0.25);
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .logo:hover {
+      transform: scale(1.06) rotate(2deg);
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .brand-sub {
+      font-size: 0.65rem;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      font-weight: 600;
+    }
+
+    .prepared-for { text-align: right; }
+    .prepared-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--slate-light);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .prepared-name {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .prepared-firm {
+      font-size: 0.88rem;
+      color: var(--brand-primary);
+      font-weight: 500;
+    }
+    .prepared-date {
+      font-size: 0.75rem;
+      color: var(--slate-light);
+      margin-top: 5px;
+    }
+
+    /* ========================================
+       QUICK INSIGHTS
+    ======================================== */
+    .quick-insights {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 22px;
+      padding: 34px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quick-insights::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 55%;
+      height: 100%;
+      background: radial-gradient(ellipse at right, rgba(201, 162, 39, 0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .quick-insights-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quick-insights-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(201, 162, 39, 0.2);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .quick-insights-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: white;
+    }
+
+    .quick-insights-badge {
+      margin-left: auto;
+      background: rgba(201, 162, 39, 0.2);
+      border: 1px solid rgba(201, 162, 39, 0.3);
+      padding: 7px 16px;
+      border-radius: 100px;
+      font-size: 0.62rem;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .quick-insights-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 800px) {
+      .quick-insights-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .quick-insight-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .quick-insight-value {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .quick-insight-value.danger { color: #f87171; }
+    .quick-insight-value.success { color: #4ade80; }
+    .quick-insight-value.gold { color: var(--brand-gold); }
+
+    .quick-insight-label {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .quick-insights-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .quick-insights-message {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+      max-width: 520px;
+      line-height: 1.65;
+    }
+
+    .quick-insights-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--brand-gold);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .quick-insights-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(201, 162, 39, 0.35);
+    }
+
+    /* ========================================
+       HERO
+    ======================================== */
+    .hero {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 26px;
+      background: linear-gradient(135deg, var(--brand-light), var(--white));
+      border: 1px solid rgba(26, 39, 68, 0.15);
+      border-radius: 100px;
+      margin-bottom: 30px;
+    }
+
+    .hero-badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--brand-primary);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .hero-badge-text {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 4.8vw, 3.2rem);
+      font-weight: 500;
+      line-height: 1.18;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--danger) 0%, var(--warning) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.12rem;
+      color: var(--slate);
+      max-width: 740px;
+      margin: 0 auto 40px;
+      line-height: 1.8;
+    }
+
+    /* Key Stats Row */
+    .key-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      padding: 34px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .key-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .key-stat {
+      text-align: center;
+      padding: 24px 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .key-stat:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.07);
+    }
+
+    .key-stat.danger { border-color: rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, var(--danger-light), var(--white)); }
+    .key-stat.success { border-color: rgba(5, 150, 105, 0.25); background: linear-gradient(135deg, var(--success-light), var(--white)); }
+    .key-stat.warning { border-color: rgba(217, 119, 6, 0.25); background: linear-gradient(135deg, var(--warning-light), var(--white)); }
+    .key-stat.gold { border-color: rgba(201, 162, 39, 0.25); background: linear-gradient(135deg, var(--brand-gold-light), var(--white)); }
+
+    .key-stat-value {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .key-stat.danger .key-stat-value { color: var(--danger); }
+    .key-stat.success .key-stat-value { color: var(--success); }
+    .key-stat.warning .key-stat-value { color: var(--warning); }
+    .key-stat.gold .key-stat-value { color: var(--brand-gold); }
+    .key-stat .key-stat-value { color: var(--brand-primary); }
+
+    .key-stat-label {
+      font-size: 0.65rem;
+      color: var(--slate);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       STORY SECTION
+    ======================================== */
+    .story-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 40px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .story-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+    }
+
+    .story-label {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--danger-light);
+      color: var(--danger);
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .story-text {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      line-height: 1.7;
+      color: var(--ink);
+      max-width: 800px;
+    }
+
+    .story-text strong {
+      color: var(--danger);
+    }
+
+    .story-followup {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: var(--slate);
+      font-style: italic;
+    }
+
+    /* ========================================
+       MARKET BANNER
+    ======================================== */
+    .market-banner {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 22px;
+      padding: 46px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .market-banner::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -15%;
+      width: 55%;
+      height: 180%;
+      background: radial-gradient(ellipse, rgba(201, 162, 39, 0.14) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .market-banner-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .market-banner-label {
+      display: inline-block;
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .market-banner-title {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      color: white;
+      margin-bottom: 14px;
+    }
+
+    .market-banner-text {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.98rem;
+      line-height: 1.75;
+      max-width: 720px;
+    }
+
+    .market-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 800px) {
+      .market-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .market-stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .market-stat:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .market-stat-value {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    .market-stat-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .market-source {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ========================================
+       LEGACY ADVANTAGE
+    ======================================== */
+    .legacy-advantage {
+      background: var(--brand-gold-light);
+      border: 2px solid var(--brand-gold);
+      border-radius: 22px;
+      padding: 36px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .legacy-advantage::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 50%;
+      height: 200%;
+      background: radial-gradient(ellipse, rgba(201, 162, 39, 0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .legacy-advantage-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+
+    @media (max-width: 800px) {
+      .legacy-advantage-content { grid-template-columns: 1fr; }
+    }
+
+    .legacy-advantage-left h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .legacy-advantage-left p {
+      color: var(--slate);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .credential-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .credential-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink);
+      transition: all 0.3s ease;
+    }
+
+    .credential-tag.highlight {
+      background: var(--brand-primary);
+      color: white;
+      border-color: var(--brand-primary);
+    }
+
+    .credential-tag .icon {
+      font-size: 1.1rem;
+    }
+
+    /* ========================================
+       CALCULATOR SECTION
+    ======================================== */
+    .calculator-section {
+      background: var(--warm-white);
+      padding: 70px 0;
+    }
+
+    .calc-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .calc-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .calc-label {
+      display: inline-block;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color: white;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .calc-title {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .calc-subtitle {
+      font-size: 0.98rem;
+      color: var(--slate);
+    }
+
+    /* Step Cards */
+    .step-card {
+      margin-bottom: 22px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      background: var(--brand-primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .step-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .input-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .input-row {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .input-row:last-child {
+      border-bottom: none;
+    }
+
+    .input-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+
+    .input-value {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .input-value.danger { color: var(--danger); }
+
+    .calc-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .calc-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26, 39, 68, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .calc-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+
+    /* Problem Card */
+    .problem-card {
+      background: var(--danger-light);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .problem-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .problem-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--danger);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .problem-breakdown {
+      font-size: 0.88rem;
+      color: var(--slate);
+    }
+
+    .problem-value {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--danger);
+    }
+
+    .problem-period {
+      font-size: 0.7rem;
+      color: var(--slate);
+    }
+
+    /* AI Solution Card */
+    .solution-card {
+      background: var(--brand-primary);
+      border-radius: 16px;
+      padding: 22px;
+      color: white;
+      margin-bottom: 22px;
+    }
+
+    .solution-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .solution-title {
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .solution-desc {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .solution-badge {
+      background: rgba(255,255,255,0.12);
+      padding: 5px 12px;
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .solution-controls {
+      display: flex;
+      gap: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .solution-control {
+      flex: 1;
+    }
+
+    .solution-control-label {
+      font-size: 0.7rem;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+
+    .solution-control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .solution-control-row .calc-slider {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .solution-control-value {
+      font-size: 0.98rem;
+      font-weight: 700;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    /* Add-ons Accordion */
+    .addons-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .addons-header {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .addons-header:hover {
+      background: var(--warm-white);
+    }
+
+    .addons-title {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .addons-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .addons-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .addons-preview-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .addons-chevron {
+      transition: transform 0.3s;
+    }
+
+    .addons-content {
+      display: none;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .addon-row {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .addon-row:last-child {
+      border-bottom: none;
+    }
+
+    .addon-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .addon-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background: var(--success);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle.off {
+      background: var(--border);
+    }
+
+    .toggle-thumb {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 10px;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: right 0.3s, left 0.3s;
+    }
+
+    .toggle.off .toggle-thumb {
+      right: auto;
+      left: 2px;
+    }
+
+    .addon-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .addon-control-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .addon-control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .addon-control-row .calc-slider {
+      flex: 1;
+    }
+
+    .addon-control-value {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--ink);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    /* Results Summary */
+    .results-summary {
+      background: var(--brand-primary);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .results-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .results-header-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 4px;
+    }
+
+    .results-header-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: white;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .results-item {
+      background: var(--brand-primary);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .results-item-label {
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 5px;
+    }
+
+    .results-item-value {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3.5vw, 1.9rem);
+      font-weight: 600;
+      color: white;
+      line-height: 1;
+    }
+
+    .results-item-value.danger { color: #f87171; }
+    .results-item-value.success { color: #4ade80; }
+    .results-item-value.accent { color: var(--brand-gold); }
+
+    .results-item-sub {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .results-annual {
+      padding: 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .results-annual-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 6px;
+    }
+
+    .results-annual-value {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 2.9rem);
+      font-weight: 600;
+      color: white;
+    }
+
+    .results-annual-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+
+    .results-roi {
+      padding: 14px 20px;
+      background: rgba(74,222,128,0.06);
+      border-top: 1px solid rgba(74,222,128,0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .results-roi-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .results-roi-value {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    /* Recommendation Box */
+    .recommendation-box {
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(201,162,39,0.06) 0%, rgba(74,222,128,0.04) 100%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .rec-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .rec-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(201,162,39,0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .rec-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--brand-gold);
+      margin-bottom: 4px;
+    }
+
+    .rec-text {
+      font-size: 0.92rem;
+      color: white;
+      line-height: 1.6;
+    }
+
+    .rec-action-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .rec-action-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 6px;
+    }
+
+    .rec-action-text {
+      font-size: 0.88rem;
+      color: white;
+      line-height: 1.55;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-gold {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 24px;
+      background: var(--brand-gold);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(201,162,39,0.35);
+    }
+
+    .btn-outline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 24px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-decoration: none;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    /* ========================================
+       MARKETING GAPS
+    ======================================== */
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-label {
+      display: inline-block;
+      padding: 10px 22px;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3.8vw, 2.3rem);
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .section-subtitle {
+      font-size: 1.02rem;
+      color: var(--slate);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .gaps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .gaps-grid { grid-template-columns: 1fr; }
+    }
+
+    .gap-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.4s var(--ease-out-expo);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gap-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--danger);
+      transform: scaleX(0);
+      transition: transform 0.4s var(--ease-out-expo);
+    }
+
+    .gap-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 22px 48px rgba(0,0,0,0.07);
+      border-color: transparent;
+    }
+
+    .gap-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .gap-card-icon {
+      width: 54px;
+      height: 54px;
+      background: var(--danger-light);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    .gap-card-title {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .gap-card-desc {
+      color: var(--slate);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .gap-card-stat {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--warm-white);
+      border-radius: 12px;
+    }
+
+    .gap-card-stat-icon { font-size: 1.15rem; }
+
+    .gap-card-stat-value {
+      font-weight: 700;
+      color: var(--danger);
+      font-size: 1.02rem;
+    }
+
+    .gap-card-stat-label {
+      font-size: 0.78rem;
+      color: var(--slate);
+    }
+
+    /* ========================================
+       COMPETITIVE TABLE
+    ======================================== */
+    .competitive-section {
+      background: linear-gradient(135deg, var(--warm-white), var(--white));
+      border-radius: 22px;
+      padding: 48px;
+      margin: 60px 0;
+      border: 1px solid var(--border);
+    }
+
+    .competitor-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+    }
+
+    .competitor-table th,
+    .competitor-table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .competitor-table th {
+      background: var(--ink);
+      color: white;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+
+    .competitor-table th:first-child {
+      border-radius: 12px 0 0 0;
+    }
+
+    .competitor-table th:last-child {
+      border-radius: 0 12px 0 0;
+    }
+
+    .competitor-table td {
+      font-size: 0.88rem;
+      color: var(--ink);
+    }
+
+    .competitor-table tr:hover td {
+      background: var(--warm-white);
+    }
+
+    .check-yes {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .check-no {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .check-partial {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .competitor-highlight {
+      background: var(--danger-light) !important;
+    }
+
+    /* ========================================
+       PLAYBOOK SECTION
+    ======================================== */
+    .playbook-section {
+      padding: 70px 0;
+    }
+
+    .playbook-intro {
+      text-align: center;
+      margin-bottom: 50px;
+      font-size: 1rem;
+      color: var(--slate);
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .playbook-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 36px;
+      margin-bottom: 28px;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .playbook-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.06);
+      border-color: var(--brand-gold);
+    }
+
+    .playbook-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .playbook-number {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+      color: white;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .playbook-card-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .playbook-card-problem {
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+
+    .playbook-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+    }
+
+    @media (max-width: 800px) {
+      .playbook-content { grid-template-columns: 1fr; }
+    }
+
+    .playbook-diy {
+      background: var(--warm-white);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .playbook-diy-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playbook-diy-section {
+      margin-bottom: 16px;
+    }
+
+    .playbook-diy-section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .playbook-diy-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .playbook-diy-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .playbook-diy-list li:last-child {
+      border-bottom: none;
+    }
+
+    .playbook-step-num {
+      width: 20px;
+      height: 20px;
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .playbook-diy-meta {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--slate);
+    }
+
+    .playbook-diy-meta strong {
+      color: var(--danger);
+    }
+
+    .playbook-done-for-you {
+      background: var(--brand-light);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .playbook-dfy-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--brand-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playbook-dfy-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px 0;
+    }
+
+    .playbook-dfy-list li {
+      padding: 7px 0;
+      font-size: 0.85rem;
+      color: var(--ink);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .playbook-dfy-list li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .playbook-dfy-result {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========================================
+       CTA SECTION
+    ======================================== */
+    .cta-section {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 24px;
+      padding: 65px 50px;
+      text-align: center;
+      margin: 60px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 25% 35%, rgba(201, 162, 39, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 75% 65%, rgba(45, 74, 111, 0.08) 0%, transparent 35%);
+      pointer-events: none;
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-urgency {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 22px;
+      background: rgba(220, 38, 38, 0.12);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+      border-radius: 100px;
+      margin-bottom: 28px;
+    }
+
+    .cta-urgency-text {
+      font-size: 0.82rem;
+      color: #fca5a5;
+    }
+
+    .cta-urgency-value {
+      font-weight: 700;
+      color: #f87171;
+    }
+
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .cta-subtitle {
+      font-size: 1.08rem;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 36px;
+      max-width: 580px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    .cta-buttons-main {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .cta-guarantee {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.65);
+    }
+
+    /* Why This Works */
+    .why-works {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin: 40px 0;
+      text-align: left;
+    }
+
+    @media (max-width: 700px) {
+      .why-works { grid-template-columns: 1fr; }
+    }
+
+    .why-works-col {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 26px;
+    }
+
+    .why-works-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    .why-works-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .why-works-list li {
+      padding: 10px 0;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .why-works-list li:last-child {
+      border-bottom: none;
+    }
+
+    /* ========================================
+       FOOTER
+    ======================================== */
+    .footer {
+      text-align: center;
+      padding: 48px 0 30px;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+
+    .footer-brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .footer-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: white;
+    }
+
+    .footer-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--ink);
+    }
+
+    .footer-contact {
+      margin: 16px 0;
+      font-size: 0.88rem;
+      color: var(--slate);
+    }
+
+    .footer-contact a {
+      color: var(--brand-primary);
+      text-decoration: none;
+    }
+
+    .footer-contact a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-disclaimer {
+      font-size: 0.72rem;
+      color: var(--slate-light);
+      max-width: 620px;
+      margin: 20px auto 0;
+      line-height: 1.65;
+    }
+
+    /* ========================================
+       REVEAL ANIMATIONS
+    ======================================== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========================================
+       BOOKING SECTION
+    ======================================== */
+    .booking-section {
+      padding: 80px 0;
+      margin: 60px 0;
+    }
+
+    .booking-wrapper {
+      background: linear-gradient(135deg, var(--warm-white), var(--white));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .booking-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+    }
+
+    .booking-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .booking-label {
+      display: inline-block;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color: white;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 100px;
+      margin-bottom: 22px;
+      font-weight: 600;
+    }
+
+    .booking-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .booking-subtitle {
+      font-size: 1.05rem;
+      color: var(--slate);
+      max-width: 550px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .booking-embed {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    }
+
+    .booking-guarantee {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 28px;
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+
+    @media (max-width: 768px) {
+      .booking-wrapper {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scroll-indicator"></div>
+  <div class="bg-pattern"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">MM</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Growth Intelligence</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Michael Wildes, Esq.</div>
+        <div class="prepared-firm">Wildes & Weinberg, P.C.</div>
+        <div class="prepared-date">January 2026</div>
+      </div>
+    </header>
+
+    <!-- Quick Insights -->
+    <div class="quick-insights reveal">
+      <div class="quick-insights-header">
+        <div class="quick-insights-icon">⚡</div>
+        <div class="quick-insights-title">Quick Insights for Busy Counsel</div>
+        <div class="quick-insights-badge">60-Second Summary</div>
+      </div>
+      
+      <div class="quick-insights-grid">
+        <div class="quick-insight-card">
+          <div class="quick-insight-value danger" id="qi-lost">$87,500</div>
+          <div class="quick-insight-label">Monthly Revenue Gap</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value success" id="qi-recovered">$65,625</div>
+          <div class="quick-insight-label">Recoverable Revenue</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value gold">3.1M</div>
+          <div class="quick-insight-label">NYC Foreign-Born</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value" id="qi-roi">6.6x</div>
+          <div class="quick-insight-label">Potential ROI</div>
+        </div>
+      </div>
+      
+      <div class="quick-insights-bottom">
+        <div class="quick-insights-message">
+          <strong>The Bottom Line:</strong> You defended John Lennon. You've represented Lionel Richie. But when someone Googles "immigration lawyer NYC" at 9 PM, Fragomen gets that call—not you. Your legacy deserves digital visibility to match.
+        </div>
+        <a href="#booking-section" onclick="scrollToBooking(event)" class="quick-insights-cta">
+          <span>📅</span>
+          <span>Book 15-Min Call</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero reveal">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span class="hero-badge-text">Market Gap Analysis</span>
+      </div>
+      
+      <h1 class="hero-title">
+        65 Years of Immigration Excellence.<br><em>But Who Finds You at 9 PM?</em>
+      </h1>
+      
+      <p class="hero-subtitle">
+        NYC has 3.1 million foreign-born residents—38% of the city. Your firm defended John Lennon, 
+        represents Grammy winners, speaks 11+ languages. But with zero Google Ads and no 24/7 intake, 
+        you're invisible when a tech founder needs an O-1 visa or a family needs asylum help at midnight.
+        Fragomen and Klasko are running ads. You're not.
+      </p>
+      
+      <div class="key-stats">
+        <div class="key-stat danger">
+          <div class="key-stat-value" id="hero-lost">$87,500</div>
+          <div class="key-stat-label">Monthly Revenue Gap</div>
+        </div>
+        <div class="key-stat success">
+          <div class="key-stat-value" id="hero-recovered">$65,625</div>
+          <div class="key-stat-label">Recoverable with AI</div>
+        </div>
+        <div class="key-stat warning">
+          <div class="key-stat-value">0</div>
+          <div class="key-stat-label">Google Ads Running</div>
+        </div>
+        <div class="key-stat gold">
+          <div class="key-stat-value" id="hero-roi">6.6x</div>
+          <div class="key-stat-label">Potential ROI</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Story -->
+    <div class="story-section reveal">
+      <div class="story-label">⚠️ The Reality</div>
+      <p class="story-text">
+        Last Tuesday, 11:47 PM. A tech startup founder in Brooklyn just got an RFE on her O-1 visa. 
+        She Googled "best O-1 visa lawyer NYC." Your website came up organically—<strong>but the contact page just showed a phone number</strong>. 
+        Klasko Tsenis had a form. She submitted it. She's their client now.
+      </p>
+      <p class="story-followup">
+        This happens every week. Here's why—and how to fix it.
+      </p>
+    </div>
+
+    <!-- Market Banner -->
+    <div class="market-banner reveal">
+      <div class="market-banner-content">
+        <div class="market-banner-label">📊 NYC Immigration Market Intelligence</div>
+        <h2 class="market-banner-title">The Largest Immigration Market in America</h2>
+        <p class="market-banner-text">
+          NYC has 3.1 million foreign-born residents—more than any other U.S. city. 44% of the city's workforce is immigrant. 
+          These workers contributed $383 billion to the NYC economy in 2022. With 65,000+ asylum seekers in city shelters 
+          and immigration court backlogs averaging 4.3 years, demand has never been higher. Your firm has the legacy. 
+          You just need the digital visibility.
+        </p>
+        
+        <div class="market-stats">
+          <div class="market-stat">
+            <div class="market-stat-value">3.1M</div>
+            <div class="market-stat-label">Foreign-Born Residents</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">44%</div>
+            <div class="market-stat-label">Immigrant Workforce</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">$383B</div>
+            <div class="market-stat-label">Economic Contribution</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">65K+</div>
+            <div class="market-stat-label">Asylum Seekers</div>
+          </div>
+        </div>
+        
+        <div class="market-source">
+          Sources: NYC Mayor's Office of Immigrant Affairs 2024 · NY State Comptroller · NYC Comptroller Research
+        </div>
+      </div>
+    </div>
+
+    <!-- Legacy Advantage Callout -->
+    <div class="legacy-advantage reveal">
+      <div class="legacy-advantage-content">
+        <div class="legacy-advantage-left">
+          <h3>🏆 Your Unmatched Competitive Moat</h3>
+          <p>
+            Leon Wildes defended John Lennon against deportation—a case that changed immigration law forever. 
+            Michael Wildes served as Mayor, teaches at Cardozo, and represents Grammy winners and billionaires. 
+            Your team speaks <strong>11+ languages</strong>. You have celebrity testimonials from Lionel Richie and Boy George. 
+            No other firm has this legacy. But if clients can't find you at midnight, they'll hire someone else.
+          </p>
+        </div>
+        <div class="credential-tags">
+          <div class="credential-tag highlight">
+            <span class="icon">⚖️</span>
+            <span>65+ Year Legacy</span>
+          </div>
+          <div class="credential-tag highlight">
+            <span class="icon">🏛️</span>
+            <span>Former Mayor</span>
+          </div>
+          <div class="credential-tag">
+            <span class="icon">📚</span>
+            <span>Cardozo Professor</span>
+          </div>
+          <div class="credential-tag">
+            <span class="icon">🌍</span>
+            <span>11+ Languages</span>
+          </div>
+          <div class="credential-tag">
+            <span class="icon">⭐</span>
+            <span>Best Lawyers</span>
+          </div>
+          <div class="credential-tag">
+            <span class="icon">🎵</span>
+            <span>Celebrity Clients</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculator Section -->
+    <section class="calculator-section reveal">
+      <div class="calc-wrapper">
+        
+        <!-- Header -->
+        <div class="calc-header">
+          <div class="calc-label">💰 Revenue Calculator</div>
+          <h2 class="calc-title">Calculate Your Growth Potential</h2>
+          <p class="calc-subtitle">Adjust these numbers to match your practice reality</p>
+        </div>
+        
+        <!-- Step 1: Your Practice -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <span class="step-title">Tell us about Wildes & Weinberg</span>
+          </div>
+          
+          <div class="input-card">
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Weekly immigration inquiries?</span>
+                <span class="input-value" id="val-inquiries">25</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-inquiries" min="5" max="80" value="25">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">What % come after hours / hit voicemail?</span>
+                <span class="input-value danger" id="val-missed">35%</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-missed" min="15" max="60" value="35">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Average case value (O-1, EB-5, H-1B, etc.)?</span>
+                <span class="input-value" id="val-case">$12,500</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-case" min="3000" max="50000" step="500" value="12500">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Consultation-to-client conversion rate?</span>
+                <span class="input-value" id="val-conversion">25%</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-conversion" min="10" max="50" value="25">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Problem Card -->
+        <div class="problem-card">
+          <div class="problem-header">
+            <div>
+              <div class="problem-label">The Problem</div>
+              <div class="problem-breakdown"><span id="breakdown-missed">38</span> missed inquiries/mo → <span id="breakdown-lost">~8</span> lost clients</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="problem-value" id="result-losing">$100,625</div>
+              <div class="problem-period">lost per month</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- AI Solution Card -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <span class="step-title">Your AI solution (always included)</span>
+          </div>
+          
+          <div class="solution-card">
+            <div class="solution-header">
+              <div>
+                <div class="solution-title">AI Voice & Chat Receptionist</div>
+                <div class="solution-desc">Answers in Spanish, Russian, Mandarin + 27 more languages, 24/7</div>
+              </div>
+              <div class="solution-badge">INCLUDED</div>
+            </div>
+            
+            <div class="solution-controls">
+              <div class="solution-control">
+                <div class="solution-control-label">AI capture rate</div>
+                <div class="solution-control-row">
+                  <input type="range" class="calc-slider" id="slider-aicapture" min="70" max="98" value="85">
+                  <span class="solution-control-value" id="val-aicapture">85%</span>
+                </div>
+              </div>
+              <div class="solution-control" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                <div class="solution-control-label">Recovered revenue</div>
+                <div class="solution-control-value" style="font-size: 1.25rem;" id="ai-recovered">$85,531</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Add-ons Accordion -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number" style="background: var(--white); color: var(--ink); border: 2px solid var(--border);">3</div>
+            <span class="step-title">Scale further with growth services (Optional)</span>
+          </div>
+          
+          <div class="addons-card">
+            <div class="addons-header" onclick="toggleAddons()">
+              <div>
+                <div class="addons-title">Google Ads, Meta Ads, SEO, Content Marketing</div>
+                <div class="addons-subtitle">Capture high-intent searches and build authority</div>
+              </div>
+              <div class="addons-preview">
+                <span class="addons-preview-value" id="addons-preview">+$56,250</span>
+                <div class="addons-chevron" id="addons-chevron">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M5 7.5L10 12.5L15 7.5" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div class="addons-content" id="addons-content">
+              <!-- Google Ads -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">Google Ads (Immigration Keywords)</span>
+                  <div class="toggle" id="toggle-google" onclick="toggleAddon('google'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-google">
+                  <div class="addon-controls">
+                    <div>
+                      <div class="addon-control-label">Monthly ad budget</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-googlespend" min="2000" max="25000" step="500" value="8000" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-googlespend">$8,000</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="addon-control-label">Est. cost per lead</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-googlecpl" min="40" max="150" step="5" value="75" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-googlecpl">$75</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Meta Ads -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">Meta Ads (Facebook/Instagram)</span>
+                  <div class="toggle" id="toggle-meta" onclick="toggleAddon('meta'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-meta">
+                  <div class="addon-controls">
+                    <div>
+                      <div class="addon-control-label">Monthly ad budget</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-metaspend" min="1000" max="15000" step="500" value="4000" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-metaspend">$4,000</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="addon-control-label">Est. cost per lead</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-metacpl" min="25" max="100" step="5" value="45" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-metacpl">$45</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- SEO -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">SEO & Google Maps Rankings</span>
+                  <div class="toggle" id="toggle-seo" onclick="toggleAddon('seo'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-seo">
+                  <div class="addon-controls" style="grid-template-columns: 1fr;">
+                    <div>
+                      <div class="addon-control-label">Expected organic leads/month</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-seoleads" min="5" max="50" value="15" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-seoleads">15</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Content Marketing -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">Content Marketing & Thought Leadership</span>
+                  <div class="toggle" id="toggle-content" onclick="toggleAddon('content'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-content">
+                  <div class="addon-controls" style="grid-template-columns: 1fr;">
+                    <div>
+                      <div class="addon-control-label">Conversion rate improvement</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-contentlift" min="10" max="35" value="20" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-contentlift">20%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Website Optimization -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">Website Optimization & CRM</span>
+                  <div class="toggle" id="toggle-website" onclick="toggleAddon('website'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-website">
+                  <div class="addon-controls" style="grid-template-columns: 1fr;">
+                    <div>
+                      <div class="addon-control-label">Close rate improvement</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-websitelift" min="10" max="40" value="15" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-websitelift">15%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Results Summary -->
+        <div class="results-summary">
+          <div class="results-header">
+            <div class="results-header-label">Your Results</div>
+            <h2 class="results-header-title">Executive Summary</h2>
+          </div>
+          
+          <div class="results-grid">
+            <div class="results-item">
+              <div class="results-item-label">Currently Losing</div>
+              <div class="results-item-value danger" id="impact-losing">$100,625</div>
+              <div class="results-item-sub">/month</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">Could Recover</div>
+              <div class="results-item-value success" id="impact-gain">$141,781</div>
+              <div class="results-item-sub">/month</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">New Clients</div>
+              <div class="results-item-value" id="impact-clients">~11</div>
+              <div class="results-item-sub">monthly</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">Your ROI</div>
+              <div class="results-item-value accent" id="impact-roi">7.1x</div>
+              <div class="results-item-sub">return</div>
+            </div>
+          </div>
+          
+          <div class="results-annual">
+            <div class="results-annual-label">Annual cost of inaction:</div>
+            <div class="results-annual-value" id="impact-yearly">$1,207,500</div>
+            <div class="results-annual-sub">in revenue walking out the door</div>
+          </div>
+          
+          <div class="results-roi">
+            <div>
+              <div class="results-roi-text">For every $1 invested</div>
+              <div style="font-size: 0.68rem; color: rgba(255,255,255,0.35);">One O-1 or EB-5 case covers months of service</div>
+            </div>
+            <div class="results-roi-value" id="roi-dollars">$7.09</div>
+          </div>
+          
+          <!-- Recommendation -->
+          <div class="recommendation-box">
+            <div class="rec-header">
+              <div class="rec-icon">💡</div>
+              <div>
+                <div class="rec-label">Personalized Recommendation</div>
+                <div class="rec-text" id="rec-text">
+                  Michael, your firm's 65-year legacy and celebrity client roster are unmatched—but with <strong style="color: #f87171;">zero Google Ads</strong> 
+                  and <strong style="color: white;">no after-hours capture</strong>, you're invisible when a tech founder needs an O-1 visa at midnight. 
+                  Fragomen and Klasko are running ads. Your legacy deserves better digital visibility.
+                </div>
+              </div>
+            </div>
+            
+            <div class="rec-action-box">
+              <div class="rec-action-label">Your priority action:</div>
+              <div class="rec-action-text" id="rec-action">
+                <strong style="color: var(--brand-gold);">Capture NYC's High-Net-Worth Immigration Market:</strong> With 3.1M foreign-born residents and $383B in economic contribution, 
+                NYC is the largest immigration market in America. Google Ads targeting "O-1 visa lawyer NYC" + AI intake in Spanish, Russian, and Mandarin 
+                could position Wildes & Weinberg as the firm for high-profile cases—matching your legacy with digital visibility.
+              </div>
+            </div>
+            
+            <div class="cta-buttons">
+              <a href="#booking-section" onclick="scrollToBooking(event)" class="btn-gold">
+                <span>📅</span>
+                <span>Book Strategy Call</span>
+              </a>
+              <a href="mailto:info@mortarmetrics.com" class="btn-outline">
+                <span>✉️</span>
+                <span>Email Us</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- Marketing Gaps Section -->
+    <section class="reveal">
+      <div class="section-header">
+        <div class="section-label">⚠️ Critical Gaps</div>
+        <h2 class="section-title">What's Costing You Clients Right Now</h2>
+        <p class="section-subtitle">We analyzed your digital presence against NYC's immigration market leaders. Here's what we found.</p>
+      </div>
+      
+      <div class="gaps-grid">
+        <div class="gap-card">
+          <div class="gap-card-icon">🔍</div>
+          <h3 class="gap-card-title">No Google Ads Running</h3>
+          <p class="gap-card-desc">
+            When someone searches "O-1 visa lawyer NYC" or "immigration attorney Manhattan" at 9 PM, 
+            Fragomen, Klasko, and smaller boutiques appear—you don't. With immigration keyword CPCs of $50-150 in NYC, 
+            competitors are capturing high-intent leads while you're invisible.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">💸</span>
+            <div>
+              <div class="gap-card-stat-value">~$25,000/mo</div>
+              <div class="gap-card-stat-label">estimated lost revenue from no Google Ads</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">📱</div>
+          <h3 class="gap-card-title">No Meta Ads Campaigns</h3>
+          <p class="gap-card-desc">
+            Facebook and Instagram reach NYC's diverse immigrant communities where they spend time. 
+            With 3.1M foreign-born residents and 75% speaking a language other than English at home, 
+            targeted campaigns in Spanish, Chinese, and Russian could capture leads your competitors miss.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">📊</span>
+            <div>
+              <div class="gap-card-stat-value">40-60% lower CPC</div>
+              <div class="gap-card-stat-label">typical for Meta vs Google Ads</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">📞</div>
+          <h3 class="gap-card-title">No 24/7 Intake System</h3>
+          <p class="gap-card-desc">
+            Immigration emergencies don't wait for business hours. RFEs arrive at midnight. Visa deadlines panic hits on weekends. 
+            Your contact page offers a phone number and email—no form, no chat, no booking system. 
+            85% of callers who hit voicemail never call back.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">⏰</span>
+            <div>
+              <div class="gap-card-stat-value">85%</div>
+              <div class="gap-card-stat-label">of voicemail callers never retry</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">🗺️</div>
+          <h3 class="gap-card-title">SEO & Map Pack Competition</h3>
+          <p class="gap-card-desc">
+            First-page Google results capture 92% of clicks. Without SEO investment, you're competing against 200+ NYC immigration firms 
+            for visibility. Google Map Pack (the local 3-pack) drives massive traffic—but you need reviews, citations, and optimization to rank.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">🎯</span>
+            <div>
+              <div class="gap-card-stat-value">200+ competitors</div>
+              <div class="gap-card-stat-label">NYC immigration attorneys online</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">📝</div>
+          <h3 class="gap-card-title">Content Authority Underutilized</h3>
+          <p class="gap-card-desc">
+            You have "The Wildes Files" podcast and two published books. Michael appears on CNN, Fox, MSNBC. 
+            But this content isn't being leveraged for SEO, social media marketing, or lead generation. 
+            Your thought leadership could dominate organic search—it's just not optimized.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">📺</span>
+            <div>
+              <div class="gap-card-stat-value">100+ media hits</div>
+              <div class="gap-card-stat-label">not being leveraged for SEO</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">🌐</div>
+          <h3 class="gap-card-title">Website Conversion Gaps</h3>
+          <p class="gap-card-desc">
+            Your website is clean but lacks conversion optimization: minimal contact form visibility, no live chat, 
+            no booking system, limited case-type landing pages. Visitors who want to hire you have limited options 
+            to connect immediately—especially after hours.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">📉</span>
+            <div>
+              <div class="gap-card-stat-value">25-40%</div>
+              <div class="gap-card-stat-label">potential conversion lift with optimization</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Competitive Analysis -->
+    <div class="competitive-section reveal">
+      <div class="section-header">
+        <div class="section-label">🔎 Competitive Analysis</div>
+        <h2 class="section-title">How You Compare to NYC Market Leaders</h2>
+        <p class="section-subtitle">We analyzed top NYC immigration firms. Here's where you stand—and where you can leapfrog them.</p>
+      </div>
+      
+      <table class="competitor-table">
+        <thead>
+          <tr>
+            <th>Marketing Channel</th>
+            <th>Wildes & Weinberg</th>
+            <th>Fragomen / Klasko</th>
+            <th>Revenue Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="competitor-highlight">
+            <td><strong>Google Ads (PPC)</strong></td>
+            <td class="check-no">✗ Not Running</td>
+            <td class="check-yes">✓ Active Campaigns</td>
+            <td>$20,000-40,000/mo lost</td>
+          </tr>
+          <tr class="competitor-highlight">
+            <td><strong>Meta Ads (FB/IG)</strong></td>
+            <td class="check-no">✗ Not Running</td>
+            <td class="check-partial">◐ Some Firms</td>
+            <td>$10,000-20,000/mo lost</td>
+          </tr>
+          <tr class="competitor-highlight">
+            <td><strong>24/7 Lead Capture</strong></td>
+            <td class="check-no">✗ Phone/Email Only</td>
+            <td class="check-yes">✓ Forms/Chat</td>
+            <td>30-40% leads lost</td>
+          </tr>
+          <tr>
+            <td><strong>SEO/Map Pack Ranking</strong></td>
+            <td class="check-partial">◐ Not Top 3</td>
+            <td class="check-yes">✓ Page 1 Rankings</td>
+            <td>Organic traffic gap</td>
+          </tr>
+          <tr>
+            <td><strong>Content Marketing</strong></td>
+            <td class="check-partial">◐ Podcast, Not Optimized</td>
+            <td class="check-yes">✓ SEO-Optimized Blogs</td>
+            <td>Authority gap</td>
+          </tr>
+          <tr>
+            <td><strong>John Lennon Legacy</strong></td>
+            <td class="check-yes">✓ Historic Case</td>
+            <td class="check-no">✗ None</td>
+            <td><strong>Unique Advantage</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Celebrity Testimonials</strong></td>
+            <td class="check-yes">✓ Lionel Richie, Boy George</td>
+            <td class="check-no">✗ None Public</td>
+            <td><strong>Major Advantage</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Multilingual Team (11+)</strong></td>
+            <td class="check-yes">✓ 11+ Languages</td>
+            <td class="check-partial">◐ Limited</td>
+            <td><strong>Competitive Advantage</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Playbook Section -->
+    <section class="playbook-section reveal">
+      <div class="section-header">
+        <div class="section-label">📋 The Playbook</div>
+        <h2 class="section-title">How to Close Each Gap (Step by Step)</h2>
+        <p class="section-subtitle">Here's exactly how to fix each gap yourself—no gatekeeping. Fair warning: marketing isn't a one-time project. It's ongoing. These steps don't stop.</p>
+      </div>
+      
+      <!-- Gap 1: Google Ads -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">01</div>
+          <div>
+            <h3 class="playbook-card-title">Get Found — Google Ads</h3>
+            <p class="playbook-card-problem">The Problem: You're invisible when prospects search "O-1 visa lawyer NYC" or "immigration attorney Manhattan."</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Create Google Ads account + conversion tracking</li>
+                <li><span class="playbook-step-num">2</span> Research immigration keywords (O-1, EB-5, H-1B, etc.)</li>
+                <li><span class="playbook-step-num">3</span> Build campaign structure (5-8 ad groups by visa type)</li>
+                <li><span class="playbook-step-num">4</span> Write ad variations + dedicated landing pages</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Review search terms, add negative keywords</li>
+                <li><span class="playbook-step-num">6</span> Create fresh ad creative (stale ads die fast)</li>
+                <li><span class="playbook-step-num">7</span> Adjust bids, pause underperformers</li>
+                <li><span class="playbook-step-num">8</span> Monitor competitor ads and adapt</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 20-30 hrs | 🔄 Ongoing: <strong>10-15 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Keyword research (1,000+ immigration terms analyzed)</li>
+              <li>Campaign architecture by visa type & intent</li>
+              <li>Ad copywriting — 5+ variations per group</li>
+              <li>Landing page design & optimization</li>
+              <li>Conversion tracking setup & monitoring</li>
+              <li>Negative keyword management (weekly)</li>
+              <li>Bid adjustments & budget optimization (weekly)</li>
+              <li>Fresh ad creative (weekly)</li>
+              <li>A/B testing headlines, CTAs, images</li>
+              <li>Competitor ad monitoring</li>
+              <li>Monthly performance reporting</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve budget and take consultations. That's it.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 2: Meta Ads -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">02</div>
+          <div>
+            <h3 class="playbook-card-title">Get Seen — Meta Ads (Facebook/Instagram)</h3>
+            <p class="playbook-card-problem">The Problem: 3.1M foreign-born NYC residents spend hours on social media daily—and you're not there.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Set up Meta Business Manager and ad account</li>
+                <li><span class="playbook-step-num">2</span> Install Meta Pixel for conversion tracking</li>
+                <li><span class="playbook-step-num">3</span> Build custom audiences (language, interests, lookalikes)</li>
+                <li><span class="playbook-step-num">4</span> Create campaign structure by objective</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Design new images/videos (ad fatigue is real)</li>
+                <li><span class="playbook-step-num">6</span> Test new hooks, angles, and audiences</li>
+                <li><span class="playbook-step-num">7</span> Monitor frequency—high frequency = audience fatigue</li>
+                <li><span class="playbook-step-num">8</span> Optimize placements and targeting</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 15-20 hrs | 🔄 Ongoing: <strong>8-12 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Meta Business Manager setup & configuration</li>
+              <li>Custom audience building (language, interest, lookalike)</li>
+              <li>Spanish, Russian, Chinese ad creative</li>
+              <li>Video content creation & editing</li>
+              <li>Campaign structure by visa type & community</li>
+              <li>Weekly creative refreshes (videos, carousels, stories)</li>
+              <li>A/B testing audiences, placements, formats</li>
+              <li>Retargeting campaigns for website visitors</li>
+              <li>Conversion tracking & lead attribution</li>
+              <li>Monthly performance reporting</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve creative and take consultations. That's it.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 3: 24/7 Intake -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">03</div>
+          <div>
+            <h3 class="playbook-card-title">Get Answered — 24/7 Lead Capture</h3>
+            <p class="playbook-card-problem">The Problem: 35%+ of inquiries come after hours. Voicemail loses 85% of them.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Research answering services (Ruby, Smith.ai, LEX)</li>
+                <li><span class="playbook-step-num">2</span> Write intake scripts for each visa type</li>
+                <li><span class="playbook-step-num">3</span> Set up call forwarding rules</li>
+                <li><span class="playbook-step-num">4</span> Configure lead delivery (email, CRM)</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Review call recordings for quality</li>
+                <li><span class="playbook-step-num">6</span> Update scripts based on caller questions</li>
+                <li><span class="playbook-step-num">7</span> Retrain when staff turns over (every 3-6 months)</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 10-15 hrs | 🔄 Ongoing: <strong>3-5 hrs/week FOREVER</strong> + retraining
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>AI receptionist setup & configuration</li>
+              <li>Custom intake scripts by visa type</li>
+              <li>Multilingual capability (Spanish, Russian, Mandarin, etc.)</li>
+              <li>Qualification logic (urgency, visa type, budget)</li>
+              <li>Calendar integration for direct booking</li>
+              <li>CRM integration for lead delivery</li>
+              <li>&lt;5 minute response time, 24/7/365</li>
+              <li>Call recording & transcription</li>
+              <li>No retraining when "staff" turns over (AI doesn't quit)</li>
+              <li>Ongoing optimization & improvements</li>
+            </ul>
+            <div class="playbook-dfy-result">You take qualified appointments. That's it.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 4: SEO -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">04</div>
+          <div>
+            <h3 class="playbook-card-title">Get Chosen — SEO & Website Optimization</h3>
+            <p class="playbook-card-problem">The Problem: You're not ranking for high-intent searches. Visitors leave without contacting you.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Set up Google Search Console</li>
+                <li><span class="playbook-step-num">2</span> Conduct keyword research by visa type</li>
+                <li><span class="playbook-step-num">3</span> Optimize title tags, meta descriptions</li>
+                <li><span class="playbook-step-num">4</span> Add contact forms, chat, booking system</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Publish new content (blogs, FAQs, guides)</li>
+                <li><span class="playbook-step-num">6</span> Build backlinks through outreach</li>
+                <li><span class="playbook-step-num">7</span> Monitor rankings and competitor content</li>
+                <li><span class="playbook-step-num">8</span> Request and respond to Google reviews</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 25-35 hrs | 🔄 Ongoing: <strong>8-12 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Technical SEO audit & fixes</li>
+              <li>Page speed & mobile optimization</li>
+              <li>Contact form & chat implementation</li>
+              <li>Trust signal placement (awards, credentials, testimonials)</li>
+              <li>Visa-specific landing pages (O-1, EB-5, H-1B, etc.)</li>
+              <li>Weekly content publishing</li>
+              <li>Google Business Profile management</li>
+              <li>Review generation & response</li>
+              <li>Backlink building & outreach</li>
+              <li>Ranking monitoring & reporting</li>
+            </ul>
+            <div class="playbook-dfy-result">Your site climbs while you practice law.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 5: Content Marketing -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">05</div>
+          <div>
+            <h3 class="playbook-card-title">Get Trusted — Content Marketing & Thought Leadership</h3>
+            <p class="playbook-card-problem">The Problem: Your podcast, books, and media appearances aren't being leveraged for lead generation.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Audit existing content (podcast, books, media)</li>
+                <li><span class="playbook-step-num">2</span> Create content calendar by topic</li>
+                <li><span class="playbook-step-num">3</span> Set up email capture on all content</li>
+                <li><span class="playbook-step-num">4</span> Build content repurposing workflow</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Publish SEO-optimized blog posts</li>
+                <li><span class="playbook-step-num">6</span> Repurpose podcast episodes to social</li>
+                <li><span class="playbook-step-num">7</span> Create videos from media appearances</li>
+                <li><span class="playbook-step-num">8</span> Distribute content across channels</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 15-20 hrs | 🔄 Ongoing: <strong>10-15 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Content audit & strategy development</li>
+              <li>SEO-optimized blog writing (2-4 posts/month)</li>
+              <li>Podcast episode repurposing to social clips</li>
+              <li>Media appearance highlight reels</li>
+              <li>LinkedIn thought leadership content</li>
+              <li>Email newsletter creation & management</li>
+              <li>Lead magnet development (guides, checklists)</li>
+              <li>Social media content calendar & posting</li>
+              <li>Content performance tracking & optimization</li>
+              <li>Quarterly content strategy reviews</li>
+            </ul>
+            <div class="playbook-dfy-result">Your expertise becomes a lead generation engine.</div>
+          </div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; color: var(--slate); font-size: 0.95rem; margin-top: 40px; max-width: 700px; margin-left: auto; margin-right: auto;">
+        You can absolutely do this yourself—many successful firms do. But be honest about the time commitment: this isn't a weekend project. 
+        It's <strong>40-60 hours/week of ongoing work, forever</strong>. That's a full-time job on top of your practice. 
+        If you'd rather spend that time serving clients, that's exactly why we exist.
+      </p>
+    </section>
+
+    <!-- CTA Section -->
+    <div class="cta-section reveal">
+      <div class="cta-content">
+        <div class="cta-urgency">
+          <span>⚠️</span>
+          <span class="cta-urgency-text">Revenue walking out the door TODAY: <span class="cta-urgency-value" id="cta-daily">$3,354</span></span>
+        </div>
+        
+        <h2 class="cta-title">Ready to Match Your Legacy with Digital Visibility?</h2>
+        
+        <p class="cta-subtitle">
+          15 minutes. That's all it takes to show you exactly how we'd help Wildes & Weinberg capture the clients you're currently losing. 
+          No pitch—just data, strategy, and a clear action plan.
+        </p>
+        
+        <!-- Why This Works -->
+        <div class="why-works">
+          <div class="why-works-col">
+            <div class="why-works-title">You Focus On</div>
+            <ul class="why-works-list">
+              <li>⚖️ Immigration cases</li>
+              <li>👥 Client relationships</li>
+              <li>📺 Media & thought leadership</li>
+              <li>🏆 Being the firm celebrities trust</li>
+            </ul>
+          </div>
+          <div class="why-works-col">
+            <div class="why-works-title">We Handle</div>
+            <ul class="why-works-list">
+              <li>🔍 Google Ads</li>
+              <li>📱 Meta Ads</li>
+              <li>📞 24/7 AI intake</li>
+              <li>🌐 SEO & website optimization</li>
+              <li>📝 Content marketing</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="cta-buttons-main">
+          <a href="#booking-section" onclick="scrollToBooking(event)" class="btn-gold">
+            <span>📅</span>
+            <span>Book Strategy Call</span>
+          </a>
+          <a href="mailto:info@mortarmetrics.com" class="btn-outline">
+            <span>✉️</span>
+            <span>info@mortarmetrics.com</span>
+          </a>
+        </div>
+        
+        <div class="cta-guarantee">
+          <span>✅</span>
+          <span>No long-term contracts. Month-to-month. Results-focused.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Section (Embedded) -->
+    <section id="booking-section" class="booking-section reveal">
+      <div class="booking-wrapper">
+        <div class="booking-header">
+          <div class="booking-label">📅 Schedule Your Call</div>
+          <h2 class="booking-title">Let's Build Your Growth Strategy</h2>
+          <p class="booking-subtitle">15 minutes. No pitch—just data, strategy, and a clear action plan for Wildes & Weinberg.</p>
+        </div>
+        <div class="booking-embed">
+          <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; min-height: 700px; border: none; overflow: hidden; border-radius: 16px;" scrolling="no" id="booking-iframe"></iframe>
+        </div>
+        <div class="booking-guarantee">
+          <span>✅</span>
+          <span>No long-term contracts. Month-to-month. Results-focused.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">MM</div>
+        <div class="footer-name">Mortar Metrics</div>
+      </div>
+      <div class="footer-contact">
+        Questions? <a href="mailto:info@mortarmetrics.com">info@mortarmetrics.com</a> · <a href="tel:+14168928796">(416) 892-8796</a>
+      </div>
+      <div class="footer-disclaimer">
+        This analysis is based on industry benchmarks, NYC Mayor's Office of Immigrant Affairs data, NY State Comptroller research, and digital marketing research. 
+        Actual results vary based on practice specifics, market conditions, and implementation. Prepared exclusively for Michael Wildes, Esq. at Wildes & Weinberg, P.C.
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll to booking section
+    function scrollToBooking(event) {
+      event.preventDefault();
+      const bookingSection = document.getElementById('booking-section');
+      if (bookingSection) {
+        bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Format currency
+    function fmt(n) {
+      return '$' + n.toLocaleString('en-US', {maximumFractionDigits: 0});
+    }
+    
+    // Toggle states
+    let addonsOpen = false;
+    let addonStates = { google: true, meta: true, seo: true, content: true, website: true };
+    
+    function toggleAddons() {
+      addonsOpen = !addonsOpen;
+      const content = document.getElementById('addons-content');
+      const chevron = document.getElementById('addons-chevron');
+      content.style.display = addonsOpen ? 'block' : 'none';
+      chevron.style.transform = addonsOpen ? 'rotate(180deg)' : '';
+    }
+    
+    function toggleAddon(addon) {
+      addonStates[addon] = !addonStates[addon];
+      const toggle = document.getElementById('toggle-' + addon);
+      const content = document.getElementById('content-' + addon);
+      
+      if (addonStates[addon]) {
+        toggle.classList.remove('off');
+        content.style.display = 'block';
+      } else {
+        toggle.classList.add('off');
+        content.style.display = 'none';
+      }
+      updateCalculator();
+    }
+
+    // Calculator logic
+    function updateCalculator() {
+      // Get base values
+      const weeklyInquiries = parseInt(document.getElementById('slider-inquiries').value);
+      const missedPct = parseInt(document.getElementById('slider-missed').value) / 100;
+      const caseValue = parseInt(document.getElementById('slider-case').value);
+      const conversionRate = parseInt(document.getElementById('slider-conversion').value) / 100;
+      const aiCapture = parseInt(document.getElementById('slider-aicapture').value) / 100;
+
+      // Update display values
+      document.getElementById('val-inquiries').textContent = weeklyInquiries;
+      document.getElementById('val-missed').textContent = Math.round(missedPct * 100) + '%';
+      document.getElementById('val-case').textContent = fmt(caseValue);
+      document.getElementById('val-conversion').textContent = Math.round(conversionRate * 100) + '%';
+      document.getElementById('val-aicapture').textContent = Math.round(aiCapture * 100) + '%';
+
+      // Calculate monthly metrics
+      const monthlyInquiries = weeklyInquiries * 4.3;
+      const missedCalls = Math.round(monthlyInquiries * missedPct);
+      const lostClients = Math.round(missedCalls * 0.85 * conversionRate);
+      const losingMonthly = lostClients * caseValue;
+
+      // AI recovery
+      const aiRecoveredCalls = Math.round(missedCalls * aiCapture);
+      const aiRecoveredClients = Math.round(aiRecoveredCalls * conversionRate);
+      const aiRevenue = aiRecoveredClients * caseValue;
+
+      // Update problem section
+      document.getElementById('breakdown-missed').textContent = missedCalls;
+      document.getElementById('breakdown-lost').textContent = '~' + lostClients;
+      document.getElementById('result-losing').textContent = fmt(losingMonthly);
+
+      // Update AI section
+      document.getElementById('ai-recovered').textContent = fmt(aiRevenue);
+
+      // Calculate add-ons revenue
+      let addonsRevenue = 0;
+      let totalNewClients = aiRecoveredClients;
+
+      // Google Ads
+      if (addonStates.google) {
+        const googleSpend = parseInt(document.getElementById('slider-googlespend').value);
+        const googleCpl = parseInt(document.getElementById('slider-googlecpl').value);
+        document.getElementById('val-googlespend').textContent = fmt(googleSpend);
+        document.getElementById('val-googlecpl').textContent = '$' + googleCpl;
+        
+        const googleLeads = Math.round(googleSpend / googleCpl);
+        const googleClients = Math.round(googleLeads * 0.5 * conversionRate);
+        addonsRevenue += googleClients * caseValue;
+        totalNewClients += googleClients;
+      }
+
+      // Meta Ads
+      if (addonStates.meta) {
+        const metaSpend = parseInt(document.getElementById('slider-metaspend').value);
+        const metaCpl = parseInt(document.getElementById('slider-metacpl').value);
+        document.getElementById('val-metaspend').textContent = fmt(metaSpend);
+        document.getElementById('val-metacpl').textContent = '$' + metaCpl;
+        
+        const metaLeads = Math.round(metaSpend / metaCpl);
+        const metaClients = Math.round(metaLeads * 0.45 * conversionRate);
+        addonsRevenue += metaClients * caseValue;
+        totalNewClients += metaClients;
+      }
+
+      // SEO
+      if (addonStates.seo) {
+        const seoLeads = parseInt(document.getElementById('slider-seoleads').value);
+        document.getElementById('val-seoleads').textContent = seoLeads;
+        
+        const seoClients = Math.round(seoLeads * 0.6 * conversionRate);
+        addonsRevenue += seoClients * caseValue;
+        totalNewClients += seoClients;
+      }
+
+      // Content Marketing
+      if (addonStates.content) {
+        const contentLift = parseInt(document.getElementById('slider-contentlift').value) / 100;
+        document.getElementById('val-contentlift').textContent = Math.round(contentLift * 100) + '%';
+        
+        const contentRevenue = Math.round(aiRevenue * contentLift);
+        addonsRevenue += contentRevenue;
+      }
+
+      // Website Optimization
+      if (addonStates.website) {
+        const websiteLift = parseInt(document.getElementById('slider-websitelift').value) / 100;
+        document.getElementById('val-websitelift').textContent = Math.round(websiteLift * 100) + '%';
+        
+        const websiteRevenue = Math.round(aiRevenue * websiteLift);
+        addonsRevenue += websiteRevenue;
+      }
+
+      // Update add-ons preview
+      document.getElementById('addons-preview').textContent = '+' + fmt(addonsRevenue);
+
+      // Total gains
+      const totalGain = aiRevenue + addonsRevenue;
+
+      // ROI calculation (estimate $20,000/month service cost for full suite)
+      const serviceCost = 20000;
+      const roi = totalGain > 0 ? (totalGain / serviceCost) : 0;
+
+      // Update impact summary
+      document.getElementById('impact-losing').textContent = fmt(losingMonthly);
+      document.getElementById('impact-gain').textContent = fmt(totalGain);
+      document.getElementById('impact-clients').textContent = '~' + totalNewClients;
+      document.getElementById('impact-roi').textContent = roi.toFixed(1) + 'x';
+      document.getElementById('impact-yearly').textContent = fmt(losingMonthly * 12);
+      document.getElementById('roi-dollars').textContent = '$' + roi.toFixed(2);
+
+      // Update hero stats
+      document.getElementById('hero-lost').textContent = fmt(losingMonthly);
+      document.getElementById('hero-recovered').textContent = fmt(totalGain);
+      document.getElementById('hero-roi').textContent = roi.toFixed(1) + 'x';
+
+      // Update quick insights
+      document.getElementById('qi-lost').textContent = fmt(losingMonthly);
+      document.getElementById('qi-recovered').textContent = fmt(totalGain);
+      document.getElementById('qi-roi').textContent = roi.toFixed(1) + 'x';
+
+      // Update CTA
+      document.getElementById('cta-daily').textContent = fmt(Math.round(losingMonthly / 30));
+
+      // Update recommendations
+      const recText = document.getElementById('rec-text');
+      const recAction = document.getElementById('rec-action');
+      
+      const annualLoss = losingMonthly * 12;
+      let urgency = 'moderate';
+      if (annualLoss > 800000) urgency = 'critical';
+      else if (annualLoss > 400000) urgency = 'high';
+      else if (annualLoss < 200000) urgency = 'low';
+
+      if (urgency === 'critical') {
+        recText.innerHTML = `Michael, your firm's 65-year legacy and celebrity client roster are unmatched—but with <strong style="color: #f87171;">${fmt(annualLoss)}/year</strong> at risk and <strong style="color: white;">zero paid advertising</strong>, you're invisible when a tech founder needs an O-1 visa at midnight.`;
+        recAction.innerHTML = `<strong style="color: var(--brand-gold);">Critical Priority:</strong> Launch Google Ads + Meta Ads + AI intake immediately. Your John Lennon legacy and celebrity testimonials are unique positioning that competitors can't match—you just need digital visibility to match your reputation.`;
+      } else if (urgency === 'high') {
+        recText.innerHTML = `You're getting <strong style="color: white;">${weeklyInquiries} weekly inquiries</strong>, but <strong style="color: #f87171;">${Math.round(missedPct*100)}%</strong> are hitting voicemail. That's <strong style="color: #f87171;">${fmt(losingMonthly)}/month</strong> in lost revenue. With the full suite—Google Ads, Meta Ads, SEO, and content marketing—you could recover <strong style="color: #4ade80;">${fmt(totalGain)}+ monthly</strong>.`;
+        recAction.innerHTML = `<strong style="color: var(--brand-gold);">High Priority:</strong> Your 65-year legacy and celebrity testimonials are competitive moats—but only if clients can find you. Start with AI intake and Google Ads, then layer in Meta and content marketing.`;
+      } else {
+        recText.innerHTML = `With <strong style="color: white;">${fmt(caseValue)} case values</strong> and a <strong style="color: white;">${Math.round(conversionRate*100)}% conversion rate</strong>, your fundamentals are solid. Adding the full digital marketing suite could add <strong style="color: #4ade80;">${fmt(totalGain)}/month</strong>—a ${roi.toFixed(1)}x return on investment.`;
+        recAction.innerHTML = `<strong style="color: var(--brand-gold);">Growth Opportunity:</strong> Your legacy positions you as the premier choice for high-profile immigration cases. Let's explore how to maximize digital visibility across all five channels.`;
+      }
+    }
+
+    // Event listeners
+    document.querySelectorAll('.calc-slider').forEach(slider => {
+      slider.addEventListener('input', updateCalculator);
+    });
+
+    // Initial calculation
+    updateCalculator();
+
+    // Scroll progress
+    function updateScrollProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scroll-indicator').style.width = scrollPercent + '%';
+    }
+    window.addEventListener('scroll', updateScrollProgress);
+
+    // Reveal on scroll
+    function revealOnScroll() {
+      document.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 80) {
+          el.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('load', revealOnScroll);
+    revealOnScroll();
+  </script>
+  <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+</body>
+</html>

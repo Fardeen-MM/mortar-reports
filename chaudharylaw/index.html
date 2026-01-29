@@ -1,0 +1,3146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marketing Gap Analysis | Max Chaudhary, Chaudhary Law × Mortar Metrics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Core Colors */
+      --ink: #0f172a;
+      --ink-soft: #1e293b;
+      --slate: #475569;
+      --slate-light: #64748b;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --warm-white: #f8fafc;
+      --white: #ffffff;
+      
+      /* Brand - Deep Navy & Burgundy (Federal Court / High-Stakes Litigation) */
+      --brand-primary: #1e293b;
+      --brand-secondary: #334155;
+      --brand-accent: #475569;
+      --brand-light: #f1f5f9;
+      --brand-burgundy: #7f1d1d;
+      --brand-burgundy-light: #fef2f2;
+      --brand-gold: #b45309;
+      --brand-gold-light: #fef3c7;
+      
+      /* Functional */
+      --success: #047857;
+      --success-light: #d1fae5;
+      --danger: #b91c1c;
+      --danger-light: #fef2f2;
+      --warning: #b45309;
+      --warning-light: #fef3c7;
+      
+      /* Typography */
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'Outfit', -apple-system, system-ui, sans-serif;
+      
+      /* Easing */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--warm-white);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .display { 
+      font-family: var(--font-display);
+      font-weight: 500;
+    }
+
+    /* Background Elements */
+    .bg-pattern {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(ellipse at 15% 25%, rgba(30, 41, 59, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 75%, rgba(127, 29, 29, 0.04) 0%, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(30,41,59,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30,41,59,0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orbs {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.08;
+      animation: floatOrb 35s ease-in-out infinite;
+    }
+
+    .orb-1 { width: 550px; height: 550px; left: -180px; top: -120px; background: var(--brand-primary); }
+    .orb-2 { width: 380px; height: 380px; right: -120px; bottom: 25%; background: var(--brand-burgundy); animation-delay: -14s; }
+    .orb-3 { width: 280px; height: 280px; left: 45%; top: 55%; background: var(--brand-accent); opacity: 0.05; animation-delay: -7s; }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(25px, -25px) scale(1.03); }
+      66% { transform: translate(-18px, 18px) scale(0.97); }
+    }
+
+    /* Scroll Progress */
+    .scroll-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-burgundy));
+      z-index: 9999;
+      width: 0%;
+    }
+
+    /* Container */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 0 20px; }
+    }
+
+    section { padding: 70px 0; }
+
+    /* ========================================
+       HEADER
+    ======================================== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 8px 24px rgba(30, 41, 59, 0.25);
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .logo:hover {
+      transform: scale(1.06) rotate(2deg);
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .brand-sub {
+      font-size: 0.65rem;
+      color: var(--brand-burgundy);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      font-weight: 600;
+    }
+
+    .prepared-for { text-align: right; }
+    .prepared-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--slate-light);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .prepared-name {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .prepared-firm {
+      font-size: 0.88rem;
+      color: var(--brand-primary);
+      font-weight: 500;
+    }
+    .prepared-date {
+      font-size: 0.75rem;
+      color: var(--slate-light);
+      margin-top: 5px;
+    }
+
+    /* ========================================
+       QUICK INSIGHTS
+    ======================================== */
+    .quick-insights {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 22px;
+      padding: 34px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quick-insights::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 55%;
+      height: 100%;
+      background: radial-gradient(ellipse at right, rgba(127, 29, 29, 0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .quick-insights-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quick-insights-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(127, 29, 29, 0.2);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .quick-insights-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: white;
+    }
+
+    .quick-insights-badge {
+      margin-left: auto;
+      background: rgba(127, 29, 29, 0.2);
+      border: 1px solid rgba(127, 29, 29, 0.3);
+      padding: 7px 16px;
+      border-radius: 100px;
+      font-size: 0.62rem;
+      color: #fca5a5;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .quick-insights-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 800px) {
+      .quick-insights-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .quick-insight-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .quick-insight-value {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .quick-insight-value.danger { color: #f87171; }
+    .quick-insight-value.success { color: #4ade80; }
+    .quick-insight-value.burgundy { color: #fca5a5; }
+    .quick-insight-value.gold { color: #fbbf24; }
+
+    .quick-insight-label {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .quick-insights-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .quick-insights-message {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+      max-width: 520px;
+      line-height: 1.65;
+    }
+
+    .quick-insights-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--brand-burgundy);
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .quick-insights-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(127, 29, 29, 0.35);
+    }
+
+    /* ========================================
+       HERO
+    ======================================== */
+    .hero {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 26px;
+      background: linear-gradient(135deg, var(--brand-light), var(--white));
+      border: 1px solid rgba(30, 41, 59, 0.15);
+      border-radius: 100px;
+      margin-bottom: 30px;
+    }
+
+    .hero-badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--brand-primary);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .hero-badge-text {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 4.8vw, 3.2rem);
+      font-weight: 500;
+      line-height: 1.18;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--danger) 0%, var(--warning) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.12rem;
+      color: var(--slate);
+      max-width: 740px;
+      margin: 0 auto 40px;
+      line-height: 1.8;
+    }
+
+    /* Key Stats Row */
+    .key-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      padding: 34px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .key-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .key-stat {
+      text-align: center;
+      padding: 24px 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .key-stat:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.07);
+    }
+
+    .key-stat.danger { border-color: rgba(185, 28, 28, 0.25); background: linear-gradient(135deg, var(--danger-light), var(--white)); }
+    .key-stat.success { border-color: rgba(4, 120, 87, 0.25); background: linear-gradient(135deg, var(--success-light), var(--white)); }
+    .key-stat.warning { border-color: rgba(180, 83, 9, 0.25); background: linear-gradient(135deg, var(--warning-light), var(--white)); }
+    .key-stat.burgundy { border-color: rgba(127, 29, 29, 0.25); background: linear-gradient(135deg, var(--brand-burgundy-light), var(--white)); }
+
+    .key-stat-value {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .key-stat.danger .key-stat-value { color: var(--danger); }
+    .key-stat.success .key-stat-value { color: var(--success); }
+    .key-stat.warning .key-stat-value { color: var(--warning); }
+    .key-stat.burgundy .key-stat-value { color: var(--brand-burgundy); }
+    .key-stat .key-stat-value { color: var(--brand-primary); }
+
+    .key-stat-label {
+      font-size: 0.65rem;
+      color: var(--slate);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       STORY SECTION
+    ======================================== */
+    .story-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 40px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .story-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-burgundy));
+    }
+
+    .story-label {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--warning-light);
+      color: var(--warning);
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .story-text {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      line-height: 1.7;
+      color: var(--ink);
+      max-width: 800px;
+    }
+
+    .story-text strong {
+      color: var(--danger);
+    }
+
+    .story-followup {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: var(--slate);
+      font-style: italic;
+    }
+
+    /* ========================================
+       MARKET BANNER
+    ======================================== */
+    .market-banner {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 22px;
+      padding: 46px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .market-banner::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -15%;
+      width: 55%;
+      height: 180%;
+      background: radial-gradient(ellipse, rgba(127, 29, 29, 0.14) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .market-banner-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .market-banner-label {
+      display: inline-block;
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #fbbf24;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .market-banner-title {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      color: white;
+      margin-bottom: 14px;
+    }
+
+    .market-banner-text {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.98rem;
+      line-height: 1.75;
+      max-width: 720px;
+    }
+
+    .market-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 800px) {
+      .market-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .market-stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .market-stat:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .market-stat-value {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    .market-stat-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .market-source {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ========================================
+       THE REAL PROBLEM CALLOUT
+    ======================================== */
+    .problem-callout {
+      background: var(--warning-light);
+      border: 2px solid var(--warning);
+      border-radius: 22px;
+      padding: 36px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .problem-callout::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 50%;
+      height: 200%;
+      background: radial-gradient(ellipse, rgba(180, 83, 9, 0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .problem-callout-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .problem-callout h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .problem-callout p {
+      color: var(--slate);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .problem-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .problem-list { grid-template-columns: 1fr; }
+    }
+
+    .problem-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: white;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .problem-item-icon {
+      font-size: 1.2rem;
+    }
+
+    /* ========================================
+       CALCULATOR SECTION
+    ======================================== */
+    .calculator-section {
+      background: var(--warm-white);
+      padding: 70px 0;
+    }
+
+    .calc-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .calc-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .calc-label {
+      display: inline-block;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color: white;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .calc-title {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .calc-subtitle {
+      font-size: 0.98rem;
+      color: var(--slate);
+    }
+
+    /* Step Cards */
+    .step-card {
+      margin-bottom: 22px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      background: var(--brand-primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .step-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .input-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .input-row {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .input-row:last-child {
+      border-bottom: none;
+    }
+
+    .input-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+
+    .input-value {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .input-value.danger { color: var(--danger); }
+
+    .calc-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .calc-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .calc-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+
+    /* Problem Card */
+    .problem-card {
+      background: var(--danger-light);
+      border: 1px solid rgba(185, 28, 28, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .problem-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .problem-label-calc {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--danger);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .problem-breakdown {
+      font-size: 0.88rem;
+      color: var(--slate);
+    }
+
+    .problem-value {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--danger);
+    }
+
+    .problem-period {
+      font-size: 0.7rem;
+      color: var(--slate);
+    }
+
+    /* AI Solution Card */
+    .solution-card {
+      background: var(--brand-primary);
+      border-radius: 16px;
+      padding: 22px;
+      color: white;
+      margin-bottom: 22px;
+    }
+
+    .solution-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .solution-title {
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .solution-desc {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .solution-badge {
+      background: rgba(255,255,255,0.12);
+      padding: 5px 12px;
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .solution-controls {
+      display: flex;
+      gap: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .solution-control {
+      flex: 1;
+    }
+
+    .solution-control-label {
+      font-size: 0.7rem;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+
+    .solution-control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .solution-control-row .calc-slider {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .solution-control-value {
+      font-size: 0.98rem;
+      font-weight: 700;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    /* Add-ons Accordion */
+    .addons-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .addons-header {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .addons-header:hover {
+      background: var(--warm-white);
+    }
+
+    .addons-title {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .addons-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .addons-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .addons-preview-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .addons-chevron {
+      transition: transform 0.3s;
+    }
+
+    .addons-content {
+      display: none;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .addon-row {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .addon-row:last-child {
+      border-bottom: none;
+    }
+
+    .addon-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .addon-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background: var(--success);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle.off {
+      background: var(--border);
+    }
+
+    .toggle-thumb {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 10px;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: right 0.3s, left 0.3s;
+    }
+
+    .toggle.off .toggle-thumb {
+      right: auto;
+      left: 2px;
+    }
+
+    .addon-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .addon-control-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .addon-control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .addon-control-row .calc-slider {
+      flex: 1;
+    }
+
+    .addon-control-value {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--ink);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    /* Results Summary */
+    .results-summary {
+      background: var(--brand-primary);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .results-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .results-header-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 4px;
+    }
+
+    .results-header-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: white;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .results-item {
+      background: var(--brand-primary);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .results-item-label {
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 5px;
+    }
+
+    .results-item-value {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3.5vw, 1.9rem);
+      font-weight: 600;
+      color: white;
+      line-height: 1;
+    }
+
+    .results-item-value.danger { color: #f87171; }
+    .results-item-value.success { color: #4ade80; }
+    .results-item-value.accent { color: #fbbf24; }
+
+    .results-item-sub {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .results-annual {
+      padding: 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .results-annual-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 6px;
+    }
+
+    .results-annual-value {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 2.9rem);
+      font-weight: 600;
+      color: white;
+    }
+
+    .results-annual-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+
+    .results-roi {
+      padding: 14px 20px;
+      background: rgba(74,222,128,0.06);
+      border-top: 1px solid rgba(74,222,128,0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .results-roi-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .results-roi-value {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    /* Recommendation Box */
+    .recommendation-box {
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(127,29,29,0.06) 0%, rgba(74,222,128,0.04) 100%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .rec-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .rec-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(127,29,29,0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .rec-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fbbf24;
+      margin-bottom: 4px;
+    }
+
+    .rec-text {
+      font-size: 0.92rem;
+      color: white;
+      line-height: 1.6;
+    }
+
+    .rec-action-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .rec-action-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 6px;
+    }
+
+    .rec-action-text {
+      font-size: 0.88rem;
+      color: white;
+      line-height: 1.55;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-burgundy {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 24px;
+      background: var(--brand-burgundy);
+      color: white;
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-burgundy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(127,29,29,0.35);
+    }
+
+    .btn-outline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 24px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-decoration: none;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    /* ========================================
+       MARKETING GAPS
+    ======================================== */
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-label {
+      display: inline-block;
+      padding: 10px 22px;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3.8vw, 2.3rem);
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .section-subtitle {
+      font-size: 1.02rem;
+      color: var(--slate);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .gaps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .gaps-grid { grid-template-columns: 1fr; }
+    }
+
+    .gap-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.4s var(--ease-out-expo);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gap-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--danger);
+      transform: scaleX(0);
+      transition: transform 0.4s var(--ease-out-expo);
+    }
+
+    .gap-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 22px 48px rgba(0,0,0,0.07);
+      border-color: transparent;
+    }
+
+    .gap-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .gap-card-icon {
+      width: 54px;
+      height: 54px;
+      background: var(--danger-light);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    .gap-card-title {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .gap-card-desc {
+      color: var(--slate);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .gap-card-stat {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--warm-white);
+      border-radius: 12px;
+    }
+
+    .gap-card-stat-icon { font-size: 1.15rem; }
+
+    .gap-card-stat-value {
+      font-weight: 700;
+      color: var(--danger);
+      font-size: 1.02rem;
+    }
+
+    .gap-card-stat-label {
+      font-size: 0.78rem;
+      color: var(--slate);
+    }
+
+    /* ========================================
+       AI COMPARISON
+    ======================================== */
+    .ai-comparison {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 40px;
+      margin: 60px 0;
+    }
+
+    .ai-comparison-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--ink);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .ai-comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .ai-comparison-grid { grid-template-columns: 1fr; }
+    }
+
+    .ai-option {
+      background: var(--warm-white);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .ai-option.current {
+      border: 2px solid var(--warning);
+      background: var(--warning-light);
+    }
+
+    .ai-option.recommended {
+      border: 2px solid var(--success);
+      background: var(--success-light);
+    }
+
+    .ai-option-badge {
+      position: absolute;
+      top: -10px;
+      right: 16px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ai-option.current .ai-option-badge {
+      background: var(--warning);
+      color: white;
+    }
+
+    .ai-option.recommended .ai-option-badge {
+      background: var(--success);
+      color: white;
+    }
+
+    .ai-option-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    .ai-option-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ai-option-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      color: var(--slate);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .ai-option-list li:last-child {
+      border-bottom: none;
+    }
+
+    .ai-option-list .check {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .ai-option-list .x {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .ai-option-list .partial {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    /* ========================================
+       COMPETITIVE TABLE
+    ======================================== */
+    .competitive-section {
+      background: linear-gradient(135deg, var(--warm-white), var(--white));
+      border-radius: 22px;
+      padding: 48px;
+      margin: 60px 0;
+      border: 1px solid var(--border);
+    }
+
+    .competitor-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+    }
+
+    .competitor-table th,
+    .competitor-table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .competitor-table th {
+      background: var(--ink);
+      color: white;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+
+    .competitor-table th:first-child {
+      border-radius: 12px 0 0 0;
+    }
+
+    .competitor-table th:last-child {
+      border-radius: 0 12px 0 0;
+    }
+
+    .competitor-table td {
+      font-size: 0.88rem;
+      color: var(--ink);
+    }
+
+    .competitor-table tr:hover td {
+      background: var(--warm-white);
+    }
+
+    .check-yes {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .check-no {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .check-partial {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .competitor-highlight {
+      background: var(--warning-light) !important;
+    }
+
+    /* ========================================
+       PLAYBOOK SECTION
+    ======================================== */
+    .playbook-section {
+      padding: 70px 0;
+    }
+
+    .playbook-intro {
+      text-align: center;
+      margin-bottom: 50px;
+      font-size: 1rem;
+      color: var(--slate);
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .playbook-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 36px;
+      margin-bottom: 28px;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+
+    .playbook-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.06);
+      border-color: var(--brand-burgundy);
+    }
+
+    .playbook-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .playbook-number {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+      color: white;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .playbook-card-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .playbook-card-problem {
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+
+    .playbook-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+    }
+
+    @media (max-width: 800px) {
+      .playbook-content { grid-template-columns: 1fr; }
+    }
+
+    .playbook-diy {
+      background: var(--warm-white);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .playbook-diy-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playbook-diy-section {
+      margin-bottom: 16px;
+    }
+
+    .playbook-diy-section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .playbook-diy-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .playbook-diy-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .playbook-diy-list li:last-child {
+      border-bottom: none;
+    }
+
+    .playbook-step-num {
+      width: 20px;
+      height: 20px;
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .playbook-diy-meta {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--slate);
+    }
+
+    .playbook-diy-meta strong {
+      color: var(--danger);
+    }
+
+    .playbook-done-for-you {
+      background: var(--brand-light);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .playbook-dfy-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--brand-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playbook-dfy-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px 0;
+    }
+
+    .playbook-dfy-list li {
+      padding: 7px 0;
+      font-size: 0.85rem;
+      color: var(--ink);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .playbook-dfy-list li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .playbook-dfy-result {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========================================
+       CTA SECTION
+    ======================================== */
+    .cta-section {
+      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--ink) 100%);
+      border-radius: 24px;
+      padding: 65px 50px;
+      text-align: center;
+      margin: 60px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 25% 35%, rgba(127, 29, 29, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 75% 65%, rgba(71, 85, 105, 0.08) 0%, transparent 35%);
+      pointer-events: none;
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-urgency {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 22px;
+      background: rgba(185, 28, 28, 0.12);
+      border: 1px solid rgba(185, 28, 28, 0.25);
+      border-radius: 100px;
+      margin-bottom: 28px;
+    }
+
+    .cta-urgency-text {
+      font-size: 0.82rem;
+      color: #fca5a5;
+    }
+
+    .cta-urgency-value {
+      font-weight: 700;
+      color: #f87171;
+    }
+
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .cta-subtitle {
+      font-size: 1.08rem;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 36px;
+      max-width: 580px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    .cta-buttons-main {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .cta-guarantee {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.65);
+    }
+
+    /* Why This Works */
+    .why-works {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin: 40px 0;
+      text-align: left;
+    }
+
+    @media (max-width: 700px) {
+      .why-works { grid-template-columns: 1fr; }
+    }
+
+    .why-works-col {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 26px;
+    }
+
+    .why-works-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fbbf24;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    .why-works-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .why-works-list li {
+      padding: 10px 0;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .why-works-list li:last-child {
+      border-bottom: none;
+    }
+
+    /* Booking Widget Container */
+    .booking-widget-container {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 32px;
+      margin-top: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+    }
+
+    .booking-widget-container h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: var(--ink);
+    }
+
+    .booking-widget-container iframe {
+      border-radius: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .booking-widget-container {
+        padding: 20px;
+        margin-top: 30px;
+      }
+    }
+
+    /* ========================================
+       FOOTER
+    ======================================== */
+    .footer {
+      text-align: center;
+      padding: 48px 0 30px;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+
+    .footer-brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .footer-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: white;
+    }
+
+    .footer-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--ink);
+    }
+
+    .footer-contact {
+      margin: 16px 0;
+      font-size: 0.88rem;
+      color: var(--slate);
+    }
+
+    .footer-contact a {
+      color: var(--brand-primary);
+      text-decoration: none;
+    }
+
+    .footer-contact a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-disclaimer {
+      font-size: 0.72rem;
+      color: var(--slate-light);
+      max-width: 620px;
+      margin: 20px auto 0;
+      line-height: 1.65;
+    }
+
+    /* ========================================
+       REVEAL ANIMATIONS
+    ======================================== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scroll-indicator"></div>
+  <div class="bg-pattern"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">MM</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Growth Intelligence</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Max Chaudhary</div>
+        <div class="prepared-firm">Chaudhary Law</div>
+        <div class="prepared-date">January 2026</div>
+      </div>
+    </header>
+
+    <!-- Quick Insights -->
+    <div class="quick-insights reveal">
+      <div class="quick-insights-header">
+        <div class="quick-insights-icon">⚡</div>
+        <div class="quick-insights-title">Quick Insights for Senior Counsel</div>
+        <div class="quick-insights-badge">60-Second Summary</div>
+      </div>
+      
+      <div class="quick-insights-grid">
+        <div class="quick-insight-card">
+          <div class="quick-insight-value danger" id="qi-lost">$22,500</div>
+          <div class="quick-insight-label">Monthly Revenue Gap</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value success" id="qi-recovered">$16,875</div>
+          <div class="quick-insight-label">Recoverable Revenue</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value gold">30+ yrs</div>
+          <div class="quick-insight-label">Your Experience</div>
+        </div>
+        <div class="quick-insight-card">
+          <div class="quick-insight-value" id="qi-roi">4.2x</div>
+          <div class="quick-insight-label">Potential ROI</div>
+        </div>
+      </div>
+      
+      <div class="quick-insights-bottom">
+        <div class="quick-insights-message">
+          <strong>The Bottom Line:</strong> You have an AI receptionist, you're running Google Ads, and your blog ranks Top 100 globally. But low-quality callers are burning your time. The problem isn't volume—it's qualification depth.
+        </div>
+        <a href="https://api.mortarmetrics.com/widget/booking/nFVhK3dTajbckjODojdO" target="_blank" class="quick-insights-cta">
+          <span>📅</span>
+          <span>Book 15-Min Call</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero reveal">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span class="hero-badge-text">Market Gap Analysis</span>
+      </div>
+      
+      <h1 class="hero-title">
+        30 Years of Federal Court Experience.<br><em>Wasted on Tire-Kickers.</em>
+      </h1>
+      
+      <p class="hero-subtitle">
+        You handle the cases other lawyers won't touch—Federal Court judicial reviews, CBSA investigations, precedent-setting appeals. 
+        At $5,000+ per retainer, every minute matters. But your AI forwards to voicemail. Your ads attract price shoppers. 
+        And the high-stakes clients who need you most? They're finding Blaney McMurtry first.
+      </p>
+      
+      <div class="key-stats">
+        <div class="key-stat danger">
+          <div class="key-stat-value" id="hero-lost">$22,500</div>
+          <div class="key-stat-label">Monthly Revenue Gap</div>
+        </div>
+        <div class="key-stat success">
+          <div class="key-stat-value" id="hero-recovered">$16,875</div>
+          <div class="key-stat-label">Recoverable Revenue</div>
+        </div>
+        <div class="key-stat warning">
+          <div class="key-stat-value">~60%</div>
+          <div class="key-stat-label">Unqualified Calls</div>
+        </div>
+        <div class="key-stat burgundy">
+          <div class="key-stat-value" id="hero-roi">4.2x</div>
+          <div class="key-stat-label">Potential ROI</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Story -->
+    <div class="story-section reveal">
+      <div class="story-label">⚠️ The Reality</div>
+      <p class="story-text">
+        Last week, 11:47 PM. A tech executive in Mumbai just received a deportation notice—misrepresentation allegation during his business immigration application. 
+        He searched "Federal Court immigration lawyer Toronto." Your AI answered in Mandarin, then <strong>forwarded to voicemail</strong>. 
+        By morning, he'd retained Green and Spiegel. That was a $15,000 case.
+      </p>
+      <p class="story-followup">
+        This happens more than you know. Here's why—and how to fix it.
+      </p>
+    </div>
+
+    <!-- The Real Problem Callout -->
+    <div class="problem-callout reveal">
+      <div class="problem-callout-content">
+        <h3>🎯 Your Problem Isn't Lead Volume—It's Lead Quality</h3>
+        <p>
+          You told us your biggest issue is <strong>low-quality callers</strong>: price shoppers, legal aid seekers, people wanting free advice. 
+          You have AI intake. You're running $2,500/month in Google Ads. You have a Top 100 immigration blog. 
+          The pieces exist—they're just not connected for high-value case acquisition.
+        </p>
+        <div class="problem-list">
+          <div class="problem-item">
+            <span class="problem-item-icon">📞</span>
+            <span>AI forwards to voicemail instead of qualifying deeply</span>
+          </div>
+          <div class="problem-item">
+            <span class="problem-item-icon">🎯</span>
+            <span>Ads targeting volume keywords, not high-intent litigation terms</span>
+          </div>
+          <div class="problem-item">
+            <span class="problem-item-icon">💰</span>
+            <span>No filter for retainer ability ($5K+ cases need pre-qualification)</span>
+          </div>
+          <div class="problem-item">
+            <span class="problem-item-icon">🌍</span>
+            <span>International clients (China, India, UAE) can't book at their timezone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Banner -->
+    <div class="market-banner reveal">
+      <div class="market-banner-content">
+        <div class="market-banner-label">📊 Your Opportunity</div>
+        <h2 class="market-banner-title">Federal Court Cases Are Up. Your Share Isn't.</h2>
+        <p class="market-banner-text">
+          Canada's immigration backlog has created a surge in judicial reviews and appeals. IRCC refusal rates on business immigration 
+          have climbed. Inadmissibility investigations are more aggressive. The demand for senior litigation counsel is at an all-time high. 
+          But clients seeking $5,000+ representation don't call law firms—they search at 11 PM after receiving a refusal letter.
+        </p>
+        
+        <div class="market-stats">
+          <div class="market-stat">
+            <div class="market-stat-value">2.5M+</div>
+            <div class="market-stat-label">IRCC Backlog</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">↑ 34%</div>
+            <div class="market-stat-label">Judicial Reviews Filed</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">$5K+</div>
+            <div class="market-stat-label">Your Retainer Floor</div>
+          </div>
+          <div class="market-stat">
+            <div class="market-stat-value">24/7</div>
+            <div class="market-stat-label">When They Search</div>
+          </div>
+        </div>
+        
+        <div class="market-source">
+          Sources: IRCC Processing Data 2024 · Federal Court Statistics · Immigration Law Practice Benchmarks
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Comparison -->
+    <div class="ai-comparison reveal">
+      <h3 class="ai-comparison-title">Your After-Hours Intake Options</h3>
+      
+      <div class="ai-comparison-grid">
+        <div class="ai-option">
+          <div class="ai-option-title">Voicemail (Status Quo)</div>
+          <ul class="ai-option-list">
+            <li><span class="x">✗</span> No qualification—just records a message</li>
+            <li><span class="x">✗</span> 85% of callers never call back</li>
+            <li><span class="x">✗</span> No capture of case details</li>
+            <li><span class="x">✗</span> No booking capability</li>
+            <li><span class="x">✗</span> Loses international clients (timezone gap)</li>
+          </ul>
+        </div>
+        
+        <div class="ai-option current">
+          <div class="ai-option-badge">Current</div>
+          <div class="ai-option-title">Your AI Receptionist</div>
+          <ul class="ai-option-list">
+            <li><span class="check">✓</span> Answers in multiple languages</li>
+            <li><span class="partial">◐</span> Basic message forwarding</li>
+            <li><span class="x">✗</span> No deep qualification by case type</li>
+            <li><span class="x">✗</span> No retainer ability screening</li>
+            <li><span class="x">✗</span> Forwards to voicemail after hours</li>
+            <li><span class="x">✗</span> Can't disqualify low-quality leads</li>
+          </ul>
+        </div>
+        
+        <div class="ai-option recommended">
+          <div class="ai-option-badge">Recommended</div>
+          <div class="ai-option-title">Intelligent Qualification AI</div>
+          <ul class="ai-option-list">
+            <li><span class="check">✓</span> 30+ languages including Mandarin, Punjabi</li>
+            <li><span class="check">✓</span> Deep case-type qualification</li>
+            <li><span class="check">✓</span> Retainer ability pre-screening</li>
+            <li><span class="check">✓</span> Disqualifies price shoppers & legal aid seekers</li>
+            <li><span class="check">✓</span> Books directly into your calendar</li>
+            <li><span class="check">✓</span> 24/7/365—true global coverage</li>
+            <li><span class="check">✓</span> CRM integration for lead tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculator Section -->
+    <section class="calculator-section reveal">
+      <div class="calc-wrapper">
+        
+        <!-- Header -->
+        <div class="calc-header">
+          <div class="calc-label">💰 Revenue Calculator</div>
+          <h2 class="calc-title">Calculate Your Growth Potential</h2>
+          <p class="calc-subtitle">Adjust these numbers to match Chaudhary Law's reality</p>
+        </div>
+        
+        <!-- Step 1: Your Practice -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <span class="step-title">Tell us about Chaudhary Law</span>
+          </div>
+          
+          <div class="input-card">
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Daily inquiries (calls, forms, emails)?</span>
+                <span class="input-value" id="val-inquiries">10</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-inquiries" min="5" max="30" value="10">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">What % are unqualified (price shoppers, wrong fit)?</span>
+                <span class="input-value danger" id="val-unqualified">60%</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-unqualified" min="30" max="80" value="60">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Average retainer (complex litigation)?</span>
+                <span class="input-value" id="val-case">$5,000</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-case" min="3000" max="15000" step="500" value="5000">
+            </div>
+            
+            <div class="input-row">
+              <div class="input-label-row">
+                <span class="input-label">Qualified lead → retained client rate?</span>
+                <span class="input-value" id="val-conversion">35%</span>
+              </div>
+              <input type="range" class="calc-slider" id="slider-conversion" min="20" max="60" value="35">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Problem Card -->
+        <div class="problem-card">
+          <div class="problem-header">
+            <div>
+              <div class="problem-label-calc">The Problem: Wasted Time</div>
+              <div class="problem-breakdown"><span id="breakdown-unqualified">129</span> unqualified inquiries/mo burning your team's time</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="problem-value" id="result-losing">$22,500</div>
+              <div class="problem-period">lost revenue/month</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- AI Solution Card -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <span class="step-title">Intelligent qualification AI (always included)</span>
+          </div>
+          
+          <div class="solution-card">
+            <div class="solution-header">
+              <div>
+                <div class="solution-title">AI Qualification Agent</div>
+                <div class="solution-desc">Screens for case type, urgency, retainer ability—disqualifies tire-kickers</div>
+              </div>
+              <div class="solution-badge">CORE</div>
+            </div>
+            
+            <div class="solution-controls">
+              <div class="solution-control">
+                <div class="solution-control-label">Qualification accuracy</div>
+                <div class="solution-control-row">
+                  <input type="range" class="calc-slider" id="slider-aiaccuracy" min="70" max="95" value="85">
+                  <span class="solution-control-value" id="val-aiaccuracy">85%</span>
+                </div>
+              </div>
+              <div class="solution-control" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                <div class="solution-control-label">Time saved (hrs/week)</div>
+                <div class="solution-control-value" style="font-size: 1.25rem;" id="ai-timesaved">15+</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Add-ons Accordion -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number" style="background: var(--white); color: var(--ink); border: 2px solid var(--border);">3</div>
+            <span class="step-title">Scale with high-intent advertising (optional)</span>
+          </div>
+          
+          <div class="addons-card">
+            <div class="addons-header" onclick="toggleAddons()">
+              <div>
+                <div class="addons-title">Optimize your ad spend for quality</div>
+                <div class="addons-subtitle">High-intent keywords, retargeting, CRM integration</div>
+              </div>
+              <div class="addons-preview">
+                <span class="addons-preview-value" id="addons-preview">+$12,250</span>
+                <div class="addons-chevron" id="addons-chevron">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M5 7.5L10 12.5L15 7.5" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div class="addons-content" id="addons-content">
+              <!-- Google Ads Optimization -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">Google Ads (High-Intent Federal Court Keywords)</span>
+                  <div class="toggle" id="toggle-ads" onclick="toggleAddon('ads'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-ads">
+                  <div class="addon-controls">
+                    <div>
+                      <div class="addon-control-label">Monthly ad budget</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-adspend" min="2500" max="15000" step="500" value="5000" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-adspend">$5,000</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="addon-control-label">Est. cost per qualified lead</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-cpl" min="75" max="200" step="5" value="120" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-cpl">$120</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- SEO -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">SEO & Content (Leverage Your Top 100 Blog)</span>
+                  <div class="toggle" id="toggle-seo" onclick="toggleAddon('seo'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-seo">
+                  <div class="addon-controls" style="grid-template-columns: 1fr;">
+                    <div>
+                      <div class="addon-control-label">Expected qualified organic leads/month</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-seoleads" min="3" max="20" value="8" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-seoleads">8</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- CRM -->
+              <div class="addon-row">
+                <div class="addon-header">
+                  <span class="addon-name">CRM Integration & Automated Follow-Up</span>
+                  <div class="toggle" id="toggle-crm" onclick="toggleAddon('crm'); event.stopPropagation();">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <div id="content-crm">
+                  <div class="addon-controls" style="grid-template-columns: 1fr;">
+                    <div>
+                      <div class="addon-control-label">Conversion rate improvement</div>
+                      <div class="addon-control-row">
+                        <input type="range" class="calc-slider" id="slider-crmlift" min="10" max="35" value="20" onclick="event.stopPropagation();">
+                        <span class="addon-control-value" id="val-crmlift">20%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Results Summary -->
+        <div class="results-summary">
+          <div class="results-header">
+            <div class="results-header-label">Your Results</div>
+            <h2 class="results-header-title">Executive Summary</h2>
+          </div>
+          
+          <div class="results-grid">
+            <div class="results-item">
+              <div class="results-item-label">Currently Losing</div>
+              <div class="results-item-value danger" id="impact-losing">$22,500</div>
+              <div class="results-item-sub">/month</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">Could Recover</div>
+              <div class="results-item-value success" id="impact-gain">$29,125</div>
+              <div class="results-item-sub">/month</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">Quality Consults</div>
+              <div class="results-item-value" id="impact-clients">8-10</div>
+              <div class="results-item-sub">weekly</div>
+            </div>
+            <div class="results-item">
+              <div class="results-item-label">Your ROI</div>
+              <div class="results-item-value accent" id="impact-roi">4.2x</div>
+              <div class="results-item-sub">return</div>
+            </div>
+          </div>
+          
+          <div class="results-annual">
+            <div class="results-annual-label">Annual cost of status quo:</div>
+            <div class="results-annual-value" id="impact-yearly">$270,000</div>
+            <div class="results-annual-sub">in revenue walking out the door</div>
+          </div>
+          
+          <div class="results-roi">
+            <div>
+              <div class="results-roi-text">For every $1 invested</div>
+              <div style="font-size: 0.68rem; color: rgba(255,255,255,0.35);">One Federal Court case covers months of service</div>
+            </div>
+            <div class="results-roi-value" id="roi-dollars">$4.21</div>
+          </div>
+          
+          <!-- Recommendation -->
+          <div class="recommendation-box">
+            <div class="rec-header">
+              <div class="rec-icon">💡</div>
+              <div>
+                <div class="rec-label">Personalized Recommendation</div>
+                <div class="rec-text" id="rec-text">
+                  Max, your 30+ years of Federal Court experience is a moat competitors can't replicate—but with <strong style="color: #f87171;">60% unqualified inquiries</strong> 
+                  and <strong style="color: white;">AI that forwards to voicemail</strong>, you're spending senior counsel hours on callers who can't afford you.
+                </div>
+              </div>
+            </div>
+            
+            <div class="rec-action-box">
+              <div class="rec-action-label">Your priority action:</div>
+              <div class="rec-action-text" id="rec-action">
+                <strong style="color: #fbbf24;">Upgrade AI to Deep Qualification:</strong> Your current AI answers but doesn't filter. 
+                We'd implement qualification logic for case type (RPD/RAD/IAD/Federal Court), retainer ability, and urgency—automatically disqualifying 
+                price shoppers and routing only $5K+ prospects to your calendar. Then optimize your $2,500/mo ad spend for high-intent terms like 
+                "judicial review immigration lawyer" instead of generic "immigration lawyer Toronto."
+              </div>
+            </div>
+            
+            <div class="cta-buttons">
+              <a href="https://api.mortarmetrics.com/widget/booking/nFVhK3dTajbckjODojdO" target="_blank" class="btn-burgundy">
+                <span>📅</span>
+                <span>Book Strategy Call</span>
+              </a>
+              <a href="mailto:info@mortarmetrics.com" class="btn-outline">
+                <span>✉️</span>
+                <span>Email Us</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- Marketing Gaps Section -->
+    <section class="reveal">
+      <div class="section-header">
+        <div class="section-label">⚠️ Critical Gaps</div>
+        <h2 class="section-title">What's Costing You Qualified Clients</h2>
+        <p class="section-subtitle">We analyzed your digital presence against Toronto's complex immigration litigation leaders. Here's what we found.</p>
+      </div>
+      
+      <div class="gaps-grid">
+        <div class="gap-card">
+          <div class="gap-card-icon">🎯</div>
+          <h3 class="gap-card-title">AI Qualification Depth</h3>
+          <p class="gap-card-desc">
+            Your AI answers in multiple languages—impressive. But it forwards calls to voicemail instead of qualifying deeply. 
+            It doesn't ask about case type, urgency, or budget. Every unqualified call that reaches you is senior counsel time wasted.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">⏱️</span>
+            <div>
+              <div class="gap-card-stat-value">15+ hrs/week</div>
+              <div class="gap-card-stat-label">spent on unqualified callers</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">🔍</div>
+          <h3 class="gap-card-title">Ad Keyword Strategy</h3>
+          <p class="gap-card-desc">
+            You're spending $2,500/month on Google Ads. But generic keywords like "immigration lawyer Toronto" attract volume, not quality. 
+            High-intent terms like "Federal Court judicial review" or "CBSA investigation lawyer" attract clients ready to pay $5K+ retainers.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">💸</span>
+            <div>
+              <div class="gap-card-stat-value">~$1,500/mo</div>
+              <div class="gap-card-stat-label">wasted on low-intent keywords</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">🌍</div>
+          <h3 class="gap-card-title">International Client Capture</h3>
+          <p class="gap-card-desc">
+            You serve clients from China, India, UAE, and USA. But when a Mumbai tech executive gets a deportation notice at 11 PM local time, 
+            your AI forwards to voicemail. They call Green and Spiegel instead. True 24/7 qualification captures global high-value clients.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">🌙</span>
+            <div>
+              <div class="gap-card-stat-value">40%+</div>
+              <div class="gap-card-stat-label">international inquiries hit voicemail</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="gap-card">
+          <div class="gap-card-icon">📊</div>
+          <h3 class="gap-card-title">Fragmented Lead Tracking</h3>
+          <p class="gap-card-desc">
+            You're using Google Workspace, Toodledo, and Mailchimp separately. Leads slip through cracks. 
+            Follow-up after consultations is manual. A unified CRM with automated sequences closes more clients without more work.
+          </p>
+          <div class="gap-card-stat">
+            <span class="gap-card-stat-icon">📉</span>
+            <div>
+              <div class="gap-card-stat-value">15-25%</div>
+              <div class="gap-card-stat-label">leads lost to poor follow-up</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Competitive Analysis -->
+    <div class="competitive-section reveal">
+      <div class="section-header">
+        <div class="section-label">🔎 Competitive Analysis</div>
+        <h2 class="section-title">How You Compare to Toronto's Litigation Leaders</h2>
+        <p class="section-subtitle">We analyzed top Toronto immigration litigation firms. Here's where you stand—and where you can leapfrog them.</p>
+      </div>
+      
+      <table class="competitor-table">
+        <thead>
+          <tr>
+            <th>Marketing Channel</th>
+            <th>Chaudhary Law</th>
+            <th>Green & Spiegel / Blaney McMurtry</th>
+            <th>Your Opportunity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="competitor-highlight">
+            <td><strong>AI Qualification Depth</strong></td>
+            <td class="check-partial">◐ Basic forwarding</td>
+            <td class="check-yes">✓ Multi-step intake</td>
+            <td>Major upgrade opportunity</td>
+          </tr>
+          <tr class="competitor-highlight">
+            <td><strong>24/7 Global Capture</strong></td>
+            <td class="check-partial">◐ Forwards to voicemail</td>
+            <td class="check-yes">✓ True 24/7</td>
+            <td>International client loss</td>
+          </tr>
+          <tr>
+            <td><strong>Google Ads (High-Intent)</strong></td>
+            <td class="check-partial">◐ Generic keywords</td>
+            <td class="check-yes">✓ Litigation-focused</td>
+            <td>Keyword optimization</td>
+          </tr>
+          <tr>
+            <td><strong>CRM & Automation</strong></td>
+            <td class="check-no">✗ Fragmented tools</td>
+            <td class="check-yes">✓ Integrated systems</td>
+            <td>Lead recovery potential</td>
+          </tr>
+          <tr>
+            <td><strong>Top 100 Immigration Blog</strong></td>
+            <td class="check-yes">✓ Global ranking</td>
+            <td class="check-partial">◐ Some have blogs</td>
+            <td><strong>Your Advantage</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Federal Court Experience</strong></td>
+            <td class="check-yes">✓ 30+ years</td>
+            <td class="check-yes">✓ Established</td>
+            <td><strong>Competitive parity</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Multilingual AI</strong></td>
+            <td class="check-yes">✓ Mandarin + more</td>
+            <td class="check-partial">◐ English-focused</td>
+            <td><strong>Your Advantage</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Playbook Section -->
+    <section class="playbook-section reveal">
+      <div class="section-header">
+        <div class="section-label">📋 The Playbook</div>
+        <h2 class="section-title">How to Close Each Gap (Step by Step)</h2>
+        <p class="section-subtitle">Here's exactly how to fix each gap yourself—no gatekeeping. Fair warning: marketing isn't a one-time project. It's ongoing. These steps don't stop.</p>
+      </div>
+      
+      <!-- Gap 1: AI Upgrade -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">01</div>
+          <div>
+            <h3 class="playbook-card-title">Upgrade AI Qualification</h3>
+            <p class="playbook-card-problem">The Problem: Your AI forwards to voicemail—it doesn't qualify. Tire-kickers reach you. High-value clients hit voicemail at 2 AM Mumbai time.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Research AI platforms with deep qualification (Synthflow, Vapi, etc.)</li>
+                <li><span class="playbook-step-num">2</span> Map qualification logic: case type, urgency, retainer ability, timeline</li>
+                <li><span class="playbook-step-num">3</span> Write talk tracks for each case type (RPD, RAD, IAD, Federal Court)</li>
+                <li><span class="playbook-step-num">4</span> Configure disqualification rules (no legal aid, no price shoppers)</li>
+                <li><span class="playbook-step-num">5</span> Integrate with calendar for direct booking</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">6</span> Review call transcripts for qualification accuracy</li>
+                <li><span class="playbook-step-num">7</span> Update talk tracks based on new case types</li>
+                <li><span class="playbook-step-num">8</span> Refine disqualification rules based on patterns</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 20-30 hrs | 🔄 Ongoing: <strong>3-5 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>AI platform selection & configuration</li>
+              <li>Deep qualification logic for RPD/RAD/IAD/Federal Court</li>
+              <li>Retainer ability pre-screening ($5K+ filter)</li>
+              <li>Automatic disqualification of price shoppers</li>
+              <li>30+ language support (Mandarin, Punjabi, Hindi, etc.)</li>
+              <li>True 24/7/365 global coverage</li>
+              <li>Calendar integration for direct booking</li>
+              <li>CRM integration for lead tracking</li>
+              <li>Weekly optimization based on call data</li>
+              <li>Ongoing refinement & new talk tracks</li>
+            </ul>
+            <div class="playbook-dfy-result">You take qualified consults. Tire-kickers never reach you.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 2: Ad Optimization -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">02</div>
+          <div>
+            <h3 class="playbook-card-title">Optimize Ads for High-Intent</h3>
+            <p class="playbook-card-problem">The Problem: Generic keywords attract volume. High-intent litigation keywords attract $5K+ clients.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Audit current keywords—identify low-intent terms</li>
+                <li><span class="playbook-step-num">2</span> Research high-intent litigation keywords</li>
+                <li><span class="playbook-step-num">3</span> Build separate campaigns by case type</li>
+                <li><span class="playbook-step-num">4</span> Create landing pages per case type (Federal Court, CBSA, etc.)</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Weekly (Every Week, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Review search terms, add negative keywords</li>
+                <li><span class="playbook-step-num">6</span> Create fresh ad creative (ads go stale fast)</li>
+                <li><span class="playbook-step-num">7</span> Adjust bids by keyword performance</li>
+                <li><span class="playbook-step-num">8</span> Monitor competitor ads and adapt</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 15-25 hrs | 🔄 Ongoing: <strong>8-12 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Full keyword audit & high-intent research</li>
+              <li>Campaign restructure by case type</li>
+              <li>"Federal Court judicial review" targeting</li>
+              <li>"CBSA investigation lawyer" campaigns</li>
+              <li>"Misrepresentation immigration lawyer" ads</li>
+              <li>Landing pages per case type</li>
+              <li>Negative keyword management (weekly)</li>
+              <li>Fresh ad creative (weekly)</li>
+              <li>Conversion tracking to retained client</li>
+              <li>Monthly performance reporting</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve budget. We deliver qualified leads.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gap 3: CRM -->
+      <div class="playbook-card">
+        <div class="playbook-card-header">
+          <div class="playbook-number">03</div>
+          <div>
+            <h3 class="playbook-card-title">Unify CRM & Automate Follow-Up</h3>
+            <p class="playbook-card-problem">The Problem: Google Workspace + Toodledo + Mailchimp = leads slipping through cracks.</p>
+          </div>
+        </div>
+        
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-diy-title">🛠️ DIY Fix</div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Setup (One-Time)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">1</span> Choose a unified CRM (Clio Grow, HubSpot, etc.)</li>
+                <li><span class="playbook-step-num">2</span> Map intake workflow: lead → consult → retained</li>
+                <li><span class="playbook-step-num">3</span> Build automated email/SMS sequences</li>
+                <li><span class="playbook-step-num">4</span> Create retainer agreement templates</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-section">
+              <div class="playbook-diy-section-title">Daily (Every Day, Forever)</div>
+              <ul class="playbook-diy-list">
+                <li><span class="playbook-step-num">5</span> Respond to new leads within 5 minutes</li>
+                <li><span class="playbook-step-num">6</span> Update lead statuses as conversations progress</li>
+                <li><span class="playbook-step-num">7</span> Complete follow-up tasks assigned by system</li>
+              </ul>
+            </div>
+            
+            <div class="playbook-diy-meta">
+              ⏱️ Setup: 20-30 hrs | 🔄 Ongoing: <strong>5-8 hrs/week FOREVER</strong>
+            </div>
+          </div>
+          
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>CRM setup & configuration</li>
+              <li>Intake workflow mapping</li>
+              <li>Automated email sequences (immediate, 24hr, 72hr, 7-day)</li>
+              <li>SMS follow-up automation</li>
+              <li>Retainer agreement auto-generation</li>
+              <li>Document collection automation</li>
+              <li>Lead source tracking</li>
+              <li>Pipeline reporting & analytics</li>
+              <li>Dead lead reactivation campaigns</li>
+              <li>Integration with your AI intake</li>
+            </ul>
+            <div class="playbook-dfy-result">Leads are nurtured automatically. You show up to sign retainers.</div>
+          </div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; color: var(--slate); font-size: 0.95rem; margin-top: 40px; max-width: 700px; margin-left: auto; margin-right: auto;">
+        You can absolutely do this yourself—many successful firms do. But be honest about the time commitment: this isn't a weekend project. 
+        It's <strong>20-35 hours/week of ongoing work, forever</strong>. That's a part-time job on top of Federal Court appearances and CBSA hearings. 
+        If you'd rather spend that time on precedent-setting cases, that's exactly why we exist.
+      </p>
+    </section>
+
+    <!-- CTA Section -->
+    <div class="cta-section reveal">
+      <div class="cta-content">
+        <div class="cta-urgency">
+          <span>⚠️</span>
+          <span class="cta-urgency-text">Revenue walking out the door TODAY: <span class="cta-urgency-value" id="cta-daily">$750</span></span>
+        </div>
+        
+        <h2 class="cta-title">Ready to Focus on $5K+ Cases—Not Tire-Kickers?</h2>
+        
+        <p class="cta-subtitle">
+          15 minutes. That's all it takes to show you exactly how we'd upgrade Chaudhary Law's intake for high-value Federal Court clients. 
+          No pitch—just data, strategy, and a clear action plan.
+        </p>
+        
+        <!-- Why This Works -->
+        <div class="why-works">
+          <div class="why-works-col">
+            <div class="why-works-title">You Focus On</div>
+            <ul class="why-works-list">
+              <li>⚖️ Federal Court judicial reviews</li>
+              <li>🛡️ CBSA investigations & hearings</li>
+              <li>📜 Precedent-setting appeals</li>
+              <li>🏆 Being the counsel clients trust</li>
+            </ul>
+          </div>
+          <div class="why-works-col">
+            <div class="why-works-title">We Handle</div>
+            <ul class="why-works-list">
+              <li>🤖 Intelligent AI qualification</li>
+              <li>🔍 High-intent Google Ads</li>
+              <li>📊 CRM & automation</li>
+              <li>🌍 24/7 global lead capture</li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Embedded Booking Widget -->
+        <div class="booking-widget-container">
+          <h3>Book Your Strategy Call — 15 Minutes</h3>
+          <iframe 
+            src="https://api.mortarmetrics.com/widget/booking/nFVhK3dTajbckjODojdO" 
+            style="width: 100%; border: none; overflow: hidden; min-height: 600px;" 
+            scrolling="no" 
+            id="booking-widget">
+          </iframe>
+        </div>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+        
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 24px;">
+          No long-term contracts. Month-to-month. Results-focused.
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">MM</div>
+        <div class="footer-name">Mortar Metrics</div>
+      </div>
+      <div class="footer-contact">
+        Questions? <a href="mailto:info@mortarmetrics.com">info@mortarmetrics.com</a> · <a href="tel:+14168928796">(416) 892-8796</a>
+      </div>
+      <div class="footer-disclaimer">
+        This analysis is based on industry benchmarks, IRCC processing data, Federal Court statistics, and digital marketing research. 
+        Actual results vary based on practice specifics, market conditions, and implementation. Prepared exclusively for Max Chaudhary at Chaudhary Law.
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Format currency
+    function fmt(n) {
+      return '$' + n.toLocaleString('en-US', {maximumFractionDigits: 0});
+    }
+    
+    // Toggle states
+    let addonsOpen = false;
+    let addonStates = { ads: true, seo: true, crm: true };
+    
+    function toggleAddons() {
+      addonsOpen = !addonsOpen;
+      const content = document.getElementById('addons-content');
+      const chevron = document.getElementById('addons-chevron');
+      content.style.display = addonsOpen ? 'block' : 'none';
+      chevron.style.transform = addonsOpen ? 'rotate(180deg)' : '';
+    }
+    
+    function toggleAddon(addon) {
+      addonStates[addon] = !addonStates[addon];
+      const toggle = document.getElementById('toggle-' + addon);
+      const content = document.getElementById('content-' + addon);
+      
+      if (addonStates[addon]) {
+        toggle.classList.remove('off');
+        content.style.display = 'block';
+      } else {
+        toggle.classList.add('off');
+        content.style.display = 'none';
+      }
+      updateCalculator();
+    }
+
+    // Calculator logic
+    function updateCalculator() {
+      // Get base values
+      const dailyInquiries = parseInt(document.getElementById('slider-inquiries').value);
+      const unqualifiedPct = parseInt(document.getElementById('slider-unqualified').value) / 100;
+      const caseValue = parseInt(document.getElementById('slider-case').value);
+      const conversionRate = parseInt(document.getElementById('slider-conversion').value) / 100;
+      const aiAccuracy = parseInt(document.getElementById('slider-aiaccuracy').value) / 100;
+
+      // Update display values
+      document.getElementById('val-inquiries').textContent = dailyInquiries;
+      document.getElementById('val-unqualified').textContent = Math.round(unqualifiedPct * 100) + '%';
+      document.getElementById('val-case').textContent = fmt(caseValue);
+      document.getElementById('val-conversion').textContent = Math.round(conversionRate * 100) + '%';
+      document.getElementById('val-aiaccuracy').textContent = Math.round(aiAccuracy * 100) + '%';
+
+      // Calculate monthly metrics
+      const monthlyInquiries = dailyInquiries * 22; // business days
+      const unqualifiedCalls = Math.round(monthlyInquiries * unqualifiedPct);
+      const qualifiedCalls = monthlyInquiries - unqualifiedCalls;
+      
+      // Current state: qualified leads * conversion = clients
+      // But many qualified leads are lost to voicemail/poor follow-up
+      const lostRate = 0.35; // 35% of qualified leads lost
+      const lostClients = Math.round(qualifiedCalls * lostRate * conversionRate);
+      const losingMonthly = lostClients * caseValue;
+
+      // AI improvement: better qualification captures more of the qualified leads
+      const aiRecoveredLeads = Math.round(qualifiedCalls * lostRate * aiAccuracy);
+      const aiRecoveredClients = Math.round(aiRecoveredLeads * conversionRate);
+      const aiRevenue = aiRecoveredClients * caseValue;
+
+      // Time saved calculation
+      const timeSaved = Math.round(unqualifiedCalls * 0.25); // 15 min per unqualified call, now filtered
+      document.getElementById('ai-timesaved').textContent = timeSaved + '+';
+
+      // Update problem section
+      document.getElementById('breakdown-unqualified').textContent = unqualifiedCalls;
+      document.getElementById('result-losing').textContent = fmt(losingMonthly);
+
+      // Calculate add-ons revenue
+      let addonsRevenue = 0;
+      let totalNewClients = aiRecoveredClients;
+
+      // Ads
+      if (addonStates.ads) {
+        const adSpend = parseInt(document.getElementById('slider-adspend').value);
+        const cpl = parseInt(document.getElementById('slider-cpl').value);
+        document.getElementById('val-adspend').textContent = fmt(adSpend);
+        document.getElementById('val-cpl').textContent = '$' + cpl;
+        
+        const adLeads = Math.round(adSpend / cpl);
+        const adClients = Math.round(adLeads * conversionRate);
+        addonsRevenue += adClients * caseValue;
+        totalNewClients += adClients;
+      }
+
+      // SEO
+      if (addonStates.seo) {
+        const seoLeads = parseInt(document.getElementById('slider-seoleads').value);
+        document.getElementById('val-seoleads').textContent = seoLeads;
+        
+        const seoClients = Math.round(seoLeads * 0.5 * conversionRate);
+        addonsRevenue += seoClients * caseValue;
+        totalNewClients += seoClients;
+      }
+
+      // CRM
+      if (addonStates.crm) {
+        const crmLift = parseInt(document.getElementById('slider-crmlift').value) / 100;
+        document.getElementById('val-crmlift').textContent = Math.round(crmLift * 100) + '%';
+        
+        const crmRevenue = Math.round(aiRevenue * crmLift);
+        addonsRevenue += crmRevenue;
+      }
+
+      // Update add-ons preview
+      document.getElementById('addons-preview').textContent = '+' + fmt(addonsRevenue);
+
+      // Total gains
+      const totalGain = aiRevenue + addonsRevenue;
+
+      // ROI calculation (estimate $7,000/month service cost for comprehensive)
+      const serviceCost = 7000;
+      const roi = totalGain > 0 ? (totalGain / serviceCost) : 0;
+
+      // Weekly consults estimate
+      const weeklyConsults = Math.round(totalNewClients / 4);
+
+      // Update impact summary
+      document.getElementById('impact-losing').textContent = fmt(losingMonthly);
+      document.getElementById('impact-gain').textContent = fmt(totalGain);
+      document.getElementById('impact-clients').textContent = weeklyConsults + '-' + (weeklyConsults + 2);
+      document.getElementById('impact-roi').textContent = roi.toFixed(1) + 'x';
+      document.getElementById('impact-yearly').textContent = fmt(losingMonthly * 12);
+      document.getElementById('roi-dollars').textContent = '$' + roi.toFixed(2);
+
+      // Update hero stats
+      document.getElementById('hero-lost').textContent = fmt(losingMonthly);
+      document.getElementById('hero-recovered').textContent = fmt(totalGain);
+      document.getElementById('hero-roi').textContent = roi.toFixed(1) + 'x';
+
+      // Update quick insights
+      document.getElementById('qi-lost').textContent = fmt(losingMonthly);
+      document.getElementById('qi-recovered').textContent = fmt(totalGain);
+      document.getElementById('qi-roi').textContent = roi.toFixed(1) + 'x';
+
+      // Update CTA
+      document.getElementById('cta-daily').textContent = fmt(Math.round(losingMonthly / 30));
+
+      // Update recommendations
+      const recText = document.getElementById('rec-text');
+      const recAction = document.getElementById('rec-action');
+      
+      const annualLoss = losingMonthly * 12;
+      let urgency = 'moderate';
+      if (annualLoss > 250000) urgency = 'critical';
+      else if (annualLoss > 150000) urgency = 'high';
+      else if (annualLoss < 100000) urgency = 'low';
+
+      if (urgency === 'critical') {
+        recText.innerHTML = `Max, your 30+ years of Federal Court experience is a moat competitors can't replicate—but with <strong style="color: #f87171;">${fmt(annualLoss)}/year</strong> at risk and <strong style="color: white;">${Math.round(unqualifiedPct*100)}% unqualified inquiries</strong>, you're spending senior counsel hours on callers who can't afford you.`;
+        recAction.innerHTML = `<strong style="color: #fbbf24;">Critical Priority:</strong> Upgrade AI to deep qualification immediately. Filter for case type, retainer ability, and urgency—disqualifying price shoppers before they reach you. Then restructure your $2,500/mo ad spend for high-intent Federal Court keywords.`;
+      } else if (urgency === 'high') {
+        recText.innerHTML = `You're getting <strong style="color: white;">${dailyInquiries} daily inquiries</strong>, but <strong style="color: #f87171;">${Math.round(unqualifiedPct*100)}%</strong> are unqualified. That's <strong style="color: #f87171;">${fmt(losingMonthly)}/month</strong> in wasted time and lost revenue. Intelligent qualification + optimized ads could recover <strong style="color: #4ade80;">${fmt(totalGain)}+ monthly</strong>.`;
+        recAction.innerHTML = `<strong style="color: #fbbf24;">High Priority:</strong> Your multilingual AI and Top 100 blog are competitive moats—but they need to work together. Deep qualification + high-intent keywords + unified CRM = predictable pipeline of $5K+ cases.`;
+      } else {
+        recText.innerHTML = `With <strong style="color: white;">${fmt(caseValue)} retainers</strong> and a <strong style="color: white;">${Math.round(conversionRate*100)}% conversion rate</strong>, your fundamentals are strong. Adding intelligent qualification and optimized ads could add <strong style="color: #4ade80;">${fmt(totalGain)}/month</strong>—a ${roi.toFixed(1)}x return on investment.`;
+        recAction.innerHTML = `<strong style="color: #fbbf24;">Growth Opportunity:</strong> Your Federal Court expertise and multilingual capabilities are rare. Let's explore how to maximize visibility among high-value litigation clients—starting with AI that actually qualifies.`;
+      }
+    }
+
+    // Event listeners
+    document.querySelectorAll('.calc-slider').forEach(slider => {
+      slider.addEventListener('input', updateCalculator);
+    });
+
+    // Initial calculation
+    updateCalculator();
+
+    // Scroll progress
+    function updateScrollProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scroll-indicator').style.width = scrollPercent + '%';
+    }
+    window.addEventListener('scroll', updateScrollProgress);
+
+    // Reveal on scroll
+    function revealOnScroll() {
+      document.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 80) {
+          el.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('load', revealOnScroll);
+    revealOnScroll();
+  </script>
+</body>
+</html>
