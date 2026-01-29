@@ -59,7 +59,7 @@ Go to your repo **Settings → Secrets and variables → Actions** and add:
    - Select: `lead_interested` ✅
 5. **Headers:**
    ```
-   Authorization: Bearer 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
+   Authorization: Bearer YOUR_GITHUB_PAT_HERE
    Accept: application/vnd.github.v3+json
    Content-Type: application/json
    ```
@@ -81,7 +81,7 @@ Go to your repo **Settings → Secrets and variables → Actions** and add:
 ```bash
 curl -X POST \
   https://api.github.com/repos/Fardeen-MM/mortar-reports/dispatches \
-  -H "Authorization: Bearer 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" \
+  -H "Authorization: Bearer YOUR_GITHUB_PAT_HERE" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Content-Type: application/json" \
   -d '{

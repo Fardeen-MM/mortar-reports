@@ -22,8 +22,8 @@ Click **New repository secret** and add each of these:
 
 | Secret Name | Value | Where to get it |
 |-------------|-------|-----------------|
-| `GH_PAT` | `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` | ✅ Already have it |
-| `INSTANTLY_API_KEY` | `YjRmMDBjYTMtZjk2OS00NGI4LWIyODUtMDg0MTc5MGU5MjQ5Okd3emlGVWVvamdFaQ==` | ✅ Already have it |
+| `GH_PAT` | Your GitHub Personal Access Token | Create at https://github.com/settings/tokens |
+| `INSTANTLY_API_KEY` | Your Instantly.ai API key | From Instantly dashboard |
 | `ANTHROPIC_API_KEY` | Get from Anthropic Console | ⬇️ See below |
 | `SLACK_WEBHOOK_URL` | `https://hooks.slack.com/services/YOUR/WEBHOOK/URL` | ⬇️ See Step 2 below |
 
@@ -78,7 +78,7 @@ https://api.github.com/repos/Fardeen-MM/mortar-reports/dispatches
 
 **Headers** (add these):
 ```
-Authorization: Bearer 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
+Authorization: Bearer YOUR_GITHUB_PAT_HERE
 Accept: application/vnd.github.v3+json
 Content-Type: application/json
 ```
@@ -130,7 +130,7 @@ git push -u origin main
 ```bash
 curl -X POST \
   https://api.github.com/repos/Fardeen-MM/mortar-reports/dispatches \
-  -H "Authorization: Bearer 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" \
+  -H "Authorization: Bearer YOUR_GITHUB_PAT_HERE" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Content-Type: application/json" \
   -d '{

@@ -88,7 +88,7 @@ Add these 3 secrets:
    - **Event:** `lead_interested`
    - **Headers:**
      ```
-     Authorization: Bearer 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
+     Authorization: Bearer YOUR_GITHUB_PAT_HERE
      Accept: application/vnd.github.v3+json
      Content-Type: application/json
      ```
@@ -115,7 +115,7 @@ git push origin main
 ```bash
 curl -X POST \
   https://api.github.com/repos/Fardeen-MM/mortar-reports/dispatches \
-  -H "Authorization: Bearer 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" \
+  -H "Authorization: Bearer YOUR_GITHUB_PAT_HERE" \
   -H "Accept: application/vnd.github.v3+json" \
   -d '{
     "event_type": "interested_lead",
