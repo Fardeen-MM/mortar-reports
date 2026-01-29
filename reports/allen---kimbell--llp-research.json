@@ -1,0 +1,146 @@
+{
+  "firmName": "Allen & Kimbell, LLP",
+  "website": "https://www.aklaw.net/",
+  "contactPerson": "Paul A. Graziano",
+  "location": {
+    "city": "Barbara",
+    "state": "CA",
+    "country": "US"
+  },
+  "allLocations": [
+    {
+      "city": "Barbara",
+      "state": "CA",
+      "country": "US"
+    }
+  ],
+  "credentials": [],
+  "attorneys": [],
+  "practiceAreas": [
+    "estate planning",
+    "probate",
+    "estate administration",
+    "real estate",
+    "title",
+    "dw",
+    "litigation",
+    "tax planning",
+    "irs"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "Santa Barbara Estate Planning & Elder Law",
+      "rating": 5.0,
+      "reviews": 104,
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Strong SEO"]
+    },
+    {
+      "name": "Montecito Law Group, P.C.",
+      "rating": 5.0,
+      "reviews": 232,
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Strong SEO"]
+    },
+    {
+      "name": "Santa Barbara Estate Planner",
+      "rating": 5.0,
+      "reviews": 2,
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Online Booking"]
+    },
+    {
+      "name": "Mullen & Henzell",
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Dominant SEO"]
+    },
+    {
+      "name": "Rogers, Sheffield & Campbell",
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Support"]
+    },
+    {
+      "name": "Miller & Berryhill",
+      "features": ["Google Ads", "Meta Ads", "Strong SEO"]
+    },
+    {
+      "name": "Collins & Associates",
+      "features": ["Google Ads", "24/7 AI Calling"]
+    },
+    {
+      "name": "Botti & Morison",
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Board Certified"]
+    },
+    {
+      "name": "Fennemore (Gamble Parks)",
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Board Certified"]
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads while 7 competitors dominate Meta with daily campaigns targeting your clients.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Not running Google Ads. 9 competitors are actively bidding on estate planning keywords in Santa Barbara.",
+      "status": "behind"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 AI calling detected. 6 competitors answer calls instantly with AI, capturing leads while you sleep."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "7.0s load time. Every extra second = 7% conversion loss."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 6975,
+  "pageSpeedScore": "Slow",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {
+    "competitorsRunningAds": 7,
+    "topCompetitors": ["Santa Barbara Estate Planning & Elder Law", "Montecito Law Group", "Botti & Morison"]
+  },
+  "googleAdsData": {
+    "competitorsRunningAds": 9,
+    "topCompetitors": ["Mullen & Henzell", "Santa Barbara Estate Planning & Elder Law", "Fennemore"]
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://www.aklaw.net/",
+      "type": "homepage"
+    },
+    {
+      "url": "https://www.aklaw.net/about/",
+      "type": "about"
+    },
+    {
+      "url": "https://www.aklaw.net/people/",
+      "type": "team"
+    },
+    {
+      "url": "https://www.aklaw.net/contact/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T01:18:06.987Z",
+  "estimatedMonthlyRevenueLoss": 51000
+}

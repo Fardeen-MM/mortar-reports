@@ -1,0 +1,89 @@
+{
+  "firmName": "Duong Global Business Consulting Group",
+  "website": "https://www.duongbusinessconsulting.com",
+  "location": {
+    "city": "Orange",
+    "state": "California",
+    "country": "US"
+  },
+  "credentials": [
+    "International business consulting firm with offices in Orange County, California and Ho Chi Minh City, Vietnam",
+    "Business Lawyers and Trading Experts in One Consulting Firm",
+    "Leader in U.S. & South-East Asia trade relations",
+    "Specializes in L-1 Visas, Vietnam Citizenship, U.S. Company Formation, and international franchising"
+  ],
+  "practiceAreas": [
+    "Business Immigration (L-1 Visas)",
+    "Vietnam Citizenship",
+    "U.S. Company Formation",
+    "International Business Law",
+    "Franchising",
+    "Real Estate",
+    "Cross-Border Trade"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "Not running Facebook/Instagram/LinkedIn ads. With international clientele across US, Vietnam, Singapore, and Thailand, you're missing high-value entrepreneurs searching on social platforms 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 18000,
+      "details": "BLUE OCEAN: Zero competitors advertising for 'L-1 visa lawyer Orange County' or 'Vietnam citizenship consultant.' You could own these high-intent searches immediately.",
+      "status": "blue-ocean",
+      "competitors": 0
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 22000,
+      "details": "CRITICAL: Your clients are in Singapore (12hr time difference), Vietnam (14hr time difference), Thailand (13hr time difference). When they call during THEIR business hours (your midnight-6am), they get voicemail. Your competitors with 24/7 intake capture these international clients instantly.",
+      "status": "critical"
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "Website loads in 2.1s - acceptable but could be faster"
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Manual follow-up across multiple time zones wastes 20+ hrs/week and loses 40% of international leads. Automated nurture in multiple languages would improve close rates 25-40%."
+    }
+  },
+  "competitors": [
+    "Local immigration firms with 24/7 intake",
+    "International business consulting firms with automated follow-up",
+    "Law firms running Google Ads for L-1 visas"
+  ],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "competitors": []
+  },
+  "pageSpeed": 2145,
+  "pageSpeedScore": "Medium",
+  "hasChatbot": true,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "internationalPresence": {
+    "offices": [
+      "Orange County, California (Head Office)",
+      "Ho Chi Minh City, Vietnam"
+    ],
+    "phoneNumbers": {
+      "us": "+1.888.959.9372",
+      "singapore": "+65 6536 0417",
+      "vietnam": "+84 91 415-7381",
+      "thailand": "+66 (0)8 4667-7574"
+    }
+  },
+  "researchedAt": "2026-01-28T00:00:00.000Z",
+  "estimatedMonthlyRevenueLoss": 67000
+}

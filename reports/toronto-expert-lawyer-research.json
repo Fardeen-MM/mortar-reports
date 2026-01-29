@@ -1,0 +1,205 @@
+{
+  "firmName": "Toronto Expert Lawyer",
+  "website": "https://www.keylawyer.com",
+  "contactPerson": "Stefan R. Juzkiw",
+  "location": {
+    "city": "Toronto",
+    "state": "ON",
+    "country": "CA"
+  },
+  "allLocations": [
+    {
+      "city": "Toronto",
+      "state": "ON",
+      "country": "CA"
+    }
+  ],
+  "credentials": [
+    "Established in 2013",
+    "Award & Certificates\t\t\t\t\t\t\nIt's ideal for hanging on any wall in your law firms' office"
+  ],
+  "attorneys": [
+    "Meet Our"
+  ],
+  "practiceAreas": [
+    "family law",
+    "divorce",
+    "custody",
+    "estate planning",
+    "wills",
+    "real estate",
+    "corporate",
+    "business law",
+    "commercial",
+    "immigration",
+    "citizenship",
+    "visa",
+    "personal injury",
+    "accident",
+    "wrongful death",
+    "slip and fall",
+    "dui",
+    "dw",
+    "litigation",
+    "irs",
+    "employment law",
+    "copyright"
+  ],
+  "firmHistory": {
+    "founded": 2013,
+    "yearsInBusiness": 13,
+    "teamSize": null,
+    "awards": [
+      "Award & Certificates\t\t\t\t\t\t\nIt's ideal for hanging on any wall in your law firms' office"
+    ],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "Russell Alexander Collaborative Family Lawyers",
+      "reviews": 1604,
+      "rating": 4.9,
+      "address": "200 Bay St. Suite 1200, Toronto, ON M5J 2J2, Canada",
+      "features": []
+    },
+    {
+      "name": "Downtown Family Law",
+      "reviews": 33,
+      "rating": 5,
+      "address": "50 Carroll St, Toronto, ON M4M 3G3, Canada",
+      "features": []
+    },
+    {
+      "name": "Divorce Go",
+      "reviews": 484,
+      "rating": 4.9,
+      "address": "45 Sheppard Ave E #802, North York, ON M2N 5W9, Canada",
+      "features": []
+    },
+    {
+      "name": "Simple Divorce - Family Lawyer Scarborough",
+      "reviews": 21,
+      "rating": 5,
+      "address": "55 Town Centre Court #700, Scarborough, ON M1P 4X4, Canada",
+      "features": []
+    },
+    {
+      "name": "Stanchieri Family Law",
+      "reviews": 135,
+      "rating": 4.6,
+      "address": "375 University Ave Suite 900, Toronto, ON M5G 2J5, Canada",
+      "features": []
+    },
+    {
+      "name": "GOLDSTEIN Divorce & Family Law Group",
+      "reviews": 127,
+      "rating": 4.8,
+      "address": "45 Sheppard Ave E #112, Toronto, ON M2N 5W9, Canada",
+      "features": []
+    },
+    {
+      "name": "Benmor Family Law Group",
+      "reviews": 101,
+      "rating": 4.8,
+      "address": "77 Bloor St W Suite 600, Toronto, ON M5S 1M2, Canada",
+      "features": []
+    },
+    {
+      "name": "Nussbaum Family & Divorce Lawyers",
+      "reviews": 1085,
+      "rating": 4.8,
+      "address": "The Madison Centre, 4950 Yonge St Suite 801, North York, ON M2N 6K1, Canada",
+      "features": []
+    },
+    {
+      "name": "Frenkel Tobin LLP",
+      "reviews": 67,
+      "rating": 5,
+      "address": "317 Adelaide St W #1001, Toronto, ON M5V 1P9, Canada",
+      "features": []
+    },
+    {
+      "name": "Modern Family Law LLP",
+      "reviews": 34,
+      "rating": 4.8,
+      "address": "1810 Avenue Rd Suite 300, Toronto, ON M5M 3Z2, Canada",
+      "features": []
+    },
+    {
+      "name": "Cozmo Law™ | Family, Divorce & Real Estate Lawyers",
+      "reviews": 17,
+      "rating": 4.9,
+      "address": "Upstairs, 1468 Victoria Park Ave unit 117, North York, ON M4A 2M2, Canada",
+      "features": []
+    },
+    {
+      "name": "Kazandji Law | Family Law & Criminal Defence",
+      "reviews": 360,
+      "rating": 4.9,
+      "address": "7191 Yonge St Suite 310, Thornhill, ON L3T 0C4, Canada",
+      "features": []
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Retargeting could capture lost website visitors.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 1538,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {
+    "running": true,
+    "adCount": 9
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://www.keylawyer.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://www.keylawyer.com/about-us/",
+      "type": "about"
+    },
+    {
+      "url": "https://www.keylawyer.com/our-team/",
+      "type": "team"
+    },
+    {
+      "url": "https://www.keylawyer.com/contact/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T17:41:08.703Z",
+  "estimatedMonthlyRevenueLoss": 35000
+}

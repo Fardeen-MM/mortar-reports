@@ -1,0 +1,202 @@
+{
+  "firmName": "Sobirovs Law Firm",
+  "website": "https://sobirovs.com",
+  "contactPerson": "Rakhmad Sobirov",
+  "location": {
+    "city": "Brooks",
+    "state": "Alberta",
+    "country": "CA"
+  },
+  "allLocations": [
+    {
+      "city": "Brooks",
+      "state": "Alberta",
+      "country": "CA"
+    },
+    {
+      "city": "Etobicoke",
+      "state": "ON",
+      "country": "CA"
+    },
+    {
+      "city": "Vancouver",
+      "state": "British Columbia",
+      "country": "CA"
+    }
+  ],
+  "credentials": [
+    "svg\" alt=\"Legal 500\">\n\t\t\t\t\t\t<img width=\"140\" height=\"43\" src=\"/wp-content/uploads/2024/07/law-society-of-ontario-1"
+  ],
+  "attorneys": [],
+  "practiceAreas": [
+    "tax law",
+    "family law",
+    "business law",
+    "property law",
+    "employment law",
+    "labor law",
+    "international law",
+    "immigration",
+    "visa",
+    "global",
+    "irs",
+    "citizenship"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [
+      "svg\" alt=\"Legal 500\">\n\t\t\t\t\t\t<img width=\"140\" height=\"43\" src=\"/wp-content/uploads/2024/07/law-society-of-ontario-1"
+    ],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "Stringam Law",
+      "reviews": 17,
+      "rating": 4.5,
+      "address": "212 3 Ave W, Brooks, AB T1R 0G1, Canada",
+      "features": []
+    },
+    {
+      "name": "Krinke Law Office",
+      "reviews": 4,
+      "rating": 5,
+      "address": "333 2 St W, Brooks, AB T1R 1G4, Canada",
+      "features": []
+    },
+    {
+      "name": "MNP LLP - Accounting, Business Consulting and Tax Services",
+      "reviews": 1,
+      "rating": 5,
+      "address": "239 1 St W, Brooks, AB T1R 0G6, Canada",
+      "features": []
+    },
+    {
+      "name": "Robertson Susan Law Office",
+      "reviews": 9,
+      "rating": 2.7,
+      "address": "411 3 Ave W, Brooks, AB T1R 0V1, Canada",
+      "features": []
+    },
+    {
+      "name": "Chan Tax Law",
+      "reviews": 5,
+      "rating": 4.8,
+      "address": "17303 102 Ave NW Unit 200, Edmonton, AB T5S 1J8, Canada",
+      "features": []
+    },
+    {
+      "name": "Liberty Tax",
+      "reviews": 6,
+      "rating": 4.3,
+      "address": "215 3 St W, Brooks, AB T1R 0S3, Canada",
+      "features": []
+    },
+    {
+      "name": "Tax Ninja | Tax Law",
+      "reviews": 54,
+      "rating": 4.7,
+      "address": "10123 99 St NW #418, Edmonton, AB T5J 3H1, Canada",
+      "features": []
+    },
+    {
+      "name": "CA TAX LAW",
+      "reviews": 2,
+      "rating": 3,
+      "address": "Court House, 4836 50 St #211, Red Deer, AB T4N 1X4, Canada",
+      "features": []
+    },
+    {
+      "name": "Dominion Tax Law",
+      "reviews": 0,
+      "rating": 0,
+      "address": "6111 36 St SE Suite 210, Calgary, AB T2C 3W2, Canada",
+      "features": []
+    },
+    {
+      "name": "JMH & Co Chartered Professional Accountants",
+      "reviews": 0,
+      "rating": 0,
+      "address": "Box 1389, 228 2 St W Bay 3, Brooks, AB T1R 1C3, Canada",
+      "features": []
+    },
+    {
+      "name": "Cameron Okolita – Licensed Insolvency Trustee Consumer Proposals & Bankruptcy Service",
+      "reviews": 0,
+      "rating": 0,
+      "address": "1217 2 St W, Brooks, AB T1R 1P7, Canada",
+      "features": []
+    },
+    {
+      "name": "Monarch Tax Law",
+      "reviews": 0,
+      "rating": 0,
+      "address": "7015 Macleod Trl SW #410, Calgary, AB T2H 2K6, Canada",
+      "features": []
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Retargeting could capture lost website visitors.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 1260,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {
+    "running": true,
+    "adCount": 17
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://sobirovs.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://sobirovs.com/about-us/",
+      "type": "about"
+    },
+    {
+      "url": "https://sobirovs.com/about-us/our-team/",
+      "type": "team"
+    },
+    {
+      "url": "https://sobirovs.com/contact/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T20:05:56.428Z",
+  "estimatedMonthlyRevenueLoss": 35000
+}

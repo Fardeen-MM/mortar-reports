@@ -1,0 +1,116 @@
+{
+  "firmName": "Cohen Williams LLP",
+  "website": "https://www.cohen-williams.com/",
+  "location": {
+    "city": "Los Angeles",
+    "state": "CA",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "civil litigation",
+    "appeals"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 13,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 1508,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "",
+    "subheadline": "",
+    "aboveFoldScreenshot": "./reports/cohen-williams-llp-hero.png",
+    "ctaCount": 1,
+    "ctaButtons": [
+      {
+        "text": "Accept",
+        "position": "unknown",
+        "prominent": true
+      }
+    ],
+    "mainCTA": "Accept",
+    "hasTestimonials": false,
+    "testimonialCount": 0,
+    "testimonialExamples": [],
+    "hasAwards": false,
+    "hasCaseResults": false,
+    "yearsInBusiness": null,
+    "hasContactForm": false,
+    "formFieldCount": 0,
+    "formFields": [],
+    "hasPhoneNumber": false,
+    "phoneNumber": "",
+    "homepageWordCount": 287,
+    "hasBlog": false,
+    "practiceAreaPages": 2,
+    "menuItems": [
+      "About",
+      "Careers",
+      "Contact",
+      "Attorneys",
+      "Staff",
+      "Practice Areas",
+      "News"
+    ],
+    "hasReviews": false,
+    "reviewCount": 0,
+    "reviewScore": null,
+    "metaDescription": "Cohen Williams LLP is a boutique law firm with a simple and singular focus: the client. ",
+    "h1Count": 0,
+    "hasSchema": false
+  },
+  "researchedAt": "2026-01-28T21:47:56.007Z",
+  "estimatedMonthlyRevenueLoss": 43000,
+  "credentials": [
+    "Boutique law firm serving Los Angeles",
+    "Civil litigation and appeals specialists"
+  ]
+}

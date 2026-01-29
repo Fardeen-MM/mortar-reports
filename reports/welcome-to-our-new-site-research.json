@@ -1,0 +1,171 @@
+{
+  "firmName": "Welcome to our new site",
+  "website": "https://www.akerman.com",
+  "location": {
+    "city": "",
+    "state": "",
+    "country": "US"
+  },
+  "practiceAreas": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 0,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 1422,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "Welcome to our new site",
+    "subheadline": "Best Lawyers’ 2026 “Best Law Firms” Guide Honors Akerman as “Law Firm of the Year” for Leveraged Buyouts and Private Equity Law",
+    "aboveFoldScreenshot": "./reports/welcome-to-our-new-site-hero.png",
+    "ctaCount": 12,
+    "ctaButtons": [
+      {
+        "text": "1",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "2",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "3",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "4",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "5",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "6",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "7",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Cookie Control Icon",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "CloseCookie Control Close Icon",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Accept Recommended Settings",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Reject All",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Subscribe",
+        "position": "unknown",
+        "prominent": false
+      }
+    ],
+    "mainCTA": "1",
+    "hasTestimonials": false,
+    "testimonialCount": 0,
+    "testimonialExamples": [],
+    "hasAwards": true,
+    "hasCaseResults": false,
+    "yearsInBusiness": null,
+    "hasContactForm": true,
+    "formFieldCount": 2,
+    "formFields": [
+      "q",
+      "submit"
+    ],
+    "hasPhoneNumber": false,
+    "phoneNumber": "",
+    "homepageWordCount": 1135,
+    "hasBlog": false,
+    "practiceAreaPages": 2,
+    "menuItems": [
+      "Profiles",
+      "\n        \n    Careers\n\n\n\n    \n\n",
+      "\n                Timely Topics\n                \n            ",
+      "\n                Events\n                \n            ",
+      "\n        \n    Services\n\n\n\n    \n\n",
+      "\n        \n    eDiscovery Services\n\n\n\n    \n\n",
+      "\n        \n    Pro Bono\n\n\n\n    \n\n",
+      "\n        \n    About Akerman\n\n\n\n    \n\n",
+      "\n        \n    Newsroom\n\n\n\n    \n\n",
+      "\n        \n    Offices\n\n\n\n    \n\n",
+      "\n        \n    Firm Management\n\n\n\n    \n\n"
+    ],
+    "hasReviews": false,
+    "reviewCount": 0,
+    "reviewScore": null,
+    "metaDescription": "Akerman is recognized by Financial Times as among the most forward thinking law firms in the industry. We are known for our results in middle market M&A and complex disputes, and for helping clients achieve their most important business objectives in the financial services, real estate, and other dynamic sectors. We are consistently ranked among the top 100 law firms in the United States, with a reach that extends throughout the Americas and to 35 countries.",
+    "h1Count": 1,
+    "hasSchema": false
+  },
+  "researchedAt": "2026-01-28T20:25:07.312Z",
+  "estimatedMonthlyRevenueLoss": 43000
+}

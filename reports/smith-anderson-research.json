@@ -1,0 +1,64 @@
+{
+  "firmName": "Smith Anderson",
+  "website": "https://www.smithlaw.com",
+  "location": {
+    "city": "Ups\nTax\nTechnology Transactions\nToxic Torts",
+    "state": "PF",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "trusts",
+    "contracts",
+    "real estate",
+    "appeals"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7."
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space."
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "4.4s load time. Every extra second = 7% conversion loss."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 4388,
+  "pageSpeedScore": "Slow",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "researchedAt": "2026-01-28T18:47:47.332Z",
+  "estimatedMonthlyRevenueLoss": 51000
+}

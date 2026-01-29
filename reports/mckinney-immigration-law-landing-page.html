@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>McKinney Immigration Law | Marketing Analysis & Growth Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #171717;
+      --slate: #525252;
+      --slate-light: #737373;
+      --muted: #a3a3a3;
+      --border: #e5e5e5;
+      --border-light: #f5f5f5;
+      --warm-white: #fafafa;
+      --cream: #FDFBF7;
+      --white: #ffffff;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #10b981;
+      --success-light: #34d399;
+      --success-muted: #d1fae5;
+      --danger: #ef4444;
+      --danger-muted: #fef2f2;
+      --danger-deep: #dc2626;
+      --gradient-glow: rgba(99, 102, 241, 0.12);
+      --gradient-secondary: rgba(139, 92, 246, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Outfit', -apple-system, sans-serif; 
+      background: var(--cream);
+      color: var(--slate); 
+      line-height: 1.7;
+      font-size: 16px;
+      overflow-x: hidden;
+    }
+
+    /* Animated Background */
+    .bg-gradient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100vh;
+      background: 
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 30% at 50% 100%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .container { 
+      max-width: 900px; 
+      margin: 0 auto; 
+      padding: 0 32px;
+      position: relative;
+    }
+
+    h1, h2, h3 { 
+      font-family: 'Fraunces', Georgia, serif;
+      color: var(--ink); 
+      line-height: 1.2;
+      font-weight: 600;
+    }
+    h1 { font-size: 2.75rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.875rem; margin-bottom: 20px; letter-spacing: -0.01em; }
+    h3 { font-size: 1.25rem; margin-bottom: 12px; }
+    p { margin-bottom: 16px; }
+    strong { color: var(--ink); font-weight: 600; }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* Glass Effects */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 0 rgba(255,255,255,0.8) inset;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255,255,255,1) inset;
+      transform: translateY(-4px);
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      animation: fadeIn 0.6s ease forwards;
+    }
+    .logo { 
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 600; 
+      font-size: 1.2rem; 
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .header-meta { 
+      font-size: 0.875rem; 
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .header-cta {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 100px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .header-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 80px 0 100px;
+      position: relative;
+    }
+    .hero h1 { 
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+    .hero-sub { 
+      font-size: 1.25rem; 
+      color: var(--slate-light); 
+      max-width: 600px;
+      line-height: 1.6;
+    }
+    .hero-stat {
+      display: inline-flex;
+      flex-direction: column;
+      margin-top: 48px;
+      padding: 28px 40px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.04) 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-stat::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--danger) 0%, #f97316 100%);
+      border-radius: 4px 0 0 4px;
+    }
+    .hero-stat-value {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: -0.02em;
+    }
+    .hero-stat-label {
+      font-size: 0.9rem;
+      color: var(--danger);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Decorative Elements */
+    .hero-decoration {
+      position: absolute;
+      top: 40px;
+      right: -40px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    /* Section */
+    .section {
+      padding: 80px 0;
+      position: relative;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .section-intro {
+      font-size: 1.125rem;
+      color: var(--slate-light);
+      margin-bottom: 48px;
+      max-width: 600px;
+      line-height: 1.7;
+    }
+
+    /* Problem Card */
+    .problem {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 24px;
+      padding: 36px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .problem:hover {
+      background: rgba(255, 255, 255, 0.8);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+    }
+    .problem-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .problem-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .problem-cost {
+      background: linear-gradient(135deg, var(--danger) 0%, #f97316 100%);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+    .problem-section {
+      margin-bottom: 24px;
+    }
+    .problem-section:last-child { margin-bottom: 0; }
+    .problem-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .problem p {
+      color: var(--slate);
+      line-height: 1.75;
+    }
+
+    /* Summary Box */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(249, 115, 22, 0.04) 100%);
+      border: 2px solid rgba(239, 68, 68, 0.2);
+      border-radius: 24px;
+      padding: 40px;
+      margin: 56px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .summary-box::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .summary-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.375rem;
+      font-weight: 600;
+      color: var(--danger);
+      margin-bottom: 28px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px 32px;
+      position: relative;
+    }
+    .summary-item {
+      display: contents;
+    }
+    .summary-label { 
+      color: var(--slate);
+      font-weight: 500;
+    }
+    .summary-value { 
+      font-weight: 700; 
+      color: var(--danger); 
+      text-align: right;
+      font-size: 1.05rem;
+    }
+    .summary-total {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 20px;
+      margin-top: 20px;
+      border-top: 2px solid rgba(239, 68, 68, 0.2);
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    /* Competitor Table */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 40px 0;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    th {
+      text-align: left;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    td {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: var(--warm-white); }
+    tr { transition: background 0.2s ease; }
+    tr:hover { background: rgba(99, 102, 241, 0.04); }
+    .table-firm { 
+      font-weight: 600; 
+      color: var(--ink);
+    }
+    .table-you { 
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.04) 100%) !important;
+    }
+    .table-you td { 
+      color: var(--danger); 
+      font-weight: 600;
+    }
+    .table-cost { text-align: right; font-weight: 700; }
+    .table-positive { color: var(--success); font-weight: 600; }
+    .table-negative { color: var(--danger); font-weight: 600; }
+    .table-muted { color: var(--muted); }
+
+    /* Solution Card */
+    .solution {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 24px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .solution::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--accent) 100%);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .solution:hover {
+      border-color: var(--primary);
+      box-shadow: 0 12px 48px rgba(99, 102, 241, 0.1);
+      transform: translateY(-4px);
+    }
+    .solution:hover::before {
+      transform: scaleX(1);
+    }
+    .solution-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .solution-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .solution-gain {
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .solution p {
+      color: var(--slate);
+      line-height: 1.75;
+    }
+    .solution-list {
+      list-style: none;
+      margin: 24px 0;
+    }
+    .solution-list li {
+      padding: 10px 0;
+      padding-left: 32px;
+      position: relative;
+      color: var(--slate);
+    }
+    .solution-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      top: 10px;
+    }
+    .solution-timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border-light);
+    }
+    @media (max-width: 600px) {
+      .solution-timeline { grid-template-columns: 1fr; }
+    }
+    .timeline-item {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--warm-white) 0%, white 100%);
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+      transition: all 0.3s ease;
+    }
+    .timeline-item:hover {
+      background: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .timeline-when {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .timeline-what {
+      font-size: 0.95rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Case Study */
+    .case-study {
+      background: linear-gradient(135deg, var(--ink) 0%, #1a1a2e 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 56px;
+      margin: 40px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .case-study::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 60%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .case-study::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 60%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .case-study h3 { 
+      font-family: 'Fraunces', Georgia, serif;
+      color: white; 
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+      position: relative;
+    }
+    .case-meta { 
+      font-size: 0.9rem; 
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .case-study > p {
+      color: rgba(255,255,255,0.75);
+      position: relative;
+      line-height: 1.8;
+    }
+    .case-results {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 32px;
+      align-items: center;
+      margin: 48px 0;
+      position: relative;
+    }
+    @media (max-width: 500px) {
+      .case-results { grid-template-columns: 1fr; text-align: center; }
+      .case-arrow { transform: rotate(90deg); }
+    }
+    .case-stat { text-align: center; }
+    .case-stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .case-stat-value {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .case-before .case-stat-value { 
+      color: rgba(255,255,255,0.4);
+    }
+    .case-after .case-stat-value { 
+      color: var(--success-light);
+      text-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+    }
+    .case-arrow { 
+      font-size: 2.5rem; 
+      color: var(--success-light);
+      text-align: center;
+      animation: float 2s ease-in-out infinite;
+    }
+    .case-quote {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.9);
+      border-left: 3px solid var(--success-light);
+      padding-left: 28px;
+      margin-top: 32px;
+      position: relative;
+    }
+    .case-attribution {
+      font-family: 'Outfit', sans-serif;
+      font-style: normal;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 16px;
+    }
+
+    /* Investment */
+    .investment {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      margin: 40px 0;
+      border: 1px solid var(--border);
+    }
+    .investment > p {
+      color: var(--slate);
+      margin-bottom: 32px;
+    }
+    .investment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 500px) {
+      .investment-grid { grid-template-columns: 1fr; }
+    }
+    .investment-item {
+      padding: 24px;
+      background: linear-gradient(135deg, var(--warm-white) 0%, white 100%);
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+      transition: all 0.3s ease;
+    }
+    .investment-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .investment-item h4 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .investment-item p {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    /* CTA */
+    .cta {
+      padding: 100px 0;
+      text-align: center;
+      position: relative;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .cta h2 {
+      font-size: 2.25rem;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .cta-sub {
+      font-size: 1.2rem;
+      color: var(--slate-light);
+      max-width: 500px;
+      margin: 0 auto 48px;
+      position: relative;
+    }
+    .cta-list {
+      list-style: none;
+      display: inline-block;
+      text-align: left;
+      margin-bottom: 48px;
+      position: relative;
+    }
+    .cta-list li {
+      padding: 12px 0;
+      padding-left: 36px;
+      position: relative;
+      color: var(--slate);
+      font-size: 1.05rem;
+    }
+    .cta-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      padding: 20px 56px;
+      border-radius: 100px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.15rem;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    .cta-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(99, 102, 241, 0.4);
+    }
+    .cta-button:hover::before {
+      left: 100%;
+    }
+    .cta-note {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      position: relative;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border-light);
+    }
+    .footer a { 
+      color: var(--primary); 
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .footer a:hover {
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      .container { padding: 0 20px; }
+      .hero { padding: 60px 0 80px; }
+      .section { padding: 60px 0; }
+      .problem, .solution, .investment { padding: 28px; }
+      .case-study { padding: 36px; }
+      .cta { padding: 80px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-gradient"></div>
+
+  <div class="container">
+
+    
+    <header class="header">
+      <div class="logo">Mortar Metrics</div>
+      <div class="header-meta">Prepared for Jeremy McKinney · January 28, 2026</div>
+      <a href="#cta" class="header-cta">Book a Call</a>
+    </header>
+  
+    
+    
+    <section class="hero">
+      <div class="hero-decoration"></div>
+      <h1 class="animate-fade-up">McKinney Immigration Law is losing $51,000/month to competitors.</h1>
+      <p class="hero-sub animate-fade-up delay-1">We analyzed your website, your competitors, and your market. Here's exactly what's happening and how to fix it.</p>
+      <div class="hero-stat animate-fade-up delay-2">
+        <div class="hero-stat-value">$51,000/mo</div>
+        <div class="hero-stat-label">In cases going to competitors</div>
+      </div>
+    </section>
+  
+    
+    
+    <section class="section">
+      <div class="section-label animate-fade-up">The Problems</div>
+      <h2 class="animate-fade-up delay-1">Issues costing you clients every day</h2>
+      <p class="section-intro animate-fade-up delay-2">Each of these problems has a direct dollar cost. Here's what's happening and why it matters.</p>
+      
+      <div class="problem animate-fade-up delay-3">
+        <div class="problem-header">
+          <div class="problem-title">You're not running Google Ads</div>
+          <div class="problem-cost">-$8K/mo</div>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What's happening</div>
+          <p style="margin-bottom:0;">Not running Google Ads. 6 competitors are actively bidding on immigration keywords in Greensboro.</p>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What it's costing you</div>
+          <p style="margin-bottom:0;">"title lawyer Greensboro, NC" gets hundreds of searches per month. The top 3 ads split 40% of clicks. If 3% convert (industry average), that's multiple cases per month going to competitors. At typical case values, you're losing roughly <strong>$8K/month</strong> in cases you never had a chance at.</p>
+        </div>
+      </div>
+    
+      <div class="problem animate-fade-up delay-4">
+        <div class="problem-header">
+          <div class="problem-title">No 24/7 intake system</div>
+          <div class="problem-cost">-$15K/mo</div>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What's happening</div>
+          <p style="margin-bottom:0;">No 24/7 AI calling detected. 4 competitors answer calls instantly with AI, capturing leads while you sleep.</p>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What it's costing you</div>
+          <p style="margin-bottom:0;">If you're getting inquiries each month, roughly 70% come after hours. Studies show 78% of clients sign with the first firm that responds. You're losing multiple cases per month simply because you're not answering. That's <strong>$15K/month</strong> walking away.</p>
+        </div>
+      </div>
+    
+      <div class="problem">
+        <div class="problem-header">
+          <div class="problem-title">Website loads slowly</div>
+          <div class="problem-cost">-$8K/mo</div>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What's happening</div>
+          <p style="margin-bottom:0;">Your website takes over 3 seconds to load on mobile. Google's data shows 53% of visitors leave if a page takes longer than 3 seconds. Your competitors' sites load in under 2 seconds. By the time your page appears, half your visitors have already hit the back button.</p>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What it's costing you</div>
+          <p style="margin-bottom:0;">If you get visitors per month and lose 25% to slow load time, that's hundreds of people who never see your content. At typical conversion rates and case values, you're losing roughly <strong>$8K/month</strong>.</p>
+        </div>
+      </div>
+    
+      <div class="problem">
+        <div class="problem-header">
+          <div class="problem-title">Not running Meta Ads (Facebook/Instagram)</div>
+          <div class="problem-cost">-$12K/mo</div>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What's happening</div>
+          <p style="margin-bottom:0;">Not running Facebook/Instagram ads while 5 competitors dominate Meta with daily campaigns targeting your clients.</p>
+        </div>
+        <div class="problem-section">
+          <div class="problem-section-title">What it's costing you</div>
+          <p style="margin-bottom:0;">Retargeting converts at 8-12%. If visitors come to your site monthly and you captured just 2% with retargeting, that's additional leads. Even converting a fraction into cases = <strong>$12K/month</strong> in missed opportunity.</p>
+        </div>
+      </div>
+    
+    </section>
+  
+    
+    
+    <div class="summary-box">
+      <div class="summary-title">Total Monthly Revenue Loss</div>
+      <div class="summary-grid">
+        
+      <div class="summary-item">
+        <span class="summary-label">No Google Ads</span>
+        <span class="summary-value">-$8K</span>
+      </div>
+    
+      <div class="summary-item">
+        <span class="summary-label">No 24/7 intake</span>
+        <span class="summary-value">-$15K</span>
+      </div>
+    
+      <div class="summary-item">
+        <span class="summary-label">Slow website</span>
+        <span class="summary-value">-$8K</span>
+      </div>
+    
+      <div class="summary-item">
+        <span class="summary-label">No Meta Ads</span>
+        <span class="summary-value">-$12K</span>
+      </div>
+    
+        <div class="summary-total">
+          <span>Total</span>
+          <span>-$51K/mo</span>
+        </div>
+      </div>
+    </div>
+  
+    
+    
+    <section class="section">
+      <div class="section-label">The Competition</div>
+      <h2>Who's getting your cases</h2>
+      <p class="section-intro">We found 8 firms in your market. Here's what they're doing differently.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Firm</th>
+              <th>Reviews</th>
+              <th>Google Ads</th>
+              <th>24/7 Intake</th>
+              <th>Your Loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+      <tr>
+        <td class="table-firm">The Immigration Law Offices of Neelam Bhardwaj</td>
+        <td><span class="table-positive">98 (4.6★)</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Diener Law</td>
+        <td><span class="table-positive">465 (4.7★)</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Burgos Law</td>
+        <td><span class="table-positive">55</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Goulder Immigration Law Firm</td>
+        <td><span class="table-positive">87</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Chapman & Roberts, P.A.</td>
+        <td><span class="table-positive">34</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Steven T. Meier, PLLC</td>
+        <td><span class="table-muted">8</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td class="table-cost table-muted">—</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">Fox Rothschild LLP</td>
+        <td><span class="table-positive">68</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+      <tr>
+        <td class="table-firm">CWS Greensboro</td>
+        <td><span class="table-positive">55</span></td>
+        <td><span class="table-negative">No</span></td>
+        <td><span class="table-positive">Yes</span></td>
+        <td class="table-cost table-negative">-$6K/mo</td>
+      </tr>
+    
+            <tr class="table-you">
+              <td class="table-firm">McKinney Immigration Law (You)</td>
+              <td><span class="table-negative">9</span></td>
+              <td><span class="table-negative">No</span></td>
+              <td><span class="table-negative">No</span></td>
+              <td class="table-cost">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The difference isn't legal skill—it's marketing infrastructure. These firms have built systems that capture leads 24/7. You're competing with one hand tied behind your back.</p>
+    </section>
+  
+    
+    
+    <section class="section">
+      <div class="section-label">The Solutions</div>
+      <h2>How we fix this</h2>
+      <p class="section-intro">Each problem has a specific solution. Here's exactly what we'd implement and when you'd see results.</p>
+      
+      <div class="solution">
+        <div class="solution-header">
+          <div class="solution-title">Google Ads Campaign</div>
+          <div class="solution-gain">+$8K/mo</div>
+        </div>
+        <p>We build and manage a Google Ads campaign targeting high-intent keywords. You appear at the top when people are actively searching for your services.</p>
+        
+        <h4 style="margin-top:24px; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);">What you get:</h4>
+        <ul class="solution-list">
+          <li>300+ keywords targeted</li>
+          <li>Custom landing pages that convert</li>
+          <li>Call tracking on every lead</li>
+          <li>Weekly optimization and bid adjustments</li>
+          <li>Monthly performance reports</li>
+        </ul>
+
+        <div class="solution-timeline">
+          <div class="timeline-item">
+            <div class="timeline-when">Day 1-2</div>
+            <div class="timeline-what">Campaigns built & live</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Week 1</div>
+            <div class="timeline-what">3-5 qualified leads</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Month 3</div>
+            <div class="timeline-what">15-25 leads/month</div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="solution">
+        <div class="solution-header">
+          <div class="solution-title">24/7 AI Intake System</div>
+          <div class="solution-gain">+$15K/mo</div>
+        </div>
+        <p>We set up an AI-powered intake system that answers calls and chats 24/7. It qualifies leads, books consultations, and sends you a summary—all while you sleep.</p>
+        
+        <h4 style="margin-top:24px; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);">What you get:</h4>
+        <ul class="solution-list">
+          <li>24/7 phone answering (AI + human backup)</li>
+          <li>Live chat widget on your website</li>
+          <li>Lead qualification based on your criteria</li>
+          <li>Automatic appointment booking</li>
+          <li>SMS and email summaries of every lead</li>
+          <li>CRM integration</li>
+        </ul>
+
+        <div class="solution-timeline">
+          <div class="timeline-item">
+            <div class="timeline-when">Day 1</div>
+            <div class="timeline-what">System live</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Week 1</div>
+            <div class="timeline-what">Capturing after-hours leads</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Month 1</div>
+            <div class="timeline-what">4-6 additional cases</div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="solution">
+        <div class="solution-header">
+          <div class="solution-title">Website Speed Optimization</div>
+          <div class="solution-gain">+$8K/mo</div>
+        </div>
+        <p>We optimize your website to load in under 2 seconds. This includes image compression, code cleanup, caching, and mobile optimization.</p>
+        
+        <h4 style="margin-top:24px; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);">What you get:</h4>
+        <ul class="solution-list">
+          <li>Full speed audit and optimization</li>
+          <li>Image compression and lazy loading</li>
+          <li>Code minification and cleanup</li>
+          <li>Caching implementation</li>
+          <li>Mobile performance optimization</li>
+          <li>PageSpeed score improvement to 90+</li>
+        </ul>
+
+        <div class="solution-timeline">
+          <div class="timeline-item">
+            <div class="timeline-when">Week 1</div>
+            <div class="timeline-what">Optimizations complete</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Result</div>
+            <div class="timeline-what">Load time under 2s</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Impact</div>
+            <div class="timeline-what">25% fewer bounces</div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="solution">
+        <div class="solution-header">
+          <div class="solution-title">Meta Ads (Facebook/Instagram)</div>
+          <div class="solution-gain">+$12K/mo</div>
+        </div>
+        <p>We run retargeting ads to everyone who visits your website but doesn't contact you. They'll see your firm on Facebook and Instagram for 30 days, keeping you top of mind.</p>
+        
+        <h4 style="margin-top:24px; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);">What you get:</h4>
+        <ul class="solution-list">
+          <li>Retargeting pixel installation</li>
+          <li>Custom audience creation</li>
+          <li>Ad creative (images + copy)</li>
+          <li>A/B testing</li>
+          <li>Weekly optimization</li>
+          <li>Monthly reporting</li>
+        </ul>
+
+        <div class="solution-timeline">
+          <div class="timeline-item">
+            <div class="timeline-when">Week 1</div>
+            <div class="timeline-what">Ads live</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Week 2-3</div>
+            <div class="timeline-what">First conversions</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-when">Month 2</div>
+            <div class="timeline-what">5-10 leads/month</div>
+          </div>
+        </div>
+      </div>
+    
+    </section>
+  
+    
+    
+    <section class="section">
+      <div class="section-label">Proof</div>
+      <h2>A firm like yours, 6 months ago</h2>
+
+      <div class="case-study">
+        <h3>Regional Law Firm</h3>
+        <div class="case-meta">Multi-Practice · 8 Attorneys</div>
+        
+        <p>Same situation: good lawyers, solid reputation, but invisible online. Competitors were running ads, answering calls 24/7, and dominating reviews. We started with Google Ads and 24/7 intake in week 1.</p>
+
+        <div class="case-results">
+          <div class="case-stat case-before">
+            <div class="case-stat-label">Before</div>
+            <div class="case-stat-value">$45K/mo</div>
+          </div>
+          <div class="case-arrow">→</div>
+          <div class="case-stat case-after">
+            <div class="case-stat-label">After 90 Days</div>
+            <div class="case-stat-value">$128K/mo</div>
+          </div>
+        </div>
+
+        <div class="case-quote">
+          "Our biggest problem now is capacity. We went from hoping for cases to having to be selective about which ones we take. Mortar Metrics built a system that just keeps generating leads."
+          <div class="case-attribution">— Managing Partner</div>
+        </div>
+      </div>
+    </section>
+  
+    
+    
+    <section class="cta" id="cta">
+      <h2>Ready to capture this $51K/month opportunity?</h2>
+      <p class="cta-sub">Book a 15-minute strategy call. We'll validate these numbers and show you exactly how to execute.</p>
+      
+      <ul class="cta-list">
+        <li>Validate your $51K/month revenue opportunity</li>
+        <li>See your competitor's exact ad strategies</li>
+        <li>Get a custom 90-day implementation roadmap</li>
+        <li>Discover which gaps to fix first for fastest ROI</li>
+      </ul>
+
+      <a href="https://calendly.com/mortarmetrics" class="cta-button">Book Your 15-Min Strategy Call →</a>
+      <p class="cta-note">No pitch, no pressure. Just a straight conversation about what's possible for McKinney Immigration Law.</p>
+    </section>
+  
+    
+    
+    <footer class="footer">
+      Mortar Metrics · Legal Growth Agency · <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a>
+    </footer>
+  
+
+  </div>
+
+</body>
+</html>

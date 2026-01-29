@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Gap Analysis - Test Law Firm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        .section {
+            padding: 50px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .check { color: #28a745; font-weight: 700; }
+        .cross { color: #dc3545; font-weight: 700; }
+        .calculator {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .calc-input {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        .calc-input label {
+            flex: 1;
+            font-weight: 600;
+        }
+        .calc-input input {
+            width: 120px;
+            padding: 10px;
+            font-size: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+        }
+        .calc-result {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .calc-result-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .gap-item {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .gap-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .comparison-side {
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .diy-side {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        .dfy-side {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+        }
+        .comparison-side h4 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .cta h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            padding: 30px 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HERO -->
+        <div class="hero">
+            <h1>$84K</h1>
+            <p>in qualified leads left on the table last month</p>
+        </div>
+
+        <!-- STORY -->
+        <div class="section">
+            <p style="font-size: 1.2rem; line-height: 1.8;">
+                John, most law firms we analyze are leaving 60-80% of their inbound lead potential untouched. 
+                Your competitors are running ads, but their follow-up systems are broken. Meanwhile, organic opportunities 
+                sit cold in inboxes. Here's what we found for <strong>Test Law Firm</strong>.
+            </p>
+        </div>
+
+        <!-- MARKET STATS -->
+        <div class="section">
+            <h2>Your Market at a Glance</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">3,200</div>
+                    <div class="stat-label">Monthly searches for your services</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$450</div>
+                    <div class="stat-label">Avg. cost per click (legal market)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2.1%</div>
+                    <div class="stat-label">Industry avg. conversion rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">73%</div>
+                    <div class="stat-label">Leads never followed up with</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPETITIVE COMPARISON -->
+        <div class="section">
+            <h2>How You Stack Up</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Marketing Channel</th>
+                        <th>Test Law Firm</th>
+                        <th>Top Competitors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Google Ads</td>
+                        <td class="cross">✗ Not running</td>
+                        <td class="check">✓ Active campaigns</td>
+                    </tr>
+                    <tr>
+                        <td>Meta Ads (Facebook/Instagram)</td>
+                        <td class="check">✓ Active</td>
+                        <td class="check">✓ Active</td>
+                    </tr>
+                    <tr>
+                        <td>Website Speed</td>
+                        <td class="check">✓ Fast</td>
+                        <td class="stat-label">Mixed</td>
+                    </tr>
+                    <tr>
+                        <td>Lead Response Time</td>
+                        <td class="stat-label">Unknown</td>
+                        <td class="stat-label">2-4 hours avg.</td>
+                    </tr>
+                    <tr>
+                        <td>Email Follow-up Sequences</td>
+                        <td class="cross">✗ Not automated</td>
+                        <td class="check">✓ Automated</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CALCULATOR -->
+        <div class="section">
+            <h2>Your Revenue Opportunity Calculator</h2>
+            <div class="calculator">
+                <p style="margin-bottom: 20px;">Adjust these numbers based on your firm:</p>
+                
+                <div class="calc-input">
+                    <label>Monthly inbound leads:</label>
+                    <input type="number" id="leads" value="20" min="1">
+                </div>
+                
+                <div class="calc-input">
+                    <label>Current conversion rate (%):</label>
+                    <input type="number" id="conversionRate" value="2" min="0" max="100">
+                </div>
+                
+                <div class="calc-input">
+                    <label>Average case value ($):</label>
+                    <input type="number" id="caseValue" value="5000" min="100">
+                </div>
+                
+                <div class="calc-result">
+                    <div style="margin-bottom: 10px; color: #6c757d;">Monthly revenue with optimized follow-up:</div>
+                    <div class="calc-result-number" id="result">$10,000</div>
+                    <div style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">
+                        (Based on industry benchmark 10% conversion with proper follow-up)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIY PLAYBOOK -->
+        <div class="section">
+            <h2>The DIY Marketing Playbook</h2>
+            <p style="margin-bottom: 30px;">You could build this in-house. Here's what's actually required:</p>
+            
+            <div class="gap-item">
+                <div class="gap-title">Gap #1: Speed-to-Lead System</div>
+                <div class="comparison">
+                    <div class="comparison-side diy-side">
+                        <h4>DIY Approach</h4>
+                        <ul>
+                            <li>Set up CRM integrations</li>
+                            <li>Build email templates</li>
+                            <li>Monitor inbox manually</li>
+                            <li>Track responses in spreadsheets</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 8-12 hrs/week</p>
+                    </div>
+                    <div class="comparison-side dfy-side">
+                        <h4>Done-For-You</h4>
+                        <ul>
+                            <li>Auto-respond within 5 minutes</li>
+                            <li>Personalized follow-up sequences</li>
+                            <li>Real-time lead scoring</li>
+                            <li>Automatic CRM updates</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 0 hrs/week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gap-item">
+                <div class="gap-title">Gap #2: Campaign Management</div>
+                <div class="comparison">
+                    <div class="comparison-side diy-side">
+                        <h4>DIY Approach</h4>
+                        <ul>
+                            <li>Learn Google/Meta Ads platforms</li>
+                            <li>A/B test ad creative</li>
+                            <li>Optimize bid strategies</li>
+                            <li>Monitor daily performance</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 10-15 hrs/week</p>
+                    </div>
+                    <div class="comparison-side dfy-side">
+                        <h4>Done-For-You</h4>
+                        <ul>
+                            <li>Expert campaign setup</li>
+                            <li>Continuous optimization</li>
+                            <li>Creative testing managed</li>
+                            <li>Weekly performance reports</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 0 hrs/week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gap-item">
+                <div class="gap-title">Gap #3: Content & SEO</div>
+                <div class="comparison">
+                    <div class="comparison-side diy-side">
+                        <h4>DIY Approach</h4>
+                        <ul>
+                            <li>Write blog posts (2-3/week)</li>
+                            <li>Research keywords</li>
+                            <li>Build backlinks</li>
+                            <li>Update website content</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 6-10 hrs/week</p>
+                    </div>
+                    <div class="comparison-side dfy-side">
+                        <h4>Done-For-You</h4>
+                        <ul>
+                            <li>SEO-optimized content library</li>
+                            <li>Strategic keyword targeting</li>
+                            <li>Authority link building</li>
+                            <li>Quarterly content audits</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 0 hrs/week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gap-item">
+                <div class="gap-title">Gap #4: Analytics & Reporting</div>
+                <div class="comparison">
+                    <div class="comparison-side diy-side">
+                        <h4>DIY Approach</h4>
+                        <ul>
+                            <li>Set up tracking pixels</li>
+                            <li>Build custom dashboards</li>
+                            <li>Compile monthly reports</li>
+                            <li>Calculate ROI manually</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 4-8 hrs/week</p>
+                    </div>
+                    <div class="comparison-side dfy-side">
+                        <h4>Done-For-You</h4>
+                        <ul>
+                            <li>Real-time performance dashboard</li>
+                            <li>Automated ROI tracking</li>
+                            <li>Weekly insights reports</li>
+                            <li>Strategic recommendations</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Time: 0 hrs/week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff3cd; padding: 25px; border-radius: 8px; margin-top: 30px;">
+                <p style="font-weight: 600; margin-bottom: 10px;">Reality Check:</p>
+                <p>That's <strong>28-45 hours per week</strong> to run this yourself. Even if you hire someone at $25/hr, that's $2,800-$4,500/month before ad spend. Our full service starts at $2,500/month — and you get 10+ years of legal marketing experience included.</p>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta">
+            <h2>Let's Fix Your Lead Funnel</h2>
+            <p style="font-size: 1.1rem; margin-bottom: 20px;">
+                Book 15 minutes. We'll walk through your specific situation and show you exactly 
+                where the gaps are (no pitch, no pressure).
+            </p>
+            <a href="https://calendly.com/yaseer-mortarmetrics" class="cta-button" target="_blank">
+                Schedule Your Free Analysis
+            </a>
+            <p style="margin-top: 30px; font-size: 0.95rem; opacity: 0.9;">
+                Or reply to this email — I read every message personally.
+            </p>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p><strong>Yaseer Choudhury</strong></p>
+            <p>Founder, Mortar Metrics</p>
+            <p style="margin-top: 10px;">
+                <a href="https://mortarmetrics.com/" style="color: #667eea; text-decoration: none;">mortarmetrics.com</a> | 
+                <a href="https://www.linkedin.com/in/yaseer-choudhury/" style="color: #667eea; text-decoration: none;">LinkedIn</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 0.85rem; color: #adb5bd;">
+                This report was generated January 2026 based on publicly available data and industry benchmarks.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Interactive calculator
+        function calculate() {
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const conversionRate = parseInt(document.getElementById('conversionRate').value) || 0;
+            const caseValue = parseInt(document.getElementById('caseValue').value) || 0;
+            
+            // Calculate with optimized 10% conversion rate (industry benchmark with proper follow-up)
+            const optimizedRevenue = leads * 0.10 * caseValue;
+            
+            document.getElementById('result').textContent = 
+                '$' + optimizedRevenue.toLocaleString('en-US', {maximumFractionDigits: 0});
+        }
+        
+        // Add event listeners
+        document.getElementById('leads').addEventListener('input', calculate);
+        document.getElementById('conversionRate').addEventListener('input', calculate);
+        document.getElementById('caseValue').addEventListener('input', calculate);
+        
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+</html>

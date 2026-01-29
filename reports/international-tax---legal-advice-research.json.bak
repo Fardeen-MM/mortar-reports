@@ -1,0 +1,236 @@
+{
+  "firmName": "International Tax & legal advice",
+  "website": "https://delcantochambers.com",
+  "contactPerson": "León Fernando Del Canto",
+  "location": {
+    "city": "London",
+    "state": "",
+    "country": "UK"
+  },
+  "allLocations": [
+    {
+      "city": "London",
+      "state": "",
+      "country": "UK"
+    },
+    {
+      "city": "Madrid",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Barcelona",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Málaga",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Marbella",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Ibiza",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Mallorca",
+      "state": "",
+      "country": "Spain"
+    },
+    {
+      "city": "Palma",
+      "state": "",
+      "country": "Spain"
+    }
+  ],
+  "credentials": [
+    "com/wp-content/uploads/DC-Chamberslogo-slogan",
+    "We do so though Guernica 37 ChambersDel Canto Chambers’ team is regularly instructed on international tax and legal matters in the UK, Spain, the Middle East and Latin America"
+  ],
+  "attorneys": [],
+  "practiceAreas": [
+    "international tax",
+    "tax planning",
+    "international law",
+    "tax law",
+    "visa",
+    "global",
+    "expatriate",
+    "litigation",
+    "probate",
+    "corporate",
+    "wills",
+    "property law",
+    "trusts",
+    "real estate",
+    "commercial",
+    "immigration",
+    "intellectual property",
+    "divorce",
+    "copyright"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [
+      "com/wp-content/uploads/DC-Chamberslogo-slogan",
+      "We do so though Guernica 37 ChambersDel Canto Chambers’ team is regularly instructed on international tax and legal matters in the UK, Spain, the Middle East and Latin America"
+    ],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "Hammad Baig - Barrister - Tax - Customs and Excise - Shipping - Insolvency - Litigation - Arbitration",
+      "reviews": 67,
+      "rating": 5,
+      "address": "33 Bedford Row, London WC1R 4JH, UK",
+      "features": []
+    },
+    {
+      "name": "Jaffe & Co | American Tax International",
+      "reviews": 46,
+      "rating": 4.9,
+      "address": "Dunn's Hat Factory, 106-110 Kentish Town Rd, London NW1 9PX, UK",
+      "features": []
+    },
+    {
+      "name": "Churchill Tax Investigation London",
+      "reviews": 48,
+      "rating": 5,
+      "address": "125 Kingsway, London WC2B 6NH, UK",
+      "features": []
+    },
+    {
+      "name": "Rosetta Tax Limited",
+      "reviews": 7,
+      "rating": 5,
+      "address": "6 Snow Hl, London EC1A 2AY, UK",
+      "features": []
+    },
+    {
+      "name": "NGM Tax Law LLP",
+      "reviews": 2,
+      "rating": 5,
+      "address": "5th Floor, 13 Regent St., London SW1Y 4LR, UK",
+      "features": []
+    },
+    {
+      "name": "Taxus law & finance - International Legal Company",
+      "reviews": 14,
+      "rating": 4.7,
+      "address": "71-75 Shelton St, London WC2H 9JQ, UK",
+      "features": []
+    },
+    {
+      "name": "Branch Austin McCormick LLP",
+      "reviews": 173,
+      "rating": 4.9,
+      "address": "32 St James's St, London SW1A 1HD, UK",
+      "features": []
+    },
+    {
+      "name": "Sterling Law",
+      "reviews": 1198,
+      "rating": 4.8,
+      "address": "3-7 Temple Avenue, Temple, London EC4Y 0DT, UK",
+      "features": []
+    },
+    {
+      "name": "WLH Tax",
+      "reviews": 137,
+      "rating": 5,
+      "address": "4 Maddox St, London W1S 1QP, UK",
+      "features": []
+    },
+    {
+      "name": "Acuity Tax & Legal",
+      "reviews": 3,
+      "rating": 5,
+      "address": "International House, 24 Holborn Viaduct, London EC1A 2BN, UK",
+      "features": []
+    },
+    {
+      "name": "HTJ.Tax in the UK - US Tax Services",
+      "reviews": 71,
+      "rating": 5,
+      "address": "House unit 1, 14-16 Dowgate Hill, London EC4R 2SU, UK",
+      "features": []
+    },
+    {
+      "name": "Expatriate Tax Services London Ltd",
+      "reviews": 109,
+      "rating": 5,
+      "address": "16 Upper Woburn Pl, London WC1H 0AF, UK",
+      "features": []
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Retargeting could capture lost website visitors.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 2308,
+  "pageSpeedScore": "Medium",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {
+    "running": true,
+    "adCount": 9
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://delcantochambers.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://delcantochambers.com/about/",
+      "type": "about"
+    },
+    {
+      "url": "https://delcantochambers.com/spanish-lawyers/",
+      "type": "team"
+    },
+    {
+      "url": "https://delcantochambers.com/contact-us/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T18:38:55.707Z",
+  "estimatedMonthlyRevenueLoss": 35000
+}

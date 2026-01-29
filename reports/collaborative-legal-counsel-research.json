@@ -1,0 +1,222 @@
+{
+  "firmName": "Collaborative Legal Counsel",
+  "website": "https://holonlaw.com",
+  "contactPerson": "Test",
+  "location": {
+    "city": "Denver",
+    "state": "CO",
+    "country": "US"
+  },
+  "allLocations": [
+    {
+      "city": "Denver",
+      "state": "CO",
+      "country": "US"
+    },
+    {
+      "city": "New York",
+      "state": "NY",
+      "country": "US"
+    },
+    {
+      "city": "Chicago",
+      "state": "IL",
+      "country": "US"
+    },
+    {
+      "city": "York",
+      "state": "NY",
+      "country": "US"
+    }
+  ],
+  "credentials": [],
+  "attorneys": [
+    {
+      "name": "fostering genuine",
+      "title": "partner"
+    },
+    {
+      "name": "that define Holon Law",
+      "title": "Partner"
+    },
+    {
+      "name": "Jason Ehrenberg",
+      "title": "Counsel"
+    },
+    {
+      "name": "Jashaswi Ghosh",
+      "title": "Counsel"
+    },
+    {
+      "name": "Matt Gibbons",
+      "title": "Counsel"
+    },
+    {
+      "name": "Beth McKee",
+      "title": "Counsel"
+    },
+    {
+      "name": "Welcome to Holon Law",
+      "title": "Partner"
+    },
+    {
+      "name": "Holon Law",
+      "title": "Partner"
+    }
+  ],
+  "practiceAreas": [
+    "labor law",
+    "trademark",
+    "litigation",
+    "corporate",
+    "intellectual property",
+    "irs",
+    "employment law",
+    "copyright",
+    "patent"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "HKM Employment Attorneys LLP",
+      "reviews": 331,
+      "rating": 4.5,
+      "address": "518 17th St UNIT 1100, Denver, CO 80202, USA",
+      "features": []
+    },
+    {
+      "name": "Murray Law LLC",
+      "reviews": 43,
+      "rating": 4.7,
+      "address": "3900 E Mexico Ave Suite 300, Denver, CO 80210, USA",
+      "features": []
+    },
+    {
+      "name": "Livelihood Law, LLC",
+      "reviews": 66,
+      "rating": 4,
+      "address": "12015 E 46th Ave Suite 240, Denver, CO 80239, USA",
+      "features": []
+    },
+    {
+      "name": "James Abrams, Ph.D., J.D., Law Offices of James Abrams",
+      "reviews": 142,
+      "rating": 4.8,
+      "address": "401 Westwood Dr, Denver, CO 80206, USA",
+      "features": []
+    },
+    {
+      "name": "Law Office of Cynthia Wellbrock",
+      "reviews": 118,
+      "rating": 4.5,
+      "address": "7887 E Belleview Ave, Centennial, CO 80111, USA",
+      "features": []
+    },
+    {
+      "name": "Bourassa Law Group",
+      "reviews": 191,
+      "rating": 4.7,
+      "address": "730 17th St Ste 320, Denver, CO 80202, USA",
+      "features": []
+    },
+    {
+      "name": "Baird Quinn LLC",
+      "reviews": 22,
+      "rating": 4.5,
+      "address": "2036 E 17th Ave, Denver, CO 80206, USA",
+      "features": []
+    },
+    {
+      "name": "Colorado Employee Advocates",
+      "reviews": 12,
+      "rating": 4.7,
+      "address": "1999 Broadway # 3225, Denver, CO 80202, USA",
+      "features": []
+    },
+    {
+      "name": "Rathod Mohamedbhai LLC",
+      "reviews": 95,
+      "rating": 4.5,
+      "address": "2701 Lawrence St #100, Denver, CO 80205, USA",
+      "features": []
+    },
+    {
+      "name": "Robinson & Henry P.C.",
+      "reviews": 280,
+      "rating": 4.8,
+      "address": "216 16th St Mall Suite 750, Denver, CO 80202, USA",
+      "features": []
+    },
+    {
+      "name": "Swain Law, LLC",
+      "reviews": 12,
+      "rating": 4.7,
+      "address": "1490 Lafayette St Ste 303, Denver, CO 80218, USA",
+      "features": []
+    },
+    {
+      "name": "Lowrey Parady Lebsack, LLC",
+      "reviews": 55,
+      "rating": 4.6,
+      "address": "1490 Lafayette St Ste. 304, Denver, CO 80218, USA",
+      "features": []
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Retargeting could capture lost website visitors.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Not running Google Ads. When people search for lawyers in Denver, your competitors appear first.",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "4.6s load time. Every extra second = 7% conversion loss."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 4572,
+  "pageSpeedScore": "Slow",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {},
+  "pagesAnalyzed": [
+    {
+      "url": "https://holonlaw.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://holonlaw.com/attorneys/",
+      "type": "team"
+    }
+  ],
+  "researchedAt": "2026-01-29T20:49:19.595Z",
+  "estimatedMonthlyRevenueLoss": 51000
+}

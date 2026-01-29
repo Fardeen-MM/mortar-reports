@@ -1,0 +1,92 @@
+{
+  "firmName": "Juzkiw Law Professional",
+  "website": "https://keylaw.com",
+  "contactPerson": "Stefan R. Juzkiw",
+  "location": {
+    "city": "Toronto",
+    "state": "Ontario",
+    "country": "CA"
+  },
+  "allLocations": [
+    {
+      "city": "Toronto",
+      "state": "Ontario",
+      "country": "CA"
+    }
+  ],
+  "credentials": [],
+  "attorneys": [],
+  "practiceAreas": [
+    "family law",
+    "divorce",
+    "custody",
+    "title",
+    "immigration",
+    "visa",
+    "criminal defense",
+    "irs"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "No Facebook presence detected or unable to verify Meta Ads.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Not running Google Ads. When people search for lawyers in Toronto, your competitors appear first.",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 1628,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {},
+  "pagesAnalyzed": [
+    {
+      "url": "https://keylaw.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://www.keylaw.com/about-us/",
+      "type": "about"
+    },
+    {
+      "url": "https://www.keylaw.com/contact-us/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T16:59:15.420Z",
+  "estimatedMonthlyRevenueLoss": 43000
+}
