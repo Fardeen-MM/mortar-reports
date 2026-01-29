@@ -83,26 +83,49 @@ jobs:
         
       - name: Deploy report to GitHub Pages
         run: |
-          # Create report directory
-          SLUG="${{ steps.parse.outputs.slug }}"
-          mkdir -p "reports/$SLUG"
+          # Get the research JSON to extract firm name
+          REPORT_JSON=$(ls automation/reports/*.json | tail -1)
           
-          # Copy generated HTML to report directory
-          REPORT_HTML=$(ls automation/reports/*-landing-page-v7.html | tail -1)
-          cp "$REPORT_HTML" "reports/$SLUG/index.html"
+          # Extract firm name from JSON and create clean folder name
+          # Remove spaces, special chars, convert to PascalCase
+          FIRM_NAME=$(node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
+            const name = data.firmName || data.title || 'UnknownFirm';
+            // Clean: remove non-alphanumeric except spaces, then PascalCase
+            const clean = name
+              .replace(/[^a-zA-Z0-9\\s&]/g, '')
+              .split(/\\s+/)
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join('');
+            console.log(clean);
+          ")
+          
+          echo "Creating folder: $FIRM_NAME"
+          
+          # Create firm folder at root level (not inside reports/)
+          mkdir -p "$FIRM_NAME"
+          
+          # Copy generated HTML as index.html
+          REPORT_HTML=$(ls automation/reports/*-landing-page-v7.html 2>/dev/null || ls automation/reports/*-report.html | tail -1)
+          cp "$REPORT_HTML" "$FIRM_NAME/index.html"
           
           # Commit and push
           git config user.name "Mortar Metrics Bot"
           git config user.email "automation@mortarmetrics.com"
-          git add "reports/$SLUG/index.html"
-          git commit -m "Add report for ${{ steps.parse.outputs.slug }}"
+          git add "$FIRM_NAME/index.html"
+          git commit -m "Add report for $FIRM_NAME"
           git push
+          
+          # Save for email step
+          echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
+        id: deploy
           
       - name: Send follow-up email via Instantly (reply in same thread)
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
         run: |
-          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.parse.outputs.slug }}/"
+          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
           EMAIL_ID="${{ steps.lead_data.outputs.email_id }}"
           
           node send-email.js \
@@ -118,7 +141,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           STATUS="${{ job.status }}"
-          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.parse.outputs.slug }}/"
+          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
           
           if [ "$STATUS" = "success" ]; then
             MESSAGE="✅ Report generated for *${{ steps.parse.outputs.contact_name }}*\n📧 Email: ${{ steps.lead_data.outputs.lead_email }}\n🔗 Report: $REPORT_URL"
