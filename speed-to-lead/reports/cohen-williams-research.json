@@ -1,0 +1,191 @@
+{
+  "firmName": "Cohen Williams",
+  "website": "https://www.cohen-williams.com/",
+  "location": {
+    "city": "Los Angeles",
+    "state": "CA",
+    "full": "Los Angeles, CA"
+  },
+  "practiceAreas": [
+    "civil litigation"
+  ],
+  "competitors": [],
+  "keywordOpportunities": [
+    {
+      "keyword": "civil litigation lawyer Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Unknown",
+      "difficulty": "High"
+    },
+    {
+      "keyword": "civil litigation attorney Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "High"
+    },
+    {
+      "keyword": "best civil litigation lawyer Los Angeles",
+      "searchVolume": 300,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "High"
+    },
+    {
+      "keyword": "civil litigation law firm Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Medium"
+    },
+    {
+      "keyword": "civil litigation lawyer near me",
+      "searchVolume": 1000,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Medium"
+    },
+    {
+      "keyword": "civil litigation attorney near me",
+      "searchVolume": 1000,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Medium"
+    },
+    {
+      "keyword": "top civil litigation lawyer Los Angeles",
+      "searchVolume": 300,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Medium"
+    },
+    {
+      "keyword": "civil litigation legal help Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Low"
+    },
+    {
+      "keyword": "civil litigation law office Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Low"
+    },
+    {
+      "keyword": "experienced civil litigation attorney Los Angeles",
+      "searchVolume": 500,
+      "costPerClick": "$35-70",
+      "currentRank1": "Varies",
+      "difficulty": "Low"
+    }
+  ],
+  "websiteAudit": {
+    "pageSpeedDesktop": 90,
+    "pageSpeedMobile": 75,
+    "loadTimeSeconds": "0.50",
+    "issues": [
+      "No live chat detected",
+      "Phone number not clickable on mobile",
+      "No testimonials on homepage",
+      "No case results displayed",
+      "Low mobile PageSpeed score (75/100)"
+    ],
+    "hasLiveChat": false,
+    "hasContactForm": false,
+    "phoneClickable": false,
+    "practiceAreaPages": 2,
+    "hasTestimonials": false,
+    "hasCaseResults": false,
+    "hasSSL": true,
+    "isMobileResponsive": true,
+    "aboveFoldDescription": "Headline: \"\". Subheadline: \"\". Missing contact form. Phone not clickable."
+  },
+  "googleProfile": {
+    "reviewCount": 0,
+    "rating": 0,
+    "photoCount": 22,
+    "lastPostDate": null,
+    "categories": [
+      "civil litigation attorney",
+      "Law firm"
+    ],
+    "missingCategories": [
+      "Legal services",
+      "Lawyer"
+    ],
+    "competitorReviewAvg": 0
+  },
+  "adAnalysis": {
+    "runningGoogleAds": false,
+    "runningMetaAds": false,
+    "competitorAdExamples": [],
+    "estimatedCompetitorSpend": "",
+    "competitorKeywords": []
+  },
+  "localSEO": {
+    "inMap3Pack": false,
+    "citationScore": 0,
+    "missingDirectories": []
+  },
+  "scorecard": {
+    "googleAds": false,
+    "metaAds": false,
+    "afterHours": false,
+    "reviews50Plus": false,
+    "rating48Plus": false,
+    "pageSpeed80": false,
+    "mobileOptimized": true,
+    "liveChat": false,
+    "caseResults": false,
+    "testimonials": false,
+    "score": 1,
+    "total": 10
+  },
+  "gaps": {
+    "googleAds": {
+      "hasGap": true,
+      "leads": 20,
+      "caseValue": 15000,
+      "closeRate": 0.3,
+      "monthlyLoss": 90000,
+      "math": "20 leads/mo × $15,000 case value × 30% close rate"
+    },
+    "metaAds": {
+      "hasGap": true,
+      "leads": 12,
+      "caseValue": 15000,
+      "closeRate": 0.3,
+      "monthlyLoss": 54000,
+      "math": "12 leads/mo × $15,000 case value × 30% close rate"
+    },
+    "afterHours": {
+      "hasGap": true,
+      "leads": 28,
+      "caseValue": 15000,
+      "closeRate": 0.3,
+      "monthlyLoss": 126000,
+      "math": "28 leads/mo × $15,000 case value × 30% close rate"
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "visitorLoss": 0.25,
+      "visitors": 1000,
+      "value": 50,
+      "monthlyLoss": 12500,
+      "math": "25% visitor loss × 1000 visitors × $50 value"
+    },
+    "reviews": {
+      "hasGap": true,
+      "conversionDiff": 0.15,
+      "leads": 40,
+      "value": 4500,
+      "monthlyLoss": 27000,
+      "math": "15% conversion difference × 40 leads × $4,500 value"
+    }
+  },
+  "totalMonthlyLoss": 309500,
+  "avgCaseValue": 15000
+}

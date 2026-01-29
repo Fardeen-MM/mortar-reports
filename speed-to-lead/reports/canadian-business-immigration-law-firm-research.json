@@ -1,0 +1,186 @@
+{
+  "firmName": "Canadian Business Immigration Law Firm",
+  "website": "https://www.sobirovs.com",
+  "location": {
+    "city": "Toronto",
+    "state": "Ontario",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "immigration",
+    "citizenship"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 5000,
+      "details": "Running 17 Google Ad(s). We can audit your campaigns, improve Quality Score, optimize bidding, and likely cut CPA by 20-40%.",
+      "status": "active"
+    },
+    "support24x7": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 8,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": true,
+    "adCount": 17,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 1975,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "Canadian Business Immigration Law Firm",
+    "subheadline": "Helping Entrepreneurs, Investors & Global Talent Relocate to Canada Through Business Immigration.",
+    "aboveFoldScreenshot": "./reports/canadian-business-immigration-law-firm-hero.png",
+    "ctaCount": 12,
+    "ctaButtons": [
+      {
+        "text": "Get Our Weekly Newsletter",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Talk to a Lawyer",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Free Assessment",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Who We Are & Why Work With Us",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "see all reviews",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "How We Can Help You and Your Business in Canada",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "all articles",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Video library",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Talk to a Lawyer",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Fee CalcuLator",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Contact",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Free Consultation Request",
+        "position": "unknown",
+        "prominent": false
+      }
+    ],
+    "mainCTA": "Get Our Weekly Newsletter",
+    "hasTestimonials": true,
+    "testimonialCount": 3,
+    "testimonialExamples": [],
+    "hasAwards": false,
+    "hasCaseResults": false,
+    "yearsInBusiness": 20,
+    "hasContactForm": true,
+    "formFieldCount": 18,
+    "formFields": [
+      "s",
+      "s",
+      "input_2",
+      "input_1",
+      "gform_ajax",
+      "gform_submission_method",
+      "gform_theme",
+      "gform_style_settings",
+      "is_submit_2",
+      "gform_submit"
+    ],
+    "hasPhoneNumber": true,
+    "phoneNumber": "416 895 3026",
+    "homepageWordCount": 5698,
+    "hasBlog": false,
+    "practiceAreaPages": 20,
+    "menuItems": [
+      " +1 416 895 3026",
+      " +1 888 505-3026",
+      "About Us",
+      "Talk to a lawyer",
+      "Talk to LIA",
+      "Services",
+      "Talk to a lawyer",
+      "Talk to LIA",
+      "Start-Ups",
+      "Talk to a lawyer",
+      "Talk to LIA",
+      "Business Immigration",
+      "\n                                                              Alberta                                                      ",
+      "\n                                                              British Columbia                                                      ",
+      "\n                                                            Manitoba                                                    "
+    ],
+    "hasReviews": true,
+    "reviewCount": 0,
+    "reviewScore": null,
+    "metaDescription": "Explore Canada Business Immigration options and find your path to success in the Canadian business landscape.",
+    "h1Count": 1,
+    "hasSchema": true
+  },
+  "researchedAt": "2026-01-29T00:45:59.677Z",
+  "estimatedMonthlyRevenueLoss": 25000
+}

@@ -1,0 +1,83 @@
+{
+  "firmName": "Doss Law",
+  "website": "https://www.dosslaw.ca",
+  "location": {
+    "city": "Toronto",
+    "state": "ON",
+    "country": "CA"
+  },
+  "credentials": [
+    "founded by Marlenne Doss",
+    "Marlenne Doss",
+    "Marlenne Doss, B.Sc.",
+    "serving clients across the Greater Toronto Area"
+  ],
+  "practiceAreas": [
+    "family law",
+    "estate planning",
+    "wills",
+    "real estate",
+    "corporate",
+    "immigration",
+    "citizenship",
+    "litigation",
+    "tax planning"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 0,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 2447,
+  "pageSpeedScore": "Medium",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "websiteAnalysis": {},
+  "researchedAt": "2026-01-29T00:58:29.340Z",
+  "estimatedMonthlyRevenueLoss": 43000
+}

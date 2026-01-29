@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-01-28T19:37:00Z",
+  "leadName": "William Dos Santos",
+  "leadEmail": "william@duongbusinessconsulting.com",
+  "companyName": "Duong Global Business Consulting Group",
+  "website": "https://www.duongbusinessconsulting.com",
+  "phone": {
+    "tollFree": "+1.888.959.9372",
+    "direct": "+1.714.775.6050",
+    "fax": "+1.888.318.8322"
+  },
+  "locations": [
+    {
+      "type": "Head Office",
+      "address": "333 City Blvd West, Suite 1700",
+      "city": "Orange",
+      "state": "California",
+      "country": "U.S.A.",
+      "zip": "92868"
+    },
+    {
+      "type": "International Office",
+      "address": "Duong Global Building, 8/4 Le Thanh Ton Street, District 1",
+      "city": "Ho Chi Minh City",
+      "country": "Viet Nam"
+    }
+  ],
+  "researchFile": "./reports/business-research.json",
+  "reportFile": "./reports/business-landing-page.html",
+  "gapsFound": 3,
+  "monthlyOpportunity": 28000,
+  "annualOpportunity": 336000
+}

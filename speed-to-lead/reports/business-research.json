@@ -1,0 +1,279 @@
+{
+  "firmName": "Business",
+  "website": "https://www.duongbusinessconsulting.com",
+  "location": {
+    "city": "Kevin",
+    "state": "SE",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "family law",
+    "business law",
+    "immigration",
+    "citizenship",
+    "real estate"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 0,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 2145,
+  "pageSpeedScore": "Medium",
+  "hasChatbot": true,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "",
+    "subheadline": "Duong Global, Business Lawyers and Trading Experts in One Consulting Firm!",
+    "aboveFoldScreenshot": "./reports/business-hero.png",
+    "ctaCount": 30,
+    "ctaButtons": [
+      {
+        "text": "Previous",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Next",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Free consultations!",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Read More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "more",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "more",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "more",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "See all news",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Contacts",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "contact@duongbusinessconsulting.com",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Free consultations!",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Click here to set a free consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "(415) 992-6465",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "+1 415-992-6465",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "+65 6536 0417",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "+84 91 415-7381",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "+66 (0)8 4667-7574",
+        "position": "unknown",
+        "prominent": true
+      }
+    ],
+    "mainCTA": "Previous",
+    "hasTestimonials": false,
+    "testimonialCount": 0,
+    "testimonialExamples": [],
+    "hasAwards": false,
+    "hasCaseResults": false,
+    "yearsInBusiness": 10,
+    "hasContactForm": true,
+    "formFieldCount": 30,
+    "formFields": [
+      "_wpcf7",
+      "_wpcf7_version",
+      "_wpcf7_locale",
+      "_wpcf7_unit_tag",
+      "_wpcf7_container_post",
+      "_wpcf7_posted_data_hash",
+      "_wpcf7cf_hidden_group_fields",
+      "_wpcf7cf_hidden_groups",
+      "_wpcf7cf_visible_groups",
+      "_wpcf7cf_repeaters"
+    ],
+    "hasPhoneNumber": true,
+    "phoneNumber": "(415) 992-6465",
+    "homepageWordCount": 2630,
+    "hasBlog": true,
+    "practiceAreaPages": 20,
+    "menuItems": [
+      "Home",
+      "About",
+      "Team",
+      "Clients",
+      "I want to",
+      "Work in U.S (L-1 Visa)",
+      "Get Vietnam Citizenship",
+      "Open U.S. Company",
+      "Open EU company",
+      "Open Singaporean Company",
+      "Open Vietnamese Company",
+      "Buy U.S. Real Estate",
+      "Services",
+      "Franchising",
+      "Marketing"
+    ],
+    "hasReviews": false,
+    "reviewCount": 0,
+    "reviewScore": null,
+    "metaDescription": "Duong Global is a top business consulting firm allying business lawyers & trading experts. Leader in U.S. & South-East Asia trade relations.",
+    "h1Count": 1,
+    "hasSchema": true
+  },
+  "researchedAt": "2026-01-29T00:36:56.738Z",
+  "estimatedMonthlyRevenueLoss": 28000
+}

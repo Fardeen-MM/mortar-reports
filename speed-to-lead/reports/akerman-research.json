@@ -1,0 +1,74 @@
+{
+  "firmName": "Akerman LLP",
+  "website": "https://www.akerman.com",
+  "location": {
+    "city": "Miami",
+    "state": "FL",
+    "country": "US"
+  },
+  "practiceAreas": ["M&A", "Private Equity", "Leveraged Buyouts", "Financial Services", "Real Estate", "Complex Disputes"],
+  "credentials": [
+    "Best Lawyers' 2026 Law Firm of the Year for Leveraged Buyouts and Private Equity Law",
+    "Top 100 U.S. Law Firm",
+    "700+ Attorneys",
+    "Financial Times: Most Forward Thinking Law Firms",
+    "Offices Throughout the Americas"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7 while you rely on referrals and brand recognition.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Blue ocean opportunity: Minimal competition in M&A/PE attorney searches. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 lead capture detected. 73% of M&A inquiries happen outside business hours when deals break or crises emerge.",
+      "status": "critical"
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "Site loads in 1.4s - excellent performance."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up for high-value M&A leads. Automation improves close rates 15-30% for enterprise clients with long decision cycles.",
+      "status": "opportunity"
+    }
+  },
+  "competitors": ["Kirkland & Ellis", "Latham & Watkins", "Skadden", "Simpson Thacher"],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "competitors": ["Kirkland & Ellis", "Latham & Watkins"]
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 1422,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "Best Lawyers' 2026 Law Firm of the Year",
+    "subheadline": "Leveraged Buyouts and Private Equity Law",
+    "hasAwards": true,
+    "hasContactForm": true,
+    "homepageWordCount": 1135,
+    "metaDescription": "Akerman is recognized by Financial Times as among the most forward thinking law firms in the industry. We are known for our results in middle market M&A and complex disputes, and for helping clients achieve their most important business objectives in the financial services, real estate, and other dynamic sectors. We are consistently ranked among the top 100 law firms in the United States, with a reach that extends throughout the Americas and to 35 countries."
+  },
+  "researchedAt": "2026-01-28T20:25:07.312Z",
+  "estimatedMonthlyRevenueLoss": 43000
+}

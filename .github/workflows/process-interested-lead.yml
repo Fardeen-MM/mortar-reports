@@ -1,0 +1,131 @@
+name: Process Interested Lead
+
+on:
+  repository_dispatch:
+    types: [interested_lead]
+
+jobs:
+  research-and-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium
+          npm install
+        working-directory: ./automation
+        
+      - name: Extract lead data
+        id: lead_data
+        run: |
+          echo "lead_email=${{ github.event.client_payload.lead_email }}" >> $GITHUB_OUTPUT
+          echo "campaign_name=${{ github.event.client_payload.campaign_name }}" >> $GITHUB_OUTPUT
+          echo "reply_text=${{ github.event.client_payload.reply_text }}" >> $GITHUB_OUTPUT
+          echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
+          
+      - name: Parse website from lead data
+        id: parse
+        run: |
+          # Extract website from custom fields or use a default
+          WEBSITE="${{ github.event.client_payload.website }}"
+          CONTACT_NAME="${{ github.event.client_payload.first_name }} ${{ github.event.client_payload.last_name }}"
+          
+          # If no website in payload, we'll need to extract from email domain
+          if [ -z "$WEBSITE" ]; then
+            DOMAIN=$(echo "${{ github.event.client_payload.lead_email }}" | cut -d'@' -f2)
+            WEBSITE="https://www.$DOMAIN"
+          fi
+          
+          # Generate slug from website
+          SLUG=$(echo "$WEBSITE" | sed 's/https:\/\///' | sed 's/http:\/\///' | sed 's/www\.//' | sed 's/\..*//')
+          
+          echo "website=$WEBSITE" >> $GITHUB_OUTPUT
+          echo "contact_name=$CONTACT_NAME" >> $GITHUB_OUTPUT
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          
+      - name: Run research script
+        id: research
+        run: |
+          node research-v3-DEEP.js "${{ steps.parse.outputs.website }}" "${{ steps.parse.outputs.contact_name }}"
+        working-directory: ./automation
+        
+      - name: AI-powered analysis
+        id: ai_analysis
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          REPORT_FILE=$(ls reports/*.json | tail -1)
+          node ai-analyzer.js "$REPORT_FILE"
+        working-directory: ./automation
+        
+      - name: Generate report with AI insights
+        id: report
+        run: |
+          REPORT_FILE=$(ls reports/*.json | tail -1)
+          node report-generator-v7.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
+          
+          # Inject AI insights into generated HTML
+          REPORT_HTML=$(ls reports/*-landing-page-v7.html | tail -1)
+          node inject-ai-insights.js "$REPORT_HTML" "$REPORT_FILE"
+        working-directory: ./automation
+        
+      - name: Deploy report to GitHub Pages
+        run: |
+          # Create report directory
+          SLUG="${{ steps.parse.outputs.slug }}"
+          mkdir -p "reports/$SLUG"
+          
+          # Copy generated HTML to report directory
+          REPORT_HTML=$(ls automation/reports/*-landing-page-v7.html | tail -1)
+          cp "$REPORT_HTML" "reports/$SLUG/index.html"
+          
+          # Commit and push
+          git config user.name "Mortar Metrics Bot"
+          git config user.email "automation@mortarmetrics.com"
+          git add "reports/$SLUG/index.html"
+          git commit -m "Add report for ${{ steps.parse.outputs.slug }}"
+          git push
+          
+      - name: Send follow-up email via Instantly (reply in same thread)
+        env:
+          INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+        run: |
+          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.parse.outputs.slug }}/"
+          EMAIL_ID="${{ steps.lead_data.outputs.email_id }}"
+          
+          node send-email.js \
+            "${{ steps.lead_data.outputs.lead_email }}" \
+            "${{ steps.parse.outputs.contact_name }}" \
+            "$REPORT_URL" \
+            "$EMAIL_ID"
+        working-directory: ./automation
+        
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ job.status }}"
+          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.parse.outputs.slug }}/"
+          
+          if [ "$STATUS" = "success" ]; then
+            MESSAGE="✅ Report generated for *${{ steps.parse.outputs.contact_name }}*\n📧 Email: ${{ steps.lead_data.outputs.lead_email }}\n🔗 Report: $REPORT_URL"
+          else
+            MESSAGE="❌ Failed to generate report for ${{ steps.lead_data.outputs.lead_email }}"
+          fi
+          
+          curl -X POST "$SLACK_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"

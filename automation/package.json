@@ -1,0 +1,14 @@
+{
+  "name": "mortar-reports-automation",
+  "version": "1.0.0",
+  "description": "Automated lead research and report generation for Mortar Metrics",
+  "main": "send-email.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "author": "Mortar Metrics",
+  "license": "MIT"
+}

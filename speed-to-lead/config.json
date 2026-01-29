@@ -1,0 +1,13 @@
+{
+  "instantly": {
+    "apiKey": "YOUR_INSTANTLY_API_KEY",
+    "webhookSecret": "YOUR_WEBHOOK_SECRET"
+  },
+  "mortar": {
+    "senderName": "Yaseer Choudhury",
+    "senderEmail": "yaseer@mortarmetrics.com",
+    "website": "https://mortarmetrics.com/",
+    "linkedin": "https://www.linkedin.com/in/yaseer-choudhury/"
+  },
+  "port": 3456
+}

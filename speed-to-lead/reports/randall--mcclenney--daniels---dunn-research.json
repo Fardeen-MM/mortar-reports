@@ -1,0 +1,161 @@
+{
+  "firmName": "Randall, McClenney, Daniels & Dunn",
+  "website": "https://www.valegalservices.com/",
+  "location": {
+    "city": "Courtland",
+    "state": "VA",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "personal injury",
+    "car accident",
+    "truck accident",
+    "motorcycle accident",
+    "criminal defense",
+    "drug crimes",
+    "family law",
+    "divorce",
+    "child custody",
+    "child support",
+    "real estate",
+    "appeals"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 5000,
+      "details": "Running 33 Google Ad(s). We can audit your campaigns, improve Quality Score, optimize bidding, and likely cut CPA by 20-40%.",
+      "status": "active"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 0,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": true,
+    "adCount": 33,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 1225,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "Criminal, Family and Personal Injury Attorneys in Hampton Roads and Southside Virginia.",
+    "subheadline": "Criminal Defense",
+    "aboveFoldScreenshot": "./reports/randall,-mcclenney,-daniels-&-dunn-hero.png",
+    "ctaCount": 5,
+    "ctaButtons": [
+      {
+        "text": "Get Help Now",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "More Reviews",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Contact",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Get Help Now",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Contact Us",
+        "position": "unknown",
+        "prominent": false
+      }
+    ],
+    "mainCTA": "Get Help Now",
+    "hasTestimonials": false,
+    "testimonialCount": 0,
+    "testimonialExamples": [],
+    "hasAwards": true,
+    "hasCaseResults": false,
+    "yearsInBusiness": 202,
+    "hasContactForm": true,
+    "formFieldCount": 37,
+    "formFields": [
+      "input_1",
+      "input_3",
+      "input_4",
+      "input_8",
+      "submit",
+      "gform_ajax",
+      "gform_submission_method",
+      "gform_theme",
+      "gform_style_settings",
+      "is_submit_12"
+    ],
+    "hasPhoneNumber": true,
+    "phoneNumber": "(757) 742-6115",
+    "homepageWordCount": 3950,
+    "hasBlog": true,
+    "practiceAreaPages": 194,
+    "menuItems": [
+      "Home",
+      "Attorneys",
+      "Attorneys ",
+      "Jack T. Randall",
+      "Christopher P. Daniels",
+      "Rocco Columbus",
+      "Kevin D. Frank",
+      "“Chris” W. Christopher Dunn",
+      "Tammy McClenney",
+      "Crawford G. Ellsworth III",
+      "View All Attorneys",
+      "About ",
+      "Our Firm",
+      "Testimonials",
+      "Our Service Area"
+    ],
+    "hasReviews": false,
+    "reviewCount": 971,
+    "reviewScore": null,
+    "metaDescription": "Virginia Beach and Chesapeake attorneys helping clients with criminal charges, divorce, traffic defense, and injury claims throughout Southeast Virginia.",
+    "h1Count": 1,
+    "hasSchema": true
+  },
+  "researchedAt": "2026-01-28T21:40:45.106Z",
+  "estimatedMonthlyRevenueLoss": 40000
+}

@@ -1,0 +1,133 @@
+{
+  "firmName": "McKinney Immigration Law",
+  "website": "https://www.mckinneyimmigration.com/",
+  "contactPerson": "Jeremy McKinney",
+  "location": {
+    "city": "Greensboro",
+    "state": "NC",
+    "country": "US"
+  },
+  "allLocations": [
+    {
+      "city": "Greensboro",
+      "state": "NC",
+      "country": "US"
+    }
+  ],
+  "credentials": [],
+  "attorneys": [],
+  "practiceAreas": [
+    "title",
+    "commercial",
+    "immigration",
+    "citizenship",
+    "visa",
+    "green card",
+    "dw",
+    "litigation",
+    "appeals",
+    "irs"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "The Immigration Law Offices of Neelam Bhardwaj",
+      "rating": 4.6,
+      "reviews": 98,
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Strong SEO", "30+ years"]
+    },
+    {
+      "name": "Diener Law",
+      "rating": 4.7,
+      "reviews": 465,
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Strong SEO"]
+    },
+    {
+      "name": "Burgos Law",
+      "features": ["Google Ads", "Meta Ads", "Strong SEO"]
+    },
+    {
+      "name": "Goulder Immigration Law Firm",
+      "features": ["Google Ads", "24/7 AI Calling"]
+    },
+    {
+      "name": "Chapman & Roberts, P.A.",
+      "features": ["Meta Ads", "Strong SEO"]
+    },
+    {
+      "name": "Steven T. Meier, PLLC",
+      "features": ["Google Ads", "Strong SEO"]
+    },
+    {
+      "name": "Fox Rothschild LLP",
+      "features": ["Google Ads", "Meta Ads", "24/7 AI Calling", "Board Certified"]
+    },
+    {
+      "name": "CWS Greensboro",
+      "features": ["Strong SEO"]
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads while 5 competitors dominate Meta with daily campaigns targeting your clients.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Not running Google Ads. 6 competitors are actively bidding on immigration keywords in Greensboro.",
+      "status": "behind"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 AI calling detected. 4 competitors answer calls instantly with AI, capturing leads while you sleep."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "3.4s load time. Every extra second = 7% conversion loss."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 3411,
+  "pageSpeedScore": "Medium",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {
+    "competitorsRunningAds": 5,
+    "topCompetitors": ["Diener Law", "Neelam Bhardwaj", "Fox Rothschild LLP"]
+  },
+  "googleAdsData": {
+    "competitorsRunningAds": 6,
+    "topCompetitors": ["Diener Law", "Neelam Bhardwaj", "Burgos Law"]
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://www.mckinneyimmigration.com/",
+      "type": "homepage"
+    },
+    {
+      "url": "https://www.mckinneyimmigration.com/contact/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T01:32:11.566Z",
+  "estimatedMonthlyRevenueLoss": 51000
+}

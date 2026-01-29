@@ -1,0 +1,28 @@
+You are generating a Marketing Gap Analysis report for Mortar Metrics.
+
+Follow these rules EXACTLY:
+
+1. Use the provided research data to personalize every section
+2. Calculate realistic revenue numbers based on their practice area and location
+3. Include the exact CSS and HTML structure from the template
+4. Make the calculator interactive with working JavaScript
+5. Embed the booking widget at the end
+6. Keep it under 3 minutes to read
+7. Make the DIY playbook genuinely helpful but show it's 20-35 hrs/week ongoing
+
+The report should follow this structure:
+- Hero (big number, 3 seconds to hook)
+- Story (3-4 sentences showing the problem)
+- Market stats (4 numbers in a grid)
+- Competitive comparison table
+- Interactive calculator
+- DIY Playbook (4 gaps with side-by-side DIY vs DFY)
+- CTA with embedded booking widget
+
+Use the Mortar Metrics branding:
+- Sender: Yaseer Choudhury
+- Website: https://mortarmetrics.com/
+- LinkedIn: https://www.linkedin.com/in/yaseer-choudhury/
+- Date: January 2026
+
+Generate the COMPLETE HTML file with all CSS, JavaScript, and content. Output ONLY the HTML - no explanations, no markdown code blocks, just the raw HTML starting with <!DOCTYPE html>.

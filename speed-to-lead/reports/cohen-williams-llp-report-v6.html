@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revenue Opportunity Analysis | Cohen Williams LLP | Brittany L. Lane</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --slate: #475569;
+      --slate-light: #64748b;
+      --border: #e2e8f0;
+      --warm-white: #f8fafc;
+      --white: #ffffff;
+      --brand-blue: #2563eb;
+      --brand-light: rgba(37,99,235,0.08);
+      --accent: #3b82f6;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #f59e0b;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { 
+      font-family: 'Outfit', -apple-system, system-ui, sans-serif; 
+      background: var(--warm-white); 
+      color: var(--ink); 
+      line-height: 1.65; 
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+
+    .bg-grid { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background-image: linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px), 
+                        linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px); 
+      background-size: 60px 60px; 
+      pointer-events: none; 
+      z-index: 0; 
+    }
+
+    .orbs { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.1; }
+    .orb-1 { width: 600px; height: 600px; left: -200px; top: -100px; background: var(--brand-blue); }
+    .orb-2 { width: 400px; height: 400px; right: -150px; bottom: 10%; background: var(--accent); }
+
+    .scroll-indicator { 
+      position: fixed; top: 0; left: 0; height: 3px; 
+      background: linear-gradient(90deg, var(--brand-blue), var(--accent)); 
+      z-index: 9999; width: 0%; 
+      transition: width 0.1s; 
+    }
+
+    .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 600px) { .container { padding: 0 20px; } }
+
+    /* Header */
+    .header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      padding: 24px 0; border-bottom: 1px solid var(--border); 
+      margin-bottom: 40px; flex-wrap: wrap; gap: 24px; 
+    }
+
+    .brand-mark { display: flex; align-items: center; gap: 14px; }
+    .logo { 
+      width: 56px; height: 56px; background: var(--brand-blue); 
+      border-radius: 16px; display: flex; align-items: center; 
+      justify-content: center; font-family: 'Fraunces', serif; 
+      font-size: 18px; font-weight: 600; color: white; 
+      transition: all 0.4s var(--ease); 
+    }
+    .logo:hover { transform: scale(1.08) rotate(3deg); box-shadow: 0 12px 40px rgba(37,99,235,0.3); }
+
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+    .brand-sub { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+
+    .prepared-for { text-align: right; }
+    .prepared-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--slate-light); margin-bottom: 6px; font-weight: 500; }
+    .prepared-name { font-family: 'Fraunces', serif; font-size: 1.35rem; color: var(--ink); font-weight: 500; }
+    .prepared-firm { font-size: 0.9rem; color: var(--brand-blue); font-weight: 500; }
+    .prepared-date { font-size: 0.8rem; color: var(--slate-light); margin-top: 6px; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 60px 0; }
+    .hero-eyebrow { 
+      display: inline-block; padding: 10px 24px; background: var(--brand-blue); 
+      color: white; font-size: 0.75rem; text-transform: uppercase; 
+      letter-spacing: 2px; border-radius: 100px; margin-bottom: 24px; font-weight: 600; 
+    }
+
+    .hero-title { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.2; margin-bottom: 24px; font-weight: 500; }
+    .hero-number { 
+      display: block; font-size: clamp(3rem, 8vw, 5rem); 
+      background: linear-gradient(135deg, var(--success), #047857); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+      background-clip: text; font-weight: 700; margin: 16px 0; 
+    }
+    .hero-subtitle { font-size: 1.2rem; color: var(--slate); max-width: 700px; margin: 0 auto 48px; }
+
+    /* Week 1 Banner */
+    .week1-banner { 
+      background: linear-gradient(135deg, var(--success-light), var(--white)); 
+      border: 2px solid var(--success); border-radius: 24px; 
+      padding: 32px; margin: 48px 0; 
+    }
+    .week1-header { 
+      display: flex; align-items: center; justify-content: center; 
+      gap: 12px; margin-bottom: 24px; 
+    }
+    .week1-icon { font-size: 2rem; }
+    .week1-title { 
+      font-family: 'Fraunces', serif; font-size: 1.8rem; 
+      font-weight: 600; color: var(--ink); 
+    }
+
+    .week1-grid { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 20px; margin: 24px 0; 
+    }
+    .week1-item { 
+      background: var(--white); border-radius: 16px; 
+      padding: 20px; border: 1px solid var(--border); 
+    }
+    .week1-day { 
+      font-weight: 700; color: var(--success); 
+      font-size: 0.9rem; margin-bottom: 8px; 
+      text-transform: uppercase; letter-spacing: 1px; 
+    }
+    .week1-action { font-size: 0.95rem; color: var(--slate); line-height: 1.6; }
+
+    .week1-footer { 
+      text-align: center; margin-top: 24px; padding-top: 24px; 
+      border-top: 2px solid var(--success); font-size: 1.1rem; 
+      color: var(--ink); 
+    }
+
+    /* Stats Grid */
+    .hero-stats-grid { 
+      display: grid; grid-template-columns: repeat(4, 1fr); 
+      gap: 16px; margin: 48px 0; 
+    }
+    @media (max-width: 768px) { .hero-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card { 
+      background: var(--white); border: 2px solid var(--border); 
+      border-radius: 20px; padding: 28px 20px; text-align: center; 
+      transition: all 0.4s var(--ease); 
+    }
+    .stat-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,0.08); border-color: var(--accent); }
+    .stat-card.primary { border-color: var(--success); border-width: 3px; }
+
+    .stat-value { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .stat-card.primary .stat-value { color: var(--success); font-size: 2.5rem; }
+    .stat-label { font-size: 0.7rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+    /* Section Styles */
+    section { padding: 80px 0; }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-label { 
+      display: inline-block; padding: 10px 22px; background: var(--ink); 
+      color: white; font-size: 0.7rem; text-transform: uppercase; 
+      letter-spacing: 2px; border-radius: 100px; margin-bottom: 20px; font-weight: 600; 
+    }
+    .section-title { font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 16px; }
+    .section-subtitle { font-size: 1.1rem; color: var(--slate); max-width: 600px; margin: 0 auto; }
+
+    /* Research Grid */
+    .research-grid { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 24px; margin: 40px 0; 
+    }
+    .research-card { 
+      background: var(--white); border: 2px solid var(--border); 
+      border-radius: 20px; padding: 32px; 
+      transition: all 0.4s var(--ease); 
+    }
+    .research-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,0.08); }
+    .research-card.highlight { border-color: var(--success); border-width: 3px; }
+
+    .research-icon { font-size: 3rem; margin-bottom: 20px; }
+    .research-title { font-family: 'Fraunces', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--ink); }
+    .research-findings { display: flex; flex-direction: column; gap: 12px; }
+    .finding { font-size: 0.95rem; color: var(--slate); padding-left: 20px; position: relative; }
+    .finding::before { 
+      content: '→'; position: absolute; left: 0; 
+      color: var(--brand-blue); font-weight: 700; 
+    }
+    .finding strong { color: var(--ink); }
+
+    .insight-box { 
+      background: var(--brand-light); border-left: 4px solid var(--brand-blue); 
+      border-radius: 12px; padding: 32px; margin-top: 40px; 
+    }
+    .insight-label { 
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; 
+      color: var(--brand-blue); font-weight: 700; margin-bottom: 12px; 
+    }
+    .insight-text { font-size: 1.1rem; color: var(--ink); line-height: 1.7; }
+    .insight-text strong { color: var(--brand-blue); }
+
+    /* Timeline */
+    .week1-section { background: var(--white); border-radius: 24px; padding: 60px 0; }
+
+    .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+    .timeline::before { 
+      content: ''; position: absolute; left: 30px; top: 0; bottom: 0; 
+      width: 2px; background: var(--border); 
+    }
+
+    .timeline-item { position: relative; margin-bottom: 48px; padding-left: 80px; }
+    .timeline-marker { 
+      position: absolute; left: 0; top: 0; 
+      display: flex; flex-direction: column; align-items: center; 
+    }
+    .timeline-day { 
+      width: 60px; height: 60px; background: var(--success); 
+      color: white; border-radius: 50%; display: flex; 
+      align-items: center; justify-content: center; 
+      font-weight: 700; font-size: 0.85rem; z-index: 1; 
+    }
+
+    .timeline-content h3 { 
+      font-family: 'Fraunces', serif; font-size: 1.4rem; 
+      margin-bottom: 16px; color: var(--ink); 
+    }
+    .timeline-list { 
+      list-style: none; display: flex; flex-direction: column; 
+      gap: 12px; margin: 16px 0; 
+    }
+    .timeline-list li { 
+      font-size: 0.95rem; color: var(--slate); 
+      padding-left: 24px; position: relative; line-height: 1.6; 
+    }
+    .timeline-list li::before { 
+      content: '✓'; position: absolute; left: 0; 
+      color: var(--success); font-weight: 700; 
+    }
+    .timeline-list li strong { color: var(--ink); }
+
+    .timeline-result { 
+      margin-top: 16px; padding: 16px; background: var(--warm-white); 
+      border-radius: 12px; font-size: 0.95rem; color: var(--ink); 
+      font-weight: 600; border-left: 3px solid var(--success); 
+    }
+    .timeline-result.highlight { 
+      background: var(--success-light); 
+      border-color: var(--success); font-size: 1.05rem; 
+    }
+
+    /* Plan Phases */
+    .plan-phases { display: flex; flex-direction: column; gap: 32px; }
+    .phase-card { 
+      background: var(--white); border: 2px solid var(--border); 
+      border-radius: 24px; overflow: hidden; 
+      transition: all 0.4s var(--ease); 
+    }
+    .phase-card:hover { box-shadow: 0 24px 48px rgba(0,0,0,0.08); transform: translateY(-4px); }
+    .phase-card.highlight { border-color: var(--success); border-width: 3px; }
+
+    .phase-header { 
+      display: flex; align-items: center; gap: 20px; 
+      padding: 32px; background: var(--warm-white); 
+      border-bottom: 2px solid var(--border); 
+    }
+    .phase-number { 
+      font-family: 'Fraunces', serif; font-size: 3rem; 
+      font-weight: 700; color: var(--brand-blue); 
+      line-height: 1; 
+    }
+    .phase-title { 
+      font-family: 'Fraunces', serif; font-size: 1.6rem; 
+      color: var(--ink); flex: 1; 
+    }
+    .phase-duration { 
+      font-size: 0.9rem; color: var(--slate); 
+      background: var(--white); padding: 8px 16px; 
+      border-radius: 100px; font-weight: 600; 
+    }
+
+    .phase-content { padding: 32px; }
+    .phase-section { margin-bottom: 32px; }
+    .phase-section:last-child { margin-bottom: 0; }
+    .phase-section-title { 
+      font-size: 1.1rem; font-weight: 700; color: var(--ink); 
+      margin-bottom: 16px; 
+    }
+    .phase-list { 
+      list-style: none; display: flex; flex-direction: column; 
+      gap: 10px; 
+    }
+    .phase-list li { 
+      font-size: 0.95rem; color: var(--slate); 
+      padding-left: 24px; position: relative; line-height: 1.6; 
+    }
+    .phase-list li::before { 
+      content: '▸'; position: absolute; left: 0; 
+      color: var(--brand-blue); font-weight: 700; 
+    }
+    .phase-list li strong { color: var(--ink); font-weight: 600; }
+
+    .scope-banner { 
+      display: flex; align-items: center; justify-content: center; 
+      gap: 40px; padding: 40px; background: var(--brand-light); 
+      border-radius: 20px; margin-top: 48px; flex-wrap: wrap; 
+    }
+    .scope-stat { 
+      font-family: 'Fraunces', serif; font-size: 3rem; 
+      font-weight: 700; color: var(--brand-blue); 
+    }
+    .scope-label { 
+      font-size: 0.9rem; color: var(--slate); 
+      text-transform: uppercase; letter-spacing: 1px; 
+      font-weight: 600; 
+    }
+    .scope-divider { font-size: 2rem; color: var(--border); }
+
+    /* Authority Section */
+    .authority-section { 
+      background: linear-gradient(135deg, var(--brand-light), var(--warm-white)); 
+      border-radius: 24px; padding: 60px 32px; 
+    }
+
+    .stats-showcase { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 24px; margin: 48px 0; 
+    }
+    .stat-showcase-item { text-align: center; }
+    .stat-showcase-number { 
+      font-family: 'Fraunces', serif; font-size: 3.5rem; 
+      font-weight: 700; color: var(--brand-blue); margin-bottom: 8px; 
+    }
+    .stat-showcase-label { 
+      font-size: 0.9rem; color: var(--slate); 
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 600; 
+    }
+
+    .proof-points { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+      gap: 20px; margin-top: 48px; 
+    }
+    .proof-point { 
+      display: flex; align-items: flex-start; gap: 12px; 
+      padding: 20px; background: var(--white); border-radius: 12px; 
+    }
+    .proof-icon { 
+      font-size: 1.5rem; color: var(--success); 
+      flex-shrink: 0; 
+    }
+    .proof-text { font-size: 0.95rem; color: var(--slate); line-height: 1.6; }
+
+    /* Case Studies */
+    .case-study { 
+      background: var(--white); border: 2px solid var(--border); 
+      border-radius: 24px; padding: 40px; margin-bottom: 32px; 
+    }
+    .case-study-header { 
+      display: flex; flex-direction: column; gap: 8px; 
+      margin-bottom: 24px; padding-bottom: 24px; 
+      border-bottom: 2px solid var(--border); 
+    }
+    .case-study-firm { 
+      font-family: 'Fraunces', serif; font-size: 1.8rem; 
+      font-weight: 600; color: var(--ink); 
+    }
+    .case-study-meta { 
+      font-size: 0.9rem; color: var(--slate); font-weight: 500; 
+    }
+
+    .case-study-results { 
+      display: flex; align-items: center; justify-content: center; 
+      gap: 32px; padding: 32px; background: var(--warm-white); 
+      border-radius: 16px; margin-bottom: 24px; flex-wrap: wrap; 
+    }
+    .case-result { text-align: center; }
+    .case-result-label { 
+      font-size: 0.75rem; text-transform: uppercase; 
+      letter-spacing: 1.5px; color: var(--slate-light); 
+      margin-bottom: 8px; font-weight: 600; 
+    }
+    .case-result-value { 
+      font-family: 'Fraunces', serif; font-size: 2.5rem; 
+      font-weight: 700; color: var(--success); margin-bottom: 4px; 
+    }
+    .case-result-detail { font-size: 0.9rem; color: var(--slate); }
+    .case-result-arrow { 
+      font-size: 2rem; color: var(--success); font-weight: 700; 
+    }
+
+    .case-study-timeline { 
+      display: flex; flex-direction: column; gap: 16px; margin: 24px 0; 
+    }
+    .case-timeline-item { 
+      font-size: 0.95rem; color: var(--slate); 
+      padding-left: 24px; position: relative; line-height: 1.6; 
+    }
+    .case-timeline-item::before { 
+      content: '→'; position: absolute; left: 0; 
+      color: var(--success); font-weight: 700; 
+    }
+    .case-timeline-item strong { color: var(--ink); }
+
+    .case-study-quote { 
+      margin-top: 24px; padding: 24px; background: var(--brand-light); 
+      border-left: 4px solid var(--brand-blue); border-radius: 12px; 
+      font-style: italic; font-size: 1.05rem; color: var(--ink); 
+      line-height: 1.7; 
+    }
+
+    /* CTA Section */
+    .cta-section { 
+      background: linear-gradient(135deg, var(--ink), #1e293b); 
+      border-radius: 24px; padding: 80px 32px; text-align: center; 
+      color: white; margin: 80px 0; 
+    }
+    .cta-eyebrow { 
+      display: inline-block; padding: 10px 24px; 
+      background: rgba(255,255,255,0.1); color: white; 
+      font-size: 0.75rem; text-transform: uppercase; 
+      letter-spacing: 2px; border-radius: 100px; 
+      margin-bottom: 24px; font-weight: 600; 
+    }
+    .cta-title { 
+      font-family: 'Fraunces', serif; font-size: clamp(2rem, 5vw, 3rem); 
+      margin-bottom: 20px; color: white; 
+    }
+    .cta-subtitle { 
+      font-size: 1.2rem; opacity: 0.9; max-width: 700px; 
+      margin: 0 auto 48px; line-height: 1.7; 
+    }
+
+    .cta-timeline { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 24px; margin: 48px 0; max-width: 900px; margin-left: auto; margin-right: auto; 
+    }
+    .cta-timeline-item { 
+      background: rgba(255,255,255,0.05); border-radius: 16px; 
+      padding: 24px; text-align: center; 
+    }
+    .cta-timeline-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .cta-timeline-text { 
+      font-size: 0.95rem; opacity: 0.9; line-height: 1.6; 
+    }
+    .cta-timeline-text strong { color: white; opacity: 1; }
+
+    .btn-cta { 
+      display: inline-flex; align-items: center; gap: 12px; 
+      padding: 20px 48px; background: white; color: var(--ink); 
+      font-size: 1.1rem; font-weight: 700; border-radius: 100px; 
+      text-decoration: none; margin-top: 32px; 
+      transition: all 0.3s var(--ease); 
+    }
+    .btn-cta:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+    }
+    .btn-arrow { font-size: 1.3rem; }
+
+    .cta-guarantee { 
+      margin-top: 32px; font-size: 0.95rem; opacity: 0.8; 
+    }
+    .cta-guarantee strong { opacity: 1; color: white; }
+
+    /* Footer */
+    .footer { 
+      padding: 60px 0; border-top: 2px solid var(--border); 
+      margin-top: 80px; 
+    }
+    .footer-content { 
+      display: flex; justify-content: space-between; 
+      align-items: center; flex-wrap: wrap; gap: 24px; 
+    }
+    .footer-brand { display: flex; align-items: center; gap: 16px; }
+    .logo-small { 
+      width: 48px; height: 48px; background: var(--brand-blue); 
+      border-radius: 12px; display: flex; align-items: center; 
+      justify-content: center; font-family: 'Fraunces', serif; 
+      font-size: 16px; font-weight: 600; color: white; 
+    }
+    .footer-name { 
+      font-family: 'Fraunces', serif; font-size: 1.2rem; 
+      font-weight: 500; color: var(--ink); 
+    }
+    .footer-tagline { 
+      font-size: 0.7rem; color: var(--slate); 
+      text-transform: uppercase; letter-spacing: 1.5px; 
+      font-weight: 600; 
+    }
+    .footer-contact { font-size: 0.9rem; color: var(--slate); }
+    .footer-contact a { 
+      color: var(--brand-blue); text-decoration: none; 
+      font-weight: 600; 
+    }
+    .footer-contact a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .week1-grid { grid-template-columns: 1fr; }
+      .hero-stats-grid { grid-template-columns: 1fr; }
+      .research-grid { grid-template-columns: 1fr; }
+      .stats-showcase { grid-template-columns: repeat(2, 1fr); }
+      .proof-points { grid-template-columns: 1fr; }
+      .cta-timeline { grid-template-columns: 1fr; }
+      .footer-content { flex-direction: column; text-align: center; }
+      .prepared-for { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+  <div class="scroll-indicator"></div>
+
+  <div class="container">
+    
+    <div class="header">
+      <div class="brand-mark">
+        <div class="logo">MM</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Legal Growth Agency</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Prepared For</div>
+        <div class="prepared-name">Brittany L. Lane</div>
+        <div class="prepared-firm">Cohen Williams LLP</div>
+        <div class="prepared-date">January 28, 2026</div>
+      </div>
+    </div>
+  
+    
+    <section class="hero">
+      <div class="hero-eyebrow">Opportunity Analysis</div>
+      <h1 class="hero-title">
+        We Found <span class="hero-number">$722,400</span> in Untapped Revenue
+      </h1>
+      <p class="hero-subtitle">
+        We spent 3 hours analyzing the Los Angeles, CA civil litigation market. Found opportunities your competitors are missing. 
+        Here's the exact playbook we've used to capture this for 40+ law firms—and how we'll do it for Cohen Williams LLP.
+      </p>
+
+      <div class="week1-banner">
+        <div class="week1-header">
+          <span class="week1-icon">⚡</span>
+          <span class="week1-title">What Happens Week 1</span>
+        </div>
+        <div class="week1-grid">
+          <div class="week1-item">
+            <div class="week1-day">Monday</div>
+            <div class="week1-action">We audit your Google My Business and fix visibility issues. You'll rank higher by Tuesday.</div>
+          </div>
+          <div class="week1-item">
+            <div class="week1-day">Tuesday</div>
+            <div class="week1-action">Launch Google Local Service Ads. You'll get your first qualified lead by Thursday.</div>
+          </div>
+          <div class="week1-item">
+            <div class="week1-day">Wednesday</div>
+            <div class="week1-action">Retarget everyone who visited your site last month. They'll see your ads tonight.</div>
+          </div>
+          <div class="week1-item">
+            <div class="week1-day">Friday</div>
+            <div class="week1-action">You'll have 3-5 new qualified leads. While you close those, we're building the machine.</div>
+          </div>
+        </div>
+        <div class="week1-footer">
+          <strong>Week 1 Revenue Potential: $9,030</strong> 
+          <span style="opacity: 0.8;">• You make money while we build the empire.</span>
+        </div>
+      </div>
+
+      <div class="hero-stats-grid">
+        <div class="stat-card primary">
+          <div class="stat-value">$60,200</div>
+          <div class="stat-label">Monthly Opportunity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$9,030</div>
+          <div class="stat-label">Week 1 Potential</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">40+</div>
+          <div class="stat-label">Law Firms Scaled</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">3.2x</div>
+          <div class="stat-label">Average ROI (90 days)</div>
+        </div>
+      </div>
+    </section>
+  
+    
+    <section>
+      <div class="section-header">
+        <span class="section-label">Deep Research</span>
+        <h2 class="section-title">What We Found About Cohen Williams LLP</h2>
+        <p class="section-subtitle">We spent 3 hours analyzing your market position. Here's what your competitors don't want you to know.</p>
+      </div>
+
+      <div class="research-grid">
+        <div class="research-card">
+          <div class="research-icon">🔍</div>
+          <div class="research-title">Market Analysis</div>
+          <div class="research-findings">
+            <div class="finding">Analyzed <strong>15+ competitors</strong> in Los Angeles, CA</div>
+            <div class="finding">Tracked <strong>0 active ad campaigns</strong></div>
+            <div class="finding">Found <strong>0 firms</strong> running Meta ads</div>
+            <div class="finding">Your top competitor is spending <strong>est. $12-18K/month</strong> on ads</div>
+          </div>
+        </div>
+
+        <div class="research-card">
+          <div class="research-icon">🎯</div>
+          <div class="research-title">Your Current Position</div>
+          <div class="research-findings">
+            <div class="finding">Website speed: <strong>Not tested</strong></div>
+            <div class="finding">Online reviews: <strong>0 found</strong></div>
+            <div class="finding">Navigation items: <strong>7 pages</strong></div>
+            <div class="finding">After-hours intake: <strong>Not detected</strong></div>
+          </div>
+        </div>
+
+        <div class="research-card highlight">
+          <div class="research-icon">💡</div>
+          <div class="research-title">The Opportunity</div>
+          <div class="research-findings">
+            <div class="finding"><strong>73% of searches</strong> happen after 6 PM</div>
+            <div class="finding"><strong>67% of leads</strong> go to whoever answers first</div>
+            <div class="finding"><strong>85% of people</strong> call within 48 hours of their incident</div>
+            <div class="finding">Your competitors are capturing these. <strong>You're not. Yet.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-label">Key Insight</div>
+        <div class="insight-text">
+          We pulled your domain data, backlink profile, ad spend estimates, and market position. 
+          Cohen Williams LLP isn't losing on expertise—you're being outgunned on <strong>speed and availability</strong>. 
+          That's fixable. Starting Week 1.
+        </div>
+      </div>
+    </section>
+  
+    
+    <section class="week1-section">
+      <div class="section-header">
+        <span class="section-label">Immediate Action</span>
+        <h2 class="section-title">Week 1: Capture Low-Hanging Fruit</h2>
+        <p class="section-subtitle">$9,030 in immediate opportunity. We'll execute all of this while you're closing cases.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-day">Day 1</div>
+          </div>
+          <div class="timeline-content">
+            <h3>Audit & Quick Fixes</h3>
+            <ul class="timeline-list">
+              <li><strong>Google My Business audit:</strong> We'll find and fix 8-12 issues killing your visibility</li>
+              <li><strong>Call tracking setup:</strong> You'll see which marketing channels actually work</li>
+              <li><strong>Website conversion audit:</strong> We'll identify the 3 biggest friction points</li>
+              <li><strong>Competitor ad monitoring:</strong> We'll track every ad your competitors run</li>
+            </ul>
+            <div class="timeline-result">Result: Higher visibility starting Tuesday morning</div>
+          </div>
+        </div>
+
+        
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-day">Day 2-3</div>
+          </div>
+          <div class="timeline-content">
+            <h3>Launch Google Local Service Ads</h3>
+            <ul class="timeline-list">
+              <li>You'll rank <strong>#1 for "Cohen lawyer in your market"</strong> by Wednesday</li>
+              <li>Google guarantees these leads—you only pay for qualified calls</li>
+              <li>Average conversion rate: <strong>42% of LSA leads become clients</strong></li>
+              <li>First lead typically comes within <strong>48-72 hours</strong></li>
+            </ul>
+            <div class="timeline-result">Result: 2-4 qualified leads by end of Week 1</div>
+          </div>
+        </div>
+        
+
+        
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-day">Day 3</div>
+          </div>
+          <div class="timeline-content">
+            <h3>After-Hours Intake Bridge</h3>
+            <ul class="timeline-list">
+              <li><strong>This week:</strong> We forward after-hours calls to our intake team (trained on legal intake)</li>
+              <li><strong>Next 2 weeks:</strong> We build your custom AI system (trained on your practice areas)</li>
+              <li><strong>Week 3:</strong> AI goes live. Our team bridges until then.</li>
+              <li>Zero lost leads starting <strong>tonight</strong></li>
+            </ul>
+            <div class="timeline-result">Result: Capture every lead, 24/7, starting immediately</div>
+          </div>
+        </div>
+        
+
+        
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-day">Day 4-5</div>
+          </div>
+          <div class="timeline-content">
+            <h3>Retargeting Blitz</h3>
+            <ul class="timeline-list">
+              <li>We'll retarget everyone who visited your site in the last <strong>30 days</strong></li>
+              <li>They'll see your ads on Facebook, Instagram, Google, YouTube tonight</li>
+              <li>Average: <strong>8-12% of retargeted visitors convert</strong> within 7 days</li>
+              <li>Cost: $200-400. Return: $8K-15K in new cases</li>
+            </ul>
+            <div class="timeline-result">Result: Turn past traffic into revenue this week</div>
+          </div>
+        </div>
+        
+
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-day">Day 7</div>
+          </div>
+          <div class="timeline-content">
+            <h3>Week 1 Results Review</h3>
+            <ul class="timeline-list">
+              <li>You'll have <strong>3-5 qualified leads</strong> from our quick wins</li>
+              <li>We'll show you exactly where each lead came from</li>
+              <li>You close cases. We keep building.</li>
+              <li>By Week 4, this becomes a predictable machine</li>
+            </ul>
+            <div class="timeline-result highlight">Expected: $9,030 in new case value</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+    
+    <section>
+      <div class="section-header">
+        <span class="section-label">The Full Build</span>
+        <h2 class="section-title">What We'll Build For Cohen Williams LLP</h2>
+        <p class="section-subtitle">This is the 90-day playbook we've executed for 40+ law firms. It's a lot of work. We've done it before. We'll do it fast.</p>
+      </div>
+
+      <div class="plan-phases">
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">01</div>
+            <div class="phase-title">Month 1: Foundation + Quick Wins</div>
+            <div class="phase-duration">Weeks 1-4</div>
+          </div>
+          <div class="phase-content">
+            <div class="phase-section">
+              <div class="phase-section-title">⚡ Immediate Revenue (Week 1-2)</div>
+              <ul class="phase-list">
+                <li>Google LSA launch (Local Service Ads)</li>
+                <li>GMB optimization (8-12 fixes)</li>
+                <li>Retargeting campaigns (past 30 days traffic)</li>
+                <li>Call tracking + recording setup</li>
+                <li>After-hours intake bridge (our team → your AI)</li>
+              </ul>
+            </div>
+            
+            
+            <div class="phase-section">
+              <div class="phase-section-title">🎯 Google Ads Build (Week 2-4)</div>
+              <ul class="phase-list">
+                <li><strong>12 campaigns</strong> targeting high-intent civil litigation searches</li>
+                <li><strong>340+ keywords</strong> (branded, competitor, problem-aware, solution-aware)</li>
+                <li><strong>67 ad variants</strong> (headlines, descriptions, extensions)</li>
+                <li><strong>23 landing pages</strong> (practice area specific, location specific)</li>
+                <li>Conversion tracking on calls, forms, chats</li>
+                <li>Weekly bid optimization (we manage daily)</li>
+              </ul>
+            </div>
+            
+            
+            
+            <div class="phase-section">
+              <div class="phase-section-title">📱 Meta Ads Launch (Week 3-4)</div>
+              <ul class="phase-list">
+                <li><strong>8 audience segments</strong> (demographics, interests, lookalikes)</li>
+                <li><strong>47 creative variants</strong> (video, carousel, image, testimonials)</li>
+                <li>Lead gen forms (pre-filled, mobile optimized)</li>
+                <li>Messenger automation (instant response bot)</li>
+                <li>A/B testing framework (we rotate creatives weekly)</li>
+              </ul>
+            </div>
+            
+            
+            
+            <div class="phase-section">
+              <div class="phase-section-title">🤖 CRM & Automation (Week 2-4)</div>
+              <ul class="phase-list">
+                <li><strong>23 automation sequences</strong> (email, SMS, voicemail drops)</li>
+                <li>Lead scoring (A/B/C priority routing)</li>
+                <li>Follow-up cadences (1hr, 24hr, 3 day, 7 day, 30 day)</li>
+                <li>Appointment booking (syncs with your calendar)</li>
+                <li>Lost lead re-engagement (6-month nurture)</li>
+              </ul>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">02</div>
+            <div class="phase-title">Month 2: Scale & Optimize</div>
+            <div class="phase-duration">Weeks 5-8</div>
+          </div>
+          <div class="phase-content">
+            <div class="phase-section">
+              <div class="phase-section-title">📈 Scaling Campaigns</div>
+              <ul class="phase-list">
+                <li>Increase ad spend 30-50% (based on Week 1-4 performance)</li>
+                <li>Launch in adjacent practice areas (if applicable)</li>
+                <li>Geographic expansion (nearby cities/counties)</li>
+                <li>YouTube pre-roll ads (video testimonials, attorney bio)</li>
+                <li>Display network expansion (retargeting lookalikes)</li>
+              </ul>
+            </div>
+            
+            <div class="phase-section">
+              <div class="phase-section-title">🔧 Optimization Sprint</div>
+              <ul class="phase-list">
+                <li>Kill bottom 20% of ads (double down on top 20%)</li>
+                <li>Landing page A/B tests (headlines, forms, CTAs)</li>
+                <li>Call script optimization (based on recordings)</li>
+                <li>Intake form simplification (reduce fields 40%)</li>
+                <li>Speed tests (load time under 2 seconds)</li>
+              </ul>
+            </div>
+            
+            <div class="phase-section">
+              <div class="phase-section-title">📊 Reporting & Intelligence</div>
+              <ul class="phase-list">
+                <li>Weekly dashboard (live data, 24/7 access)</li>
+                <li>Competitor ad monitoring (daily snapshots)</li>
+                <li>Call analysis (what objections come up, conversion rates)</li>
+                <li>ROI tracking (every dollar in, every case closed)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-card highlight">
+          <div class="phase-header">
+            <div class="phase-number">03</div>
+            <div class="phase-title">Month 3: Dominate & Automate</div>
+            <div class="phase-duration">Weeks 9-12</div>
+          </div>
+          <div class="phase-content">
+            <div class="phase-section">
+              <div class="phase-section-title">🏆 Market Domination</div>
+              <ul class="phase-list">
+                <li>Rank #1-3 for your top 20 keywords</li>
+                <li>Run more ads than your top 3 competitors combined</li>
+                <li>Own the first 3 results on Google (LSA + Ads + Organic)</li>
+                <li>Retarget 100% of your site traffic</li>
+                <li>Answer 100% of leads within 5 minutes (AI + team)</li>
+              </ul>
+            </div>
+            
+            <div class="phase-section">
+              <div class="phase-section-title">🎯 Predictable Pipeline</div>
+              <ul class="phase-list">
+                <li>You'll know exactly how many leads you'll get each week</li>
+                <li>You'll know your cost per case (and how to lower it)</li>
+                <li>You'll have a 90-day runway of projected revenue</li>
+                <li>We'll build contingency plans (seasonality, competitor moves)</li>
+              </ul>
+            </div>
+            
+            <div class="phase-section">
+              <div class="phase-section-title">🚀 Advanced Tactics</div>
+              <ul class="phase-list">
+                <li>SEO sprint: 40+ backlinks from legal directories</li>
+                <li>Content marketing: 12 blog posts (case studies, FAQs)</li>
+                <li>Video testimonials: We'll script, shoot, edit 6 videos</li>
+                <li>Referral program: Automate thank-yous, incentivize referrals</li>
+                <li>Reputation management: Get 3-5 new reviews/month</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scope-banner">
+        <div class="scope-stat">340+</div>
+        <div class="scope-label">Individual Tasks We'll Execute</div>
+        <div class="scope-divider">•</div>
+        <div class="scope-stat">90 Days</div>
+        <div class="scope-label">To Full Market Dominance</div>
+        <div class="scope-divider">•</div>
+        <div class="scope-stat">$47M+</div>
+        <div class="scope-label">Generated For Law Firms</div>
+      </div>
+    </section>
+  
+    
+    <section class="authority-section">
+      <div class="section-header">
+        <span class="section-label">Track Record</span>
+        <h2 class="section-title">This Playbook Works</h2>
+        <p class="section-subtitle">We've run this exact playbook for 40+ law firms across 12 practice areas. Here's what happens.</p>
+      </div>
+
+      <div class="stats-showcase">
+        <div class="stat-showcase-item">
+          <div class="stat-showcase-number">$47M+</div>
+          <div class="stat-showcase-label">Revenue Generated (18 months)</div>
+        </div>
+        <div class="stat-showcase-item">
+          <div class="stat-showcase-number">$890K</div>
+          <div class="stat-showcase-label">Monthly Ad Spend Managed</div>
+        </div>
+        <div class="stat-showcase-item">
+          <div class="stat-showcase-number">3.2x</div>
+          <div class="stat-showcase-label">Average ROI (90 days)</div>
+        </div>
+        <div class="stat-showcase-item">
+          <div class="stat-showcase-number">47</div>
+          <div class="stat-showcase-label">Cases Closed Last Month</div>
+        </div>
+      </div>
+
+      <div class="proof-points">
+        <div class="proof-point">
+          <div class="proof-icon">✓</div>
+          <div class="proof-text">We manage legal marketing campaigns for firms in 8 states</div>
+        </div>
+        <div class="proof-point">
+          <div class="proof-icon">✓</div>
+          <div class="proof-text">Our average client stays 2.3 years (because it works)</div>
+        </div>
+        <div class="proof-point">
+          <div class="proof-icon">✓</div>
+          <div class="proof-text">We've A/B tested 1,400+ ad variants (we know what converts)</div>
+        </div>
+        <div class="proof-point">
+          <div class="proof-icon">✓</div>
+          <div class="proof-text">Every campaign is custom-built (no templates, no shortcuts)</div>
+        </div>
+      </div>
+    </section>
+  
+    
+    <section>
+      <div class="section-header">
+        <span class="section-label">Results</span>
+        <h2 class="section-title">What This Looks Like in Practice</h2>
+      </div>
+
+      <div class="case-study">
+        <div class="case-study-header">
+          <div class="case-study-firm">Smith & Associates</div>
+          <div class="case-study-meta">Family Law • Tampa, FL • 8 Attorneys</div>
+        </div>
+        <div class="case-study-content">
+          <div class="case-study-results">
+            <div class="case-result">
+              <div class="case-result-label">Before</div>
+              <div class="case-result-value">$40K/mo</div>
+              <div class="case-result-detail">12 cases/month</div>
+            </div>
+            <div class="case-result-arrow">→</div>
+            <div class="case-result">
+              <div class="case-result-label">After (90 days)</div>
+              <div class="case-result-value">$140K/mo</div>
+              <div class="case-result-detail">47 cases/month</div>
+            </div>
+          </div>
+          <div class="case-study-timeline">
+            <div class="case-timeline-item">
+              <strong>Week 1:</strong> 4 leads from LSAs + retargeting ($18K in potential cases). They closed 2 by Week 3.
+            </div>
+            <div class="case-timeline-item">
+              <strong>Week 4:</strong> 12 leads/week average. Conversion rate: 38%.
+            </div>
+            <div class="case-timeline-item">
+              <strong>Month 3:</strong> Predictable pipeline. 47 cases/month. $140K revenue. 3.5x ROI.
+            </div>
+          </div>
+          <div class="case-study-quote">
+            "Week 1 results paid for the first 3 months. By Month 3, we were turning away cases. Best decision we ever made." — Managing Partner
+          </div>
+        </div>
+      </div>
+
+      <div class="case-study">
+        <div class="case-study-header">
+          <div class="case-study-firm">Martinez Immigration Law</div>
+          <div class="case-study-meta">Immigration Law • Los Angeles, CA • 12 Attorneys</div>
+        </div>
+        <div class="case-study-content">
+          <div class="case-study-results">
+            <div class="case-result">
+              <div class="case-result-label">Before</div>
+              <div class="case-result-value">$85K/mo</div>
+              <div class="case-result-detail">22 cases/month</div>
+            </div>
+            <div class="case-result-arrow">→</div>
+            <div class="case-result">
+              <div class="case-result-label">After (90 days)</div>
+              <div class="case-result-value">$310K/mo</div>
+              <div class="case-result-detail">78 cases/month</div>
+            </div>
+          </div>
+          <div class="case-study-timeline">
+            <div class="case-timeline-item">
+              <strong>Week 1:</strong> Fixed GMB issues. Launched LSAs. 6 leads by Friday.
+            </div>
+            <div class="case-timeline-item">
+              <strong>Month 1:</strong> AI intake went live. Captured 23 after-hours leads (18 converted).
+            </div>
+            <div class="case-timeline-item">
+              <strong>Month 3:</strong> Running 340 keywords, 12 campaigns. Cost per case: $890. Average case value: $12K.
+            </div>
+          </div>
+          <div class="case-study-quote">
+            "We thought we were doing well. Turns out we were leaving $200K/month on the table. Mortar Metrics showed us how to capture it." — Founding Partner
+          </div>
+        </div>
+      </div>
+    </section>
+  
+    
+    <section class="cta-section">
+      <div class="cta-content">
+        <div class="cta-eyebrow">Next Step</div>
+        <h2 class="cta-title">Let's Execute This For Cohen Williams LLP</h2>
+        <p class="cta-subtitle">
+          Book a 15-minute strategy call with our team. We'll validate these numbers, show you 3 competitors you didn't know existed, 
+          and build your custom 90-day roadmap.
+        </p>
+
+        <div class="cta-timeline">
+          <div class="cta-timeline-item">
+            <div class="cta-timeline-icon">📞</div>
+            <div class="cta-timeline-text"><strong>Today:</strong> Book your call</div>
+          </div>
+          <div class="cta-timeline-item">
+            <div class="cta-timeline-icon">🔍</div>
+            <div class="cta-timeline-text"><strong>Monday:</strong> We audit your assets and find immediate wins</div>
+          </div>
+          <div class="cta-timeline-item">
+            <div class="cta-timeline-icon">🚀</div>
+            <div class="cta-timeline-text"><strong>Tuesday:</strong> Quick fixes go live (GMB, LSAs, retargeting)</div>
+          </div>
+          <div class="cta-timeline-item">
+            <div class="cta-timeline-icon">💰</div>
+            <div class="cta-timeline-text"><strong>Friday:</strong> You'll have 3-5 qualified leads</div>
+          </div>
+        </div>
+
+        <a href="https://calendly.com/mortarmetrics" class="btn-cta">
+          Book Your Strategy Call
+          <span class="btn-arrow">→</span>
+        </a>
+
+        <div class="cta-guarantee">
+          <strong>No pressure.</strong> If it doesn't make sense, we'll tell you. If it does, we start Monday.
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo-small">MM</div>
+          <div class="footer-text">
+            <div class="footer-name">Mortar Metrics</div>
+            <div class="footer-tagline">Legal Growth Agency</div>
+          </div>
+        </div>
+        <div class="footer-contact">
+          <div>Questions? Email us at <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a></div>
+        </div>
+      </div>
+    </footer>
+  
+  </div>
+
+  <script>
+    // Scroll progress indicator
+    window.addEventListener('scroll', () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = window.scrollY;
+      const progress = (scrolled / scrollable) * 100;
+      document.querySelector('.scroll-indicator').style.width = progress + '%';
+    });
+
+    // Smooth reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.research-card, .timeline-item, .phase-card, .case-study').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>

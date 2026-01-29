@@ -1,0 +1,46 @@
+{
+  "firmName": "",
+  "website": "https://example-injury-law.com",
+  "location": {
+    "city": "",
+    "state": "",
+    "country": "US"
+  },
+  "practiceAreas": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "support24x7": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "pageSpeed": 148,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "researchedAt": "2026-01-28T15:07:04.337Z",
+  "estimatedMonthlyRevenueLoss": 0
+}

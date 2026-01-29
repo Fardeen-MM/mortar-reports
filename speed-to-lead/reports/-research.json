@@ -1,0 +1,64 @@
+{
+  "firmName": "",
+  "website": "https://www.sobirovslawfirm.com",
+  "contactPerson": "Sobirovs Law Firm",
+  "location": {
+    "city": "",
+    "state": "",
+    "country": "US"
+  },
+  "allLocations": [],
+  "credentials": [],
+  "attorneys": [],
+  "practiceAreas": [],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    }
+  },
+  "pageSpeed": 0,
+  "pageSpeedScore": "",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {},
+  "pagesAnalyzed": [],
+  "researchedAt": "2026-01-29T20:49:07.294Z",
+  "estimatedMonthlyRevenueLoss": 0
+}

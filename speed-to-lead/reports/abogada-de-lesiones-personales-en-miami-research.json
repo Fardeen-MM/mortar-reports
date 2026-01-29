@@ -1,0 +1,220 @@
+{
+  "firmName": "Abogada de lesiones personales en Miami",
+  "website": "https://www.abogadas305.com",
+  "contactPerson": "Victoria Sanpedro",
+  "location": {
+    "city": "Doral",
+    "state": "FL",
+    "country": "US"
+  },
+  "allLocations": [
+    {
+      "city": "Doral",
+      "state": "FL",
+      "country": "US"
+    }
+  ],
+  "credentials": [
+    "Andreas de Barry University, Orlando, Florida",
+    "Victoria se graduó summa cum laude y con numerosos honores y premios"
+  ],
+  "attorneys": [
+    {
+      "name": "Victoria San Pedro Madani",
+      "title": "Socia"
+    },
+    {
+      "name": "una de las",
+      "title": "socia"
+    },
+    {
+      "name": "donde fue",
+      "title": "socia"
+    },
+    {
+      "name": "Ana Cristina Berenguer",
+      "title": "Socia"
+    },
+    {
+      "name": "Personal Injury",
+      "title": "Attorney"
+    },
+    {
+      "name": "Ana Cristina Berenguer es",
+      "title": "Attorney"
+    },
+    {
+      "name": "Ana tambi",
+      "title": "Attorney"
+    }
+  ],
+  "practiceAreas": [
+    "lesiones personales",
+    "personal injury",
+    "mordida de perro",
+    "accidente de motocicleta",
+    "accidente de bicicleta",
+    "accidente de auto",
+    "accidente de camion",
+    "lesion catastrofica",
+    "accident",
+    "accidente",
+    "muerte por negligencia",
+    "visa",
+    "global",
+    "accidente automovilistico",
+    "accidente peatonal",
+    "litigio"
+  ],
+  "firmHistory": {
+    "founded": null,
+    "yearsInBusiness": null,
+    "teamSize": null,
+    "awards": [],
+    "barAdmissions": []
+  },
+  "linkedInProfiles": [],
+  "competitors": [
+    {
+      "name": "Jesus R. Gonzalez, PA - Tu Abogado de Accidente",
+      "reviews": 438,
+      "rating": 5,
+      "address": "8725 NW 18th Terrace STE 304, Doral, FL 33172, USA",
+      "features": []
+    },
+    {
+      "name": "Pacin Levine, P.A.",
+      "reviews": 588,
+      "rating": 4.7,
+      "address": "8350 NW 52nd Terrace Suite 203, Doral, FL 33166, USA",
+      "features": []
+    },
+    {
+      "name": "Tijerino Law Group",
+      "reviews": 136,
+      "rating": 5,
+      "address": "8180 NW 36th St STE 323, Doral, FL 33166, USA",
+      "features": []
+    },
+    {
+      "name": "Abogadas305 Personal Injury Attorneys",
+      "reviews": 101,
+      "rating": 5,
+      "address": "8400 NW 33rd St Suite 405, Doral, FL 33122, USA",
+      "features": []
+    },
+    {
+      "name": "Arias & Abbass Your Attorneys",
+      "reviews": 240,
+      "rating": 5,
+      "address": "8725 NW 18th Terrace suite 313, Doral, FL 33172, USA",
+      "features": []
+    },
+    {
+      "name": "My 305 Attorneys, P.A.",
+      "reviews": 41,
+      "rating": 5,
+      "address": "3403 NW 82nd Ave Suite 200, Doral, FL 33122, USA",
+      "features": []
+    },
+    {
+      "name": "Mendoza Law Group PLLC",
+      "reviews": 45,
+      "rating": 5,
+      "address": "3901 NW 79th Ave STE 216, Doral, FL 33166, USA",
+      "features": []
+    },
+    {
+      "name": "Uriarte Law, P.A.",
+      "reviews": 662,
+      "rating": 4.8,
+      "address": "730 NW 107th Ave SUITE 200, Miami, FL 33172, USA",
+      "features": []
+    },
+    {
+      "name": "Law Offices Of Jose M. Francisco",
+      "reviews": 667,
+      "rating": 4.9,
+      "address": "8660 W Flagler St STE 100, Miami, FL 33144, USA",
+      "features": []
+    },
+    {
+      "name": "Valencia & Torres Law",
+      "reviews": 135,
+      "rating": 4.9,
+      "address": "8725 NW 18th Terrace Ste 219, Doral, FL 33172, USA",
+      "features": []
+    },
+    {
+      "name": "Mausner Group Injury Lawyers",
+      "reviews": 145,
+      "rating": 4.9,
+      "address": "3105 NW 107th Ave suite 400 a11, Doral, FL 33172, USA",
+      "features": []
+    },
+    {
+      "name": "Redemption Law",
+      "reviews": 477,
+      "rating": 5,
+      "address": "15100 NW 67th Ave Suite 410, Miami Lakes, FL 33014, USA",
+      "features": []
+    }
+  ],
+  "testimonials": [],
+  "caseResults": [],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Retargeting could capture lost website visitors.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": false,
+      "impact": 0,
+      "details": "",
+      "status": "none"
+    },
+    "support24x7": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "websiteSpeed": {
+      "hasGap": false,
+      "impact": 0,
+      "details": ""
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "pageSpeed": 1765,
+  "pageSpeedScore": "Fast",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "metaAdsData": {},
+  "googleAdsData": {
+    "running": true,
+    "adCount": 7
+  },
+  "pagesAnalyzed": [
+    {
+      "url": "https://www.abogadas305.com",
+      "type": "homepage"
+    },
+    {
+      "url": "https://abogadas305.com/nuestroequipo/",
+      "type": "team"
+    },
+    {
+      "url": "https://abogadas305.com/contact/",
+      "type": "contact"
+    }
+  ],
+  "researchedAt": "2026-01-29T20:47:14.205Z",
+  "estimatedMonthlyRevenueLoss": 20000
+}

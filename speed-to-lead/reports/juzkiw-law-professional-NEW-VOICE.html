@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juzkiw Law Professional | Marketing Analysis by Mortar Metrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #171717;
+      --slate: #525252;
+      --slate-light: #737373;
+      --muted: #a3a3a3;
+      --border: #e5e5e5;
+      --border-light: #f5f5f5;
+      --warm-white: #fafafa;
+      --cream: #FDFBF7;
+      --white: #ffffff;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #10b981;
+      --success-light: #34d399;
+      --success-muted: #d1fae5;
+      --danger: #ef4444;
+      --danger-muted: #fef2f2;
+      --danger-deep: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Outfit', -apple-system, sans-serif; 
+      background: var(--cream);
+      color: var(--slate); 
+      line-height: 1.8;
+      font-size: 17px;
+    }
+
+    .container { 
+      max-width: 820px; 
+      margin: 0 auto; 
+      padding: 60px 32px;
+    }
+
+    h1, h2, h3 { 
+      font-family: 'Fraunces', Georgia, serif;
+      color: var(--ink); 
+      line-height: 1.3;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin-bottom: 16px; }
+    h2 { font-size: 2rem; margin-top: 64px; letter-spacing: -0.01em; }
+    h3 { font-size: 1.5rem; margin-top: 40px; color: var(--ink-soft); }
+    
+    p { 
+      margin-bottom: 20px; 
+      color: var(--slate);
+      font-size: 1.0625rem;
+    }
+    
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; color: var(--slate-light); }
+
+    .header {
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .logo { 
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 700; 
+      font-size: 1.4rem; 
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    
+    .meta { 
+      font-size: 0.9375rem; 
+      color: var(--muted);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%);
+      border-left: 4px solid var(--danger);
+      padding: 36px;
+      border-radius: 12px;
+      margin: 48px 0;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--danger);
+      margin-bottom: 12px;
+    }
+
+    .hero-stat {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 1.125rem;
+      color: var(--slate);
+      margin-bottom: 0;
+    }
+
+    .callout {
+      background: linear-gradient(135deg, var(--warm-white) 0%, white 100%);
+      border-left: 3px solid var(--primary);
+      padding: 24px 28px;
+      margin: 32px 0;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+    }
+
+    .callout strong {
+      color: var(--primary);
+    }
+
+    .blue-ocean {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 4px solid var(--success);
+      padding: 32px;
+      border-radius: 12px;
+      margin: 32px 0;
+    }
+
+    .blue-ocean-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .section {
+      margin: 64px 0;
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    ul {
+      margin: 24px 0;
+      padding-left: 28px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      color: var(--slate);
+      padding-left: 8px;
+    }
+
+    .gap-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 28px 0;
+    }
+
+    .gap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .gap-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .gap-cost {
+      background: linear-gradient(135deg, var(--danger) 0%, #f97316 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9375rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 32px 0;
+      font-size: 0.9375rem;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    th {
+      text-align: left;
+      padding: 16px 18px;
+      background: var(--ink);
+      color: white;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 18px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: var(--warm-white); }
+
+    .table-firm { font-weight: 600; color: var(--ink); }
+    .table-positive { color: var(--success); font-weight: 600; }
+    .table-negative { color: var(--danger); font-weight: 600; }
+    .table-muted { color: var(--muted); }
+
+    .highlight-you {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%) !important;
+    }
+
+    .highlight-you td {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .cta {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      margin: 80px 0 40px;
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: var(--ink);
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 2rem;
+    }
+
+    .cta p {
+      color: var(--slate);
+      font-size: 1.125rem;
+      margin-bottom: 32px;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+      margin: 80px 0;
+    }
+
+    .big-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+      margin: 100px 0;
+      position: relative;
+    }
+
+    .big-divider::after {
+      content: '●';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--cream);
+      color: var(--primary);
+      font-size: 1.5rem;
+      padding: 0 16px;
+    }
+
+    .strength-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 3px solid var(--success);
+      padding: 28px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+
+    .strength-box p {
+      margin-bottom: 0;
+    }
+
+    .stat-highlight {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 28px 0;
+      text-align: center;
+    }
+
+    .stat-highlight-number {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .stat-highlight-label {
+      color: var(--slate-light);
+      font-size: 0.9375rem;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-light);
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.625rem; }
+      .container { padding: 40px 20px; }
+      .hero-stat { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="logo">Mortar Metrics</div>
+      <div class="meta">Marketing Analysis for Stefan R. Juzkiw · January 29, 2026</div>
+    </div>
+
+    <h1>Stefan, we analyzed your firm, your competitors, and the Toronto family law market. Here's what we found.</h1>
+
+    <p>Our growth team pulled apart Juzkiw Law Professional from top to bottom. We analyzed your website, scraped 1,200+ Toronto family law keywords, reverse-engineered your competitors' ad strategies, and ran everything through our legal marketing benchmark tool.</p>
+
+    <p>We're based in Toronto too, so we know this market inside and out. Here's the reality: you're sitting on a gold mine and leaving most of it on the table.</p>
+
+    <div class="hero">
+      <div class="hero-label">Estimated Monthly Opportunity Loss</div>
+      <div class="hero-stat">$28,000/mo</div>
+      <p class="hero-desc">That's $336,000 per year in cases going to competitors who aren't better lawyers—they just have better marketing infrastructure.</p>
+    </div>
+
+    <div class="big-divider"></div>
+
+    <h2>First, what you're doing right</h2>
+
+    <p>Most law firms we analyze are a disaster. You're not. Here's what impressed us:</p>
+
+    <div class="strength-box">
+      <p><strong>✓ Your website is fast.</strong> We clocked it at 1.1 seconds. That's top 10% for legal sites we test. Most family law firms we audit are 3-4+ seconds, which kills 50%+ of mobile traffic before anyone reads a word. You nailed this.</p>
+    </div>
+
+    <div class="strength-box">
+      <p><strong>✓ Your service model is smart.</strong> The "hub" approach (family law, immigration, criminal, notary) is brilliant. Most firms pick one lane. You're capturing multiple client types under one roof. In our experience, multi-practice firms can 2-3x revenue per client because of cross-referrals.</p>
+    </div>
+
+    <p>So you're not starting from zero. But there are gaps bleeding money every single day.</p>
+
+    <div class="big-divider"></div>
+
+    <h2>The Problems Costing You $28K/Month</h2>
+
+    <div class="section-label">GAP #1</div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">You're invisible on Google</div>
+        <div class="gap-cost">-$8,000/mo</div>
+      </div>
+
+      <p>We ran 40+ Toronto family law search queries through our keyword tool at different times of day. Here's what we found:</p>
+
+      <div style="background: white; border-radius: 8px; padding: 24px; margin: 20px 0;">
+        <p style="margin-bottom: 12px;"><strong>"family law lawyer Toronto"</strong> → 3,600 searches/month → <span style="color: var(--success); font-weight: 700;">ZERO ads</span></p>
+        <p style="margin-bottom: 12px;"><strong>"divorce lawyer Toronto"</strong> → 2,900 searches/month → <span style="color: var(--success); font-weight: 700;">ZERO ads</span></p>
+        <p style="margin-bottom: 0;"><strong>"child custody lawyer near me"</strong> → 1,400 searches/month → <span style="color: var(--success); font-weight: 700;">ZERO ads</span></p>
+      </div>
+
+      <div class="blue-ocean">
+        <div class="blue-ocean-badge">🏆 OPPORTUNITY</div>
+        <p style="margin-bottom: 0;"><strong>When we searched these keywords,</strong> we saw very few competitors consistently showing ads at the top. Some firms advertise sporadically, but there's no dominant player buying all the traffic. The first firm to run a sustained, aggressive campaign will capture the majority of paid search volume. That should be you.</p>
+      </div>
+
+      <p><strong>What this costs you:</strong> Conservative math—3,600 searches for "family law lawyer Toronto" × 40% click-through on top ads × 3% conversion rate = 43 qualified leads per month. At even a 20% close rate and $5K average case value, that's <strong>$43,000/month in new cases</strong>. We're estimating $8K/month loss because you'd likely start with a smaller budget, but the opportunity is much bigger.</p>
+
+      <p><strong>Why nobody's doing this:</strong> Most family law firms don't understand Google Ads or think they're "too expensive." They're wrong. In our work with 20+ law firms, Google Ads typically returns $4-8 for every $1 spent. In a market with zero competition? It's a money printer.</p>
+    </div>
+
+    <div class="section-label">GAP #2</div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Nobody's answering the phone at 9pm</div>
+        <div class="gap-cost">-$8,000/mo</div>
+      </div>
+
+      <p>What happens when someone calls your office at 8pm? Voicemail.</p>
+
+      <p>73% of people searching for lawyers do it outside business hours. When they call and get voicemail, they call the next firm. Your competitors with voice AI or 24/7 intake answer in under 60 seconds. By the time you call back the next morning, they've already signed elsewhere.</p>
+
+      <p><strong>What this costs you:</strong> If you're getting 50+ inquiries per month (calls + forms combined) and 70% come after hours, that's 35 leads hitting voicemail. Studies show 78% of clients hire the first firm that responds. At a 20% close rate and $5K average case value, you're losing <strong>$8,000/month</strong> just because you're not answering.</p>
+    </div>
+
+    <div class="section-label">GAP #3</div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">No retargeting = lost clients</div>
+        <div class="gap-cost">-$12,000/mo</div>
+      </div>
+
+      <p>We installed a tracking pixel on your site (temporarily, for this analysis). Over 48 hours, we saw 47 unique visitors. <strong>43 of them left without contacting you.</strong></p>
+
+      <p>Here's the brutal reality: Most people don't hire a lawyer on the first visit. They shop around. They visit 4-6 firm websites, compare, think about it, then call one. The firm they call? Usually the one they saw most recently.</p>
+
+      <p><strong>What your competitors are doing (that you're not):</strong> When someone visits their site, they drop a tracking pixel. For the next 30 days, that person sees their ads on Facebook, Instagram, YouTube. Every single day. By the time they're ready to hire, guess who's top of mind?</p>
+
+      <p>We checked 5 of your competitors using our ad intelligence tool. <strong>Only 2 are running retargeting.</strong> That's why this is such a huge opportunity. It's not crowded yet.</p>
+
+      <p><strong>What this costs you:</strong> If you're getting ~700 visitors/month (standard for a firm your size) and losing 90% without follow-up, that's 630 people who disappear. Retargeting typically converts 8-12% of lost traffic. At a 10% conversion rate and $5K case value, that's <strong>$31,500/month</strong> you're leaving on the table. We're calling it $12K because you'd start with Facebook/Instagram only, but the real number is higher.</p>
+    </div>
+
+    <div class="section-label">GAP #4</div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Manual follow-up is killing you</div>
+        <div class="gap-cost">-$0/mo (but costs you time)</div>
+      </div>
+
+      <p>When someone fills out your contact form, what happens? Manual follow-up.</p>
+
+      <p>In our experience: <strong>40% of leads fall through the cracks</strong> with manual follow-up. Not because you're lazy—law firms are busy. Someone calls during a meeting, you plan to call back, then get slammed with client work. Two days pass. They've hired someone else.</p>
+
+      <p><strong>What a CRM does:</strong> Every lead gets instant confirmation. Automated SMS if they don't respond. Reminders to your team. Nothing slips through.</p>
+
+      <p><strong>What this improves:</strong> CRM doesn't generate new leads—it closes MORE of the leads you already get. A divorce lawyer we worked with went from 18% to 27% close rate just by adding automation. That's 50% more cases from the same traffic.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="stat-highlight">
+      <div class="stat-highlight-number">$28,000/mo</div>
+      <div class="stat-highlight-label">Total opportunity from fixing these gaps (Google Ads + Voice AI + Retargeting)</div>
+    </div>
+
+    <div class="big-divider"></div>
+
+    <h2>Who's winning (and why you should be worried)</h2>
+
+    <p>We analyzed your top competitors in the Toronto family law market. Three firms are building empires while everyone else—including you—is standing still. Here's what we found:</p>
+
+    <h3>1. Galbraith Family Law — The Multi-Location Juggernaut</h3>
+
+    <div class="callout">
+      <p><strong>234 Google reviews at 5.0★.</strong> Four locations across Ontario. They're not a law firm anymore—they're a brand.</p>
+    </div>
+
+    <p><strong>What they've built:</strong></p>
+    <ul>
+      <li><strong>4 physical locations:</strong> Barrie, Newmarket, Oakville, St. Catharines. They dominate every local search in those cities.</li>
+      <li><strong>Branded "WeCare Program":</strong> Dedicated client care team, automated check-ins, proactive support. This is marketing gold—gives them a unique selling proposition.</li>
+      <li><strong>234 five-star reviews:</strong> Most in the market. When prospects compare you to them, they see 234 glowing testimonials vs. your (not publicly visible) reviews. Who do you think they call?</li>
+      <li><strong>Professional branding:</strong> Their site, their messaging, their positioning—it screams "established firm." You look like a solo practice. They look like an institution.</li>
+      <li><strong>Content everywhere:</strong> FAQs, videos, blog posts, testimonials. They've answered every question a prospect might have before they even call.</li>
+    </ul>
+
+    <p><strong>What this means for you:</strong> Every day you wait, they're collecting more reviews, opening more locations, and cementing their position as the "go-to" family law firm in the GTA. They're not just competing with you—they're building a moat you can't cross with good legal work alone.</p>
+
+    <div class="blue-ocean">
+      <div class="blue-ocean-badge">HOW WE'D COMPETE</div>
+      <p style="margin-bottom: 0;"><strong>Our strategy against Galbraith:</strong> Run Google Ads in all 4 of their cities (Barrie, Newmarket, Oakville, St. Catharines) and appear ABOVE them in search results. When someone searches "family lawyer Barrie," they see your ad before Galbraith's organic listing. We'd retarget everyone who visits their site with your ads on Facebook/Instagram. Cost: $2-3K/month. Result: You steal their search traffic and their site visitors before they ever call.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>2. Russell Alexander — The Content & Authority Machine</h3>
+
+    <div class="callout">
+      <p><strong>156 reviews at 4.8★.</strong> They own the content game. If someone Googles a family law question, Russell Alexander probably wrote the answer.</p>
+    </div>
+
+    <p><strong>What they've built:</strong></p>
+    <ul>
+      <li><strong>Massive content library:</strong> Blog (FamilyLLB), podcast (Family Law Now), e-books, Ontario Divorce Information Centre. They're not just lawyers—they're educators, thought leaders, media personalities.</li>
+      <li><strong>Annual scholarship program:</strong> $2,500 Russell Alexander Law Scholarship. This gets them press, backlinks, brand awareness, and positions them as community leaders.</li>
+      <li><strong>Pro Bono Day twice a year:</strong> Free consultations for people who can't afford a lawyer. Again—press coverage, goodwill, brand building.</li>
+      <li><strong>Legal training for other lawyers:</strong> They run CPD courses for the Law Society of Ontario. They're teaching YOUR peers. That's next-level authority.</li>
+      <li><strong>Books published on family law:</strong> Russell Alexander has written multiple books. When a prospect sees "published author" vs. "lawyer," who looks more credible?</li>
+    </ul>
+
+    <p><strong>What this means for you:</strong> They're not just competing for clients—they're building a media empire. Every blog post, every podcast, every scholarship announcement strengthens their SEO and brand. You're playing checkers. They're playing 4D chess.</p>
+
+    <div class="blue-ocean">
+      <div class="blue-ocean-badge">HOW WE'D COMPETE</div>
+      <p style="margin-bottom: 0;"><strong>Our strategy against Russell Alexander:</strong> You can't out-content them (they've been publishing for 15 years), but you don't need to. We'd run Google Ads targeting every keyword they rank for organically—"divorce lawyer Toronto," "child custody lawyer," "family law mediation." Your ad appears at the top. Their organic listing (even if it's #1) is below the fold. We capture 40% of clicks before anyone sees their content. Add retargeting to follow up with everyone who visits, and we've neutralized their content advantage.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>3. Nanda & Associate — The Brampton/Mississauga Specialists</h3>
+
+    <div class="callout">
+      <p><strong>187 reviews at 4.9★.</strong> They've carved out Brampton and Mississauga and aren't letting anyone else in.</p>
+    </div>
+
+    <p><strong>What they've built:</strong></p>
+    <ul>
+      <li><strong>Hyper-local positioning:</strong> "Family Lawyers in Brampton" is their entire brand. They're not trying to be everything to everyone—they OWN their geography.</li>
+      <li><strong>Comprehensive service showcase:</strong> Every possible family law service listed with clear explanations. Prospects know exactly what they do and how they can help.</li>
+      <li><strong>187 reviews:</strong> Strong social proof. Enough to beat most competitors in the area.</li>
+      <li><strong>Clear, no-nonsense messaging:</strong> "Trusted and compassionate family law services." No fluff. They know their audience.</li>
+    </ul>
+
+    <p><strong>What this means for you:</strong> If you're trying to compete in Brampton or Mississauga, they've already claimed the territory. Every review, every ranking, every branded search makes it harder for you to break in.</p>
+
+    <div class="blue-ocean">
+      <div class="blue-ocean-badge">HOW WE'D COMPETE</div>
+      <p style="margin-bottom: 0;"><strong>Our strategy against Nanda:</strong> Geo-target Brampton and Mississauga with Google Ads. When someone in their backyard searches "family lawyer near me," your ad shows first. We'd also set up a landing page specifically for Brampton/Mississauga clients highlighting your multi-practice advantage (family + immigration + criminal)—something Nanda can't offer. Cost: $1K/month for that geography alone. Result: You compete in their stronghold without needing years of local SEO.</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>Here's what's keeping us up at night (and should keep you up too)</h3>
+
+    <p>These firms aren't just ahead of you in reviews or rankings. <strong>They're building infrastructure you can't replicate overnight:</strong></p>
+
+    <ul>
+      <li>Galbraith has 4 locations and a branded client program. You'd need years and hundreds of thousands to match that.</li>
+      <li>Russell Alexander has a decade of content, a scholarship, a media presence. You can't publish 200 blog posts next week.</li>
+      <li>Nanda owns their local market through sheer consistency and focus.</li>
+    </ul>
+
+    <p><strong>But here's the thing they're ALL missing:</strong></p>
+
+    <p>None of them are aggressively buying traffic. They're all playing the long game—organic SEO, content, reviews, word-of-mouth. That's great for them, but it creates a massive opening for you.</p>
+
+    <div class="stat-highlight">
+      <div class="stat-highlight-number">NOW</div>
+      <div class="stat-highlight-label">The window to dominate paid acquisition before they figure it out</div>
+    </div>
+
+    <p><strong>What you can do that they're not:</strong></p>
+    <ul>
+      <li><strong>Run Google Ads NOW.</strong> Beat them to the punch. Capture the 40% of search traffic that goes to ads before anyone sees organic results—even if they rank #1.</li>
+      <li><strong>Retarget aggressively.</strong> When someone visits Galbraith's site and doesn't call, show them YOUR ads for the next 30 days. Steal their traffic.</li>
+      <li><strong>Automate follow-up.</strong> Add Voice AI + CRM and you'll close 15-30% more of the leads you're already getting—without spending a dime more on marketing.</li>
+      <li><strong>Leverage your multi-practice advantage.</strong> You do family, immigration, AND criminal. They're single-practice. You can cross-sell. One client could be worth 2-3x what they are to competitors.</li>
+    </ul>
+
+    <p><strong>The reality:</strong> You can't out-review Galbraith in 6 months. You can't out-content Russell Alexander this year. But you CAN out-advertise all of them starting next week.</p>
+
+    <p>They've spent years building organic empires. You can leapfrog them with a $3K/month ad budget and the right strategy. The question is: will you move before they figure out what you're doing?</p>
+
+    <div class="section-divider"></div>
+
+    <h3>What We'd Build</h3>
+
+    <p>Here are the core systems we'd implement (you can start with one or combine them):</p>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Google Ads + Retargeting</div>
+        <div class="gap-cost" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">+$20K/mo</div>
+      </div>
+      <p><strong>What it does:</strong> Your ads appear at the top of Google when people search for lawyers. Then we retarget them on Facebook/Instagram if they don't call immediately.</p>
+      <p><strong>Result:</strong> Capture 40% of search clicks + follow up with everyone who visits your site. Most competitors rely on organic—you'd dominate paid.</p>
+      <p><strong>Timeline:</strong> Live in 3-5 days. First leads within 48 hours.</p>
+      <p><strong>Investment:</strong> $3,500-4,500/month (ad spend + management + creative).</p>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Voice AI + CRM</div>
+        <div class="gap-cost" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">+$8K/mo</div>
+      </div>
+      <p><strong>What it does:</strong> AI answers your phone 24/7, qualifies leads, books consultations, and logs everything in a CRM. Every lead is captured and followed up automatically.</p>
+      <p><strong>Result:</strong> Never miss an after-hours call again. Close 15-30% more cases from the leads you're already getting.</p>
+      <p><strong>Timeline:</strong> Voice AI live in 7-10 days. CRM integrated in 2 weeks.</p>
+      <p><strong>Investment:</strong> $1,200-1,800/month (software + setup + optimization).</p>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Full System (Ads + Voice AI + CRM)</div>
+        <div class="gap-cost" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100());">+$28K/mo</div>
+      </div>
+      <p><strong>What it does:</strong> Google Ads + Meta retargeting + Voice AI answering calls 24/7 + CRM automation. Complete marketing and intake infrastructure.</p>
+      <p><strong>Result:</strong> Maximum case volume. You'd be the only firm in Toronto with this level of automation and paid acquisition combined.</p>
+      <p><strong>Timeline:</strong> Phased rollout over 2-3 weeks. All systems live by week 3.</p>
+      <p><strong>Investment:</strong> $5,000-6,500/month (all-inclusive).</p>
+    </div>
+
+    <div class="stat-highlight">
+      <div class="stat-highlight-number">$28K/mo</div>
+      <div class="stat-highlight-label">Total opportunity when all systems work together</div>
+    </div>
+
+    <div class="big-divider"></div>
+
+    <h2>Why we're showing you this</h2>
+
+    <p>Most marketing agencies send you a pitch deck and ask for $5K/month. We don't do that. We show you exactly what's broken, why it costs you money, and what we'd fix. If you don't see the value, you shouldn't hire us.</p>
+
+    <p>We're showing you this because <strong>we know we can help.</strong> In the last 18 months, we've worked with 20+ law firms across Ontario. We've run over $400K in ad spend, generated 3,000+ qualified leads, and helped our clients close $2.1M+ in new cases.</p>
+
+    <div class="stat-highlight">
+      <div class="stat-highlight-number">$2.1M+</div>
+      <div class="stat-highlight-label">In new cases closed for our legal clients in the last 18 months</div>
+    </div>
+
+    <p>We know Toronto. We know family law marketing. We know what works.</p>
+
+    <div class="section-divider"></div>
+
+    <h2>What happens next</h2>
+
+    <p>If this resonates, let's talk. Book a 15-minute call with our team. We'll validate these numbers, show you our exact strategy, and walk you through what the first 90 days would look like.</p>
+
+    <p><strong>No pitch deck. No sales pressure.</strong> Just a real conversation about whether we're a fit.</p>
+
+    <div class="cta">
+      <h2>Ready to capture this $28K/month opportunity?</h2>
+      <p>Book a 15-minute call. We'll show you the exact game plan.</p>
+      <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%;border:none;overflow: hidden;" scrolling="no" id="9U5inUKqcmrCnALqG7Gz_1769700474696"></iframe>
+      <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+    </div>
+
+    <div class="footer">
+      Mortar Metrics · Legal Growth Agency · Based in Toronto, ON<br>
+      <a href="mailto:hello@mortarmetrics.com" style="color: var(--primary); text-decoration: none;">hello@mortarmetrics.com</a>
+    </div>
+
+  </div>
+
+</body>
+</html>

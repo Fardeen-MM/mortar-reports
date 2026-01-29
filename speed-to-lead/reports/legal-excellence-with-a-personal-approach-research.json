@@ -1,0 +1,195 @@
+{
+  "firmName": "Legal Excellence With a Personal Approach",
+  "website": "https://www.dosslaw.ca",
+  "location": {
+    "city": "Pickering",
+    "state": "ON",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "family law",
+    "estate planning",
+    "wills",
+    "corporate law",
+    "immigration",
+    "citizenship",
+    "real estate"
+  ],
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients 24/7.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Market opportunity: No competitors advertising. You could dominate this space with proper Google Ads strategy.",
+      "status": "blue-ocean"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "No 24/7 support detected. 73% of leads come outside business hours."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "5.3s load time. Every extra second = 7% conversion loss."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "Manual follow-up wastes 15+ hrs/week and loses 40% of warm leads. Automation improves close rates 15-30%."
+    }
+  },
+  "competitors": [],
+  "competitorAds": 0,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 17,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [],
+    "searchResults": []
+  },
+  "pageSpeed": 5336,
+  "pageSpeedScore": "Slow",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": true,
+  "websiteAnalysis": {
+    "headline": "Legal Excellence With a Personal Approach",
+    "subheadline": "Strategic Legal Partners for Life’s Key Moments",
+    "aboveFoldScreenshot": "./reports/legal-excellence-with-a-personal-approach-hero.png",
+    "ctaCount": 15,
+    "ctaButtons": [
+      {
+        "text": "Toggle Navigation",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "416-502-2060",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "info@dosslaw.ca",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Learn More",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Explore all legal services",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "(416)-502-2060",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "info@dosslaw.ca",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Contact",
+        "position": "unknown",
+        "prominent": true
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Schedule Consultation",
+        "position": "unknown",
+        "prominent": false
+      },
+      {
+        "text": "Contact",
+        "position": "unknown",
+        "prominent": true
+      }
+    ],
+    "mainCTA": "Toggle Navigation",
+    "hasTestimonials": false,
+    "testimonialCount": 0,
+    "testimonialExamples": [],
+    "hasAwards": false,
+    "hasCaseResults": false,
+    "yearsInBusiness": null,
+    "hasContactForm": false,
+    "formFieldCount": 0,
+    "formFields": [],
+    "hasPhoneNumber": true,
+    "phoneNumber": "416-502-2060",
+    "homepageWordCount": 855,
+    "hasBlog": false,
+    "practiceAreaPages": 48,
+    "menuItems": [
+      "Home",
+      "Our Firm",
+      "Legal Services",
+      "Wills & Estate Planning",
+      "Estate Administration",
+      "Real Estate",
+      "Corporate & Business",
+      "Tax Planning",
+      "Litigation",
+      "Immigration",
+      "Family Class Sponsorships",
+      "Temporary Residence",
+      "Citizenship",
+      "Caregiver Program",
+      "Provincial Nominee Programs"
+    ],
+    "hasReviews": false,
+    "reviewCount": 0,
+    "reviewScore": null,
+    "metaDescription": "Doss Law provides expert legal services in Toronto & Durham including estate planning, real estate, corporate law, immigration, and litigation. Experience legal excellence with a personal approach. Schedule your consultation today.",
+    "h1Count": 6,
+    "hasSchema": true
+  },
+  "researchedAt": "2026-01-29T00:47:39.185Z",
+  "estimatedMonthlyRevenueLoss": 51000
+}
