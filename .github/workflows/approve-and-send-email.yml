@@ -69,7 +69,8 @@ jobs:
             "${{ steps.inputs.outputs.lead_email }}" \
             "${{ steps.inputs.outputs.contact_name }}" \
             "${{ steps.inputs.outputs.report_url }}" \
-            "${{ steps.inputs.outputs.email_id }}"
+            "${{ steps.inputs.outputs.email_id }}" \
+            "${{ steps.inputs.outputs.firm_name }}"
         working-directory: ./automation
         
       - name: Notify Slack

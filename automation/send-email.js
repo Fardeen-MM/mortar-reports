@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 /**
  * Send follow-up email via Instantly API
- * Usage: node send-email.js <recipient_email> <contact_name> <report_url>
+ * Usage: node send-email.js <recipient_email> <contact_name> <report_url> [reply_to_uuid] [firm_name]
  */
 
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const { buildPersonalizedEmail, buildSimpleEmail } = require('./email-templates');
 
 const INSTANTLY_API_KEY = process.env.INSTANTLY_API_KEY;
 const recipientEmail = process.argv[2];
 const contactName = process.argv[3];
 const reportUrl = process.argv[4];
 const replyToUuid = process.argv[5]; // Email ID to reply to (keeps it in same thread)
+const firmName = process.argv[6]; // Optional: firm name to find research file
 
 if (!INSTANTLY_API_KEY) {
   console.error('❌ INSTANTLY_API_KEY environment variable not set');
@@ -18,7 +22,7 @@ if (!INSTANTLY_API_KEY) {
 }
 
 if (!recipientEmail || !contactName || !reportUrl) {
-  console.error('Usage: node send-email.js <recipient_email> <contact_name> <report_url> [reply_to_uuid]');
+  console.error('Usage: node send-email.js <recipient_email> <contact_name> <report_url> [reply_to_uuid] [firm_name]');
   process.exit(1);
 }
 
@@ -26,29 +30,43 @@ if (!replyToUuid) {
   console.warn('⚠️  No reply_to_uuid provided - email will be sent as new thread instead of reply');
 }
 
-// Extract first name
-const firstName = contactName.split(' ')[0];
+// Try to load research data for personalization
+let emailContent;
+let researchData = null;
 
-// Email template (as a reply in the thread)
-const emailSubject = `Re: Your marketing analysis`; // Will continue the thread
-const emailBody = `Perfect! I just finished putting together your analysis.
+if (firmName) {
+  // Try to find the research file
+  const reportsDir = path.join(__dirname, 'reports');
+  const possibleFiles = [
+    `${firmName.toLowerCase().replace(/\s+/g, '-')}-intel-v5.json`,
+    `${firmName.toLowerCase().replace(/\s+/g, '-')}-research.json`,
+  ];
+  
+  for (const filename of possibleFiles) {
+    const filepath = path.join(reportsDir, filename);
+    if (fs.existsSync(filepath)) {
+      try {
+        researchData = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+        console.log(`✅ Loaded research data: ${filename}`);
+        break;
+      } catch (e) {
+        console.warn(`⚠️  Could not parse ${filename}`);
+      }
+    }
+  }
+}
 
-I analyzed your website, your competitors in your market, and found some specific gaps you can close.
+// Build email (personalized if we have data, simple if not)
+if (researchData) {
+  emailContent = buildPersonalizedEmail(researchData, contactName, reportUrl);
+  console.log('📧 Using AI-personalized email template');
+} else {
+  emailContent = buildSimpleEmail(contactName, reportUrl);
+  console.log('📧 Using standard email template');
+}
 
-👉 Here's your personalized report:
-${reportUrl}
-
-What you'll see:
-• Exact revenue gaps we found (with dollar amounts)
-• What your top 3 competitors are doing
-• What we'd build for you to capture that revenue
-
-Everything is specific to your firm and your market—no generic fluff.
-
-The booking link is at the bottom of the report if you want to discuss any of this.
-
-Best,
-Fardeen`;
+const emailSubject = emailContent.subject;
+const emailBody = emailContent.body;
 
 // Instantly API payload (using their email send/reply endpoint)
 const payload = JSON.stringify({
