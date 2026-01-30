@@ -68,25 +68,38 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          REPORT_FILE=$(ls reports/*.json | tail -1)
+          REPORT_FILE=$(find reports -name "*-research.json" -type f | head -1)
+          if [ -z "$REPORT_FILE" ]; then
+            echo "Error: No research JSON found"
+            exit 1
+          fi
+          echo "Found report: $REPORT_FILE"
           node ai-analyzer.js "$REPORT_FILE"
         working-directory: ./automation
         
       - name: Generate report with AI insights
         id: report
         run: |
-          REPORT_FILE=$(ls reports/*.json | tail -1)
+          REPORT_FILE=$(find reports -name "*-research.json" -type f | head -1)
+          if [ -z "$REPORT_FILE" ]; then
+            echo "Error: No research JSON found"
+            exit 1
+          fi
+          echo "Found report: $REPORT_FILE"
           node report-generator-v7.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
           
           # Inject AI insights into generated HTML
-          REPORT_HTML=$(ls reports/*-landing-page-v7.html | tail -1)
-          node inject-ai-insights.js "$REPORT_HTML" "$REPORT_FILE"
+          REPORT_HTML=$(find reports -name "*-landing-page-v7.html" -type f | head -1)
+          if [ -n "$REPORT_HTML" ]; then
+            echo "Injecting AI insights into: $REPORT_HTML"
+            node inject-ai-insights.js "$REPORT_HTML" "$REPORT_FILE"
+          fi
         working-directory: ./automation
         
       - name: Deploy report to GitHub Pages
         run: |
           # Get the research JSON to extract firm name
-          REPORT_JSON=$(ls automation/reports/*.json | tail -1)
+          REPORT_JSON=$(find automation/reports -name "*-research.json" -type f | head -1)
           
           # Extract firm name from JSON and create clean folder name
           # Remove spaces, special chars, convert to PascalCase
