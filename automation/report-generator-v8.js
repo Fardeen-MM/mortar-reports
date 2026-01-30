@@ -1,30 +1,20 @@
 #!/usr/bin/env node
 /**
- * REPORT GENERATOR V8 - PULL DESIGN
+ * REPORT GENERATOR V8 - MERGED DESIGN
  * 
- * Following the complete instructions:
- * - Hero with comparison that hurts (not dollar figure first)
- * - Soft CTA immediately after hero
- * - Flow diagrams in every gap
- * - Pull quotes every 3-4 paragraphs
- * - Open loops between sections
- * - One competitor table with one insight
- * - Overwhelming solution section
- * - Two-option framing at CTA
- * - Infrastructure language throughout
- * - No salesy phrases
- * - Show the math
- * - Bold the 20% that matters
+ * Combines:
+ * - v7's beautiful CSS (Fraunces/Outfit fonts, cream/slate colors)
+ * - v8's content structure (hero with comparison, soft CTA, flow diagrams, pull quotes, two-option framing)
  * 
  * Input: Research JSON + contact name
- * Output: Report that makes booking inevitable
+ * Output: Beautiful, high-converting report
  */
 
 const fs = require('fs');
 const path = require('path');
 
 function generateReport(researchData, prospectName) {
-  console.log(`\n📝 Generating PULL DESIGN report for ${prospectName}...\n`);
+  console.log(`\n📝 Generating MERGED DESIGN report for ${prospectName}...\n`);
   
   const {
     firmName = 'Your Firm',
@@ -65,10 +55,10 @@ function generateReport(researchData, prospectName) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${firmName} | Marketing Analysis</title>
+  <title>${firmName} | Marketing Analysis by Mortar Metrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   ${getCSS()}
 </head>
 <body>
@@ -102,11 +92,11 @@ function generateReport(researchData, prospectName) {
 }
 
 function generateHeader(prospectName) {
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   return `
     <div class="header">
-      <div class="header-logo">Mortar Metrics</div>
-      <div class="header-meta">Marketing Analysis for ${prospectName} · ${today}</div>
+      <div class="logo">Mortar Metrics</div>
+      <div class="meta">Marketing Analysis for ${prospectName} · ${today}</div>
     </div>
   `;
 }
@@ -138,13 +128,17 @@ function generateHero(firmName, locationStr, monthlyLossK, prospectFirstName, ga
   }
   
   return `
-    <div class="hero">
-      <h1 class="hero-comparison">${comparison}</h1>
-      <p class="hero-cost">That's costing you <strong>$${monthlyLossK},000/month</strong> in cases walking out the door.</p>
-      <p class="hero-method">Based on our analysis of your website, ads, competitors, and the ${locationStr} market.</p>
+    <div class="hero-comparison-box">
+      <h1>${comparison}</h1>
     </div>
     
-    <p class="hero-pull">Here's exactly where the money is going.</p>
+    <div class="hero">
+      <div class="hero-label">That's Costing You</div>
+      <div class="hero-stat">$${monthlyLossK},000/mo</div>
+      <p class="hero-desc">Based on our analysis of your website, ads, competitors, and the ${locationStr} market.</p>
+    </div>
+    
+    <p class="section-pull"><strong>Here's exactly where the money is going.</strong></p>
   `;
 }
 
@@ -162,7 +156,7 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
   
   // Google Ads Gap
   if (gaps.googleAds?.hasGap) {
-    gapSections.push(generateGoogleAdsGap(gapNumber++, gaps.googleAds, firmName, locationStr, topCompetitors));
+    gapSections.push(generateGoogleAdsGap(gapNumber++, gaps.googleAds, firmName, locationStr, topCompetitors, researchData));
   }
   
   // Voice AI Gap
@@ -178,21 +172,25 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
   return gapSections.join('\n\n');
 }
 
-function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors) {
+function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors, researchData) {
   const impactK = Math.round(gap.impact / 1000);
   const searches = Math.round(gap.impact / 50); // Rough estimate for math
+  const practice = researchData.practiceAreas?.[0] || 'legal services';
   
   return `
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
-      <h2 class="gap-title">You're invisible on Google</h2>
+      <div class="gap-header">
+        <div class="gap-title">You're invisible on Google</div>
+        <div class="gap-cost">-$${impactK}K/mo</div>
+      </div>
       
       <p><strong>You have no paid search infrastructure.</strong> When someone searches "lawyer ${locationStr}" at 11pm, they see ads. Three of them. None are you.</p>
       
       <div class="flow-diagram">
-        <div class="flow-step">Lead searches "${practiceAreaToKeyword(firmName)} ${locationStr}"</div>
+        <div class="flow-step">Lead searches "${practice} lawyer ${locationStr}"</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Sees 3 ads (none are you)</div>
+        <div class="flow-step">Sees 3 ads at the top (none are you)</div>
         <div class="flow-arrow">↓</div>
         <div class="flow-step">Clicks competitor</div>
         <div class="flow-arrow">↓</div>
@@ -208,7 +206,7 @@ function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors
       <p><strong>What we've seen work:</strong> A tax firm in Phoenix went from 0 to 47 qualified leads/month after we built their paid search infrastructure.</p>
     </div>
     
-    <p class="section-pull">But getting the click is only half the battle. What happens when they actually reach out?</p>
+    <p class="section-pull"><strong>But getting the click is only half the battle. What happens when they actually reach out?</strong></p>
   `;
 }
 
@@ -218,14 +216,17 @@ function generateVoiceAIGap(number, gap, firmName, locationStr) {
   return `
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
-      <h2 class="gap-title">You have no after-hours intake infrastructure</h2>
+      <div class="gap-header">
+        <div class="gap-title">You have no after-hours intake infrastructure</div>
+        <div class="gap-cost">-$${impactK}K/mo</div>
+      </div>
       
       <p><strong>73% of people searching for lawyers do it outside business hours.</strong> They call at 8pm. Your phone goes to voicemail. They hang up. They call the next firm.</p>
       
-      <div class="contrast-columns">
-        <div class="contrast-column">
-          <h3>Right now:</h3>
-          <ul class="contrast-list">
+      <div class="contrast-box">
+        <div class="contrast-side">
+          <div class="contrast-label bad">Right now:</div>
+          <ul>
             <li>Call comes in at 8pm</li>
             <li>Voicemail picks up</li>
             <li>They hang up (73% do)</li>
@@ -233,9 +234,9 @@ function generateVoiceAIGap(number, gap, firmName, locationStr) {
             <li>Gone forever</li>
           </ul>
         </div>
-        <div class="contrast-column contrast-column-good">
-          <h3>With intake infrastructure:</h3>
-          <ul class="contrast-list">
+        <div class="contrast-side">
+          <div class="contrast-label good">With intake infrastructure:</div>
+          <ul>
             <li>Call comes in at 8pm</li>
             <li>AI answers in 2 rings</li>
             <li>Qualifies with 4 questions</li>
@@ -256,7 +257,7 @@ function generateVoiceAIGap(number, gap, firmName, locationStr) {
       <p><strong>What we've seen work:</strong> A firm in Dallas was missing 34% of calls. After intake infrastructure, close rate jumped from 18% to 31%.</p>
     </div>
     
-    <p class="section-pull">So who in your market is actually doing this right? That's where it gets uncomfortable.</p>
+    <p class="section-pull"><strong>So who in your market is actually doing this right? That's where it gets uncomfortable.</strong></p>
   `;
 }
 
@@ -266,7 +267,10 @@ function generateMetaAdsGap(number, gap, firmName, locationStr) {
   return `
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
-      <h2 class="gap-title">You have no pixel-based retargeting infrastructure</h2>
+      <div class="gap-header">
+        <div class="gap-title">You have no pixel-based retargeting infrastructure</div>
+        <div class="gap-cost">-$${impactK}K/mo</div>
+      </div>
       
       <p><strong>Every visitor to your site leaves and never comes back.</strong> No Facebook pixel. No retargeting audiences. No lookalikes. Someone researches you, closes the tab, and you're gone from their mind.</p>
       
@@ -285,7 +289,7 @@ function generateMetaAdsGap(number, gap, firmName, locationStr) {
       <p><strong>What this costs:</strong> If you're getting 500 visitors/month, 3% would convert with proper retargeting. That's 15 cases × $2,800 = <strong>$${impactK}K/month</strong>.</p>
     </div>
     
-    <p class="section-pull">The gap is clear. The question is what it actually takes to close it.</p>
+    <p class="section-pull"><strong>The gap is clear. The question is what it actually takes to close it.</strong></p>
   `;
 }
 
@@ -293,7 +297,9 @@ function generateCompetitorTable(topCompetitors, firmName, researchData) {
   if (topCompetitors.length === 0) {
     return `
       <div class="section-label">YOUR MARKET</div>
+      <h2>The competitive landscape</h2>
       <p>We analyzed ${firmName} and the competitive landscape in your market. The infrastructure gaps are clear.</p>
+      <div class="big-divider"></div>
     `;
   }
   
@@ -396,6 +402,7 @@ function generateCompetitorTable(topCompetitors, firmName, researchData) {
     <div class="competitor-insight">
       <strong>${competitorWithMost.name} has the most complete infrastructure.</strong> They're capturing the cases everyone else misses—after-hours leads, retargeted visitors, and anyone searching on Google.
     </div>
+    <div class="big-divider"></div>
   `;
   
   return tableHTML;
@@ -409,6 +416,7 @@ function generateSolution(gaps, firmName) {
       <div class="section-label">NEXT STEPS</div>
       <h2>What we'd build</h2>
       <p>Your infrastructure is solid. The opportunity is in optimization and scale.</p>
+      <div class="big-divider"></div>
     `;
   }
   
@@ -418,22 +426,52 @@ function generateSolution(gaps, firmName) {
     
     <p>The gaps are clear. Here's what it takes to close them:</p>
     
-    <div class="solution-list">
-      <ul>
-        <li>Google Ads with geo-targeting, dayparting, negative keywords, and device bid adjustments</li>
-        <li>Conversion tracking with offline import to measure actual signed cases</li>
-        <li>Meta pixel with custom audiences, lookalikes, and exclusion lists</li>
-        <li>Voice AI trained on your practice area with custom qualification logic</li>
-        <li>CRM with automated follow-up sequences and pipeline stages</li>
-        <li>Call tracking with dynamic number insertion</li>
-        <li>Reporting dashboard pulling from 6 data sources</li>
-        <li>Every piece connected to every other piece</li>
-      </ul>
+    <div class="solution-stack">
+      <div class="solution-item">
+        <div class="solution-icon">🎯</div>
+        <div class="solution-content">
+          <strong>Google Ads Infrastructure</strong>
+          <p>Geo-targeting, dayparting, negative keywords, device bid adjustments, conversion tracking with offline import</p>
+        </div>
+      </div>
+      
+      <div class="solution-item">
+        <div class="solution-icon">📊</div>
+        <div class="solution-content">
+          <strong>Meta Pixel & Retargeting</strong>
+          <p>Custom audiences, lookalikes, exclusion lists, dynamic creative, automated bid strategies</p>
+        </div>
+      </div>
+      
+      <div class="solution-item">
+        <div class="solution-icon">🤖</div>
+        <div class="solution-content">
+          <strong>Voice AI + CRM</strong>
+          <p>24/7 intake, qualification logic, automated follow-up sequences, pipeline stages, call tracking</p>
+        </div>
+      </div>
+      
+      <div class="solution-item">
+        <div class="solution-icon">📈</div>
+        <div class="solution-content">
+          <strong>Unified Dashboard</strong>
+          <p>Reporting pulling from 6 data sources—every lead, every call, every dollar tracked</p>
+        </div>
+      </div>
+      
+      <div class="solution-item">
+        <div class="solution-icon">⚙️</div>
+        <div class="solution-content">
+          <strong>System Integration</strong>
+          <p>Every piece connected to every other piece—ads → landing page → phone → CRM → reporting</p>
+        </div>
+      </div>
     </div>
     
-    <p><strong>Sound like a lot? It is.</strong> But we've built this exact system 23 times.</p>
-    
-    <p>Different practice areas, same infrastructure. The system works. The question is whether you want us to build it for you.</p>
+    <div class="callout">
+      <p><strong>Sound like a lot? It is.</strong> But we've built this exact system 23 times. Different practice areas, same infrastructure. The system works. The question is whether you want us to build it for you.</p>
+    </div>
+    <div class="big-divider"></div>
   `;
 }
 
@@ -444,20 +482,24 @@ function generateSocialProof() {
     
     <div class="proof-grid">
       <div class="proof-box">
-        <div class="proof-stat">47 leads/month</div>
+        <div class="proof-number">47</div>
+        <div class="proof-label">leads/month</div>
         <p>Phoenix tax firm went from 0 to 47 qualified leads after we built paid search infrastructure</p>
       </div>
       
       <div class="proof-box">
-        <div class="proof-stat">31% close rate</div>
+        <div class="proof-number">31%</div>
+        <div class="proof-label">close rate</div>
         <p>Dallas firm's close rate jumped from 18% to 31% after implementing intake infrastructure</p>
       </div>
       
       <div class="proof-box">
-        <div class="proof-stat">23 firms</div>
+        <div class="proof-number">23</div>
+        <div class="proof-label">firms</div>
         <p>Different practice areas, same infrastructure. Tax law, family law, PI, immigration—system works across all of them.</p>
       </div>
     </div>
+    <div class="section-divider"></div>
   `;
 }
 
@@ -467,7 +509,7 @@ function generateFinalCTA(firmName, monthlyLossK) {
     <h2>Two options</h2>
     
     <div class="two-options">
-      <div class="option option-bad">
+      <div class="option-box option-bad">
         <h3>Keep doing what you're doing</h3>
         <ul>
           <li>Competitors keep buying your keywords</li>
@@ -477,7 +519,7 @@ function generateFinalCTA(firmName, monthlyLossK) {
         </ul>
       </div>
       
-      <div class="option option-good">
+      <div class="option-box option-good">
         <h3>Let us build the system</h3>
         <ul>
           <li>Ads live in 5 days</li>
@@ -488,520 +530,670 @@ function generateFinalCTA(firmName, monthlyLossK) {
       </div>
     </div>
     
-    <div id="booking" class="final-cta">
-      <h3>Book 15 minutes—we'll show you exactly what we'd build</h3>
-      <div class="booking-widget">
-        <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1hD_Tt2rBLRJqCQrJpKmUu_lTOKE0jxwABCxb7KFGRHv2jHX2yGPO2n_oM2X7gIL0JB0AQchZ8?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe>
-      </div>
+    <div id="booking" class="cta">
+      <h2>Ready to capture this $${monthlyLossK}K/month opportunity?</h2>
+      <p>Book a 15-minute call. We'll show you the exact game plan.</p>
+      <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%;border:none;overflow: hidden;" scrolling="no" id="mortar-booking-widget"></iframe>
+      <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
-  `;
-}
-
-function practiceAreaToKeyword(firmName) {
-  // Simple heuristic to generate a keyword from firm name
-  const lower = firmName.toLowerCase();
-  if (lower.includes('tax')) return 'tax lawyer';
-  if (lower.includes('divorce') || lower.includes('family')) return 'divorce lawyer';
-  if (lower.includes('injury') || lower.includes('accident')) return 'personal injury lawyer';
-  if (lower.includes('criminal')) return 'criminal lawyer';
-  if (lower.includes('immigration')) return 'immigration lawyer';
-  return 'lawyer';
-}
-
-function getCSS() {
-  return `
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 18px;
-        line-height: 1.7;
-        color: #1a1a1a;
-        background: #ffffff;
-        -webkit-font-smoothing: antialiased;
-      }
-      
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 60px 24px;
-      }
-      
-      /* HEADER */
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 80px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #e5e5e5;
-      }
-      
-      .header-logo {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1a1a1a;
-      }
-      
-      .header-meta {
-        font-size: 14px;
-        color: #666;
-      }
-      
-      /* HERO */
-      .hero {
-        margin-bottom: 40px;
-      }
-      
-      .hero-comparison {
-        font-size: 42px;
-        font-weight: 700;
-        line-height: 1.2;
-        color: #1a1a1a;
-        margin-bottom: 24px;
-      }
-      
-      .hero-cost {
-        font-size: 24px;
-        line-height: 1.4;
-        color: #1a1a1a;
-        margin-bottom: 16px;
-      }
-      
-      .hero-cost strong {
-        font-weight: 700;
-        color: #dc2626;
-      }
-      
-      .hero-method {
-        font-size: 16px;
-        color: #666;
-      }
-      
-      .hero-pull {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin-top: 40px;
-      }
-      
-      /* SOFT CTA */
-      .soft-cta {
-        text-align: center;
-        padding: 20px 0;
-        margin: 40px 0;
-        font-size: 16px;
-        color: #666;
-      }
-      
-      .soft-cta-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      
-      .soft-cta-link:hover {
-        text-decoration: underline;
-      }
-      
-      /* SECTION LABELS */
-      .section-label {
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: #999;
-        margin: 80px 0 20px 0;
-      }
-      
-      /* GAP BOXES */
-      .gap-box {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 40px;
-        margin-bottom: 20px;
-      }
-      
-      .gap-title {
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        color: #1a1a1a;
-      }
-      
-      .gap-box p {
-        margin-bottom: 20px;
-      }
-      
-      .gap-box p:last-child {
-        margin-bottom: 0;
-      }
-      
-      /* FLOW DIAGRAMS */
-      .flow-diagram {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 30px;
-        margin: 30px 0;
-      }
-      
-      .flow-step {
-        background: #f3f4f6;
-        padding: 16px 20px;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 500;
-        text-align: center;
-        color: #374151;
-      }
-      
-      .flow-arrow {
-        text-align: center;
-        font-size: 24px;
-        color: #9ca3af;
-        margin: 8px 0;
-      }
-      
-      /* CONTRAST COLUMNS */
-      .contrast-columns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin: 30px 0;
-      }
-      
-      .contrast-column {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 24px;
-      }
-      
-      .contrast-column-good {
-        background: #f0fdf4;
-        border-color: #bbf7d0;
-      }
-      
-      .contrast-column h3 {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        color: #1a1a1a;
-      }
-      
-      .contrast-list {
-        list-style: none;
-        padding: 0;
-      }
-      
-      .contrast-list li {
-        padding: 8px 0;
-        font-size: 15px;
-        color: #374151;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      
-      .contrast-list li:last-child {
-        border-bottom: none;
-      }
-      
-      .contrast-column-good .contrast-list li {
-        border-bottom-color: #bbf7d0;
-      }
-      
-      @media (max-width: 640px) {
-        .contrast-columns {
-          grid-template-columns: 1fr;
-        }
-      }
-      
-      /* PULL QUOTES */
-      .pull-quote {
-        background: #fffbeb;
-        border-left: 4px solid #fbbf24;
-        padding: 24px 30px;
-        margin: 30px 0;
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 1.5;
-        color: #78350f;
-      }
-      
-      /* SECTION PULLS */
-      .section-pull {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 40px 0 20px 0;
-      }
-      
-      /* COMPETITOR TABLE */
-      .competitor-table {
-        margin: 30px 0;
-        overflow-x: auto;
-      }
-      
-      .competitor-table table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-      }
-      
-      .competitor-table th {
-        background: #f9fafb;
-        padding: 12px 16px;
-        text-align: left;
-        font-size: 14px;
-        font-weight: 700;
-        color: #374151;
-        border-bottom: 2px solid #e5e7eb;
-      }
-      
-      .competitor-table td {
-        padding: 12px 16px;
-        font-size: 15px;
-        color: #1a1a1a;
-        border-bottom: 1px solid #f3f4f6;
-      }
-      
-      .competitor-table tr:last-child td {
-        border-bottom: none;
-      }
-      
-      .competitor-insight {
-        background: #fef2f2;
-        border-left: 4px solid #dc2626;
-        padding: 20px 24px;
-        margin-top: 20px;
-        font-size: 16px;
-        line-height: 1.6;
-        color: #7f1d1d;
-      }
-      
-      /* SOLUTION */
-      .solution-list ul {
-        list-style: none;
-        padding: 0;
-        margin: 30px 0;
-      }
-      
-      .solution-list li {
-        padding: 12px 0 12px 32px;
-        position: relative;
-        font-size: 17px;
-        line-height: 1.6;
-        color: #374151;
-        border-bottom: 1px solid #f3f4f6;
-      }
-      
-      .solution-list li:before {
-        content: "▸";
-        position: absolute;
-        left: 0;
-        color: #2563eb;
-        font-weight: 700;
-      }
-      
-      .solution-list li:last-child {
-        border-bottom: none;
-      }
-      
-      /* PROOF GRID */
-      .proof-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin: 30px 0;
-      }
-      
-      .proof-box {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        padding: 24px;
-        text-align: center;
-      }
-      
-      .proof-stat {
-        font-size: 32px;
-        font-weight: 700;
-        color: #15803d;
-        margin-bottom: 12px;
-      }
-      
-      .proof-box p {
-        font-size: 14px;
-        line-height: 1.5;
-        color: #166534;
-      }
-      
-      /* TWO OPTIONS */
-      .two-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin: 40px 0;
-      }
-      
-      .option {
-        border-radius: 8px;
-        padding: 30px;
-      }
-      
-      .option-bad {
-        background: #fef2f2;
-        border: 2px solid #fecaca;
-      }
-      
-      .option-good {
-        background: #f0fdf4;
-        border: 2px solid #86efac;
-      }
-      
-      .option h3 {
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 16px;
-      }
-      
-      .option-bad h3 {
-        color: #991b1b;
-      }
-      
-      .option-good h3 {
-        color: #15803d;
-      }
-      
-      .option ul {
-        list-style: none;
-        padding: 0;
-      }
-      
-      .option-bad li {
-        padding: 8px 0 8px 24px;
-        position: relative;
-        color: #7f1d1d;
-        font-size: 15px;
-      }
-      
-      .option-bad li:before {
-        content: "✗";
-        position: absolute;
-        left: 0;
-        color: #dc2626;
-      }
-      
-      .option-good li {
-        padding: 8px 0 8px 24px;
-        position: relative;
-        color: #166534;
-        font-size: 15px;
-      }
-      
-      .option-good li:before {
-        content: "✓";
-        position: absolute;
-        left: 0;
-        color: #16a34a;
-        font-weight: 700;
-      }
-      
-      @media (max-width: 640px) {
-        .two-options {
-          grid-template-columns: 1fr;
-        }
-      }
-      
-      /* FINAL CTA */
-      .final-cta {
-        margin: 60px 0;
-        text-align: center;
-      }
-      
-      .final-cta h3 {
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 30px;
-        color: #1a1a1a;
-      }
-      
-      .booking-widget {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 30px;
-      }
-      
-      /* TYPOGRAPHY */
-      h2 {
-        font-size: 32px;
-        font-weight: 700;
-        line-height: 1.3;
-        color: #1a1a1a;
-        margin: 30px 0 20px 0;
-      }
-      
-      h3 {
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 1.4;
-        color: #1a1a1a;
-        margin: 20px 0 12px 0;
-      }
-      
-      p {
-        margin-bottom: 20px;
-        color: #374151;
-      }
-      
-      p:last-child {
-        margin-bottom: 0;
-      }
-      
-      strong {
-        font-weight: 700;
-        color: #1a1a1a;
-      }
-      
-      a {
-        color: #2563eb;
-        text-decoration: none;
-      }
-      
-      a:hover {
-        text-decoration: underline;
-      }
-      
-      /* FOOTER */
-      .footer {
-        margin-top: 100px;
-        padding-top: 40px;
-        border-top: 1px solid #e5e7eb;
-        text-align: center;
-        font-size: 14px;
-        color: #9ca3af;
-      }
-    </style>
   `;
 }
 
 function getFooter() {
   return `
     <div class="footer">
-      <p>Mortar Metrics · Marketing Infrastructure for Law Firms</p>
-      <p>Toronto, ON · <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a></p>
+      Mortar Metrics · Legal Growth Agency · Based in Toronto, ON<br>
+      <a href="mailto:hello@mortarmetrics.com" style="color: var(--primary); text-decoration: none;">hello@mortarmetrics.com</a>
     </div>
   `;
+}
+
+function getCSS() {
+  return `<style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #171717;
+      --slate: #525252;
+      --slate-light: #737373;
+      --muted: #a3a3a3;
+      --border: #e5e5e5;
+      --border-light: #f5f5f5;
+      --warm-white: #fafafa;
+      --cream: #FDFBF7;
+      --white: #ffffff;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #10b981;
+      --success-light: #34d399;
+      --success-muted: #d1fae5;
+      --danger: #ef4444;
+      --danger-muted: #fef2f2;
+      --danger-deep: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Outfit', -apple-system, sans-serif; 
+      background: var(--cream);
+      color: var(--slate); 
+      line-height: 1.8;
+      font-size: 17px;
+    }
+
+    .container { 
+      max-width: 820px; 
+      margin: 0 auto; 
+      padding: 60px 32px;
+    }
+
+    h1, h2, h3 { 
+      font-family: 'Fraunces', Georgia, serif;
+      color: var(--ink); 
+      line-height: 1.3;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin-bottom: 16px; }
+    h2 { font-size: 2rem; margin-top: 64px; letter-spacing: -0.01em; }
+    h3 { font-size: 1.5rem; margin-top: 40px; color: var(--ink-soft); }
+    
+    p { 
+      margin-bottom: 20px; 
+      color: var(--slate);
+      font-size: 1.0625rem;
+    }
+    
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; color: var(--slate-light); }
+
+    .header {
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .logo { 
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 700; 
+      font-size: 1.4rem; 
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    
+    .meta { 
+      font-size: 0.9375rem; 
+      color: var(--muted);
+    }
+
+    /* Hero with comparison box */
+    .hero-comparison-box {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%);
+      border-left: 4px solid var(--danger);
+      padding: 36px;
+      border-radius: 12px;
+      margin: 48px 0 32px;
+    }
+    
+    .hero-comparison-box h1 {
+      margin-bottom: 0;
+      color: var(--ink);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%);
+      border-left: 4px solid var(--danger);
+      padding: 36px;
+      border-radius: 12px;
+      margin: 32px 0 48px;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--danger);
+      margin-bottom: 12px;
+    }
+
+    .hero-stat {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 1.125rem;
+      color: var(--slate);
+      margin-bottom: 0;
+    }
+
+    /* Soft CTA */
+    .soft-cta {
+      text-align: center;
+      padding: 24px 32px;
+      background: var(--warm-white);
+      border-radius: 12px;
+      margin: 48px 0;
+      font-size: 1.0625rem;
+      color: var(--slate);
+    }
+    
+    .soft-cta-link {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 2px;
+    }
+    
+    .soft-cta-link:hover {
+      color: var(--primary-light);
+      border-bottom-color: var(--primary);
+    }
+
+    .callout {
+      background: linear-gradient(135deg, var(--warm-white) 0%, white 100%);
+      border-left: 3px solid var(--primary);
+      padding: 24px 28px;
+      margin: 32px 0;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+    }
+
+    .callout strong {
+      color: var(--primary);
+    }
+
+    .blue-ocean {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 4px solid var(--success);
+      padding: 32px;
+      border-radius: 12px;
+      margin: 32px 0;
+    }
+
+    .blue-ocean-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .section {
+      margin: 64px 0;
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      margin: 80px 0 12px 0;
+    }
+
+    .section-pull {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: var(--slate);
+      margin: 40px 0 20px;
+    }
+
+    ul {
+      margin: 24px 0;
+      padding-left: 28px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      color: var(--slate);
+      padding-left: 8px;
+    }
+
+    .gap-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 28px 0;
+    }
+
+    .gap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .gap-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .gap-cost {
+      background: linear-gradient(135deg, var(--danger) 0%, #f97316 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9375rem;
+    }
+
+    /* Flow diagrams */
+    .flow-diagram {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      margin: 28px 0;
+    }
+    
+    .flow-step {
+      background: white;
+      border: 1px solid var(--border-light);
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: center;
+      color: var(--ink-soft);
+    }
+    
+    .flow-arrow {
+      text-align: center;
+      font-size: 24px;
+      color: var(--muted);
+      margin: 10px 0;
+    }
+
+    /* Contrast boxes */
+    .contrast-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 28px 0;
+    }
+    
+    .contrast-side {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    
+    .contrast-side:nth-child(2) {
+      background: var(--success-muted);
+      border-color: var(--success-light);
+    }
+    
+    .contrast-label {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+    
+    .contrast-label.good {
+      color: var(--success);
+    }
+    
+    .contrast-label.bad {
+      color: var(--danger);
+    }
+    
+    .contrast-side ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .contrast-side li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+      margin: 0;
+    }
+    
+    .contrast-side li:last-child {
+      border-bottom: none;
+    }
+    
+    @media (max-width: 640px) {
+      .contrast-box {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Pull quotes */
+    .pull-quote {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(251, 191, 36, 0.04) 100%);
+      border-left: 4px solid #f59e0b;
+      padding: 28px 32px;
+      margin: 32px 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+
+    /* Competitor table */
+    .competitor-table {
+      margin: 32px 0;
+      overflow-x: auto;
+    }
+    
+    .competitor-table table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .competitor-table th {
+      background: var(--warm-white);
+      padding: 16px;
+      text-align: left;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--ink);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .competitor-table td {
+      padding: 14px 16px;
+      font-size: 1rem;
+      color: var(--slate);
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .competitor-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .competitor-insight {
+      background: var(--danger-muted);
+      border-left: 4px solid var(--danger);
+      padding: 24px 28px;
+      margin-top: 24px;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+      line-height: 1.7;
+      color: var(--ink-soft);
+    }
+
+    /* Solution stack */
+    .solution-stack {
+      margin: 32px 0;
+    }
+    
+    .solution-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .solution-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    
+    .solution-content strong {
+      display: block;
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.125rem;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    
+    .solution-content p {
+      font-size: 0.9375rem;
+      color: var(--slate-light);
+      margin: 0;
+    }
+
+    /* Proof grid */
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin: 32px 0;
+    }
+    
+    .proof-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border: 2px solid var(--success-light);
+      border-radius: 12px;
+      padding: 28px;
+      text-align: center;
+    }
+    
+    .proof-number {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--success);
+      margin-bottom: 4px;
+    }
+    
+    .proof-label {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+    
+    .proof-box p {
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--slate);
+      margin: 0;
+    }
+
+    /* Two options */
+    .two-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 40px 0;
+    }
+    
+    .option-box {
+      border-radius: 12px;
+      padding: 32px;
+    }
+    
+    .option-bad {
+      background: var(--danger-muted);
+      border: 2px solid #fecaca;
+    }
+    
+    .option-good {
+      background: var(--success-muted);
+      border: 2px solid var(--success-light);
+    }
+    
+    .option-box h3 {
+      font-size: 1.375rem;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    
+    .option-bad h3 {
+      color: var(--danger-deep);
+    }
+    
+    .option-good h3 {
+      color: var(--success);
+    }
+    
+    .option-box ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .option-bad li {
+      padding: 10px 0 10px 28px;
+      position: relative;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+    
+    .option-bad li:before {
+      content: "✗";
+      position: absolute;
+      left: 0;
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+    
+    .option-good li {
+      padding: 10px 0 10px 28px;
+      position: relative;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+    
+    .option-good li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+    
+    @media (max-width: 768px) {
+      .two-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+      margin: 80px 0;
+    }
+
+    .big-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+      margin: 100px 0;
+      position: relative;
+    }
+
+    .big-divider::after {
+      content: '●';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--cream);
+      color: var(--primary);
+      font-size: 1.5rem;
+      padding: 0 16px;
+    }
+
+    .strength-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 3px solid var(--success);
+      padding: 28px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+
+    .strength-box p {
+      margin-bottom: 0;
+    }
+
+    .stat-highlight {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 28px 0;
+      text-align: center;
+    }
+
+    .stat-highlight-number {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .stat-highlight-label {
+      color: var(--slate-light);
+      font-size: 0.9375rem;
+    }
+
+    .cta {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      margin: 80px 0 40px;
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: var(--ink);
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 2rem;
+    }
+
+    .cta p {
+      color: var(--slate);
+      font-size: 1.125rem;
+      margin-bottom: 32px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-light);
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.625rem; }
+      .container { padding: 40px 20px; }
+      .hero-stat { font-size: 2.5rem; }
+      .hero-comparison-box h1 { font-size: 1.75rem; }
+    }
+  </style>`;
 }
 
 // Main execution
@@ -1025,6 +1217,12 @@ if (require.main === module) {
   try {
     const researchData = JSON.parse(fs.readFileSync(researchPath, 'utf8'));
     const result = generateReport(researchData, prospectName);
+    
+    // Ensure reports directory exists
+    const reportsDir = path.join(__dirname, 'reports');
+    if (!fs.existsSync(reportsDir)) {
+      fs.mkdirSync(reportsDir, { recursive: true });
+    }
     
     fs.writeFileSync(result.outputPath, result.html);
     
