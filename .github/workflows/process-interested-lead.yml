@@ -2,7 +2,7 @@ name: Process Interested Lead
 
 on:
   repository_dispatch:
-    types: [interested_lead, lead_interested]
+    types: [interested_lead]
 
 jobs:
   research-and-report:
@@ -30,32 +30,24 @@ jobs:
       - name: Extract lead data
         id: lead_data
         run: |
-          # Support both nested (client_payload) and flat format (Instantly's native format)
-          LEAD_EMAIL="${{ github.event.client_payload.email }}${{ github.event.lead_email }}"
-          EMAIL_ID="${{ github.event.client_payload.email_id }}${{ github.event.email_id }}"
-          FROM_EMAIL="${{ github.event.client_payload.from_email }}${{ github.event.from_email }}"
-          
-          echo "lead_email=$LEAD_EMAIL" >> $GITHUB_OUTPUT
-          echo "email_id=$EMAIL_ID" >> $GITHUB_OUTPUT
-          echo "from_email=$FROM_EMAIL" >> $GITHUB_OUTPUT
+          echo "lead_email=${{ github.event.client_payload.email }}" >> $GITHUB_OUTPUT
+          echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
+          echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
           
       - name: Parse website from lead data
         id: parse
         run: |
-          # Support both nested and flat format
-          WEBSITE="${{ github.event.client_payload.website }}${{ github.event.website }}"
-          FIRST_NAME="${{ github.event.client_payload.first_name }}${{ github.event.first_name }}"
-          LAST_NAME="${{ github.event.client_payload.last_name }}${{ github.event.last_name }}"
-          CITY="${{ github.event.client_payload.city }}${{ github.event.city }}"
-          STATE="${{ github.event.client_payload.state }}${{ github.event.state }}"
-          COUNTRY="${{ github.event.client_payload.country }}${{ github.event.country }}"
-          COMPANY="${{ github.event.client_payload.company }}${{ github.event.company }}"
-          
-          CONTACT_NAME="$FIRST_NAME $LAST_NAME"
+          # Extract ALL fields from Instantly
+          WEBSITE="${{ github.event.client_payload.website }}"
+          CONTACT_NAME="${{ github.event.client_payload.first_name }} ${{ github.event.client_payload.last_name }}"
+          CITY="${{ github.event.client_payload.city }}"
+          STATE="${{ github.event.client_payload.state }}"
+          COUNTRY="${{ github.event.client_payload.country }}"
+          COMPANY="${{ github.event.client_payload.company }}"
           
           # If no website in payload, we'll need to extract from email domain
           if [ -z "$WEBSITE" ]; then
-            DOMAIN=$(echo "${{ steps.lead_data.outputs.lead_email }}" | cut -d'@' -f2)
+            DOMAIN=$(echo "${{ github.event.client_payload.email }}" | cut -d'@' -f2)
             WEBSITE="https://www.$DOMAIN"
           fi
           
