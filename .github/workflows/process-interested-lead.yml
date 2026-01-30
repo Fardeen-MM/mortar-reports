@@ -178,21 +178,31 @@ jobs:
           echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
         id: deploy
           
-      - name: Send follow-up email via Instantly (reply in same thread)
-        env:
-          INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+      - name: Create approval file (MANUAL APPROVAL REQUIRED)
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
-          EMAIL_ID="${{ steps.lead_data.outputs.email_id }}"
           
-          node send-email.js \
-            "${{ steps.lead_data.outputs.lead_email }}" \
-            "${{ steps.parse.outputs.contact_name }}" \
-            "$REPORT_URL" \
-            "$EMAIL_ID"
-        working-directory: ./automation
+          mkdir -p pending-approvals
+          
+          cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
+          {
+            "firm_name": "${{ steps.deploy.outputs.firm_folder }}",
+            "lead_email": "${{ steps.lead_data.outputs.lead_email }}",
+            "contact_name": "${{ steps.parse.outputs.contact_name }}",
+            "report_url": "$REPORT_URL",
+            "email_id": "${{ steps.lead_data.outputs.email_id }}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "status": "pending_approval"
+          }
+          EOF
+          
+          git add "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
+          git commit -m "Pending approval: ${{ steps.deploy.outputs.firm_folder }}"
+          git push origin main || echo "No changes to push"
+          
+          echo "✅ Created approval file for ${{ steps.deploy.outputs.firm_folder }}"
         
-      - name: Notify Slack
+      - name: Notify Slack (MANUAL APPROVAL REQUIRED)
         if: always()
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -201,7 +211,7 @@ jobs:
           REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
           
           if [ "$STATUS" = "success" ]; then
-            MESSAGE="✅ Report generated for *${{ steps.parse.outputs.contact_name }}*\n📧 Email: ${{ steps.lead_data.outputs.lead_email }}\n🔗 Report: $REPORT_URL"
+            MESSAGE="🟡 *AWAITING MANUAL APPROVAL*\n\n📊 Report Generated:\n🏢 Firm: *${{ steps.deploy.outputs.firm_folder }}*\n👤 Contact: ${{ steps.parse.outputs.contact_name }}\n📧 Email: ${{ steps.lead_data.outputs.lead_email }}\n🔗 Report: $REPORT_URL\n\n⚠️  *ACTION REQUIRED:*\n1. Review the report\n2. Go to: https://github.com/Fardeen-MM/mortar-reports/actions/workflows/approve-and-send-email.yml\n3. Click 'Run workflow'\n4. Fill in the details and approve\n\nDetails for approval:\n- Firm: ${{ steps.deploy.outputs.firm_folder }}\n- Email: ${{ steps.lead_data.outputs.lead_email }}\n- Contact: ${{ steps.parse.outputs.contact_name }}\n- Report URL: $REPORT_URL\n- Email ID: ${{ steps.lead_data.outputs.email_id }}"
           else
             MESSAGE="❌ Failed to generate report for ${{ steps.lead_data.outputs.lead_email }}"
           fi

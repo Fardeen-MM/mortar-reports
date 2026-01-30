@@ -1,0 +1,69 @@
+name: Approve and Send Email
+
+on:
+  workflow_dispatch:
+    inputs:
+      firm_name:
+        description: 'Firm Name'
+        required: true
+      lead_email:
+        description: 'Lead Email'
+        required: true
+      report_url:
+        description: 'Report URL'
+        required: true
+      email_id:
+        description: 'Instantly Email ID (for threading)'
+        required: false
+      contact_name:
+        description: 'Contact Name'
+        required: true
+
+jobs:
+  send-approved-email:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./automation
+        
+      - name: Send approved email
+        env:
+          INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+        run: |
+          echo "📧 Sending approved email to ${{ github.event.inputs.lead_email }}"
+          echo "🏢 Firm: ${{ github.event.inputs.firm_name }}"
+          echo "🔗 Report: ${{ github.event.inputs.report_url }}"
+          
+          node send-email.js \
+            "${{ github.event.inputs.lead_email }}" \
+            "${{ github.event.inputs.contact_name }}" \
+            "${{ github.event.inputs.report_url }}" \
+            "${{ github.event.inputs.email_id }}"
+        working-directory: ./automation
+        
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ job.status }}"
+          
+          if [ "$STATUS" = "success" ]; then
+            MESSAGE="✅ *APPROVED & SENT*\n📧 To: ${{ github.event.inputs.lead_email }}\n🏢 Firm: ${{ github.event.inputs.firm_name }}\n🔗 Report: ${{ github.event.inputs.report_url }}"
+          else
+            MESSAGE="❌ Failed to send approved email to ${{ github.event.inputs.lead_email }}"
+          fi
+          
+          curl -X POST "$SLACK_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
