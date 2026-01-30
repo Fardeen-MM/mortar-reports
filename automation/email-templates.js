@@ -22,25 +22,43 @@ function buildPersonalizedEmail(researchData, contactName, reportUrl) {
     opening = `Perfect! I noticed you're ${growthSignal.toLowerCase()}. I finished analyzing ${firmName} and found some revenue gaps you can close while scaling.`;
   }
   
+  // Calculate next available weekday
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  let meetingDay1, meetingDay2;
+  
+  if (dayOfWeek === 5) { // Friday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else if (dayOfWeek === 6) { // Saturday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else if (dayOfWeek === 0) { // Sunday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else { // Monday-Thursday
+    meetingDay1 = 'tomorrow';
+    meetingDay2 = getDayName((dayOfWeek + 2) % 7);
+  }
+  
   const emailBody = `${opening}
 
 I analyzed your website, your top competitors, and found some specific gaps that are costing you cases right now.
 
-👉 Here's your personalized report:
-${reportUrl}
-
-What you'll see:
-• Exact revenue gaps we found (with dollar amounts)
+What I found:
+• Exact revenue gaps (with dollar amounts)
 • What your top 3 competitors are doing in ${researchData.location?.city || 'your market'}
 • Specific strategies to capture that revenue
 
 Everything is tailored to ${firmName}—no generic advice.
 
-The booking link is at the bottom if you want to discuss closing these gaps.
+Here's your report:
+${reportUrl}
 
-Best,
-Fardeen
-Mortar Metrics`;
+Are you available ${meetingDay1} or ${meetingDay2} for a quick 15-minute call to walk through the biggest opportunities?
+
+{{accountSignature}}`;
 
   return {
     subject: 'Re: Your marketing analysis',
@@ -48,17 +66,40 @@ Mortar Metrics`;
   };
 }
 
+// Helper function to get day name
+function getDayName(dayNum) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[dayNum];
+}
+
 function buildSimpleEmail(contactName, reportUrl) {
   const firstName = contactName.split(' ')[0];
+  
+  // Calculate next available weekday
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  let meetingDay1, meetingDay2;
+  
+  if (dayOfWeek === 5) { // Friday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else if (dayOfWeek === 6) { // Saturday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else if (dayOfWeek === 0) { // Sunday
+    meetingDay1 = 'Monday';
+    meetingDay2 = 'Tuesday';
+  } else { // Monday-Thursday
+    meetingDay1 = 'tomorrow';
+    meetingDay2 = getDayName((dayOfWeek + 2) % 7);
+  }
   
   return {
     subject: 'Re: Your marketing analysis',
     body: `Perfect! I just finished putting together your analysis.
 
 I analyzed your website, your competitors in your market, and found some specific gaps you can close.
-
-👉 Here's your personalized report:
-${reportUrl}
 
 What you'll see:
 • Exact revenue gaps we found (with dollar amounts)
@@ -67,11 +108,12 @@ What you'll see:
 
 Everything is specific to your firm and your market—no generic fluff.
 
-The booking link is at the bottom of the report if you want to discuss any of this.
+Here's your report:
+${reportUrl}
 
-Best,
-Fardeen
-Mortar Metrics`
+Are you available ${meetingDay1} or ${meetingDay2} for a quick 15-minute call to walk through the biggest opportunities?
+
+{{accountSignature}}`
   };
 }
 
