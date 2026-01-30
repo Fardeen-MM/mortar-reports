@@ -131,11 +131,11 @@ function generateHero(firmName, locationStr, monthlyLossK, firstName, aiHook, co
     
     <h1>${comparison}</h1>
 
-    <p style="font-size: 20px; margin: 24px 0; line-height: 1.5;">That's costing you <strong>$${monthlyLossK.toLocaleString()}K/month</strong> in cases walking out the door. <span style="color: #64748b;">The math: ${estimatedLeads} leads/month × $${avgCaseValue.toLocaleString()} average case value.</span></p>
+    <p style="font-size: 20px; margin: 24px 0; line-height: 1.5;">That\'s costing you <strong>$${monthlyLossK.toLocaleString()}K/month</strong> in cases walking out the door. <span style="color: #64748b;">The math: ${estimatedLeads} leads/month × $${avgCaseValue.toLocaleString()} average case value.</span></p>
 
     <p style="color: #64748b; font-size: 15px;">Based on our analysis of your website, ads, competitors, and the ${locationStr} market.</p>
     
-    <p style="font-size: 18px; margin-top: 32px;"><strong>Here's exactly where the money is going.</strong></p>
+    <p style="font-size: 18px; margin-top: 32px;"><strong>Here\'s exactly where the money is going.</strong></p>
   `;
 }
 
@@ -148,8 +148,8 @@ function generateSoftCTA() {
 }
 
 function generateGaps(gaps, locationStr, practiceAreas, aiGaps, competitors, firmName) {
-  let html = '<h2>The Problems Costing You Money</h2>';
-  html += '<p>Each of these gaps has a direct dollar cost. Here's what's happening.</p>';
+  let html = `<h2>The Problems Costing You Money</h2>`;
+  html += `<p>Each of these gaps has a direct dollar cost. Here's what's happening.</p>`;
   
   let gapNumber = 1;
   
@@ -239,7 +239,7 @@ function generateGaps(gaps, locationStr, practiceAreas, aiGaps, competitors, fir
 
         <p><strong>What we've seen work:</strong> A firm in Dallas was missing 34% of calls. After intake infrastructure, close rate jumped from 18% to 31%.</p>
 
-        <p style="margin-top: 32px; font-size: 17px;"><strong>So who in your market is actually doing this right? That's where it gets uncomfortable.</strong></p>
+        <p style="margin-top: 32px; font-size: 17px;"><strong>So who in your market is actually doing this right? That\'s where it gets uncomfortable.</strong></p>
       </div>
     `;
   }
@@ -291,8 +291,8 @@ function generateCompetitorTable(competitors, firmName, gaps) {
   // ONE table. ONE insight.
   const top3 = competitors.slice(0, 3);
   
-  let html = '<h2 style="margin-top: 80px;">Who's Winning in Your Market</h2>';
-  html += '<p>Here's who you're competing against. The data is from Google My Business, their websites, and our competitive intelligence tools.</p>';
+  let html = `<h2 style="margin-top: 80px;">Who's Winning in Your Market</h2>`;
+  html += `<p>Here's who you're competing against. The data is from Google My Business, their websites, and our competitive intelligence tools.</p>`;
   
   html += `
     <table style="width: 100%; border-collapse: collapse; margin: 32px 0; background: white; border-radius: 12px; overflow: hidden;">
@@ -339,14 +339,14 @@ function generateCompetitorTable(competitors, firmName, gaps) {
   const topComp = top3[0];
   html += `<p><strong>${topComp.name} has ${topComp.reviews} reviews to your handful.</strong> Every time someone searches, Google sees those numbers and picks them. That's not opinion — that's how local SEO works.</p>`;
   
-  html += '<p style="margin-top: 32px; font-size: 17px;"><strong>The gap is clear. The question is what it actually takes to close it.</strong></p>';
+  html += `<p style="margin-top: 32px; font-size: 17px;"><strong>The gap is clear. The question is what it actually takes to close it.</strong></p>`;
   
   return html;
 }
 
 function generateSolution(gaps, firmName) {
-  let html = '<h2 style="margin-top: 80px;">What Full Infrastructure Actually Requires</h2>';
-  html += '<p>This isn't a quick fix. It's an engineering project. Here's every piece required:</p>';
+  let html = `<h2 style="margin-top: 80px;">What Full Infrastructure Actually Requires</h2>`;
+  html += `<p>This isn't a quick fix. It's an engineering project. Here's every piece required:</p>`;
   
   html += `
     <ul style="line-height: 2; margin: 32px 0; padding-left: 24px;">
@@ -361,11 +361,11 @@ function generateSolution(gaps, firmName) {
     </ul>
   `;
   
-  html += '<p>You could try to build this yourself. Most firms do. They get halfway through, realize it's a full-time job, and give up.</p>';
+  html += `<p>You could try to build this yourself. Most firms do. They get halfway through, realize it's a full-time job, and give up.</p>`;
   
-  html += '<blockquote class="pull-quote">We've built this exact system 23 times. Different practice areas, same infrastructure.</blockquote>';
+  html += `<blockquote class="pull-quote">We've built this exact system 23 times. Different practice areas, same infrastructure.</blockquote>`;
   
-  html += '<p><strong>The system works. The question is whether you want us to build it for you.</strong></p>';
+  html += `<p><strong>The system works. The question is whether you want us to build it for you.</strong></p>`;
   
   return html;
 }
