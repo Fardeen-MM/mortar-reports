@@ -9,7 +9,12 @@
 
 const https = require('https');
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'sk-ant-api03-RCHEH5G9aJT-7MjMpMDJ-wUbG14MdTc-P1l1Y6OBx1LFuwmPLe5Q_nD54vJFJLn8n96RLCYB3hl7Hd8rQgzWHg-L8SohwAA';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+if (!ANTHROPIC_API_KEY) {
+  console.error('⚠️  ANTHROPIC_API_KEY not set - AI extraction will be skipped');
+  console.error('   Set it with: export ANTHROPIC_API_KEY=your-key-here');
+}
 
 /**
  * Ask AI to extract structured data from HTML
