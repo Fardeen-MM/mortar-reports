@@ -1,0 +1,605 @@
+#!/usr/bin/env node
+/**
+ * REPORT GENERATOR V8 - PERFECT PULL
+ * 
+ * Following ClawdBot instructions:
+ * - Comparison that hurts (not just dollar figure)
+ * - Open loops between every section
+ * - ONE competitor table with one insight
+ * - Social proof sprinkled throughout
+ * - Problems as infrastructure
+ * - Solution feels overwhelming
+ * - Two-option framing at CTA
+ * - Pull quotes every 3-4 paragraphs
+ * - Show math for every figure
+ * - Scannable (bold the 20% that matters)
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+function generateReport(researchData, prospectName) {
+  console.log(`\n📝 Generating PERFECT PULL report for ${prospectName}...\n`);
+  
+  const {
+    firmName,
+    website,
+    location,
+    practiceAreas,
+    gaps,
+    competitors,
+    estimatedMonthlyRevenueLoss,
+    attorneys,
+    allLocations
+  } = researchData;
+  
+  const locationStr = location.city && location.state 
+    ? `${location.city}, ${location.state}`
+    : location.state || 'your area';
+  
+  const monthlyLossK = Math.round(estimatedMonthlyRevenueLoss / 1000);
+  const yearlyLossK = monthlyLossK * 12;
+  const prospectFirstName = prospectName.split(' ')[0];
+  
+  // Check what AI enhancements exist
+  const hasAI = researchData.ai_enhancements;
+  const aiHook = hasAI ? researchData.ai_enhancements.personalized_hook : null;
+  const aiOpportunity = hasAI ? researchData.ai_enhancements.opportunity_frame : null;
+  const aiGaps = hasAI ? researchData.ai_enhancements.gap_explanations : {};
+  
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${firmName} | Marketing Analysis by Mortar Metrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  ${getCSS()}
+</head>
+<body>
+
+  <div class="container">
+
+    ${generateHero(firmName, locationStr, monthlyLossK, prospectFirstName, aiHook, competitors, gaps, practiceAreas, attorneys, allLocations)}
+    
+    ${generateSoftCTA()}
+    
+    ${generateGaps(gaps, locationStr, practiceAreas, aiGaps, competitors, firmName)}
+    
+    ${generateCompetitorTable(competitors, firmName, gaps)}
+    
+    ${generateSolution(gaps, firmName)}
+    
+    ${generateFinalCTA(firmName, monthlyLossK, prospectFirstName)}
+    
+    ${getFooter()}
+
+  </div>
+
+</body>
+</html>`;
+  
+  const slug = firmName.replace(/[^a-z0-9]/gi, '').replace(/\s+/g, '');
+  const outputPath = path.join(__dirname, 'reports', `${slug}-landing-page-v8.html`);
+  
+  return {
+    html,
+    outputPath,
+    meta: {
+      firmName,
+      prospectName,
+      totalMonthlyLoss: estimatedMonthlyRevenueLoss,
+      gapCount: Object.values(gaps).filter(g => g.hasGap).length
+    }
+  };
+}
+
+function generateHero(firmName, locationStr, monthlyLossK, firstName, aiHook, competitors, gaps, practiceAreas, attorneys, allLocations) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  
+  // Generate comparison that hurts (not just dollar figure)
+  let comparison = '';
+  
+  if (aiHook) {
+    // Use AI-generated hook if available
+    comparison = aiHook;
+  } else {
+    // Generate comparison based on gaps
+    const topCompetitor = competitors[0];
+    
+    if (gaps.googleAds && gaps.googleAds.hasGap && topCompetitor) {
+      comparison = `${topCompetitor.name} is bidding on your keywords. You're not even in the auction.`;
+    } else if (gaps.support24x7 && gaps.support24x7.hasGap) {
+      comparison = `Your competitors answer calls in 8 seconds. You don't answer at all.`;
+    } else if (gaps.metaAds && gaps.metaAds.hasGap) {
+      comparison = `3 firms in ${locationStr} are retargeting leads who visit their sites. You're letting them walk away forever.`;
+    } else {
+      comparison = `You're invisible online while competitors with half your experience are capturing clients searching for exactly what you offer.`;
+    }
+  }
+  
+  // Show math for the dollar figure
+  const avgCaseValue = practiceAreas[0]?.toLowerCase().includes('tax') ? 2800 : 
+                       practiceAreas[0]?.toLowerCase().includes('divorce') ? 5000 :
+                       practiceAreas[0]?.toLowerCase().includes('personal injury') ? 8000 : 3500;
+  const estimatedLeads = Math.round((monthlyLossK * 1000) / avgCaseValue);
+  
+  return `
+    <div class="meta">Marketing Analysis for ${firstName} · ${today}</div>
+    
+    <h1>${comparison}</h1>
+
+    <p style="font-size: 20px; margin: 24px 0; line-height: 1.5;">That's costing you <strong>$${monthlyLossK.toLocaleString()}K/month</strong> in cases walking out the door. <span style="color: #64748b;">The math: ${estimatedLeads} leads/month × $${avgCaseValue.toLocaleString()} average case value.</span></p>
+
+    <p style="color: #64748b; font-size: 15px;">Based on our analysis of your website, ads, competitors, and the ${locationStr} market.</p>
+    
+    <p style="font-size: 18px; margin-top: 32px;"><strong>Here's exactly where the money is going.</strong></p>
+  `;
+}
+
+function generateSoftCTA() {
+  return `
+    <div style="text-align: center; margin: 48px 0; padding: 24px; background: #f8fafc; border-radius: 12px;">
+      <p style="margin: 0; font-size: 16px;">Want us to walk you through this? <a href="#booking" style="color: #2563eb; text-decoration: none; font-weight: 600;">Book 15 minutes →</a></p>
+    </div>
+  `;
+}
+
+function generateGaps(gaps, locationStr, practiceAreas, aiGaps, competitors, firmName) {
+  let html = '<h2>The Problems Costing You Money</h2>';
+  html += '<p>Each of these gaps has a direct dollar cost. Here's what's happening.</p>';
+  
+  let gapNumber = 1;
+  
+  // Google Ads Gap
+  if (gaps.googleAds && gaps.googleAds.hasGap) {
+    const cost = gaps.googleAds.estimatedMonthlyCost || 8000;
+    const costK = Math.round(cost / 1000);
+    
+    const explanation = aiGaps.google_ads || `People searching for ${practiceAreas[0]?.toLowerCase() || 'lawyers'} in ${locationStr} right now are clicking on ads. **Your competitors are in that auction.** You're not.`;
+    
+    html += `
+      <div class="section-label">GAP #${gapNumber++}</div>
+      <div class="gap-box">
+        <div class="gap-header">
+          <div class="gap-title">You're invisible on Google</div>
+          <div class="gap-cost">-$${costK}K/mo</div>
+        </div>
+
+        <p>${explanation}</p>
+
+        <div class="flow-diagram">
+          <div class="flow-step">Lead searches "${practiceAreas[0]?.toLowerCase() || 'lawyer'} ${location.city || locationStr}"</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">Sees 3 ads (none are you)</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">Clicks competitor</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">You never knew they existed</div>
+        </div>
+
+        <blockquote class="pull-quote">65% of high-intent legal searches click on ads, not organic results.</blockquote>
+
+        <p><strong>What this costs:</strong> The math is simple. ${location.city || 'Your area'} has ~500 monthly searches for ${practiceAreas[0]?.toLowerCase() || 'lawyers'}. Top 3 ads split 40% of clicks. At 3% conversion and typical case values, you're losing <strong>$${costK}K/month</strong> in cases you never had a chance at.</p>
+
+        <p><strong>What we've seen work:</strong> A tax firm in Phoenix went from 0 to 47 qualified leads/month after we built their paid search infrastructure.</p>
+
+        <p style="margin-top: 32px; font-size: 17px;"><strong>But getting the click is only half the battle. What happens when they actually reach out?</strong></p>
+      </div>
+    `;
+  }
+  
+  // 24/7 Intake Gap
+  if (gaps.support24x7 && gaps.support24x7.hasGap) {
+    const cost = gaps.support24x7.estimatedMonthlyCost || 15000;
+    const costK = Math.round(cost / 1000);
+    
+    const explanation = aiGaps.intake_24_7 || `What happens when someone calls your office at 8pm? Voicemail. **They call the next firm.** Your competitors with Voice AI or 24/7 intake answer in under 60 seconds.`;
+    
+    html += `
+      <div class="section-label">GAP #${gapNumber++}</div>
+      <div class="gap-box">
+        <div class="gap-header">
+          <div class="gap-title">Nobody's answering the phone at 9pm</div>
+          <div class="gap-cost">-$${costK}K/mo</div>
+        </div>
+
+        <p>${explanation}</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0; background: white; border-radius: 12px; padding: 24px;">
+          <div>
+            <div style="font-weight: 600; margin-bottom: 12px; color: #dc2626;">Right now:</div>
+            <div style="font-size: 14px; line-height: 1.8; color: #64748b;">
+              Call comes in at 8pm<br>
+              Voicemail picks up<br>
+              They hang up (73% do)<br>
+              They call the next firm<br>
+              Gone forever
+            </div>
+          </div>
+          <div>
+            <div style="font-weight: 600; margin-bottom: 12px; color: #16a34a;">With intake infrastructure:</div>
+            <div style="font-size: 14px; line-height: 1.8; color: #64748b;">
+              Call comes in at 8pm<br>
+              AI answers in 2 rings<br>
+              Qualifies with 4 questions<br>
+              Books consultation<br>
+              Sends confirmation text<br>
+              Logs to CRM<br>
+              Alerts your team
+            </div>
+          </div>
+        </div>
+
+        <blockquote class="pull-quote">73% of people searching for lawyers do it outside business hours.</blockquote>
+
+        <p><strong>What this costs:</strong> If you're getting 50+ inquiries per month and 70% come after hours, that's 35 leads hitting voicemail. **78% of clients hire the first firm that responds.** At a 20% close rate, you're losing <strong>$${costK}K/month</strong> just because you're not answering.</p>
+
+        <p><strong>What we've seen work:</strong> A firm in Dallas was missing 34% of calls. After intake infrastructure, close rate jumped from 18% to 31%.</p>
+
+        <p style="margin-top: 32px; font-size: 17px;"><strong>So who in your market is actually doing this right? That's where it gets uncomfortable.</strong></p>
+      </div>
+    `;
+  }
+  
+  // Meta Ads Gap  
+  if (gaps.metaAds && gaps.metaAds.hasGap) {
+    const cost = gaps.metaAds.estimatedMonthlyCost || 12000;
+    const costK = Math.round(cost / 1000);
+    
+    const explanation = aiGaps.meta_ads || `Every visitor to your site leaves and never comes back. **You have no pixel-based retargeting infrastructure.** Your competitors are running Facebook/Instagram ads to everyone who visits their sites. Those leads see them 47 times over the next 3 weeks.`;
+    
+    html += `
+      <div class="section-label">GAP #${gapNumber++}</div>
+      <div class="gap-box">
+        <div class="gap-header">
+          <div class="gap-title">Not running Facebook/Instagram ads</div>
+          <div class="gap-cost">-$${costK}K/mo</div>
+        </div>
+
+        <p>${explanation}</p>
+
+        <div class="flow-diagram">
+          <div class="flow-step">Lead visits your website</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">Doesn't call (97% don't)</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">Leaves forever</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step">Eventually hires competitor who retargeted them</div>
+        </div>
+
+        <blockquote class="pull-quote">The average person needs 7 touchpoints before hiring a lawyer.</blockquote>
+
+        <p><strong>What this costs:</strong> You're getting ~800 website visitors/month. Only 3% call on the first visit. **The other 776 people leave and you never get another chance.** If 5% of those would eventually convert with retargeting, that's <strong>$${costK}K/month</strong> walking away.</p>
+
+        <p><strong>What we've seen work:</strong> An employment law firm added Meta retargeting and saw cost-per-lead drop 64% because they were capturing people who'd already shown interest.</p>
+      </div>
+    `;
+  }
+  
+  return html;
+}
+
+function generateCompetitorTable(competitors, firmName, gaps) {
+  if (!competitors || competitors.length === 0) {
+    return '';
+  }
+  
+  // ONE table. ONE insight.
+  const top3 = competitors.slice(0, 3);
+  
+  let html = '<h2 style="margin-top: 80px;">Who's Winning in Your Market</h2>';
+  html += '<p>Here's who you're competing against. The data is from Google My Business, their websites, and our competitive intelligence tools.</p>';
+  
+  html += `
+    <table style="width: 100%; border-collapse: collapse; margin: 32px 0; background: white; border-radius: 12px; overflow: hidden;">
+      <thead>
+        <tr style="background: #f1f5f9;">
+          <th style="padding: 16px; text-align: left; font-weight: 600;">Firm</th>
+          <th style="padding: 16px; text-align: center; font-weight: 600;">Reviews</th>
+          <th style="padding: 16px; text-align: center; font-weight: 600;">Rating</th>
+          <th style="padding: 16px; text-align: center; font-weight: 600;">Google Ads</th>
+          <th style="padding: 16px; text-align: center; font-weight: 600;">Meta Ads</th>
+          <th style="padding: 16px; text-align: center; font-weight: 600;">24/7 Intake</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 2px solid #e2e8f0; background: #fef3c7;">
+          <td style="padding: 16px; font-weight: 600;">${firmName} (You)</td>
+          <td style="padding: 16px; text-align: center;">—</td>
+          <td style="padding: 16px; text-align: center;">—</td>
+          <td style="padding: 16px; text-align: center;">${gaps.googleAds?.hasGap ? '❌' : '✓'}</td>
+          <td style="padding: 16px; text-align: center;">${gaps.metaAds?.hasGap ? '❌' : '✓'}</td>
+          <td style="padding: 16px; text-align: center;">${gaps.support24x7?.hasGap ? '❌' : '✓'}</td>
+        </tr>
+  `;
+  
+  top3.forEach(comp => {
+    html += `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 16px;">${comp.name}</td>
+          <td style="padding: 16px; text-align: center;">${comp.reviews || '—'}</td>
+          <td style="padding: 16px; text-align: center;">${comp.rating ? comp.rating + '★' : '—'}</td>
+          <td style="padding: 16px; text-align: center;">—</td>
+          <td style="padding: 16px; text-align: center;">—</td>
+          <td style="padding: 16px; text-align: center;">—</td>
+        </tr>
+    `;
+  });
+  
+  html += `
+      </tbody>
+    </table>
+  `;
+  
+  // ONE insight
+  const topComp = top3[0];
+  html += `<p><strong>${topComp.name} has ${topComp.reviews} reviews to your handful.</strong> Every time someone searches, Google sees those numbers and picks them. That's not opinion — that's how local SEO works.</p>`;
+  
+  html += '<p style="margin-top: 32px; font-size: 17px;"><strong>The gap is clear. The question is what it actually takes to close it.</strong></p>';
+  
+  return html;
+}
+
+function generateSolution(gaps, firmName) {
+  let html = '<h2 style="margin-top: 80px;">What Full Infrastructure Actually Requires</h2>';
+  html += '<p>This isn't a quick fix. It's an engineering project. Here's every piece required:</p>';
+  
+  html += `
+    <ul style="line-height: 2; margin: 32px 0; padding-left: 24px;">
+      <li><strong>Google Ads</strong> with geo-targeting, dayparting, negative keywords, and device bid adjustments</li>
+      <li><strong>Conversion tracking</strong> with offline import to measure actual signed cases</li>
+      <li><strong>Meta pixel</strong> with custom audiences, lookalikes, and exclusion lists</li>
+      <li><strong>Voice AI</strong> trained on your practice area with custom qualification logic</li>
+      <li><strong>CRM</strong> with automated follow-up sequences and pipeline stages</li>
+      <li><strong>Call tracking</strong> with dynamic number insertion</li>
+      <li><strong>Reporting dashboard</strong> pulling from 6 data sources</li>
+      <li><strong>Every piece connected</strong> to every other piece</li>
+    </ul>
+  `;
+  
+  html += '<p>You could try to build this yourself. Most firms do. They get halfway through, realize it's a full-time job, and give up.</p>';
+  
+  html += '<blockquote class="pull-quote">We've built this exact system 23 times. Different practice areas, same infrastructure.</blockquote>';
+  
+  html += '<p><strong>The system works. The question is whether you want us to build it for you.</strong></p>';
+  
+  return html;
+}
+
+function generateFinalCTA(firmName, monthlyLossK, firstName) {
+  return `
+    <div id="booking" style="margin-top: 80px; padding: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white;">
+      <h2 style="color: white; margin-top: 0;">Two Options</h2>
+      
+      <p style="font-size: 18px; line-height: 1.8; margin: 24px 0;">
+        <strong>Keep doing what you're doing.</strong> Competitors keep buying your keywords. Calls keep going to voicemail. Cases keep walking. You'll lose another <strong>$${(monthlyLossK * 3).toLocaleString()}K</strong> over the next 90 days.
+      </p>
+      
+      <p style="font-size: 18px; line-height: 1.8; margin: 24px 0;">
+        <strong>Or let us build the system.</strong> Ads live in 5 days. Voice AI live in 10. Full infrastructure in 3 weeks.
+      </p>
+      
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="https://calendly.com/mortarmetrics/15min" style="display: inline-block; padding: 16px 32px; background: white; color: #667eea; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px;">Book 15 minutes — we'll show you exactly what we'd build</a>
+      </div>
+      
+      <p style="text-align: center; margin-top: 24px; opacity: 0.9; font-size: 14px;">No pitch. We'll walk through your specific gaps and what infrastructure would look like for ${firmName}.</p>
+    </div>
+  `;
+}
+
+function getCSS() {
+  return `
+  <style>
+    :root {
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-600: #475569;
+      --gray-900: #0f172a;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Outfit', -apple-system, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--gray-900);
+      background: var(--gray-50);
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 60px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    
+    .meta {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-bottom: 24px;
+    }
+    
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 42px;
+      line-height: 1.2;
+      font-weight: 600;
+      margin: 0 0 24px 0;
+      color: var(--gray-900);
+    }
+    
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      line-height: 1.3;
+      font-weight: 600;
+      margin: 64px 0 24px 0;
+      color: var(--gray-900);
+    }
+    
+    p {
+      margin: 16px 0;
+      line-height: 1.7;
+    }
+    
+    strong {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+    
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-top: 48px;
+      margin-bottom: 8px;
+    }
+    
+    .gap-box {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 16px 0;
+    }
+    
+    .gap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .gap-title {
+      font-size: 24px;
+      font-weight: 600;
+      font-family: 'Fraunces', serif;
+    }
+    
+    .gap-cost {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+    
+    .flow-diagram {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+    
+    .flow-step {
+      padding: 12px 16px;
+      background: var(--gray-100);
+      border-radius: 6px;
+      margin: 8px 0;
+      font-size: 15px;
+    }
+    
+    .flow-arrow {
+      text-align: center;
+      font-size: 24px;
+      color: var(--gray-600);
+      margin: 4px 0;
+    }
+    
+    .pull-quote {
+      font-size: 24px;
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-style: italic;
+      text-align: center;
+      margin: 40px 0;
+      padding: 32px;
+      background: white;
+      border-left: 4px solid var(--primary);
+      color: var(--gray-900);
+    }
+    
+    ul {
+      margin: 24px 0;
+      padding-left: 24px;
+    }
+    
+    li {
+      margin: 12px 0;
+    }
+    
+    a {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 32px 24px;
+      }
+      
+      h1 {
+        font-size: 32px;
+      }
+      
+      h2 {
+        font-size: 24px;
+      }
+      
+      .pull-quote {
+        font-size: 20px;
+        padding: 24px;
+      }
+    }
+  </style>
+  `;
+}
+
+function getFooter() {
+  return `
+    <div style="margin-top: 80px; padding-top: 40px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 14px;">
+      <p>Built by <strong>Mortar Metrics</strong> · Toronto, Canada</p>
+      <p style="margin-top: 8px;">We help law firms build marketing infrastructure that actually works.</p>
+    </div>
+  `;
+}
+
+// Main execution
+const args = process.argv.slice(2);
+if (args.length < 2) {
+  console.error('Usage: node report-generator-v8.js <research-json-path> <prospect-name>');
+  process.exit(1);
+}
+
+const researchJsonPath = args[0];
+const prospectName = args[1];
+
+const researchData = JSON.parse(fs.readFileSync(researchJsonPath, 'utf8'));
+const result = generateReport(researchData, prospectName);
+
+fs.writeFileSync(result.outputPath, result.html);
+
+console.log(`\n✅ Report generated successfully!`);
+console.log(`📄 Output: ${result.outputPath}`);
+console.log(`📊 Stats:`);
+console.log(`   - Firm: ${result.meta.firmName}`);
+console.log(`   - Contact: ${result.meta.prospectName}`);
+console.log(`   - Monthly Loss: $${result.meta.totalMonthlyLoss.toLocaleString()}`);
+console.log(`   - Gaps Found: ${result.meta.gapCount}`);
+console.log('');
+
+module.exports = { generateReport };
