@@ -212,21 +212,3 @@ jobs:
           
           echo "✅ Telegram approval request sent for ${{ steps.deploy.outputs.firm_folder }}"
         working-directory: ./automation
-        
-      - name: Notify Slack
-        if: always()
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          STATUS="${{ job.status }}"
-          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
-          
-          if [ "$STATUS" = "success" ]; then
-            MESSAGE="✅ *Report Generated & Awaiting Approval*\n\n📊 *Firm:* ${{ steps.deploy.outputs.firm_folder }}\n👤 *Contact:* ${{ steps.parse.outputs.contact_name }}\n📧 *Email:* ${{ steps.lead_data.outputs.lead_email }}\n🔗 *Report:* $REPORT_URL\n\n📱 *Telegram approval request sent!*\nCheck your Telegram for Approve/Reject buttons."
-          else
-            MESSAGE="❌ Failed to generate report for ${{ steps.lead_data.outputs.lead_email }}"
-          fi
-          
-          curl -X POST "$SLACK_WEBHOOK" \
-            -H 'Content-Type: application/json' \
-            -d "{\"text\":\"$MESSAGE\"}"

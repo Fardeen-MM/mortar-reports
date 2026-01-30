@@ -80,20 +80,3 @@ jobs:
             "${{ steps.inputs.outputs.firm_name }}" \
             "${{ steps.inputs.outputs.from_email }}"
         working-directory: ./automation
-        
-      - name: Notify Slack
-        if: always()
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          STATUS="${{ job.status }}"
-          
-          if [ "$STATUS" = "success" ]; then
-            MESSAGE="✅ *APPROVED & SENT*\n📧 To: ${{ steps.inputs.outputs.lead_email }}\n🏢 Firm: ${{ steps.inputs.outputs.firm_name }}\n🔗 Report: ${{ steps.inputs.outputs.report_url }}"
-          else
-            MESSAGE="❌ Failed to send approved email to ${{ steps.inputs.outputs.lead_email }}"
-          fi
-          
-          curl -X POST "$SLACK_WEBHOOK" \
-            -H 'Content-Type: application/json' \
-            -d "{\"text\":\"$MESSAGE\"}"
