@@ -7,6 +7,7 @@
  * even when it's not in expected formats.
  */
 
+require('dotenv').config();
 const https = require('https');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -25,7 +26,7 @@ async function askAI(prompt, html, maxTokens = 2000) {
   
   return new Promise((resolve, reject) => {
     const requestData = JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-haiku-20240307',
       max_tokens: maxTokens,
       temperature: 0,
       messages: [{
@@ -57,12 +58,13 @@ async function askAI(prompt, html, maxTokens = 2000) {
           if (result.content && result.content[0] && result.content[0].text) {
             resolve(result.content[0].text);
           } else if (result.error) {
-            reject(new Error(result.error.message || 'AI API error'));
+            const errorMsg = result.error.message || JSON.stringify(result.error);
+            reject(new Error(`Anthropic API error: ${errorMsg}`));
           } else {
-            reject(new Error('Unexpected AI response format'));
+            reject(new Error(`Unexpected AI response: ${data.substring(0, 200)}`));
           }
         } catch (e) {
-          reject(new Error(`Failed to parse AI response: ${e.message}`));
+          reject(new Error(`Failed to parse AI response: ${e.message} | Data: ${data.substring(0, 200)}`));
         }
       });
     });
@@ -79,10 +81,57 @@ async function askAI(prompt, html, maxTokens = 2000) {
 }
 
 /**
+ * Find individual attorney profile URLs from a team page
+ */
+async function findAttorneyProfiles(html, baseUrl) {
+  const prompt = `Analyze this law firm team/attorneys page and find ALL individual attorney profile links.
+
+Look for:
+- Links to individual attorney bio pages
+- Attorney names that are clickable
+- URLs like /attorneys/john-smith or /team/jane-doe
+- Profile links in the navigation or body
+
+Return ONLY valid JSON with an array of URLs:
+{
+  "profileUrls": [
+    "https://www.firm.com/attorneys/john-smith",
+    "https://www.firm.com/team/jane-doe"
+  ]
+}
+
+If no profile links found, return: {"profileUrls": []}`;
+
+  try {
+    const response = await askAI(prompt, html, 1000);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      if (data.profileUrls && Array.isArray(data.profileUrls)) {
+        // Convert relative URLs to absolute
+        return data.profileUrls.map(url => {
+          try {
+            return new URL(url, baseUrl).href;
+          } catch {
+            return null;
+          }
+        }).filter(Boolean);
+      }
+    }
+    return [];
+  } catch (e) {
+    console.log(`   ⚠️  AI profile discovery failed: ${e.message}`);
+    return [];
+  }
+}
+
+/**
  * Extract attorneys from ANY page using AI
  */
 async function extractAttorneys(html, firmName) {
-  const prompt = `Analyze this law firm website page and extract ALL attorneys/lawyers.
+  // Try AI first if available
+  if (ANTHROPIC_API_KEY) {
+    const prompt = `Analyze this law firm website page and extract ALL attorneys/lawyers.
 
 For each attorney, extract:
 - Full name
@@ -110,19 +159,113 @@ Return ONLY valid JSON (no markdown, no explanations):
 
 If no attorneys found, return: {"attorneys": []}`;
 
+    try {
+      const response = await askAI(prompt, html, 2000);
+      
+      // Try to extract JSON from response (might have extra text)
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const data = JSON.parse(jsonMatch[0]);
+        return data.attorneys || [];
+      }
+    } catch (e) {
+      console.log(`   ⚠️  AI attorney extraction failed:`, e.message || e);
+    }
+  }
+  
+  // Fallback: Simple pattern-based extraction
   try {
-    const response = await askAI(prompt, html, 2000);
-    
-    // Try to extract JSON from response (might have extra text)
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
-      return data.attorneys || [];
+    let cheerio;
+    try {
+      cheerio = require('cheerio');
+    } catch {
+      // Cheerio not available, use regex fallback
+      console.log(`   ⚠️  Cheerio not available, using regex fallback`);
+      
+      // Extract name from title tag or h1
+      const nameMatch = html.match(/<title>([^<]+)<\/title>|<h1[^>]*>([^<]+)<\/h1>/i);
+      const name = nameMatch ? (nameMatch[1] || nameMatch[2]).trim() : '';
+      
+      if (!name || name.length > 100) return [];
+      
+      // Simple text extraction
+      const textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+      
+      const specializations = [];
+      const practiceKeywords = ['litigation', 'tcpa', 'immigration', 'class action', 'employment'];
+      for (const keyword of practiceKeywords) {
+        if (new RegExp(keyword, 'gi').test(textContent)) {
+          specializations.push(keyword);
+        }
+      }
+      
+      return [{
+        name,
+        title: 'Attorney',
+        specializations,
+        education: [],
+        barAdmissions: [],
+        experience: '',
+        credentials: []
+      }];
     }
     
-    return [];
+    const $ = cheerio.load(html);
+    
+    // Find the title/h1 for name
+    const nameElement = $('h1, h2.name, .attorney-name, .lawyer-name').first();
+    const name = nameElement.text().trim();
+    
+    if (!name) return [];
+    
+    // Find title/position
+    const titleElement = $('h2, h3, .title, .position, .role, p').filter((i, el) => {
+      const text = $(el).text().toLowerCase();
+      return text.includes('partner') || text.includes('associate') || text.includes('counsel') || 
+             text.includes('attorney') || text.includes('managing') || text.includes('founding');
+    }).first();
+    const title = titleElement.text().trim();
+    
+    // Get all text content
+    const bodyText = $('body').text();
+    
+    // Extract specializations
+    const specializations = [];
+    const practiceKeywords = ['litigation', 'tcpa', 'immigration', 'class action', 'employment', 
+                             'real estate', 'corporate', 'marketing', 'advertising', 'telecommunications'];
+    for (const keyword of practiceKeywords) {
+      if (new RegExp(keyword, 'gi').test(bodyText)) {
+        specializations.push(keyword);
+      }
+    }
+    
+    // Extract education
+    const education = [];
+    const eduMatch = bodyText.match(/([A-Z][a-z]+ (?:University|College|Law School))[,\s]+(JD|J\.D\.|BA|B\.A\.|LLM|LL\.M\.)?/g);
+    if (eduMatch) {
+      education.push(...eduMatch.slice(0, 3));
+    }
+    
+    // Extract bar admissions
+    const barAdmissions = [];
+    const stateNames = ['Virginia', 'Maryland', 'DC', 'D.C.', 'New York', 'California', 'Texas', 'Florida'];
+    for (const state of stateNames) {
+      if (new RegExp(`\\b${state}\\s+(State\\s+)?Bar\\b`, 'gi').test(bodyText)) {
+        barAdmissions.push(state);
+      }
+    }
+    
+    return [{
+      name,
+      title: title || 'Attorney',
+      specializations: specializations.slice(0, 5),
+      education: education.slice(0, 3),
+      barAdmissions: barAdmissions.slice(0, 3),
+      experience: '',
+      credentials: []
+    }];
   } catch (e) {
-    console.log(`   ⚠️  AI attorney extraction failed: ${e.message}`);
+    console.log(`   ⚠️  Pattern-based extraction failed: ${e.message}`);
     return [];
   }
 }
@@ -283,7 +426,94 @@ Return ONLY valid JSON:
   }
 }
 
+/**
+ * AI FIRM ANALYSIS - High-level intelligence for outreach
+ */
+async function analyzeFirm(homeHtml, aboutHtml, firmName) {
+  const combinedHtml = `${homeHtml}\n\n<!-- ABOUT PAGE -->\n${aboutHtml || ''}`;
+  
+  const prompt = `Analyze this law firm's website and extract high-level intelligence for personalized outreach.
+
+**CRITICAL: Only extract information that is EXPLICITLY stated on this website. Do NOT invent or assume anything.**
+
+Extract:
+1. Positioning: What makes this firm unique? Their value proposition (from "About" or homepage).
+2. Key specialties: Top 3-5 practice areas they emphasize (only what's listed on the site).
+3. Firm size estimate: "boutique (5-15)", "mid-size (15-50)", "large (50+)" - estimate based on content.
+4. Recent news: Any announcements, wins, hires, expansions explicitly mentioned (with dates if shown).
+5. Credentials: Firm-level awards, rankings, certifications explicitly mentioned.
+6. Growth signals: Hiring, new offices, new practice areas, recent wins explicitly mentioned.
+
+**If you cannot find information for a field, use an empty array [] or leave it blank.**
+
+Return ONLY valid JSON:
+{
+  "positioning": "Brief description from their About page or homepage",
+  "keySpecialties": ["Practice 1", "Practice 2"],
+  "firmSize": {
+    "estimate": "mid-size (15-50)",
+    "attorneys": 0
+  },
+  "recentNews": [],
+  "credentials": [],
+  "growthSignals": []
+}`;
+
+  try {
+    const response = await askAI(prompt, combinedHtml, 2000);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return null;
+  } catch (e) {
+    console.log(`   ⚠️  AI firm analysis failed:`, e.message);
+    return null;
+  }
+}
+
+/**
+ * Quick attorney sample - get count + 2-3 names for personalization
+ */
+async function quickAttorneySample(teamHtml, sampleSize = 3) {
+  const prompt = `Analyze this law firm team page.
+
+Extract:
+1. TOTAL number of attorneys listed
+2. First ${sampleSize} attorney names and titles
+
+Return ONLY valid JSON:
+{
+  "totalCount": 23,
+  "sample": [
+    {"name": "Mitchell N. Roth", "title": "Managing Partner"},
+    {"name": "Joseph F. Jackson", "title": "Partner"},
+    {"name": "Ashley Brooks", "title": "Associate"}
+  ]
+}`;
+
+  try {
+    const response = await askAI(prompt, teamHtml, 1000);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      // Add totalCount to each attorney for easy access
+      if (data.sample && data.totalCount) {
+        data.sample.forEach(a => a.totalCount = data.totalCount);
+      }
+      return data.sample || [];
+    }
+    return [];
+  } catch (e) {
+    console.log(`   ⚠️  AI attorney sample failed:`, e.message);
+    return [];
+  }
+}
+
 module.exports = {
+  analyzeFirm,
+  quickAttorneySample,
+  findAttorneyProfiles,
   extractAttorneys,
   extractLocation,
   extractCredentials,
