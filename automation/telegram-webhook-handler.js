@@ -9,6 +9,8 @@
 
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -85,7 +87,7 @@ function editMessage(chatId, messageId, newText) {
 }
 
 // Trigger GitHub Actions workflow
-function triggerGitHubWorkflow(callbackData) {
+function triggerGitHubWorkflow(approvalData) {
   return new Promise((resolve, reject) => {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
@@ -93,11 +95,11 @@ function triggerGitHubWorkflow(callbackData) {
     const payload = JSON.stringify({
       event_type: 'send_approved_email',
       client_payload: {
-        firm_name: callbackData.firm,
-        lead_email: callbackData.email,
-        contact_name: callbackData.contact,
-        report_url: callbackData.report_url,
-        email_id: callbackData.email_id || ''
+        firm_name: approvalData.firm_name,
+        lead_email: approvalData.lead_email,
+        contact_name: approvalData.contact_name,
+        report_url: approvalData.report_url,
+        email_id: approvalData.email_id || ''
       }
     });
 
@@ -134,23 +136,23 @@ function triggerGitHubWorkflow(callbackData) {
 }
 
 // Handle approval
-async function handleApproval(callbackData, callbackQueryId, chatId, messageId) {
-  console.log('✅ Approval received:', callbackData.firm);
+async function handleApproval(approvalData, callbackQueryId, chatId, messageId) {
+  console.log('✅ Approval received:', approvalData.firm_name);
   
   try {
     // Answer the callback first
     await answerCallback(callbackQueryId, '✅ Sending email...', false);
     
     // Trigger GitHub Actions workflow
-    await triggerGitHubWorkflow(callbackData);
+    await triggerGitHubWorkflow(approvalData);
     
     // Update message to show success
     const successText = `✅ *APPROVED & SENT*
 
-📊 *Firm:* ${callbackData.firm}
-👤 *Contact:* ${callbackData.contact}
-📧 *Email:* ${callbackData.email}
-🔗 *Report:* ${callbackData.report_url}
+📊 *Firm:* ${approvalData.firm_name}
+👤 *Contact:* ${approvalData.contact_name}
+📧 *Email:* ${approvalData.lead_email}
+🔗 *Report:* ${approvalData.report_url}
 
 ✉️ *Email send triggered via GitHub Actions!*`;
 
@@ -163,22 +165,22 @@ async function handleApproval(callbackData, callbackQueryId, chatId, messageId) 
     
     await editMessage(chatId, messageId, `❌ *ERROR*
 
-Failed to trigger email to ${callbackData.email}
+Failed to trigger email to ${approvalData.lead_email}
 
 Error: ${err.message}`);
   }
 }
 
 // Handle rejection
-async function handleRejection(callbackData, callbackQueryId, chatId, messageId) {
-  console.log('❌ Rejection received:', callbackData.firm);
+async function handleRejection(approvalData, callbackQueryId, chatId, messageId) {
+  console.log('❌ Rejection received:', approvalData.firm_name);
   
   await answerCallback(callbackQueryId, '❌ Rejected', false);
   
   const rejectedText = `❌ *REJECTED*
 
-📊 *Firm:* ${callbackData.firm}
-📧 *Email:* ${callbackData.email}
+📊 *Firm:* ${approvalData.firm_name}
+📧 *Email:* ${approvalData.lead_email}
 
 *No email was sent.*`;
 
@@ -199,20 +201,32 @@ const server = http.createServer(async (req, res) => {
         // Handle callback query (button press)
         if (update.callback_query) {
           const { callback_query } = update;
-          const callbackData = JSON.parse(callback_query.data);
+          const callbackParts = callback_query.data.split(':');
+          const action = callbackParts[0];
+          const approvalId = callbackParts[1];
           
-          console.log('📱 Callback received:', callbackData.action, 'for', callbackData.firm);
+          // Load approval data from file
+          const approvalDataFile = path.join(__dirname, 'pending-approvals', `approval-${approvalId}.json`);
           
-          if (callbackData.action === 'approve') {
+          if (!fs.existsSync(approvalDataFile)) {
+            await answerCallback(callback_query.id, '❌ Approval data not found', true);
+            return;
+          }
+          
+          const approvalData = JSON.parse(fs.readFileSync(approvalDataFile, 'utf8'));
+          
+          console.log('📱 Callback received:', action, 'for', approvalData.firm_name);
+          
+          if (action === 'approve') {
             await handleApproval(
-              callbackData,
+              approvalData,
               callback_query.id,
               callback_query.message.chat.id,
               callback_query.message.message_id
             );
-          } else if (callbackData.action === 'reject') {
+          } else if (action === 'reject') {
             await handleRejection(
-              callbackData,
+              approvalData,
               callback_query.id,
               callback_query.message.chat.id,
               callback_query.message.message_id

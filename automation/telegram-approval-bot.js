@@ -43,28 +43,22 @@ ${approvalData.report_url}
 
 *Please review the report and choose an action below:*`;
 
-// Inline keyboard with Approve/Reject buttons
+// Save approval data to file with shorter ID
+const approvalId = Buffer.from(approvalData.firm_name).toString('base64').substring(0, 20);
+const approvalDataFile = path.join(path.dirname(approvalFile), `approval-${approvalId}.json`);
+fs.writeFileSync(approvalDataFile, JSON.stringify(approvalData, null, 2));
+
+// Inline keyboard with Approve/Reject buttons (using short callback_data)
 const keyboard = {
   inline_keyboard: [
     [
       {
         text: '✅ Approve & Send',
-        callback_data: JSON.stringify({
-          action: 'approve',
-          firm: approvalData.firm_name,
-          email: approvalData.lead_email,
-          contact: approvalData.contact_name,
-          report_url: approvalData.report_url,
-          email_id: approvalData.email_id || ''
-        })
+        callback_data: `approve:${approvalId}`
       },
       {
         text: '❌ Reject',
-        callback_data: JSON.stringify({
-          action: 'reject',
-          firm: approvalData.firm_name,
-          email: approvalData.lead_email
-        })
+        callback_data: `reject:${approvalId}`
       }
     ],
     [
