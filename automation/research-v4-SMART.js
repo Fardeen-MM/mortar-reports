@@ -1,0 +1,286 @@
+#!/usr/bin/env node
+/**
+ * RESEARCH V4 - SMART AI-FIRST APPROACH
+ * 
+ * Philosophy: Be INTELLIGENT, not rigid
+ * - Use AI to understand page content
+ * - Extract data even from unusual structures
+ * - Analyze ALL important pages
+ * - Be adaptive, not pattern-based
+ * 
+ * "We need to scrape all pages using AI, be loose and smart not just a script"
+ */
+
+const { chromium } = require('playwright');
+const aiHelper = require('./ai-research-helper');
+const fs = require('fs');
+const path = require('path');
+
+async function smartResearch(firmWebsite, contactName = '', city = '', state = '', country = 'US', company = '') {
+  console.log(`\n🤖 SMART AI-FIRST RESEARCH`);
+  console.log(`🌐 Website: ${firmWebsite}`);
+  console.log(`👤 Contact: ${contactName}`);
+  if (company) console.log(`🏢 Company: ${company}`);
+  if (city) console.log(`📍 Location: ${city}, ${state}, ${country}\n`);
+  
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  
+  const research = {
+    firmName: company || '',
+    website: firmWebsite,
+    contactPerson: contactName,
+    location: { city: city || '', state: state || '', country: country || 'US' },
+    allLocations: [],
+    attorneys: [],
+    practiceAreas: [],
+    credentials: [],
+    awards: [],
+    pagesAnalyzed: [],
+    confidence: {}
+  };
+  
+  try {
+    // ========================================================================
+    // STEP 1: DISCOVER ALL PAGES
+    // ========================================================================
+    console.log(`📋 Step 1: Discovering pages...`);
+    
+    await page.goto(firmWebsite, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    const homeHtml = await page.content();
+    research.pagesAnalyzed.push({ url: firmWebsite, type: 'home' });
+    
+    // Use AI to analyze homepage and find important pages
+    console.log(`   🤖 Using AI to discover important pages...`);
+    const teamPageUrl = await aiHelper.findTeamPage(homeHtml, firmWebsite);
+    
+    // Also look for common page URLs
+    const baseUrl = new URL(firmWebsite);
+    const candidateUrls = [
+      `${baseUrl.origin}/about`,
+      `${baseUrl.origin}/about-us`,
+      `${baseUrl.origin}/team`,
+      `${baseUrl.origin}/our-team`,
+      `${baseUrl.origin}/attorneys`,
+      `${baseUrl.origin}/lawyers`,
+      `${baseUrl.origin}/contact`,
+      `${baseUrl.origin}/contact-us`
+    ];
+    
+    const pagesToAnalyze = [
+      { url: firmWebsite, type: 'home', html: homeHtml }
+    ];
+    
+    // Try to load each candidate page
+    for (const url of candidateUrls) {
+      try {
+        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        if (response && response.status() === 200) {
+          const html = await page.content();
+          const analysis = await aiHelper.analyzePage(html, url);
+          
+          if (analysis.confidence >= 5) {
+            const pageType = url.includes('team') || url.includes('attorney') || url.includes('lawyer') ? 'team' :
+                            url.includes('about') ? 'about' :
+                            url.includes('contact') ? 'contact' : 'other';
+            
+            pagesToAnalyze.push({ url, type: pageType, html, analysis });
+            console.log(`   ✅ Found ${pageType} page: ${url}`);
+            research.pagesAnalyzed.push({ url, type: pageType });
+          }
+        }
+      } catch (e) {
+        // Page doesn't exist or timeout, skip
+      }
+    }
+    
+    // Add AI-discovered team page
+    if (teamPageUrl && !pagesToAnalyze.find(p => p.url === teamPageUrl)) {
+      try {
+        await page.goto(teamPageUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        const html = await page.content();
+        pagesToAnalyze.push({ url: teamPageUrl, type: 'team', html });
+        console.log(`   🤖 AI found team page: ${teamPageUrl}`);
+        research.pagesAnalyzed.push({ url: teamPageUrl, type: 'team' });
+      } catch (e) {
+        console.log(`   ⚠️  Could not load AI-discovered team page`);
+      }
+    }
+    
+    console.log(`   ✅ Discovered ${pagesToAnalyze.length} pages to analyze\n`);
+    
+    // ========================================================================
+    // STEP 2: EXTRACT ATTORNEYS (AI-FIRST)
+    // ========================================================================
+    console.log(`👨‍⚖️ Step 2: Extracting attorneys using AI...`);
+    
+    for (const pageData of pagesToAnalyze) {
+      if (pageData.type === 'team' || pageData.type === 'about' || pageData.type === 'home') {
+        console.log(`   🤖 Analyzing ${pageData.url} for attorneys...`);
+        const attorneys = await aiHelper.extractAttorneys(pageData.html, research.firmName);
+        
+        if (attorneys && attorneys.length > 0) {
+          console.log(`   ✅ Found ${attorneys.length} attorneys on this page`);
+          
+          // Merge with existing (avoid duplicates)
+          for (const attorney of attorneys) {
+            if (!research.attorneys.find(a => a.name === attorney.name)) {
+              research.attorneys.push(attorney);
+            }
+          }
+        }
+      }
+    }
+    
+    console.log(`   ✅ Total attorneys found: ${research.attorneys.length}\n`);
+    research.confidence.attorneys = research.attorneys.length > 0 ? 9 : 0;
+    
+    // ========================================================================
+    // STEP 3: EXTRACT LOCATIONS (AI-FIRST)
+    // ========================================================================
+    console.log(`📍 Step 3: Extracting locations using AI...`);
+    
+    for (const pageData of pagesToAnalyze) {
+      if (pageData.type === 'contact' || pageData.type === 'about' || pageData.type === 'home') {
+        console.log(`   🤖 Analyzing ${pageData.url} for locations...`);
+        const locations = await aiHelper.extractLocation(pageData.html, research.firmName);
+        
+        if (locations && locations.length > 0) {
+          console.log(`   ✅ Found ${locations.length} locations on this page`);
+          
+          for (const loc of locations) {
+            if (!research.allLocations.find(l => l.city === loc.city && l.address === loc.address)) {
+              research.allLocations.push(loc);
+            }
+          }
+        }
+      }
+    }
+    
+    // Use AI-extracted location or fall back to Instantly data
+    if (research.allLocations.length > 0 && research.allLocations[0].city) {
+      research.location = {
+        city: research.allLocations[0].city,
+        state: research.allLocations[0].state,
+        country: research.allLocations[0].country || 'US'
+      };
+      research.confidence.location = 9;
+      console.log(`   ✅ Primary location: ${research.location.city}, ${research.location.state} (AI-extracted)\n`);
+    } else if (city) {
+      research.location = { city, state, country };
+      research.allLocations.push({ city, state, country, address: '' });
+      research.confidence.location = 6;
+      console.log(`   ⚠️  Using Instantly location: ${city}, ${state} (no location found on site)\n`);
+    } else {
+      research.confidence.location = 0;
+      console.log(`   ❌ No location found\n`);
+    }
+    
+    // ========================================================================
+    // STEP 4: EXTRACT CREDENTIALS & AWARDS (AI-FIRST)
+    // ========================================================================
+    console.log(`🏆 Step 4: Extracting credentials & awards using AI...`);
+    
+    const aboutPage = pagesToAnalyze.find(p => p.type === 'about');
+    if (aboutPage) {
+      console.log(`   🤖 Analyzing About page...`);
+      const creds = await aiHelper.extractCredentials(aboutPage.html, research.firmName);
+      
+      if (creds) {
+        if (creds.awards) research.awards = creds.awards;
+        if (creds.credentials) research.credentials = creds.credentials;
+        if (creds.founded) research.founded = creds.founded;
+        if (creds.teamSize) research.teamSize = creds.teamSize;
+        
+        console.log(`   ✅ Found: ${research.awards.length} awards, ${research.credentials.length} credentials`);
+      }
+    }
+    
+    console.log();
+    
+    // ========================================================================
+    // STEP 5: BASIC DATA (Still useful for some things)
+    // ========================================================================
+    console.log(`📊 Step 5: Extracting basic data...`);
+    
+    // Extract practice areas from homepage text
+    const bodyText = await page.textContent('body');
+    const practiceKeywords = [
+      'litigation', 'criminal', 'family', 'divorce', 'immigration', 'personal injury',
+      'bankruptcy', 'employment', 'real estate', 'estate planning', 'corporate',
+      'intellectual property', 'tax', 'business', 'civil', 'appeals', 'trademark',
+      'patent', 'probate', 'workers compensation', 'medical malpractice', 'tcpa',
+      'class action', 'securities', 'commercial'
+    ];
+    
+    for (const keyword of practiceKeywords) {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      if (regex.test(bodyText)) {
+        if (!research.practiceAreas.includes(keyword.toLowerCase())) {
+          research.practiceAreas.push(keyword.toLowerCase());
+        }
+      }
+    }
+    
+    console.log(`   ✅ Practice areas: ${research.practiceAreas.length} identified\n`);
+    research.confidence.practiceAreas = research.practiceAreas.length > 3 ? 8 : 4;
+    
+  } catch (error) {
+    console.error(`❌ Research error: ${error.message}`);
+  } finally {
+    await browser.close();
+  }
+  
+  // Calculate overall confidence
+  const confidenceValues = Object.values(research.confidence).filter(v => typeof v === 'number');
+  research.confidence.overall = confidenceValues.length > 0 
+    ? Math.round(confidenceValues.reduce((a, b) => a + b, 0) / confidenceValues.length)
+    : 0;
+  
+  // Summary
+  console.log(`\n📊 RESEARCH COMPLETE:`);
+  console.log(`   Firm: ${research.firmName || 'Unknown'}`);
+  console.log(`   Location: ${research.location.city || 'Unknown'}, ${research.location.state || '??'}`);
+  console.log(`   Attorneys: ${research.attorneys.length}`);
+  console.log(`   Locations: ${research.allLocations.length}`);
+  console.log(`   Practice Areas: ${research.practiceAreas.length}`);
+  console.log(`   Awards: ${research.awards.length}`);
+  console.log(`   Credentials: ${research.credentials.length}`);
+  console.log(`   Pages Analyzed: ${research.pagesAnalyzed.length}`);
+  console.log(`   Overall Confidence: ${research.confidence.overall}/10\n`);
+  
+  // Save
+  const firmSlug = (research.firmName || 'unknown').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  const reportsDir = path.resolve(__dirname, 'reports');
+  if (!fs.existsSync(reportsDir)) {
+    fs.mkdirSync(reportsDir, { recursive: true });
+  }
+  
+  const outputPath = path.resolve(reportsDir, `${firmSlug}-research-v4.json`);
+  fs.writeFileSync(outputPath, JSON.stringify(research, null, 2));
+  console.log(`💾 Saved: ${outputPath}\n`);
+  
+  return research;
+}
+
+// CLI
+if (require.main === module) {
+  const [url, contactName = '', city = '', state = '', country = 'US', company = ''] = process.argv.slice(2);
+  
+  if (!url) {
+    console.log('Usage: node research-v4-SMART.js <url> [contactName] [city] [state] [country] [company]');
+    console.log('\nExample:');
+    console.log('  node research-v4-SMART.js https://www.rothjackson.com "Andrew Condlin" "McLean" "VA" "US" "Roth Jackson"');
+    console.log('\nThis is AI-FIRST research: Smart, adaptive, extracts data from ANY structure.');
+    process.exit(1);
+  }
+  
+  smartResearch(url, contactName, city, state, country, company)
+    .then(() => process.exit(0))
+    .catch(err => {
+      console.error(err);
+      process.exit(1);
+    });
+}
+
+module.exports = { smartResearch };
