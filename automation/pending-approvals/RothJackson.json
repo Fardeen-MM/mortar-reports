@@ -1,0 +1,11 @@
+{
+  "firm_name": "RothJackson",
+  "lead_email": "test@rothjackson.com",
+  "contact_name": "Test User",
+  "report_url": "https://reports.mortarmetrics.com/RothJackson/",
+  "email_id": "test-email-999",
+  "from_email": "fardeen@mortarmetrics.com",
+  "created_at": "2026-01-30T21:43:47Z",
+  "status": "awaiting_approval",
+  "telegram_message_id": 4
+}
