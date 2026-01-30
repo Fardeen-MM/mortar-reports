@@ -93,6 +93,17 @@ jobs:
           node ai-analyzer.js "$REPORT_FILE"
         working-directory: ./automation
         
+      - name: Normalize research data for report generator
+        run: |
+          REPORT_FILE=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
+          if [ -z "$REPORT_FILE" ]; then
+            echo "Error: No research JSON found"
+            exit 1
+          fi
+          echo "📊 Normalizing: $REPORT_FILE"
+          node normalize-research-data.js "$REPORT_FILE"
+        working-directory: ./automation
+        
       - name: Generate report with AI insights
         id: report
         run: |
@@ -101,7 +112,7 @@ jobs:
             echo "Error: No research JSON found"
             exit 1
           fi
-          echo "Found report: $REPORT_FILE"
+          echo "📄 Generating report from: $REPORT_FILE"
           node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
@@ -135,14 +146,33 @@ jobs:
           if [ -z "$REPORT_HTML" ]; then
             REPORT_HTML=$(find automation/reports -name "*.html" -type f | head -1)
           fi
+          
+          if [ -z "$REPORT_HTML" ]; then
+            echo "❌ Error: No HTML report found in automation/reports/"
+            ls -la automation/reports/
+            exit 1
+          fi
+          
+          echo "📄 Found report: $REPORT_HTML"
           cp "$REPORT_HTML" "$FIRM_NAME/index.html"
           
-          # Commit and push
+          # Configure git
           git config user.name "Mortar Metrics Bot"
           git config user.email "automation@mortarmetrics.com"
+          
+          # Pull latest changes first to avoid conflicts
+          git pull --rebase origin main || echo "⚠️  No upstream changes to pull"
+          
+          # Stage and commit
           git add "$FIRM_NAME/index.html"
-          git commit -m "Add report for $FIRM_NAME"
-          git push
+          git commit -m "Add report for $FIRM_NAME" || echo "⚠️  No changes to commit"
+          
+          # Push with retry
+          git push origin main || {
+            echo "⚠️  Push failed, pulling and retrying..."
+            git pull --rebase origin main
+            git push origin main
+          }
           
           # Save for email step
           echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
