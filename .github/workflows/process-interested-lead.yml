@@ -36,9 +36,13 @@ jobs:
       - name: Parse website from lead data
         id: parse
         run: |
-          # Extract website from custom fields or use a default
+          # Extract ALL fields from Instantly
           WEBSITE="${{ github.event.client_payload.website }}"
           CONTACT_NAME="${{ github.event.client_payload.first_name }} ${{ github.event.client_payload.last_name }}"
+          CITY="${{ github.event.client_payload.city }}"
+          STATE="${{ github.event.client_payload.state }}"
+          COUNTRY="${{ github.event.client_payload.country }}"
+          COMPANY="${{ github.event.client_payload.company }}"
           
           # If no website in payload, we'll need to extract from email domain
           if [ -z "$WEBSITE" ]; then
@@ -51,6 +55,10 @@ jobs:
           
           echo "website=$WEBSITE" >> $GITHUB_OUTPUT
           echo "contact_name=$CONTACT_NAME" >> $GITHUB_OUTPUT
+          echo "city=$CITY" >> $GITHUB_OUTPUT
+          echo "state=$STATE" >> $GITHUB_OUTPUT
+          echo "country=$COUNTRY" >> $GITHUB_OUTPUT
+          echo "company=$COMPANY" >> $GITHUB_OUTPUT
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
       
       - name: Create reports directory
@@ -60,7 +68,13 @@ jobs:
       - name: Run research script
         id: research
         run: |
-          node research-v3-DEEP.js "${{ steps.parse.outputs.website }}" "${{ steps.parse.outputs.contact_name }}"
+          node research-v3-DEEP.js \
+            "${{ steps.parse.outputs.website }}" \
+            "${{ steps.parse.outputs.contact_name }}" \
+            "${{ steps.parse.outputs.city }}" \
+            "${{ steps.parse.outputs.state }}" \
+            "${{ steps.parse.outputs.country }}" \
+            "${{ steps.parse.outputs.company }}"
         working-directory: ./automation
         
       - name: AI-powered analysis
