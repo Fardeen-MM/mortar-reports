@@ -25,21 +25,21 @@ function generateReport(researchData, prospectName) {
     firmName,
     website,
     location,
-    practiceAreas,
-    gaps,
-    competitors,
-    estimatedMonthlyRevenueLoss,
-    attorneys,
-    allLocations
+    practiceAreas = [],
+    gaps = {},
+    competitors = [],
+    estimatedMonthlyRevenueLoss = 0,
+    attorneys = [],
+    allLocations = []
   } = researchData;
   
-  const locationStr = location.city && location.state 
+  const locationStr = location && location.city && location.state 
     ? `${location.city}, ${location.state}`
-    : location.state || 'your area';
+    : (location && location.state) || 'your area';
   
-  const monthlyLossK = Math.round(estimatedMonthlyRevenueLoss / 1000);
+  const monthlyLossK = Math.round((estimatedMonthlyRevenueLoss || 0) / 1000);
   const yearlyLossK = monthlyLossK * 12;
-  const prospectFirstName = prospectName.split(' ')[0];
+  const prospectFirstName = prospectName ? prospectName.split(' ')[0] : 'there';
   
   // Check what AI enhancements exist
   const hasAI = researchData.ai_enhancements;
@@ -131,11 +131,11 @@ function generateHero(firmName, locationStr, monthlyLossK, firstName, aiHook, co
     
     <h1>${comparison}</h1>
 
-    <p style="font-size: 20px; margin: 24px 0; line-height: 1.5;">That\'s costing you <strong>$${monthlyLossK.toLocaleString()}K/month</strong> in cases walking out the door. <span style="color: #64748b;">The math: ${estimatedLeads} leads/month × $${avgCaseValue.toLocaleString()} average case value.</span></p>
+    <p style="font-size: 20px; margin: 24px 0; line-height: 1.5;">That's costing you <strong>$${monthlyLossK.toLocaleString()}K/month</strong> in cases walking out the door. <span style="color: #64748b;">The math: ${estimatedLeads} leads/month × $${avgCaseValue.toLocaleString()} average case value.</span></p>
 
     <p style="color: #64748b; font-size: 15px;">Based on our analysis of your website, ads, competitors, and the ${locationStr} market.</p>
     
-    <p style="font-size: 18px; margin-top: 32px;"><strong>Here\'s exactly where the money is going.</strong></p>
+    <p style="font-size: 18px; margin-top: 32px;"><strong>Here's exactly where the money is going.</strong></p>
   `;
 }
 
