@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TestFirm.com | Marketing Analysis by Mortar Metrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #171717;
+      --slate: #525252;
+      --slate-light: #737373;
+      --muted: #a3a3a3;
+      --border: #e5e5e5;
+      --border-light: #f5f5f5;
+      --warm-white: #fafafa;
+      --cream: #FDFBF7;
+      --white: #ffffff;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #10b981;
+      --success-light: #34d399;
+      --success-muted: #d1fae5;
+      --danger: #ef4444;
+      --danger-muted: #fef2f2;
+      --danger-deep: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Outfit', -apple-system, sans-serif; 
+      background: var(--cream);
+      color: var(--slate); 
+      line-height: 1.8;
+      font-size: 17px;
+    }
+
+    .container { 
+      max-width: 820px; 
+      margin: 0 auto; 
+      padding: 60px 32px;
+    }
+
+    h1, h2, h3 { 
+      font-family: 'Fraunces', Georgia, serif;
+      color: var(--ink); 
+      line-height: 1.3;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin-bottom: 16px; }
+    h2 { font-size: 2rem; margin-top: 64px; letter-spacing: -0.01em; }
+    h3 { font-size: 1.5rem; margin-top: 40px; color: var(--ink-soft); }
+    
+    p { 
+      margin-bottom: 20px; 
+      color: var(--slate);
+      font-size: 1.0625rem;
+    }
+    
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; color: var(--slate-light); }
+
+    .header {
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .logo { 
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 700; 
+      font-size: 1.4rem; 
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    
+    .meta { 
+      font-size: 0.9375rem; 
+      color: var(--muted);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%);
+      border-left: 4px solid var(--danger);
+      padding: 36px;
+      border-radius: 12px;
+      margin: 48px 0;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--danger);
+      margin-bottom: 12px;
+    }
+
+    .hero-stat {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 1.125rem;
+      color: var(--slate);
+      margin-bottom: 0;
+    }
+
+    .callout {
+      background: linear-gradient(135deg, var(--warm-white) 0%, white 100%);
+      border-left: 3px solid var(--primary);
+      padding: 24px 28px;
+      margin: 32px 0;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+    }
+
+    .callout strong {
+      color: var(--primary);
+    }
+
+    .blue-ocean {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 4px solid var(--success);
+      padding: 32px;
+      border-radius: 12px;
+      margin: 32px 0;
+    }
+
+    .blue-ocean-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .section {
+      margin: 64px 0;
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    ul {
+      margin: 24px 0;
+      padding-left: 28px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      color: var(--slate);
+      padding-left: 8px;
+    }
+
+    .gap-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 28px 0;
+    }
+
+    .gap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .gap-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .gap-cost {
+      background: linear-gradient(135deg, var(--danger) 0%, #f97316 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9375rem;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+      margin: 80px 0;
+    }
+
+    .big-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+      margin: 100px 0;
+      position: relative;
+    }
+
+    .big-divider::after {
+      content: '●';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--cream);
+      color: var(--primary);
+      font-size: 1.5rem;
+      padding: 0 16px;
+    }
+
+    .strength-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+      border-left: 3px solid var(--success);
+      padding: 28px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+
+    .strength-box p {
+      margin-bottom: 0;
+    }
+
+    .stat-highlight {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 28px 0;
+      text-align: center;
+    }
+
+    .stat-highlight-number {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .stat-highlight-label {
+      color: var(--slate-light);
+      font-size: 0.9375rem;
+    }
+
+    .cta {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      margin: 80px 0 40px;
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: var(--ink);
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 2rem;
+    }
+
+    .cta p {
+      color: var(--slate);
+      font-size: 1.125rem;
+      margin-bottom: 32px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-light);
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.625rem; }
+      .container { padding: 40px 20px; }
+      .hero-stat { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    
+    <div class="header">
+      <div class="logo">Mortar Metrics</div>
+      <div class="meta">Marketing Analysis for John Smith · January 30, 2026</div>
+    </div>
+  
+    
+    
+    <h1>John, we analyzed your firm, your competitors, and the your area market. Here's what we found.</h1>
+
+    <p>Our growth team pulled apart TestFirm.com from top to bottom. We analyzed your website, scraped 1,200+ keywords in your market, reverse-engineered your competitors' strategies, and ran everything through our legal marketing benchmark tool.</p>
+
+    <p>We work with law firms across North America, and here's what stands out about your market. Here's the reality: you're sitting on opportunity and leaving money on the table.</p>
+
+    <div class="hero">
+      <div class="hero-label">Estimated Monthly Opportunity Loss</div>
+      <div class="hero-stat">$0,000/mo</div>
+      <p class="hero-desc">That's $0,000 per year in cases going to competitors who aren't better lawyers—they just have better marketing infrastructure.</p>
+    </div>
+
+    <div class="big-divider"></div>
+  
+    
+    
+      <h2>What we analyzed</h2>
+      <p>We looked at your website, your market positioning, your competitors, and your infrastructure. Here's where the opportunities are:</p>
+      <div class="big-divider"></div>
+    
+    
+    
+      <h2>The opportunities</h2>
+      <p>Based on our analysis, here are the areas where you could capture more cases:</p>
+    
+    
+    
+    
+    
+      <h2>The competitive landscape</h2>
+      <p>We searched for firms in your area. The market is under-marketed—most firms are relying purely on organic traffic and referrals. Nobody is aggressively buying attention through paid ads. That's your opportunity.</p>
+      <div class="big-divider"></div>
+    
+    
+    
+    
+    
+    <h2>Why we're showing you this</h2>
+    <p>Most marketing agencies send you a pitch deck. We don't do that. We show you exactly what's broken, why it costs you cases, and what we'd fix. If you don't see the value, you shouldn't hire us.</p>
+    <p>We're showing you this because <strong>we know we can help.</strong> In the last 18 months, we've worked with 20+ law firms. We've generated 3,000+ qualified leads and helped our clients close new cases every single month.</p>
+    <div class="stat-highlight">
+      <div class="stat-highlight-number">3,000+</div>
+      <div class="stat-highlight-label">Qualified leads generated for legal clients in the last 18 months</div>
+    </div>
+    <p>We know legal marketing. We know what works.</p>
+    <div class="section-divider"></div>
+  
+    
+    
+    <h2>What happens next</h2>
+    <p>If this resonates, let's talk. Book a 15-minute call with our team. We'll validate these numbers, show you our exact strategy, and walk you through what the first 90 days would look like.</p>
+    <p><strong>No pitch deck. No sales pressure.</strong> Just a real conversation about whether we're a fit.</p>
+    <div class="cta">
+      <h2>Ready to capture this $0K/month opportunity?</h2>
+      <p>Book a 15-minute call. We'll show you the exact game plan.</p>
+      <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%;border:none;overflow: hidden;" scrolling="no" id="mortar-booking-widget"></iframe>
+      <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+    </div>
+  
+    
+    
+    <div class="footer">
+      Mortar Metrics · Legal Growth Agency · Based in Toronto, ON<br>
+      <a href="mailto:hello@mortarmetrics.com" style="color: var(--primary); text-decoration: none;">hello@mortarmetrics.com</a>
+    </div>
+  
+
+  </div>
+
+</body>
+</html>

@@ -59,12 +59,16 @@ async function smartResearch(firmWebsite, contactName = '', city = '', state = '
     const candidateUrls = [
       `${baseUrl.origin}/about`,
       `${baseUrl.origin}/about-us`,
+      `${baseUrl.origin}/about-the-firm`,
       `${baseUrl.origin}/team`,
       `${baseUrl.origin}/our-team`,
+      `${baseUrl.origin}/roth-jacksons-team`,
       `${baseUrl.origin}/attorneys`,
       `${baseUrl.origin}/lawyers`,
+      `${baseUrl.origin}/professionals`,
       `${baseUrl.origin}/contact`,
-      `${baseUrl.origin}/contact-us`
+      `${baseUrl.origin}/contact-us`,
+      `${baseUrl.origin}/locations`
     ];
     
     const pagesToAnalyze = [
@@ -77,20 +81,73 @@ async function smartResearch(firmWebsite, contactName = '', city = '', state = '
         const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
         if (response && response.status() === 200) {
           const html = await page.content();
-          const analysis = await aiHelper.analyzePage(html, url);
           
-          if (analysis.confidence >= 5) {
-            const pageType = url.includes('team') || url.includes('attorney') || url.includes('lawyer') ? 'team' :
-                            url.includes('about') ? 'about' :
-                            url.includes('contact') ? 'contact' : 'other';
-            
-            pagesToAnalyze.push({ url, type: pageType, html, analysis });
+          // Determine page type without AI
+          const pageType = url.includes('team') || url.includes('attorney') || url.includes('lawyer') || url.includes('professional') ? 'team' :
+                          url.includes('about') ? 'about' :
+                          url.includes('contact') || url.includes('location') ? 'contact' : 'other';
+          
+          // Always add team, about, and contact pages
+          if (pageType === 'team' || pageType === 'about' || pageType === 'contact') {
+            pagesToAnalyze.push({ url, type: pageType, html });
             console.log(`   ✅ Found ${pageType} page: ${url}`);
             research.pagesAnalyzed.push({ url, type: pageType });
           }
         }
       } catch (e) {
         // Page doesn't exist or timeout, skip
+      }
+    }
+    
+    // Also try to find pages by scraping links from homepage
+    console.log(`   🔍 Scanning homepage for additional links...`);
+    const homeLinks = await page.$$eval('a[href]', links => 
+      links.map(l => l.href).filter(href => 
+        href && !href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('#')
+      )
+    );
+    
+    for (const link of homeLinks) {
+      try {
+        const linkUrl = new URL(link);
+        // Only check same-domain links
+        if (linkUrl.origin === baseUrl.origin) {
+          const path = linkUrl.pathname.toLowerCase();
+          
+          // Check if this looks like a team/attorney/about/contact page
+          if ((path.includes('team') || path.includes('attorney') || path.includes('lawyer') || 
+               path.includes('about') || path.includes('contact') || path.includes('location')) &&
+              !pagesToAnalyze.find(p => p.url === link)) {
+            
+            try {
+              const response = await page.goto(link, { waitUntil: 'domcontentloaded', timeout: 10000 });
+              if (response && response.status() === 200) {
+                const html = await page.content();
+                
+                // Distinguish between attorney directory pages and individual profile pages
+                const pathParts = path.split('/').filter(Boolean);
+                const hasTeamInPath = path.includes('team') || path.includes('attorney') || path.includes('lawyer') || path.includes('professional');
+                const isDirectoryPage = path.match(/\/(team|attorneys?|lawyers?|professionals?)\/?$/i);
+                const isProfilePage = hasTeamInPath && pathParts.length >= 2 && !isDirectoryPage;
+                
+                const pageType = isProfilePage ? 'attorney-profile' :
+                                (path.includes('team') || path.includes('attorney') || path.includes('lawyer')) ? 'team' :
+                                path.includes('about') ? 'about' :
+                                path.includes('contact') || path.includes('location') ? 'contact' : 'other';
+                
+                if (pageType !== 'other') {
+                  pagesToAnalyze.push({ url: link, type: pageType, html });
+                  console.log(`   ✅ Found ${pageType} page via homepage link: ${link}`);
+                  research.pagesAnalyzed.push({ url: link, type: pageType });
+                }
+              }
+            } catch (e) {
+              // Skip
+            }
+          }
+        }
+      } catch (e) {
+        // Invalid URL, skip
       }
     }
     
@@ -114,26 +171,120 @@ async function smartResearch(firmWebsite, contactName = '', city = '', state = '
     // ========================================================================
     console.log(`👨‍⚖️ Step 2: Extracting attorneys using AI...`);
     
-    for (const pageData of pagesToAnalyze) {
-      if (pageData.type === 'team' || pageData.type === 'about' || pageData.type === 'home') {
-        console.log(`   🤖 Analyzing ${pageData.url} for attorneys...`);
-        const attorneys = await aiHelper.extractAttorneys(pageData.html, research.firmName);
+    // First, find attorney profile links on team page
+    const teamPages = pagesToAnalyze.filter(p => p.type === 'team');
+    const attorneyProfileUrls = [];
+    
+    for (const teamPage of teamPages) {
+      console.log(`   🔍 Discovering attorney profiles on ${teamPage.url}...`);
+      
+      // Try AI first if API key is available
+      if (process.env.ANTHROPIC_API_KEY) {
+        const profileUrls = await aiHelper.findAttorneyProfiles(teamPage.html, teamPage.url);
+        
+        if (profileUrls && profileUrls.length > 0) {
+          console.log(`   ✅ Found ${profileUrls.length} attorney profile links via AI`);
+          attorneyProfileUrls.push(...profileUrls);
+          continue;
+        }
+      }
+      
+      // Fallback: Simple link scraping
+      console.log(`   🔍 Scanning for attorney profile links (pattern-based)...`);
+      await page.goto(teamPage.url, { waitUntil: 'domcontentloaded' });
+      
+      const links = await page.$$eval('a[href]', (anchors, baseUrl) => {
+        return anchors.map(a => {
+          try {
+            const url = new URL(a.href, baseUrl);
+            const path = url.pathname.toLowerCase();
+            const text = a.textContent?.trim() || '';
+            
+            // Look for links that seem like attorney profiles
+            if ((path.includes('/team/') || path.includes('/attorney') || path.includes('/lawyer') || 
+                 path.includes('/professional') || path.includes('/people/')) &&
+                path !== baseUrl && 
+                !path.endsWith('/team/') && !path.endsWith('/attorneys/')) {
+              return url.href;
+            }
+          } catch {
+            return null;
+          }
+          return null;
+        }).filter(Boolean);
+      }, teamPage.url);
+      
+      // Deduplicate
+      const uniqueLinks = [...new Set(links)];
+      if (uniqueLinks.length > 0) {
+        console.log(`   ✅ Found ${uniqueLinks.length} potential attorney profile links`);
+        attorneyProfileUrls.push(...uniqueLinks);
+      }
+    }
+    
+    // Skip individual profile extraction from pattern-matched links
+    // (we'll count them and extract samples from attorney-profile pages below)
+    if (attorneyProfileUrls.length > 0) {
+      console.log(`   📊 Found ${attorneyProfileUrls.length} attorney profiles via pattern matching`);
+    }
+    
+    // Count attorney profiles and extract a few samples
+    const profilePages = pagesToAnalyze.filter(p => p.type === 'attorney-profile');
+    
+    // Combine with pattern-matched profiles for total count
+    const allProfileUrls = new Set([
+      ...profilePages.map(p => p.url),
+      ...attorneyProfileUrls
+    ]);
+    
+    research.attorneyCount = allProfileUrls.size;
+    
+    if (profilePages.length > 0) {
+      console.log(`   📊 Total attorney profiles discovered: ${research.attorneyCount}`);
+      console.log(`   📄 Extracting sample attorneys (first 5 for context)...`);
+      
+      const samplesToExtract = profilePages.slice(0, 5);
+      
+      for (const profilePage of samplesToExtract) {
+        console.log(`   🤖 Extracting data from ${profilePage.url}...`);
+        const attorneys = await aiHelper.extractAttorneys(profilePage.html, research.firmName);
         
         if (attorneys && attorneys.length > 0) {
-          console.log(`   ✅ Found ${attorneys.length} attorneys on this page`);
-          
-          // Merge with existing (avoid duplicates)
           for (const attorney of attorneys) {
             if (!research.attorneys.find(a => a.name === attorney.name)) {
               research.attorneys.push(attorney);
+              console.log(`      ✅ ${attorney.name} - ${attorney.title || 'Attorney'}`);
+            }
+          }
+        }
+      }
+      
+      console.log(`   ✅ Extracted ${research.attorneys.length} sample attorneys for context`);
+    }
+    
+    // Fallback: Try to extract attorneys from team page directly if no profiles found
+    if (research.attorneys.length === 0) {
+      console.log(`   ⚠️  No individual profiles found, analyzing team pages directly...`);
+      for (const pageData of pagesToAnalyze) {
+        if (pageData.type === 'team' || pageData.type === 'about' || pageData.type === 'home') {
+          console.log(`   🤖 Analyzing ${pageData.url} for attorneys...`);
+          const attorneys = await aiHelper.extractAttorneys(pageData.html, research.firmName);
+          
+          if (attorneys && attorneys.length > 0) {
+            console.log(`   ✅ Found ${attorneys.length} attorneys on this page`);
+            
+            for (const attorney of attorneys) {
+              if (!research.attorneys.find(a => a.name === attorney.name)) {
+                research.attorneys.push(attorney);
+              }
             }
           }
         }
       }
     }
     
-    console.log(`   ✅ Total attorneys found: ${research.attorneys.length}\n`);
-    research.confidence.attorneys = research.attorneys.length > 0 ? 9 : 0;
+    console.log(`   ✅ Total attorneys: ${research.attorneyCount || research.attorneys.length} (${research.attorneys.length} detailed samples)\n`);
+    research.confidence.attorneys = (research.attorneyCount || research.attorneys.length) > 0 ? 9 : 0;
     
     // ========================================================================
     // STEP 3: EXTRACT LOCATIONS (AI-FIRST)
@@ -241,7 +392,7 @@ async function smartResearch(firmWebsite, contactName = '', city = '', state = '
   console.log(`\n📊 RESEARCH COMPLETE:`);
   console.log(`   Firm: ${research.firmName || 'Unknown'}`);
   console.log(`   Location: ${research.location.city || 'Unknown'}, ${research.location.state || '??'}`);
-  console.log(`   Attorneys: ${research.attorneys.length}`);
+  console.log(`   Attorneys: ${research.attorneyCount || research.attorneys.length} total${research.attorneyCount ? `, ${research.attorneys.length} sampled` : ''}`);
   console.log(`   Locations: ${research.allLocations.length}`);
   console.log(`   Practice Areas: ${research.practiceAreas.length}`);
   console.log(`   Awards: ${research.awards.length}`);
