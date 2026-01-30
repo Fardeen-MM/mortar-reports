@@ -9,6 +9,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { buildPersonalizedEmail, buildSimpleEmail } = require('./email-templates');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -29,19 +30,68 @@ if (!approvalFile) {
 // Load approval data
 const approvalData = JSON.parse(fs.readFileSync(approvalFile, 'utf8'));
 
-// Create approval message
+// Try to load research data for additional context
+let researchData = null;
+let website = null;
+let linkedIn = null;
+
+if (approvalData.firm_name) {
+  const reportsDir = path.join(__dirname, 'reports');
+  const possibleFiles = [
+    `${approvalData.firm_name.toLowerCase().replace(/\s+/g, '-')}-intel-v5.json`,
+    `${approvalData.firm_name.toLowerCase().replace(/\s+/g, '-')}-research.json`,
+  ];
+  
+  for (const filename of possibleFiles) {
+    const filepath = path.join(reportsDir, filename);
+    if (fs.existsSync(filepath)) {
+      try {
+        researchData = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+        website = researchData.website;
+        linkedIn = researchData.firmIntel?.linkedIn || researchData.linkedIn;
+        console.log(`✅ Loaded research data: ${filename}`);
+        break;
+      } catch (e) {
+        console.warn(`⚠️  Could not parse ${filename}`);
+      }
+    }
+  }
+}
+
+// Generate email preview using the same template
+let emailPreview;
+if (researchData) {
+  emailPreview = buildPersonalizedEmail(researchData, approvalData.contact_name, approvalData.report_url);
+} else {
+  emailPreview = buildSimpleEmail(approvalData.contact_name, approvalData.report_url);
+}
+
+// Build approval message with website, LinkedIn, and email preview
+let contextSection = '';
+if (website) {
+  contextSection += `🌐 *Website:* ${website}\n`;
+}
+if (linkedIn) {
+  contextSection += `👔 *LinkedIn:* ${linkedIn}\n`;
+}
+
 const message = `🟡 *REPORT READY FOR APPROVAL*
 
 📊 *Firm:* ${approvalData.firm_name}
 👤 *Contact:* ${approvalData.contact_name}
 📧 *Email:* ${approvalData.lead_email}
-
+${contextSection}
 🔗 *Review Report:*
 ${approvalData.report_url}
 
 ⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
-*Please review the report and choose an action below:*`;
+📧 *EMAIL PREVIEW:*
+\`\`\`
+${emailPreview.body.replace(/{{accountSignature}}/g, '[Signature]')}
+\`\`\`
+
+*Please review the report and email, then choose an action below:*`;
 
 // Save approval data to file with shorter ID
 const approvalId = Buffer.from(approvalData.firm_name).toString('base64').substring(0, 20);
