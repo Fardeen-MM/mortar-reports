@@ -27,6 +27,34 @@ const researchData = JSON.parse(fs.readFileSync(researchJsonPath, 'utf8'));
 
 console.log(`🤖 Analyzing: ${researchData.firmName}`);
 
+// Normalize data format (handle both old and new v5 format)
+function normalizeData(data) {
+  // If it's the new v5 format (has firmIntel), transform it
+  if (data.firmIntel) {
+    return {
+      firmName: data.firmName,
+      practiceAreas: data.firmIntel.keySpecialties || data.practiceAreas || [],
+      allLocations: data.allLocations || [],
+      attorneys: data.sampleAttorneys || [],
+      positioning: data.firmIntel.positioning || '',
+      firmSize: data.firmIntel.firmSize?.estimate || 'unknown',
+      recentNews: data.firmIntel.recentNews || [],
+      growthSignals: data.firmIntel.growthSignals || [],
+      credentials: data.firmIntel.credentials || [],
+      // Old format gaps (not available in v5)
+      hasMetaAds: false,
+      hasGoogleAds: false,
+      has24_7Intake: false,
+      hasCRM: false,
+      competitors: []
+    };
+  }
+  // Old format, return as-is
+  return data;
+}
+
+const normalizedData = normalizeData(researchData);
+
 // Build prompt focused on enhancing existing sections
 function buildAnalysisPrompt(data) {
   const gaps = [];
@@ -35,9 +63,20 @@ function buildAnalysisPrompt(data) {
   if (!data.has24_7Intake) gaps.push('No 24/7 intake');
   if (!data.hasCRM) gaps.push('No CRM');
 
-  const competitorSummary = data.competitors.slice(0, 5).map((c, i) => 
-    `${i + 1}. ${c.name} - ${c.reviews} reviews (${c.rating}★)`
-  ).join('\n');
+  const competitorSummary = data.competitors && data.competitors.length > 0
+    ? data.competitors.slice(0, 5).map((c, i) => 
+        `${i + 1}. ${c.name} - ${c.reviews} reviews (${c.rating}★)`
+      ).join('\n')
+    : 'No competitor data available';
+
+  // Add v5-specific context if available
+  const v5Context = data.positioning ? `
+FIRM POSITIONING: ${data.positioning}
+FIRM SIZE: ${data.firmSize}
+${data.recentNews && data.recentNews.length > 0 ? `RECENT NEWS:\n${data.recentNews.map(n => `- ${n}`).join('\n')}` : ''}
+${data.growthSignals && data.growthSignals.length > 0 ? `GROWTH SIGNALS:\n${data.growthSignals.map(g => `- ${g}`).join('\n')}` : ''}
+${data.credentials && data.credentials.length > 0 ? `CREDENTIALS: ${data.credentials.join(', ')}` : ''}
+` : '';
 
   return `You're writing a personalized marketing pitch for ${data.firmName}, a law firm.
 
@@ -46,7 +85,7 @@ FIRM INFO:
 - Locations: ${data.allLocations.map(l => `${l.city}, ${l.state}`).join(', ')}
 - Team: ${data.attorneys.length} attorneys
 - Current gaps: ${gaps.join(', ')}
-
+${v5Context}
 TOP COMPETITORS:
 ${competitorSummary}
 
@@ -145,17 +184,17 @@ function callClaudeAPI(prompt) {
 // Main
 (async () => {
   try {
-    const prompt = buildAnalysisPrompt(researchData);
+    const prompt = buildAnalysisPrompt(normalizedData);
     console.log('📡 Calling Claude API...');
     
     const analysis = await callClaudeAPI(prompt);
     
     console.log('✅ AI analysis complete');
     console.log(`   - Personalized hook: ${analysis.personalized_hook.substring(0, 60)}...`);
-    console.log(`   - Gap explanations: ${Object.keys(analysis.gap_explanations).length}`);
-    console.log(`   - Opportunity frame: ${analysis.opportunity_frame.substring(0, 60)}...`);
+    console.log(`   - Gap explanations: ${Object.keys(analysis.gap_explanations || {}).length}`);
+    console.log(`   - Opportunity frame: ${analysis.opportunity_frame ? analysis.opportunity_frame.substring(0, 60) + '...' : 'N/A'}`);
     
-    // Merge into research data
+    // Merge into ORIGINAL research data (preserve v5 format)
     researchData.ai_enhancements = analysis;
     
     // Save enhanced research file
