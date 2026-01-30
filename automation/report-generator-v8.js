@@ -109,10 +109,13 @@ function generateHero(firmName, locationStr, monthlyLossK, prospectFirstName, ga
   let comparison = '';
   
   // Priority 1: Review gap (most emotionally painful)
+  // ONLY use if we have verified review data - don't claim 0 when data is missing
   if (topCompetitors.length > 0 && topCompetitors[0].reviews > 50) {
     const topReviews = topCompetitors[0].reviews;
-    const yourReviews = researchData.reviewCount || 0;
-    if (topReviews > yourReviews * 3 || (yourReviews === 0 && topReviews > 100)) {
+    const yourReviews = researchData.reviewCount;
+    
+    // Only use review comparison if we ACTUALLY HAVE their review count (not undefined/null)
+    if (typeof yourReviews === 'number' && (topReviews > yourReviews * 3 || (yourReviews < 10 && topReviews > 100))) {
       comparison = `${topCompetitors[0].name} has ${topReviews} Google reviews. You have ${yourReviews}.`;
     }
   }
@@ -120,8 +123,9 @@ function generateHero(firmName, locationStr, monthlyLossK, prospectFirstName, ga
   // Priority 2: Not running ads (specific and painful)
   if (!comparison && gaps.googleAds?.hasGap) {
     const practice = researchData.practiceAreas?.[0] || 'lawyer';
-    const city = researchData.location?.city || locationStr.split(',')[0];
-    comparison = `When someone searches "${practice} ${city}" at 9pm, they see 3 ads. None are yours.`;
+    
+    // Use full locationStr to be safe - don't risk bad city names
+    comparison = `When someone searches "${practice} ${locationStr}" at 9pm, they see 3 ads. None are yours.`;
   }
   
   // Priority 3: After-hours gap
