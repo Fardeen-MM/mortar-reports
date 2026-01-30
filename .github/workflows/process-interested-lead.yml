@@ -186,12 +186,21 @@ jobs:
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
           
+          # Extract original firm name from research JSON (for file lookup)
+          REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
+          ORIGINAL_FIRM_NAME=$(node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
+            console.log(data.firmName || data.title || '${{ steps.deploy.outputs.firm_folder }}');
+          ")
+          
           mkdir -p pending-approvals
           
           # Create approval data file
           cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
           {
-            "firm_name": "${{ steps.deploy.outputs.firm_folder }}",
+            "firm_name": "$ORIGINAL_FIRM_NAME",
+            "firm_folder": "${{ steps.deploy.outputs.firm_folder }}",
             "lead_email": "${{ steps.lead_data.outputs.lead_email }}",
             "contact_name": "${{ steps.parse.outputs.contact_name }}",
             "report_url": "$REPORT_URL",

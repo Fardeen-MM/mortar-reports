@@ -37,9 +37,11 @@ let linkedIn = null;
 
 if (approvalData.firm_name) {
   const reportsDir = path.join(__dirname, 'reports');
+  // Match the slug format from law-firm-research.js: replace non-alphanumeric with hyphen
+  const firmSlug = approvalData.firm_name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
   const possibleFiles = [
-    `${approvalData.firm_name.toLowerCase().replace(/\s+/g, '-')}-intel-v5.json`,
-    `${approvalData.firm_name.toLowerCase().replace(/\s+/g, '-')}-research.json`,
+    `${firmSlug}-intel-v5.json`,
+    `${firmSlug}-research.json`,
   ];
   
   for (const filename of possibleFiles) {
@@ -75,9 +77,12 @@ if (linkedIn) {
   contextSection += `👔 *LinkedIn:* ${linkedIn}\n`;
 }
 
+// Use firm_folder for display if available (prettier), fallback to firm_name
+const displayName = approvalData.firm_folder || approvalData.firm_name;
+
 const message = `🟡 *REPORT READY FOR APPROVAL*
 
-📊 *Firm:* ${approvalData.firm_name}
+📊 *Firm:* ${displayName}
 👤 *Contact:* ${approvalData.contact_name}
 📧 *Email:* ${approvalData.lead_email}
 ${contextSection}
