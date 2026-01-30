@@ -18,6 +18,8 @@ on:
       contact_name:
         description: 'Contact Name'
         required: true
+  repository_dispatch:
+    types: [send_approved_email]
 
 jobs:
   send-approved-email:
@@ -36,19 +38,38 @@ jobs:
         run: npm install
         working-directory: ./automation
         
+      - name: Extract inputs
+        id: inputs
+        run: |
+          # Handle both workflow_dispatch and repository_dispatch
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "firm_name=${{ github.event.inputs.firm_name }}" >> $GITHUB_OUTPUT
+            echo "lead_email=${{ github.event.inputs.lead_email }}" >> $GITHUB_OUTPUT
+            echo "contact_name=${{ github.event.inputs.contact_name }}" >> $GITHUB_OUTPUT
+            echo "report_url=${{ github.event.inputs.report_url }}" >> $GITHUB_OUTPUT
+            echo "email_id=${{ github.event.inputs.email_id }}" >> $GITHUB_OUTPUT
+          else
+            # repository_dispatch (from Telegram)
+            echo "firm_name=${{ github.event.client_payload.firm_name }}" >> $GITHUB_OUTPUT
+            echo "lead_email=${{ github.event.client_payload.lead_email }}" >> $GITHUB_OUTPUT
+            echo "contact_name=${{ github.event.client_payload.contact_name }}" >> $GITHUB_OUTPUT
+            echo "report_url=${{ github.event.client_payload.report_url }}" >> $GITHUB_OUTPUT
+            echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Send approved email
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
         run: |
-          echo "📧 Sending approved email to ${{ github.event.inputs.lead_email }}"
-          echo "🏢 Firm: ${{ github.event.inputs.firm_name }}"
-          echo "🔗 Report: ${{ github.event.inputs.report_url }}"
+          echo "📧 Sending approved email to ${{ steps.inputs.outputs.lead_email }}"
+          echo "🏢 Firm: ${{ steps.inputs.outputs.firm_name }}"
+          echo "🔗 Report: ${{ steps.inputs.outputs.report_url }}"
           
           node send-email.js \
-            "${{ github.event.inputs.lead_email }}" \
-            "${{ github.event.inputs.contact_name }}" \
-            "${{ github.event.inputs.report_url }}" \
-            "${{ github.event.inputs.email_id }}"
+            "${{ steps.inputs.outputs.lead_email }}" \
+            "${{ steps.inputs.outputs.contact_name }}" \
+            "${{ steps.inputs.outputs.report_url }}" \
+            "${{ steps.inputs.outputs.email_id }}"
         working-directory: ./automation
         
       - name: Notify Slack
@@ -59,9 +80,9 @@ jobs:
           STATUS="${{ job.status }}"
           
           if [ "$STATUS" = "success" ]; then
-            MESSAGE="✅ *APPROVED & SENT*\n📧 To: ${{ github.event.inputs.lead_email }}\n🏢 Firm: ${{ github.event.inputs.firm_name }}\n🔗 Report: ${{ github.event.inputs.report_url }}"
+            MESSAGE="✅ *APPROVED & SENT*\n📧 To: ${{ steps.inputs.outputs.lead_email }}\n🏢 Firm: ${{ steps.inputs.outputs.firm_name }}\n🔗 Report: ${{ steps.inputs.outputs.report_url }}"
           else
-            MESSAGE="❌ Failed to send approved email to ${{ github.event.inputs.lead_email }}"
+            MESSAGE="❌ Failed to send approved email to ${{ steps.inputs.outputs.lead_email }}"
           fi
           
           curl -X POST "$SLACK_WEBHOOK" \
