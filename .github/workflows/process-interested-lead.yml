@@ -30,9 +30,7 @@ jobs:
       - name: Extract lead data
         id: lead_data
         run: |
-          echo "lead_email=${{ github.event.client_payload.lead_email }}" >> $GITHUB_OUTPUT
-          echo "campaign_name=${{ github.event.client_payload.campaign_name }}" >> $GITHUB_OUTPUT
-          echo "reply_text=${{ github.event.client_payload.reply_text }}" >> $GITHUB_OUTPUT
+          echo "lead_email=${{ github.event.client_payload.email }}" >> $GITHUB_OUTPUT
           echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
           
       - name: Parse website from lead data
@@ -44,7 +42,7 @@ jobs:
           
           # If no website in payload, we'll need to extract from email domain
           if [ -z "$WEBSITE" ]; then
-            DOMAIN=$(echo "${{ github.event.client_payload.lead_email }}" | cut -d'@' -f2)
+            DOMAIN=$(echo "${{ github.event.client_payload.email }}" | cut -d'@' -f2)
             WEBSITE="https://www.$DOMAIN"
           fi
           
