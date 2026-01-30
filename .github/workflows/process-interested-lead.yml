@@ -117,7 +117,78 @@ jobs:
           node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
+      - name: Quality Control Validation
+        id: qc
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+        run: |
+          REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
+          REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
+          
+          if [ -z "$REPORT_JSON" ] || [ -z "$REPORT_HTML" ]; then
+            echo "❌ Error: Report files not found"
+            exit 1
+          fi
+          
+          echo "🔍 Running quality control validation..."
+          echo "📊 Research: $REPORT_JSON"
+          echo "📄 Report: $REPORT_HTML"
+          
+          node ai-quality-control.js "$REPORT_JSON" "$REPORT_HTML"
+          QC_STATUS=$?
+          
+          if [ $QC_STATUS -ne 0 ]; then
+            echo "qc_failed=true" >> $GITHUB_OUTPUT
+            cat qc-result.json
+            exit 1
+          fi
+          
+          echo "qc_failed=false" >> $GITHUB_OUTPUT
+          cat qc-result.json
+        working-directory: ./automation
+        
+      - name: Notify QC Failure via Telegram
+        if: failure() && steps.qc.conclusion == 'failure'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          QC_RESULT=$(cat qc-result.json 2>/dev/null || echo '{"status":"FAILED","issues":["QC script failed to run"]}')
+          
+          ISSUES=$(echo "$QC_RESULT" | node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync(0, 'utf8'));
+            const issues = data.issues || [];
+            console.log(issues.join('\\n'));
+          ")
+          
+          MESSAGE="🛑 *QUALITY CONTROL FAILED*
+
+📊 *Lead:* ${{ steps.parse.outputs.contact_name }}
+📧 *Email:* ${{ steps.lead_data.outputs.lead_email }}
+🌐 *Website:* ${{ steps.parse.outputs.website }}
+
+❌ *Issues Found:*
+\`\`\`
+$ISSUES
+\`\`\`
+
+⚠️ *Report was NOT deployed*
+Research data saved for manual review.
+
+View workflow: https://github.com/Fardeen-MM/mortar-reports/actions/runs/${{ github.run_id }}"
+          
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${TELEGRAM_CHAT_ID}\",
+              \"text\": \"${MESSAGE}\",
+              \"parse_mode\": \"Markdown\"
+            }"
+        working-directory: ./automation
+        
       - name: Deploy report to GitHub Pages
+        if: steps.qc.outputs.qc_failed != 'true'
         run: |
           # Get the research JSON to extract firm name
           REPORT_JSON=$(find automation/reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
@@ -180,6 +251,7 @@ jobs:
         id: deploy
           
       - name: Send Telegram approval request
+        if: steps.qc.outputs.qc_failed != 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
