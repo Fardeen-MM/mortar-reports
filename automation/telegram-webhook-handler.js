@@ -89,7 +89,7 @@ function editMessage(chatId, messageId, newText) {
 // Trigger GitHub Actions workflow
 function triggerGitHubWorkflow(approvalData) {
   return new Promise((resolve, reject) => {
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_PAT;
     const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
     
     const payload = JSON.stringify({
