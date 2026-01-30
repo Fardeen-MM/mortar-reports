@@ -148,7 +148,7 @@ jobs:
         working-directory: ./automation
         
       - name: Notify QC Failure via Telegram
-        if: failure() && steps.qc.conclusion == 'failure'
+        if: failure()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
