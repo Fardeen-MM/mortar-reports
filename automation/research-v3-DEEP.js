@@ -127,21 +127,46 @@ async function deepResearch(firmWebsite, contactName = '') {
     
     console.log(`   ⚡ Load time: ${(loadTime/1000).toFixed(1)}s`);
     
-    // Extract firm name from title
-    const pageTitle = await page.title();
-    const titleParts = pageTitle.split(/[|\–\-]/).map(p => p.trim()).filter(p => p.length > 0);
-    
-    // Find part with "law", "legal", etc
+    // Extract firm name (try multiple sources)
     let firmName = '';
-    for (const part of titleParts.reverse()) {
-      if (/\b(law|legal|attorney|lawyer|professional corporation|pc|llp|pllc)\b/i.test(part) && part.length < 80) {
-        firmName = part;
-        break;
+    
+    // 1. Try meta og:site_name
+    const ogSiteName = await page.getAttribute('meta[property="og:site_name"]', 'content').catch(() => null);
+    if (ogSiteName && ogSiteName.length > 0 && ogSiteName.length < 80) {
+      firmName = ogSiteName;
+    }
+    
+    // 2. Try page title (but reject generic titles)
+    if (!firmName) {
+      const pageTitle = await page.title();
+      const titleParts = pageTitle.split(/[|\–\-]/).map(p => p.trim()).filter(p => p.length > 0);
+      
+      // Find part with "law", "legal", etc
+      for (const part of titleParts.reverse()) {
+        if (/\b(law|legal|attorney|lawyer|professional corporation|pc|llp|pllc)\b/i.test(part) && part.length < 80) {
+          firmName = part;
+          break;
+        }
+      }
+      
+      // Use last part if not generic
+      if (!firmName && titleParts.length > 0) {
+        const lastPart = titleParts[titleParts.length - 1];
+        const genericTitles = /^(home|welcome|index|main|about|contact)$/i;
+        if (!genericTitles.test(lastPart)) {
+          firmName = lastPart;
+        }
       }
     }
     
-    if (!firmName && titleParts.length > 0) {
-      firmName = titleParts[titleParts.length - 1];
+    // 3. Fall back to domain name
+    if (!firmName) {
+      const domain = firmWebsite.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*/,'').replace(/\.\w+$/, '');
+      // Convert domain to title case: rothjackson → Roth Jackson
+      firmName = domain
+        .split(/[-_]/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     }
     
     research.firmName = firmName || 'Law Firm';
