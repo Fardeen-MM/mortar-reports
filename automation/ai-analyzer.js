@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * AI-Powered Analysis Engine
- * Takes raw research data and generates intelligent strategic insights using Claude API
+ * Generates personalized enhancements for the report (not additions)
  * 
  * Usage: node ai-analyzer.js <research-json-path>
  */
@@ -25,84 +25,58 @@ if (!researchJsonPath) {
 // Load research data
 const researchData = JSON.parse(fs.readFileSync(researchJsonPath, 'utf8'));
 
-console.log(`🤖 Starting AI analysis for: ${researchData.firmName}`);
-console.log(`📊 Data loaded: ${researchData.pagesAnalyzed.length} pages, ${researchData.competitors.length} competitors\n`);
+console.log(`🤖 Analyzing: ${researchData.firmName}`);
 
-// Build strategic analysis prompt
+// Build prompt focused on enhancing existing sections
 function buildAnalysisPrompt(data) {
+  const gaps = [];
+  if (!data.hasMetaAds) gaps.push('No Meta ads');
+  if (!data.hasGoogleAds) gaps.push('No Google Ads');
+  if (!data.has24_7Intake) gaps.push('No 24/7 intake');
+  if (!data.hasCRM) gaps.push('No CRM');
+
   const competitorSummary = data.competitors.slice(0, 5).map((c, i) => 
     `${i + 1}. ${c.name} - ${c.reviews} reviews (${c.rating}★)`
   ).join('\n');
 
-  const locationSummary = data.allLocations.map(l => 
-    `${l.city}, ${l.state}`
-  ).join(', ');
+  return `You're writing a personalized marketing pitch for ${data.firmName}, a law firm.
 
-  return `You are a legal marketing strategist analyzing a law firm. Your goal is to find strategic insights and actionable opportunities.
+FIRM INFO:
+- Practice areas: ${data.practiceAreas.join(', ')}
+- Locations: ${data.allLocations.map(l => `${l.city}, ${l.state}`).join(', ')}
+- Team: ${data.attorneys.length} attorneys
+- Current gaps: ${gaps.join(', ')}
 
-FIRM PROFILE:
-- Name: ${data.firmName}
-- Website: ${data.website}
-- Contact: ${data.contactPerson}
-- Locations: ${locationSummary}
-- Practice Areas: ${data.practiceAreas.join(', ')}
-- Team Size: ${data.attorneys.length} attorneys
-
-WEBSITE PERFORMANCE:
-- Load Time: ${(data.pageSpeed / 1000).toFixed(1)}s (${data.pageSpeedScore})
-- Pages Analyzed: ${data.pagesAnalyzed.length}
-- 24/7 Support: ${data.gaps.support24x7.hasGap ? 'No' : 'Yes'}
-- Chatbot: ${data.hasChatbot ? 'Yes' : 'No'}
-
-TOP COMPETITORS (${data.location.city}, ${data.location.state}):
+TOP COMPETITORS:
 ${competitorSummary}
 
-CURRENT ADVERTISING:
-- Google Ads: ${data.googleAdsData.running ? `Running (${data.googleAdsData.adCount} ads)` : 'Not running'}
-- Meta Ads: ${data.gaps.metaAds.hasGap ? 'Not running' : 'Running'}
+Your job: Write SHORT, PUNCHY enhancements that make the pitch feel like we did deep research on THEIR specific firm.
 
-IDENTIFIED GAPS:
-${Object.entries(data.gaps).filter(([_, v]) => v.hasGap).map(([key, gap]) => 
-  `- ${key}: ${gap.details}`
-).join('\n')}
+Write in a conversational, confident tone. NO consultant jargon. NO buzzwords. Sound human.
 
-ANALYZE THIS FIRM AND PROVIDE:
+Provide:
 
-1. UNIQUE POSITIONING
-   - What makes this firm different from competitors?
-   - What's their strategic advantage (even if they're not leveraging it)?
-   - Any unique background, credentials, or approach?
+1. **personalized_hook** (1 sentence): Why THIS firm specifically is sitting on untapped money. Make it specific to them (their locations, practice areas, team size, etc). NOT generic "you're losing money" - something that shows we studied THEIR situation.
 
-2. COMPETITIVE ANALYSIS
-   - Why are the top competitors winning?
-   - What can this firm do to compete despite fewer reviews?
-   - What white space opportunities exist?
+2. **gap_explanations**: For each gap they have, write a 1-2 sentence explanation of what it means FOR THEM specifically (not generic). Reference their practice areas, locations, competitors when relevant.
 
-3. MARKET INSIGHTS
-   - What's happening in the ${data.location.city}, ${data.location.state} legal market?
-   - Any trends or opportunities specific to this area?
-   - Underserved segments?
-
-4. STRATEGIC RECOMMENDATIONS
-   - What should they prioritize first?
-   - Why would it work for THIS specific firm?
-   - Expected impact and timeline?
-
-5. HIDDEN OPPORTUNITIES
-   - Non-obvious gaps the competition isn't exploiting
-   - Creative angles based on their specific situation
-   - Quick wins they could implement this month
-
-Be specific. Think strategically. Don't give generic advice. Everything should be tailored to THIS firm's actual situation.
-
-Respond in JSON format:
+Format like this:
 {
-  "positioning": "...",
-  "competitive_analysis": "...",
-  "market_insights": "...",
-  "strategic_recommendations": ["...", "...", "..."],
-  "hidden_opportunities": ["...", "...", "..."],
-  "executive_summary": "2-3 sentence summary of the biggest opportunity"
+  "meta_ads": "...",
+  "google_ads": "...",
+  "intake_24_7": "...",
+  "crm": "..."
+}
+
+Only include gaps that exist (from the list above).
+
+3. **opportunity_frame** (1 sentence): Reframe the revenue opportunity in terms of THEIR specific situation. Not "$60K/month" but "With 5 offices, you should be dominating local search in all 5 markets - that's XX divorce cases/month you're missing."
+
+Return ONLY valid JSON. No markdown, no explanation, just:
+{
+  "personalized_hook": "...",
+  "gap_explanations": { ... },
+  "opportunity_frame": "..."
 }`;
 }
 
@@ -111,7 +85,7 @@ function callClaudeAPI(prompt) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      max_tokens: 2048,
       messages: [{
         role: 'user',
         content: prompt
@@ -143,24 +117,24 @@ function callClaudeAPI(prompt) {
             const response = JSON.parse(data);
             const content = response.content[0].text;
             
-            // Extract JSON from response (Claude might wrap it in markdown)
+            // Extract JSON from response
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               resolve(JSON.parse(jsonMatch[0]));
             } else {
-              reject(new Error('Could not extract JSON from Claude response'));
+              reject(new Error('No JSON found in Claude response'));
             }
-          } catch (e) {
-            reject(new Error(`Failed to parse Claude response: ${e.message}`));
+          } catch (err) {
+            reject(new Error(`Failed to parse Claude response: ${err.message}`));
           }
         } else {
-          reject(new Error(`Claude API returned status ${res.statusCode}: ${data}`));
+          reject(new Error(`Claude API error: ${res.statusCode} ${data}`));
         }
       });
     });
 
-    req.on('error', (error) => {
-      reject(error);
+    req.on('error', (err) => {
+      reject(err);
     });
 
     req.write(payload);
@@ -168,38 +142,29 @@ function callClaudeAPI(prompt) {
   });
 }
 
-// Main execution
+// Main
 (async () => {
   try {
-    console.log('🧠 Sending data to Claude for analysis...');
-    
     const prompt = buildAnalysisPrompt(researchData);
+    console.log('📡 Calling Claude API...');
+    
     const analysis = await callClaudeAPI(prompt);
     
-    console.log('✅ AI analysis complete!\n');
-    console.log('📋 Executive Summary:');
-    console.log(`   ${analysis.executive_summary}\n`);
+    console.log('✅ AI analysis complete');
+    console.log(`   - Personalized hook: ${analysis.personalized_hook.substring(0, 60)}...`);
+    console.log(`   - Gap explanations: ${Object.keys(analysis.gap_explanations).length}`);
+    console.log(`   - Opportunity frame: ${analysis.opportunity_frame.substring(0, 60)}...`);
     
-    // Merge AI analysis into research data
-    researchData.ai_analysis = analysis;
-    researchData.ai_analyzed_at = new Date().toISOString();
+    // Merge into research data
+    researchData.ai_enhancements = analysis;
     
-    // Save enhanced research data
+    // Save enhanced research file
     fs.writeFileSync(researchJsonPath, JSON.stringify(researchData, null, 2));
     
-    console.log('💾 Enhanced research data saved with AI insights');
-    console.log(`📊 Analysis includes:`);
-    console.log(`   - Positioning insights`);
-    console.log(`   - Competitive analysis`);
-    console.log(`   - Market insights`);
-    console.log(`   - ${analysis.strategic_recommendations.length} strategic recommendations`);
-    console.log(`   - ${analysis.hidden_opportunities.length} hidden opportunities`);
+    console.log(`💾 Enhanced research saved to: ${researchJsonPath}`);
     
-  } catch (error) {
-    console.error('❌ AI analysis failed:', error.message);
-    console.error('\n⚠️  Continuing without AI insights (report will use template copy)');
-    
-    // Don't fail the entire pipeline - just continue without AI
-    process.exit(0);
+  } catch (err) {
+    console.error('❌ AI analysis failed:', err.message);
+    process.exit(1);
   }
 })();

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Inject AI insights into generated HTML report
- * This enhances the template-based report with strategic AI analysis
+ * Inject AI enhancements into the report
+ * Replaces generic copy with personalized insights (subtly)
  * 
  * Usage: node inject-ai-insights.js <report-html-path> <research-json-path>
  */
@@ -17,74 +17,81 @@ if (!reportHtmlPath || !researchJsonPath) {
 }
 
 // Load files
-const html = fs.readFileSync(reportHtmlPath, 'utf8');
+let html = fs.readFileSync(reportHtmlPath, 'utf8');
 const research = JSON.parse(fs.readFileSync(researchJsonPath, 'utf8'));
 
-if (!research.ai_analysis) {
-  console.log('⚠️  No AI analysis found in research data. Skipping AI enhancement.');
+if (!research.ai_enhancements) {
+  console.log('⚠️  No AI enhancements found. Skipping.');
   process.exit(0);
 }
 
-console.log('🤖 Injecting AI insights into report...');
+console.log('🤖 Enhancing report with AI insights...');
 
-const ai = research.ai_analysis;
+const ai = research.ai_enhancements;
 
-// Build AI insights section
-const aiInsightsSection = `
-    <div class="big-divider"></div>
-    
-    <h2>Strategic Analysis</h2>
-    <p>We ran your firm through our AI analysis engine. Here's what stood out:</p>
-    
-    <div class="blue-ocean">
-      <div class="blue-ocean-badge">AI INSIGHT</div>
-      <p><strong>${ai.executive_summary}</strong></p>
-    </div>
-    
-    <h3>Your Unique Position</h3>
-    <p>${ai.positioning}</p>
-    
-    <h3>Competitive Landscape</h3>
-    <p>${ai.competitive_analysis}</p>
-    
-    <h3>Market Opportunity</h3>
-    <p>${ai.market_insights}</p>
-    
-    <h3>What You Should Do First</h3>
-    <p>Based on your specific situation, here's what we'd prioritize:</p>
-    <ul>
-${ai.strategic_recommendations.map(rec => `      <li>${rec}</li>`).join('\n')}
-    </ul>
-    
-    ${ai.hidden_opportunities && ai.hidden_opportunities.length > 0 ? `
-    <h3>Hidden Opportunities</h3>
-    <p>Non-obvious gaps your competitors aren't exploiting:</p>
-    <ul>
-${ai.hidden_opportunities.map(opp => `      <li>${opp}</li>`).join('\n')}
-    </ul>
-    ` : ''}
-`;
+// 1. Enhance the hero hook (replace generic intro paragraph)
+// Find the paragraph after the hero heading and replace it
+const heroPattern = /<h1>.*?<\/h1>\s*<p>(.*?)<\/p>/s;
+const heroMatch = html.match(heroPattern);
 
-// Inject before "The Problems Costing You Money" section
-const injectionPoint = html.indexOf('<h2>The Problems Costing You Money</h2>');
-
-if (injectionPoint === -1) {
-  console.error('❌ Could not find injection point in HTML');
-  process.exit(1);
+if (heroMatch) {
+  const genericIntro = heroMatch[1];
+  html = html.replace(genericIntro, ai.personalized_hook);
+  console.log('   ✓ Enhanced hero hook');
 }
 
-const enhancedHtml = html.slice(0, injectionPoint) + aiInsightsSection + html.slice(injectionPoint);
+// 2. Enhance gap explanations
+// Replace the generic "Here's what we found:" paragraph with the opportunity frame
+const whatWeFoundPattern = /<p>Here's what we found:.*?<\/p>/s;
+if (html.match(whatWeFoundPattern)) {
+  html = html.replace(whatWeFoundPattern, `<p>${ai.opportunity_frame}</p>`);
+  console.log('   ✓ Enhanced opportunity framing');
+}
+
+// 3. Enhance individual gap descriptions
+// Look for gap sections and add personalized context
+
+// Meta Ads gap
+if (ai.gap_explanations.meta_ads) {
+  const metaPattern = /(<div class="gap-item">[\s\S]*?<h3>Not Running Meta Ads<\/h3>\s*<p>)([\s\S]*?)(<\/p>)/;
+  const metaMatch = html.match(metaPattern);
+  if (metaMatch) {
+    html = html.replace(metaPattern, `$1${ai.gap_explanations.meta_ads}$3`);
+    console.log('   ✓ Enhanced Meta ads explanation');
+  }
+}
+
+// Google Ads gap
+if (ai.gap_explanations.google_ads) {
+  const googlePattern = /(<div class="gap-item">[\s\S]*?<h3>Not Running Google Ads<\/h3>\s*<p>)([\s\S]*?)(<\/p>)/;
+  const googleMatch = html.match(googlePattern);
+  if (googleMatch) {
+    html = html.replace(googlePattern, `$1${ai.gap_explanations.google_ads}$3`);
+    console.log('   ✓ Enhanced Google ads explanation');
+  }
+}
+
+// 24/7 Intake gap
+if (ai.gap_explanations.intake_24_7) {
+  const intakePattern = /(<div class="gap-item">[\s\S]*?<h3>No 24\/7 Intake System<\/h3>\s*<p>)([\s\S]*?)(<\/p>)/;
+  const intakeMatch = html.match(intakePattern);
+  if (intakeMatch) {
+    html = html.replace(intakePattern, `$1${ai.gap_explanations.intake_24_7}$3`);
+    console.log('   ✓ Enhanced intake explanation');
+  }
+}
+
+// CRM gap
+if (ai.gap_explanations.crm) {
+  const crmPattern = /(<div class="gap-item">[\s\S]*?<h3>No Automated CRM<\/h3>\s*<p>)([\s\S]*?)(<\/p>)/;
+  const crmMatch = html.match(crmPattern);
+  if (crmMatch) {
+    html = html.replace(crmPattern, `$1${ai.gap_explanations.crm}$3`);
+    console.log('   ✓ Enhanced CRM explanation');
+  }
+}
 
 // Save enhanced report
-fs.writeFileSync(reportHtmlPath, enhancedHtml);
+fs.writeFileSync(reportHtmlPath, html);
 
-console.log('✅ AI insights injected successfully');
-console.log(`📊 Added:`);
-console.log(`   - Executive summary`);
-console.log(`   - Positioning analysis`);
-console.log(`   - Competitive analysis`);
-console.log(`   - Market insights`);
-console.log(`   - ${ai.strategic_recommendations.length} strategic recommendations`);
-if (ai.hidden_opportunities) {
-  console.log(`   - ${ai.hidden_opportunities.length} hidden opportunities`);
-}
+console.log('✅ Report enhanced with AI insights (seamlessly)');
