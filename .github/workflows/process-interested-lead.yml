@@ -65,9 +65,8 @@ jobs:
         
       - name: AI-powered analysis
         id: ai_analysis
-        continue-on-error: true
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           REPORT_FILE=$(find reports -name "*-research.json" -type f | head -1)
           if [ -z "$REPORT_FILE" ]; then
@@ -75,7 +74,7 @@ jobs:
             exit 1
           fi
           echo "Found report: $REPORT_FILE"
-          node ai-analyzer.js "$REPORT_FILE" || echo "⚠️ AI analysis failed, continuing without it"
+          node ai-analyzer.js "$REPORT_FILE"
         working-directory: ./automation
         
       - name: Generate report with AI insights
