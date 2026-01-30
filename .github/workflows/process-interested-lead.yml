@@ -86,7 +86,14 @@ jobs:
             exit 1
           fi
           echo "Found report: $REPORT_FILE"
-          node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
+          node report-generator-v7.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
+          
+          # Inject AI insights into generated HTML
+          REPORT_HTML=$(find reports -name "*-landing-page-v7.html" -type f | head -1)
+          if [ -n "$REPORT_HTML" ]; then
+            echo "Injecting AI insights into: $REPORT_HTML"
+            node inject-ai-insights.js "$REPORT_HTML" "$REPORT_FILE"
+          fi
         working-directory: ./automation
         
       - name: Deploy report to GitHub Pages
