@@ -99,7 +99,8 @@ function triggerGitHubWorkflow(approvalData) {
         lead_email: approvalData.lead_email,
         contact_name: approvalData.contact_name,
         report_url: approvalData.report_url,
-        email_id: approvalData.email_id || ''
+        email_id: approvalData.email_id || '',
+        from_email: approvalData.from_email || 'fardeen@mortarmetrics.com'
       }
     });
 

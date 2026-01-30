@@ -61,7 +61,7 @@ Are you available ${meetingDay1} or ${meetingDay2} for a quick 15-minute call to
 {{accountSignature}}`;
 
   return {
-    subject: 'Re: Your marketing analysis',
+    subject: 'Your marketing analysis', // Only used if starting new thread (not replying)
     body: emailBody
   };
 }
@@ -96,7 +96,7 @@ function buildSimpleEmail(contactName, reportUrl) {
   }
   
   return {
-    subject: 'Re: Your marketing analysis',
+    subject: 'Your marketing analysis', // Only used if starting new thread (not replying)
     body: `Perfect! I just finished putting together your analysis.
 
 I analyzed your website, your competitors in your market, and found some specific gaps you can close.

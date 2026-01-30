@@ -32,6 +32,7 @@ jobs:
         run: |
           echo "lead_email=${{ github.event.client_payload.email }}" >> $GITHUB_OUTPUT
           echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
+          echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
           
       - name: Parse website from lead data
         id: parse
@@ -195,6 +196,7 @@ jobs:
             "contact_name": "${{ steps.parse.outputs.contact_name }}",
             "report_url": "$REPORT_URL",
             "email_id": "${{ steps.lead_data.outputs.email_id }}",
+            "from_email": "${{ steps.lead_data.outputs.from_email }}",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval"
           }

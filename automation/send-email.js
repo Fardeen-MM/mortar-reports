@@ -15,6 +15,7 @@ const contactName = process.argv[3];
 const reportUrl = process.argv[4];
 const replyToUuid = process.argv[5]; // Email ID to reply to (keeps it in same thread)
 const firmName = process.argv[6]; // Optional: firm name to find research file
+const fromEmail = process.argv[7] || process.env.FROM_EMAIL || 'fardeen@mortarmetrics.com'; // Sending account
 
 if (!INSTANTLY_API_KEY) {
   console.error('❌ INSTANTLY_API_KEY environment variable not set');
@@ -22,7 +23,7 @@ if (!INSTANTLY_API_KEY) {
 }
 
 if (!recipientEmail || !contactName || !reportUrl) {
-  console.error('Usage: node send-email.js <recipient_email> <contact_name> <report_url> [reply_to_uuid] [firm_name]');
+  console.error('Usage: node send-email.js <recipient_email> <contact_name> <report_url> [reply_to_uuid] [firm_name] [from_email]');
   process.exit(1);
 }
 
@@ -65,19 +66,30 @@ if (researchData) {
   console.log('📧 Using standard email template');
 }
 
-const emailSubject = emailContent.subject;
 const emailBody = emailContent.body;
 
-// Instantly API payload (using their email send/reply endpoint)
-const payload = JSON.stringify({
+// When replying to a thread, Instantly automatically uses "Re: [original subject]"
+// So we only include subject if NOT replying
+const payloadData = {
   email: recipientEmail,
-  subject: emailSubject,
   body: emailBody,
-  from_email: 'fardeen@mortarmetrics.com', // Your sending email
-  reply_to_uuid: replyToUuid || undefined, // Reply in same thread if provided
-});
+  from_email: fromEmail,
+};
 
-console.log(`📧 Sending email to: ${recipientEmail}`);
+// Add reply_to_uuid if replying to thread (Instantly handles subject automatically)
+if (replyToUuid) {
+  payloadData.reply_to_uuid = replyToUuid;
+  console.log(`📧 Replying in thread to: ${recipientEmail}`);
+  console.log(`🔗 Thread ID: ${replyToUuid}`);
+} else {
+  // Only include subject if starting new thread
+  payloadData.subject = emailContent.subject || 'Your marketing analysis';
+  console.log(`📧 Starting new thread to: ${recipientEmail}`);
+}
+
+const payload = JSON.stringify(payloadData);
+
+console.log(`📨 From: ${fromEmail}`);
 console.log(`📊 Report URL: ${reportUrl}`);
 
 // Decode the base64 API key

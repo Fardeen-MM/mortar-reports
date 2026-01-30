@@ -18,6 +18,10 @@ on:
       contact_name:
         description: 'Contact Name'
         required: true
+      from_email:
+        description: 'From Email (sending account)'
+        required: false
+        default: 'fardeen@mortarmetrics.com'
   repository_dispatch:
     types: [send_approved_email]
 
@@ -48,6 +52,7 @@ jobs:
             echo "contact_name=${{ github.event.inputs.contact_name }}" >> $GITHUB_OUTPUT
             echo "report_url=${{ github.event.inputs.report_url }}" >> $GITHUB_OUTPUT
             echo "email_id=${{ github.event.inputs.email_id }}" >> $GITHUB_OUTPUT
+            echo "from_email=${{ github.event.inputs.from_email }}" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram)
             echo "firm_name=${{ github.event.client_payload.firm_name }}" >> $GITHUB_OUTPUT
@@ -55,6 +60,7 @@ jobs:
             echo "contact_name=${{ github.event.client_payload.contact_name }}" >> $GITHUB_OUTPUT
             echo "report_url=${{ github.event.client_payload.report_url }}" >> $GITHUB_OUTPUT
             echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
+            echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
           fi
       
       - name: Send approved email
@@ -63,6 +69,7 @@ jobs:
         run: |
           echo "📧 Sending approved email to ${{ steps.inputs.outputs.lead_email }}"
           echo "🏢 Firm: ${{ steps.inputs.outputs.firm_name }}"
+          echo "📨 From: ${{ steps.inputs.outputs.from_email }}"
           echo "🔗 Report: ${{ steps.inputs.outputs.report_url }}"
           
           node send-email.js \
@@ -70,7 +77,8 @@ jobs:
             "${{ steps.inputs.outputs.contact_name }}" \
             "${{ steps.inputs.outputs.report_url }}" \
             "${{ steps.inputs.outputs.email_id }}" \
-            "${{ steps.inputs.outputs.firm_name }}"
+            "${{ steps.inputs.outputs.firm_name }}" \
+            "${{ steps.inputs.outputs.from_email }}"
         working-directory: ./automation
         
       - name: Notify Slack
