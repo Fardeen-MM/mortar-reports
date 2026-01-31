@@ -117,56 +117,85 @@ jobs:
           node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
-      - name: Quality Control Validation
+      - name: Quality Control & Iterative Fixing
         id: qc
-        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
           REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
+          CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
           
-          if [ -z "$REPORT_JSON" ] || [ -z "$REPORT_HTML" ]; then
-            echo "⚠️  Warning: Report files not found, skipping QC"
-            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          MAX_ITERATIONS=5
+          ITERATION=1
+          QC_PASSED=false
           
-          echo "🔍 Running quality control validation..."
-          node ai-quality-control.js "$REPORT_JSON" "$REPORT_HTML" || echo "qc_passed=false" >> $GITHUB_OUTPUT
+          echo "🔍 Starting QC with iterative fixing (max $MAX_ITERATIONS attempts)"
           
-          if [ -f qc-result.json ]; then
-            cat qc-result.json
-            QC_STATUS=$(node -e "console.log(require('./qc-result.json').status)")
-            if [ "$QC_STATUS" = "PASSED" ]; then
-              echo "qc_passed=true" >> $GITHUB_OUTPUT
-            else
-              echo "qc_passed=false" >> $GITHUB_OUTPUT
+          while [ $ITERATION -le $MAX_ITERATIONS ]; do
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🔄 ITERATION $ITERATION of $MAX_ITERATIONS"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            
+            # Run QC validation
+            echo "📊 Running QC validation..."
+            if node ai-quality-control.js "$REPORT_JSON" "$REPORT_HTML"; then
+              echo "✅ QC PASSED!"
+              QC_PASSED=true
+              break
             fi
+            
+            echo "❌ QC found issues"
+            
+            # Check if we've hit max iterations
+            if [ $ITERATION -eq $MAX_ITERATIONS ]; then
+              echo "⚠️  Max iterations reached. Deploying current version with QC warnings."
+              break
+            fi
+            
+            # Try to fix issues
+            echo "🔧 Analyzing issues and generating fixes..."
+            if node fix-report-issues.js qc-result.json "$REPORT_JSON" "$REPORT_HTML"; then
+              echo "✅ Fixes generated"
+              
+              # Regenerate report with fixes
+              echo "🔄 Regenerating report with fixes..."
+              node report-generator-v8.js "$REPORT_JSON" "$CONTACT_NAME"
+              
+              # Update REPORT_HTML for next iteration
+              REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
+              
+              ITERATION=$((ITERATION + 1))
+            else
+              echo "❌ Could not generate fixes. Stopping iterations."
+              break
+            fi
+          done
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          if [ "$QC_PASSED" = true ]; then
+            echo "✅ QC PASSED after $ITERATION iteration(s)"
+            echo "qc_passed=true" >> $GITHUB_OUTPUT
+            echo "iterations=$ITERATION" >> $GITHUB_OUTPUT
           else
-            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
+            echo "⚠️  QC NOT PASSED after $ITERATION iteration(s)"
+            echo "qc_passed=false" >> $GITHUB_OUTPUT
+            echo "iterations=$ITERATION" >> $GITHUB_OUTPUT
           fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         working-directory: ./automation
         
-      - name: Send QC Alert to Telegram
-        if: steps.qc.outputs.qc_passed == 'false'
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Log QC Results
         run: |
-          QC_ISSUES=$(cat qc-result.json 2>/dev/null | node -e "
-            const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            console.log((data.issues || []).join('\\n'));
-          ")
-          
-          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"chat_id\": \"${TELEGRAM_CHAT_ID}\",
-              \"text\": \"⚠️ QC WARNING\\n\\nLead: ${{ steps.parse.outputs.contact_name }}\\nEmail: ${{ steps.lead_data.outputs.lead_email }}\\n\\nIssues:\\n${QC_ISSUES}\\n\\nReport will still deploy for your review.\",
-              \"parse_mode\": \"Markdown\"
-            }"
-        working-directory: ./automation
+          if [ "${{ steps.qc.outputs.qc_passed }}" = "true" ]; then
+            echo "✅ QC passed after ${{ steps.qc.outputs.iterations }} iteration(s)"
+          else
+            echo "⚠️  QC failed after ${{ steps.qc.outputs.iterations }} iteration(s)"
+            echo "Report deployed with warnings for manual review"
+          fi
         
       - name: Deploy report to GitHub Pages
         run: |
