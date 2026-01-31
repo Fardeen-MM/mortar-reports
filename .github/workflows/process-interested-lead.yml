@@ -117,6 +117,57 @@ jobs:
           node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
+      - name: Quality Control Validation
+        id: qc
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+        run: |
+          REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
+          REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
+          
+          if [ -z "$REPORT_JSON" ] || [ -z "$REPORT_HTML" ]; then
+            echo "⚠️  Warning: Report files not found, skipping QC"
+            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "🔍 Running quality control validation..."
+          node ai-quality-control.js "$REPORT_JSON" "$REPORT_HTML" || echo "qc_passed=false" >> $GITHUB_OUTPUT
+          
+          if [ -f qc-result.json ]; then
+            cat qc-result.json
+            QC_STATUS=$(node -e "console.log(require('./qc-result.json').status)")
+            if [ "$QC_STATUS" = "PASSED" ]; then
+              echo "qc_passed=true" >> $GITHUB_OUTPUT
+            else
+              echo "qc_passed=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
+          fi
+        working-directory: ./automation
+        
+      - name: Send QC Alert to Telegram
+        if: steps.qc.outputs.qc_passed == 'false'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          QC_ISSUES=$(cat qc-result.json 2>/dev/null | node -e "
+            const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            console.log((data.issues || []).join('\\n'));
+          ")
+          
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${TELEGRAM_CHAT_ID}\",
+              \"text\": \"⚠️ QC WARNING\\n\\nLead: ${{ steps.parse.outputs.contact_name }}\\nEmail: ${{ steps.lead_data.outputs.lead_email }}\\n\\nIssues:\\n${QC_ISSUES}\\n\\nReport will still deploy for your review.\",
+              \"parse_mode\": \"Markdown\"
+            }"
+        working-directory: ./automation
+        
       - name: Deploy report to GitHub Pages
         run: |
           # Get the research JSON to extract firm name
