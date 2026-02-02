@@ -64,27 +64,31 @@ module.exports = function getV9CSS() {
     color: var(--slate-light);
   }
 
-  /* CENTERED HERO (MATCHES WEBSITE) */
+  /* HERO DOMINATES VIEWPORT - FIX #1 */
   .hero {
     text-align: center;
-    padding: 60px 0 80px;
+    padding: 80px 0 120px;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .hero-label {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     color: var(--primary);
-    margin-bottom: 20px;
+    margin-bottom: 32px;
   }
 
   .hero-setup {
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 400;
     color: var(--ink);
-    margin-bottom: 24px;
+    margin-bottom: 32px;
   }
 
   .search-bar-mockup {
@@ -94,10 +98,10 @@ module.exports = function getV9CSS() {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 32px;
-    padding: 20px 32px;
-    margin: 0 auto 32px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    min-width: 420px;
+    padding: 24px 40px;
+    margin: 0 auto 48px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    min-width: 480px;
   }
 
   .google-g {
@@ -106,10 +110,10 @@ module.exports = function getV9CSS() {
 
   .search-text {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     color: #1a1a1a;
     text-align: left;
-    min-width: 280px;
+    min-width: 300px;
   }
 
   .cursor {
@@ -126,11 +130,11 @@ module.exports = function getV9CSS() {
 
   .hero-punch {
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 3.25rem;
+    font-size: 3.75rem;
     font-weight: 600;
-    line-height: 1.15;
+    line-height: 1.1;
     color: var(--ink);
-    margin: 32px 0 20px;
+    margin: 48px 0 28px;
   }
 
   .hero-punch .accent {
@@ -140,24 +144,24 @@ module.exports = function getV9CSS() {
 
   .hero-cost {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     color: var(--slate);
-    margin-bottom: 32px;
+    margin-bottom: 48px;
   }
 
   .hero-cost strong {
     color: var(--danger);
-    font-size: 1.375rem;
+    font-size: 1.5rem;
   }
 
   .hero-cta {
     display: inline-block;
     font-family: 'Outfit', sans-serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
     color: var(--primary);
     text-decoration: none;
-    padding-bottom: 4px;
+    padding: 12px 0 6px;
     border-bottom: 2px solid var(--primary-light);
   }
 
@@ -594,14 +598,45 @@ module.exports = function getV9CSS() {
     text-decoration: none;
   }
 
+  /* SECTION INTROS - FIX #3 */
+  .section-intro {
+    text-align: center;
+    max-width: 600px;
+    margin: 100px auto 40px;
+  }
+
+  .section-intro h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .section-intro p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--slate);
+    margin: 0;
+  }
+
   /* Mobile */
   @media (max-width: 640px) {
     .container {
       padding: 40px 20px;
     }
 
+    .hero {
+      min-height: auto;
+      padding: 60px 0 80px;
+    }
+
     .hero-punch {
-      font-size: 2.25rem;
+      font-size: 2.5rem;
+    }
+
+    .section-intro {
+      margin: 60px auto 32px;
     }
 
     .search-bar-mockup {
