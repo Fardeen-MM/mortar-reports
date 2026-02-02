@@ -102,6 +102,13 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
       console.log(`   ✅ Firm Size: ${firmAnalysis.firmSize?.estimate || 'Unknown'}`);
       console.log(`   ✅ Growth Signals: ${firmAnalysis.growthSignals?.length || 0} identified`);
       console.log(`   ✅ Recent News: ${firmAnalysis.recentNews?.length || 0} items`);
+      
+      // If AI found primary location in firm analysis, use it as early hint
+      if (firmAnalysis.primaryLocation && (firmAnalysis.primaryLocation.city || firmAnalysis.primaryLocation.state)) {
+        console.log(`   ✅ Primary Location Hint: ${firmAnalysis.primaryLocation.city}, ${firmAnalysis.primaryLocation.state}`);
+        // Store for later use if dedicated extraction fails
+        research._primaryLocationHint = firmAnalysis.primaryLocation;
+      }
     }
     
     console.log();
@@ -209,26 +216,104 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
     console.log();
     
     // ========================================================================
-    // STEP 4: LOCATION EXTRACTION
+    // STEP 4: AGGRESSIVE LOCATION EXTRACTION
     // ========================================================================
-    console.log(`📍 Step 4: Extracting locations...`);
+    console.log(`📍 Step 4: Extracting locations (AGGRESSIVE)...`);
     
-    const locations = await aiHelper.extractLocation(homeHtml, research.firmName);
+    // Try 1: Extract from homepage
+    let locations = await aiHelper.extractLocation(homeHtml, research.firmName);
+    console.log(`   Step 4a: Home page → ${locations.length} location(s)`);
+    
+    // Try 2: If no luck, try about page
+    if ((!locations || locations.length === 0) && aboutHtml) {
+      console.log(`   Step 4b: Trying about page...`);
+      locations = await aiHelper.extractLocation(aboutHtml, research.firmName);
+      console.log(`   Step 4b: About page → ${locations.length} location(s)`);
+    }
+    
+    // Try 3: If still no luck, try contact page
+    if (!locations || locations.length === 0) {
+      console.log(`   Step 4c: Trying contact page...`);
+      const contactUrls = [
+        `${new URL(firmWebsite).origin}/contact`,
+        `${new URL(firmWebsite).origin}/contact-us`,
+        `${new URL(firmWebsite).origin}/locations`
+      ];
+      
+      for (const url of contactUrls) {
+        try {
+          const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+          if (response && response.status() === 200) {
+            const contactHtml = await page.content();
+            locations = await aiHelper.extractLocation(contactHtml, research.firmName);
+            if (locations && locations.length > 0) {
+              console.log(`   Step 4c: Contact page → ${locations.length} location(s) ✅`);
+              research.pagesAnalyzed.push({ url, type: 'contact' });
+              break;
+            }
+          }
+        } catch (e) { /* skip */ }
+      }
+    }
+    
+    // Try 4: Combined HTML (last resort - bigger context for AI)
+    if (!locations || locations.length === 0) {
+      console.log(`   Step 4d: Trying combined HTML (last resort)...`);
+      const combinedHtml = homeHtml + '\n\n' + (aboutHtml || '');
+      locations = await aiHelper.extractLocation(combinedHtml, research.firmName);
+      console.log(`   Step 4d: Combined → ${locations.length} location(s)`);
+    }
+    
+    // Final assignment
     if (locations && locations.length > 0) {
       research.allLocations = locations;
       research.location = {
-        city: locations[0].city,
-        state: locations[0].state,
+        city: locations[0].city || '',
+        state: locations[0].state || '',
         country: locations[0].country || 'US'
       };
-      console.log(`   ✅ Found ${locations.length} location(s)`);
+      console.log(`   ✅ SUCCESS: Found ${locations.length} location(s)`);
+      console.log(`   Primary: ${research.location.city}, ${research.location.state}`);
       research.confidence.location = 9;
     } else {
-      research.location = { city, state, country };
-      research.allLocations = [{ city, state, country, address: '' }];
-      research.confidence.location = 6;
-      console.log(`   ⚠️  Using Instantly location: ${city}, ${state}`);
+      // Try 5: Use location hint from firm analysis
+      if (research._primaryLocationHint && (research._primaryLocationHint.city || research._primaryLocationHint.state)) {
+        console.log(`   Step 4e: Using location from firm analysis...`);
+        research.location = {
+          city: research._primaryLocationHint.city || '',
+          state: research._primaryLocationHint.state || '',
+          country: 'US'
+        };
+        research.allLocations = [{ 
+          city: research._primaryLocationHint.city || '', 
+          state: research._primaryLocationHint.state || '', 
+          country: 'US', 
+          address: '' 
+        }];
+        console.log(`   ✅ Using firm analysis location: ${research.location.city}, ${research.location.state}`);
+        research.confidence.location = 8;
+      }
+      // Try 6: Fallback to Instantly webhook data
+      else if (city || state) {
+        research.location = { city: city || '', state: state || '', country: country || 'US' };
+        research.allLocations = [{ city: city || '', state: state || '', country: country || '', address: '' }];
+        research.confidence.location = 6;
+        console.log(`   ⚠️  Using Instantly webhook location: ${city}, ${state}`);
+      }
+      // Complete failure
+      else {
+        research.location = { city: '', state: '', country: 'US' };
+        research.allLocations = [{ city: '', state: '', country: 'US', address: '' }];
+        research.confidence.location = 0;
+        console.log(`   ❌ NO LOCATION FOUND ANYWHERE`);
+        console.log(`      - AI extraction: failed (4 attempts)`);
+        console.log(`      - Firm analysis: no hint`);
+        console.log(`      - Instantly webhook: empty`);
+      }
     }
+    
+    // Clean up temp hint
+    delete research._primaryLocationHint;
     
     console.log();
     

@@ -182,38 +182,58 @@ If no attorneys found, return: {"attorneys": []}`;
  * Extract location from ANY page using AI
  */
 async function extractLocation(html, firmName) {
-  const prompt = `Analyze this law firm website page and extract ALL physical office locations.
+  const prompt = `You are extracting location information from a law firm website.
 
-For each location, extract:
-- Street address
-- City
-- State/Province
+**CRITICAL:** This law firm MUST have a physical location. Look EVERYWHERE on this page:
+- Header (top right often has city/state)
+- Footer (usually has full address)
+- Contact section
+- "Visit Us" or "Locations" sections
+- Copyright text (often includes city)
+- Phone numbers area codes (can hint at location)
+- ANY text that mentions a city or state
+
+For each location found, extract:
+- Street address (if visible)
+- City (REQUIRED - look harder!)
+- State/Province (REQUIRED - 2-letter abbreviation if US)
 - ZIP/Postal code
-- Country
-- Phone number (if present)
+- Country (default to "US" if not specified but appears to be USA)
+- Phone number
+
+**If you see ANY city or state name ANYWHERE on the page, include it.**
 
 Return ONLY valid JSON:
 {
   "locations": [
     {
-      "address": "8200 Greensboro Dr Suite 820",
-      "city": "McLean",
-      "state": "VA",
-      "zip": "22102",
+      "address": "123 Main St",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zip": "85001",
       "country": "US",
-      "phone": "703-555-1234"
+      "phone": "602-555-1234"
     }
   ]
 }
 
-If no locations found, return: {"locations": []}`;
+If you genuinely cannot find ANY city or state after checking the entire page, return: {"locations": []}`;
 
   try {
     const response = await askAI(prompt, html, 1500);
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const data = JSON.parse(jsonMatch[0]);
-      return data.locations || [];
+      const locations = data.locations || [];
+      
+      // Validate each location has at minimum city OR state
+      const validLocations = locations.filter(loc => loc.city || loc.state);
+      
+      if (validLocations.length === 0) {
+        console.log(`   ⚠️  AI found ${locations.length} location(s) but none had city/state`);
+      }
+      
+      return validLocations;
     }
     return [];
   } catch (e) {
@@ -340,32 +360,41 @@ Return ONLY valid JSON:
 async function analyzeFirm(homeHtml, aboutHtml, firmName) {
   const combinedHtml = `${homeHtml}\n\n<!-- ABOUT PAGE -->\n${aboutHtml || ''}`;
   
-  const prompt = `Analyze this law firm's website and extract high-level intelligence for personalized outreach.
+  const prompt = `Analyze this law firm's website and extract comprehensive intelligence for personalized outreach.
 
-**CRITICAL: Only extract information that is EXPLICITLY stated on this website. Do NOT invent or assume anything.**
+**CRITICAL REQUIREMENTS:**
+1. Extract EVERYTHING explicitly stated on the website
+2. Look at headers, footers, about sections, contact info
+3. Check schema.org markup, copyright text, address blocks
+4. DO NOT invent information, but be thorough in finding what EXISTS
 
 Extract:
-1. Positioning: What makes this firm unique? Their value proposition (from "About" or homepage).
-2. Key specialties: Top 3-5 practice areas they emphasize (only what's listed on the site).
-3. Firm size estimate: "boutique (5-15)", "mid-size (15-50)", "large (50+)" - estimate based on content.
-4. Recent news: Any announcements, wins, hires, expansions explicitly mentioned (with dates if shown).
-5. Credentials: Firm-level awards, rankings, certifications explicitly mentioned.
-6. Growth signals: Hiring, new offices, new practice areas, recent wins explicitly mentioned.
-
-**If you cannot find information for a field, use an empty array [] or leave it blank.**
+1. **Primary Location**: Look EVERYWHERE for the main office city/state (header, footer, contact, copyright)
+2. **Positioning**: What makes this firm unique? Their value proposition
+3. **Key specialties**: Top 3-7 practice areas they emphasize
+4. **Firm size**: "boutique (5-15)", "mid-size (15-50)", "large (50+)" based on attorney count or firm description
+5. **Recent news**: Announcements, wins, hires, expansions (with dates)
+6. **Credentials**: Awards, rankings, certifications (Super Lawyers, AV Rated, Best Lawyers, etc.)
+7. **Growth signals**: Hiring, new offices, practice areas, major wins
 
 Return ONLY valid JSON:
 {
+  "primaryLocation": {
+    "city": "Phoenix",
+    "state": "AZ"
+  },
   "positioning": "Brief description from their About page or homepage",
-  "keySpecialties": ["Practice 1", "Practice 2"],
+  "keySpecialties": ["Practice 1", "Practice 2", "Practice 3"],
   "firmSize": {
     "estimate": "mid-size (15-50)",
-    "attorneys": 0
+    "attorneys": 25
   },
-  "recentNews": [],
-  "credentials": [],
-  "growthSignals": []
-}`;
+  "recentNews": ["News item 1", "News item 2"],
+  "credentials": ["Super Lawyers", "AV Rated"],
+  "growthSignals": ["Hired 3 new partners", "Opened Dallas office"]
+}
+
+If you cannot find primaryLocation, leave it as {"city": "", "state": ""}`;
 
   try {
     const response = await askAI(prompt, combinedHtml, 2000);
