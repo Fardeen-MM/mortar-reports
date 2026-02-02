@@ -1,0 +1,120 @@
+{
+  "errors": [
+    "No competitor data found - BLOCKING GENERATION"
+  ],
+  "data": {
+    "firmName": "Roth Jackson",
+    "website": "https://www.rothjackson.com",
+    "contactPerson": "Andrew Condlin",
+    "location": {
+      "city": "McLean",
+      "state": "VA",
+      "country": "US"
+    },
+    "firmIntel": {
+      "positioning": "Based in Virginia, our BigLaw-trained attorneys deliver exceptional client service and value with a small firm's personal approach. Our attorneys have expertise in a host of core practice areas that are vital to the success of your business, and serve businesses of all sizes as they navigate complex legal issues.",
+      "keySpecialties": [
+        "Advertising, Marketing, and Media Law",
+        "Business Torts And Contract Claims",
+        "Business, Banking & Financial Services",
+        "Class Action Litigation",
+        "Commercial Lending",
+        "Commercial Real Estate & Land Use",
+        "Complex Commercial Litigation",
+        "Employment Immigration",
+        "Employment Law",
+        "Entity Formation & Governance",
+        "Immigration",
+        "Telecommunications",
+        "Telephone Consumer Protection Act: TCPA",
+        "Trusts and Estates Administration and Litigation"
+      ],
+      "firmSize": {
+        "estimate": "mid-size (15-50)",
+        "attorneys": 23
+      },
+      "recentNews": [
+        "Announced strategic alliance with CommLaw Group (Jan 2025)",
+        "Hired 3 new immigration attorneys"
+      ],
+      "credentials": [
+        "AV Rated",
+        "Best Lawyers 2024"
+      ],
+      "growthSignals": [
+        "Expanding telecommunications practice",
+        "New Richmond office"
+      ]
+    },
+    "sampleAttorneys": [
+      {
+        "name": "Mitchell N. Roth",
+        "title": "Managing Partner",
+        "totalCount": 23
+      },
+      {
+        "name": "Joseph F. Jackson",
+        "title": "Partner",
+        "totalCount": 23
+      },
+      {
+        "name": "Ashley S. Brooks",
+        "title": "Associate",
+        "totalCount": 23
+      }
+    ],
+    "allLocations": [
+      {
+        "address": "8200 Greensboro Dr Suite 820",
+        "city": "McLean",
+        "state": "VA",
+        "zip": "22102",
+        "country": "US",
+        "phone": "(703) 485-3535"
+      },
+      {
+        "address": "",
+        "city": "Richmond",
+        "state": "",
+        "zip": "",
+        "country": "",
+        "phone": "(804) 441-8440"
+      }
+    ],
+    "practiceAreas": [
+      "Advertising, Marketing, and Media Law",
+      "Business Torts And Contract Claims",
+      "Business, Banking & Financial Services",
+      "Class Action Litigation",
+      "Commercial Lending",
+      "Commercial Real Estate & Land Use",
+      "Complex Commercial Litigation",
+      "Employment Immigration",
+      "Employment Law",
+      "Entity Formation & Governance",
+      "Immigration",
+      "Telecommunications",
+      "Telephone Consumer Protection Act: TCPA",
+      "Trusts and Estates Administration and Litigation"
+    ],
+    "pagesAnalyzed": [
+      {
+        "url": "https://www.rothjackson.com",
+        "type": "home"
+      },
+      {
+        "url": "https://www.rothjackson.com/about",
+        "type": "about"
+      },
+      {
+        "url": "https://www.rothjackson.com/our-team",
+        "type": "team"
+      }
+    ],
+    "confidence": {
+      "location": 9,
+      "practiceAreas": 9,
+      "overall": 9
+    }
+  }
+}
