@@ -117,8 +117,9 @@ jobs:
           node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
-      - name: Quality Control & Iterative Fixing
+      - name: Quality Control & Iterative Fixing (AI-Powered)
         id: qc
+        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
@@ -126,66 +127,34 @@ jobs:
           REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
           CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
           
-          MAX_ITERATIONS=5
-          ITERATION=1
-          QC_PASSED=false
-          
-          echo "🔍 Starting QC with iterative fixing (max $MAX_ITERATIONS attempts)"
-          
-          while [ $ITERATION -le $MAX_ITERATIONS ]; do
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🔄 ITERATION $ITERATION of $MAX_ITERATIONS"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            
-            # Run QC validation
-            echo "📊 Running QC validation..."
-            if node ai-quality-control.js "$REPORT_JSON" "$REPORT_HTML"; then
-              echo "✅ QC PASSED!"
-              QC_PASSED=true
-              break
-            fi
-            
-            echo "❌ QC found issues"
-            
-            # Check if we've hit max iterations
-            if [ $ITERATION -eq $MAX_ITERATIONS ]; then
-              echo "⚠️  Max iterations reached. Deploying current version with QC warnings."
-              break
-            fi
-            
-            # Try to fix issues
-            echo "🔧 Analyzing issues and generating fixes..."
-            if node fix-report-issues.js qc-result.json "$REPORT_JSON" "$REPORT_HTML"; then
-              echo "✅ Fixes generated"
-              
-              # Regenerate report with fixes
-              echo "🔄 Regenerating report with fixes..."
-              node report-generator-v8.js "$REPORT_JSON" "$CONTACT_NAME"
-              
-              # Update REPORT_HTML for next iteration
-              REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
-              
-              ITERATION=$((ITERATION + 1))
-            else
-              echo "❌ Could not generate fixes. Stopping iterations."
-              break
-            fi
-          done
-          
+          echo "🔄 Starting iterative QC system..."
+          echo "Research: $REPORT_JSON"
+          echo "Report: $REPORT_HTML"
           echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          if [ "$QC_PASSED" = true ]; then
-            echo "✅ QC PASSED after $ITERATION iteration(s)"
+          
+          # Run iterative QC (handles validation, AI analysis, regeneration, looping)
+          if node iterative-qc.js "$REPORT_JSON" "$REPORT_HTML" "$CONTACT_NAME"; then
+            echo "✅ QC PASSED - Report is perfect!"
             echo "qc_passed=true" >> $GITHUB_OUTPUT
-            echo "iterations=$ITERATION" >> $GITHUB_OUTPUT
+            
+            # Read iteration count from result
+            ITERATIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('iterative-qc-result.json', 'utf8')).iterations)")
+            echo "iterations=$ITERATIONS" >> $GITHUB_OUTPUT
           else
-            echo "⚠️  QC NOT PASSED after $ITERATION iteration(s)"
+            echo "❌ QC FAILED after 5 iterations"
             echo "qc_passed=false" >> $GITHUB_OUTPUT
-            echo "iterations=$ITERATION" >> $GITHUB_OUTPUT
+            echo "iterations=5" >> $GITHUB_OUTPUT
+            
+            # Read issues from result for Telegram notification
+            node -e "
+              const result = JSON.parse(require('fs').readFileSync('iterative-qc-result.json', 'utf8'));
+              console.log('\\n🚨 UNRESOLVED ISSUES:');
+              Object.entries(result.byPhase || {}).forEach(([phase, issues]) => {
+                console.log(\`\\n\${phase}:\`);
+                issues.forEach(issue => console.log(\`  - \${issue}\`));
+              });
+            "
           fi
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         working-directory: ./automation
         
       - name: Log QC Results

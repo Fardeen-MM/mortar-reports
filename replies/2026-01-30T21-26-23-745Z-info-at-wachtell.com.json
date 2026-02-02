@@ -1,0 +1,33 @@
+{
+  "replyId": "2026-01-30T21-26-23-745Z-info-at-wachtell.com",
+  "timestamp": "2026-01-30T21:26:23.745Z",
+  "event_type": "reply_received",
+  "email_id": "test-email-456",
+  "lead_email": "info@wachtell.com",
+  "reply_text": "Thanks for reaching out. We would be interested in discussing how your services could help our firm with client acquisition. What times work for a brief intro call next week?",
+  "campaign_name": "Law Firms Q1 2026",
+  "email_account": "fardeen@mortarmetrics.com",
+  "unibox_url": "https://app.instantly.ai/unibox/test2",
+  "status": "draft_failed",
+  "full_webhook": {
+    "event_type": "reply_received",
+    "email_id": "test-email-456",
+    "lead_email": "info@wachtell.com",
+    "reply_text": "Thanks for reaching out. We would be interested in discussing how your services could help our firm with client acquisition. What times work for a brief intro call next week?",
+    "campaign_name": "Law Firms Q1 2026",
+    "email_account": "fardeen@mortarmetrics.com",
+    "unibox_url": "https://app.instantly.ai/unibox/test2"
+  },
+  "research": {
+    "domain": "wachtell.com",
+    "url": "https://wachtell.com",
+    "content": "{\"data\":null,\"cause\":{},\"code\":422,\"name\":\"AssertionFailureError\",\"status\":42206,\"message\":\"Failed to goto https://wachtell.com/: Error: net::ERR_CERT_COMMON_NAME_INVALID at https://wachtell.com/\",\"readableMessage\":\"AssertionFailureError: Failed to goto https://wachtell.com/: Error: net::ERR_CERT_COMMON_NAME_INVALID at https://wachtell.com/\"}",
+    "fetched_at": "2026-01-30T21:27:07.863Z"
+  },
+  "draft": {
+    "draft": "",
+    "error": "model: claude-3-5-sonnet-20241022",
+    "generated_at": "2026-01-30T21:27:08.174Z"
+  },
+  "processed_at": "2026-01-30T21:27:08.174Z"
+}

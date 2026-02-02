@@ -1,0 +1,15 @@
+{
+  "event_type": "interested_lead",
+  "client_payload": {
+    "email": "test@rothjackson.com",
+    "first_name": "Test",
+    "last_name": "User",
+    "website": "https://rothjackson.com",
+    "city": "McLean",
+    "state": "VA",
+    "country": "USA",
+    "company": "Roth Jackson",
+    "email_id": "test-email-999",
+    "from_email": "fardeen@mortarmetrics.com"
+  }
+}

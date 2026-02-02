@@ -17,6 +17,16 @@ const path = require('path');
 function generateReport(researchData, prospectName) {
   console.log(`\n📝 Generating HIGH-DENSITY report for ${prospectName}...\n`);
   
+  // Check for improvement notes from iterative QC
+  let improvementNotes = null;
+  const notesPath = path.join(__dirname, '..', 'improvement-notes.txt');
+  if (fs.existsSync(notesPath)) {
+    improvementNotes = fs.readFileSync(notesPath, 'utf8');
+    console.log('📋 Found improvement notes from QC - applying fixes...\n');
+    console.log(improvementNotes);
+    console.log('\n');
+  }
+  
   const {
     firmName = 'Your Firm',
     website = '',
