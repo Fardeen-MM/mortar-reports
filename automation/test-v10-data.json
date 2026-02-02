@@ -1,0 +1,45 @@
+{
+  "firmName": "Smith & Associates, Llp",
+  "website": "https://www.smithlaw.com",
+  "location": {
+    "city": "Phoenix",
+    "state": "AZ",
+    "country": "US"
+  },
+  "practiceAreas": [
+    "Tax Resolution",
+    "IRS Representation"
+  ],
+  "competitors": [
+    {
+      "name": "Jones Tax Law",
+      "reviewCount": 127,
+      "rating": 4.8,
+      "hasGoogleAds": true,
+      "hasMetaAds": false,
+      "has24x7": false
+    },
+    {
+      "name": "Phoenix Tax Solutions",
+      "reviewCount": 89,
+      "rating": 4.5,
+      "hasGoogleAds": true,
+      "hasMetaAds": false,
+      "has24x7": false
+    },
+    {
+      "name": "Miller & Associates",
+      "reviewCount": 52,
+      "rating": 4.2,
+      "hasGoogleAds": false,
+      "hasMetaAds": false,
+      "has24x7": false
+    }
+  ],
+  "gaps": {
+    "googleAds": { "hasGap": true },
+    "metaAds": { "hasGap": true },
+    "voiceAI": { "hasGap": true }
+  },
+  "estimatedMonthlyRevenueLoss": 19000
+}
