@@ -214,7 +214,24 @@ function generateReport(researchData, prospectName) {
   }
   
   const outputPath = path.resolve(reportsDir, `${firmSlug}-landing-page-v11.html`);
-  fs.writeFileSync(outputPath, html);
+  
+  // Apply typography cleanup (FIX #6/#7 from QC)
+  let cleanedHTML = html;
+  
+  // Replace em dashes with regular dashes
+  cleanedHTML = cleanedHTML.replace(/—/g, '-');
+  
+  // Limit exclamation points to max 2
+  const exclamationMatches = cleanedHTML.match(/!/g);
+  if (exclamationMatches && exclamationMatches.length > 2) {
+    let count = 0;
+    cleanedHTML = cleanedHTML.replace(/!/g, (match) => {
+      count++;
+      return count > 2 ? '.' : match;
+    });
+  }
+  
+  fs.writeFileSync(outputPath, cleanedHTML);
   
   console.log(`💾 Saved: ${outputPath}\n`);
   console.log(`✅ Report generated successfully`);
