@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Normalize Research Data - Compatibility Layer
- * Converts new v5 format to old format expected by report-generator-v8.js
+ * Converts new v5 format to old format expected by report generator
  */
 
 function normalizeResearchData(data) {

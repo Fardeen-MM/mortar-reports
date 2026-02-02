@@ -126,9 +126,9 @@ HERO REQUIREMENTS:
 
   fs.writeFileSync('improvement-notes.txt', improvementNotes);
   
-  // Step 3: Regenerate with v8 generator
+  // Step 3: Regenerate with v9 generator
   try {
-    execSync(`node report-generator-v8.js ${researchFile} "${contactName}"`, {
+    execSync(`node report-generator-v9.js ${researchFile} "${contactName}"`, {
       stdio: 'inherit'
     });
     
