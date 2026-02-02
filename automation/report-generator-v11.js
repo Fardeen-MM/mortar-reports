@@ -117,7 +117,7 @@ const SEARCH_TERMS = {
 };
 
 function generateReport(researchData, prospectName) {
-  console.log(`\n📝 Generating V10 Report (Emotional + Data) for ${prospectName}...\n`);
+  console.log(`\n📝 Generating V11 Report (7 Critical Fixes) for ${prospectName}...\n`);
   
   // PHASE 0: HARD VALIDATION GATE
   const validation = validateData(researchData);
@@ -213,7 +213,7 @@ function generateReport(researchData, prospectName) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }
   
-  const outputPath = path.resolve(reportsDir, `${firmSlug}-landing-page-v10.html`);
+  const outputPath = path.resolve(reportsDir, `${firmSlug}-landing-page-v11.html`);
   fs.writeFileSync(outputPath, html);
   
   console.log(`💾 Saved: ${outputPath}\n`);
@@ -510,17 +510,17 @@ function generateHTML(data) {
   <div class="container">
     ${generateHeader(prospectName, today)}
     ${generateHero(practiceLabel, city, searchTerms, heroTotalK)}
-    ${generateSectionIntro('gaps', `Where you're losing $${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
+    ${generateSectionIntro('gaps', `Where you are losing $${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
     ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue)}
     ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue)}
     ${generateGap3(gapCalculations.gap3, caseValue, firmName)}
-    ${generateSectionIntro('competitors', 'Your competitive landscape', `We analyzed your top competitors in ${city} to see who's running ads, who's capturing after-hours leads, and where the opportunity is.`)}
+    ${generateSectionIntro('competitors', 'Your competitive landscape', `We analyzed your top competitors in ${city} to see who is running ads, who is capturing after-hours leads, and where the opportunity is.`)}
     ${generateCompetitors(competitors, city)}
-    ${generateSectionIntro('solution', 'What it takes to fix this', `Closing these gaps isn't one quick fix. It's a system—ads, intake, CRM, reporting—that works together.`)}
+    ${generateSectionIntro('solution', 'What it takes to fix this', `Closing these gaps is not one quick fix. It is a system: ads, intake, CRM, reporting that works together.`)}
     ${generateSolution()}
-    ${generateSectionIntro('proof', 'We've done this before', `This isn't theory. We've built this system for 23 law firms. Here's what happened.`)}
+    ${generateSectionIntro('proof', 'We have done this before', `This is not theory. We have built this system for 23 law firms. Here is what happened.`)}
     ${generateProof()}
-    ${generateSectionIntro('next', 'What happens next', `Two choices. Neither is wrong—but one keeps things the same.`)}
+    ${generateSectionIntro('next', 'What happens next', `Two choices. Neither is wrong, but one keeps things the same.`)}
     ${generateTwoOptions(heroTotalK, competitors)}
     ${generateCTA(heroTotalK)}
     ${generateFooter()}
