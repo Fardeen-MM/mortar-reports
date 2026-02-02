@@ -23,7 +23,11 @@ const CASE_VALUES = {
   'criminal': 5000,
   'estate': 3000,
   'business': 6000,
-  'bankruptcy': 2500
+  'bankruptcy': 2500,
+  'civil rights': 8000,
+  'employment': 6000,
+  'real estate': 5000,
+  'ip': 7500
 };
 
 // Realistic search terms by practice area
@@ -69,6 +73,34 @@ const SEARCH_TERMS = {
     'criminal defense lawyer {city}',
     'best criminal lawyer near me',
     'how to beat a dui'
+  ],
+  'civil rights': [
+    'civil rights lawyer near me',
+    'police misconduct attorney',
+    'civil rights attorney {city}',
+    'police brutality lawyer',
+    'constitutional rights lawyer'
+  ],
+  'employment': [
+    'employment lawyer near me',
+    'wrongful termination attorney',
+    'discrimination lawyer {city}',
+    'hostile work environment lawyer',
+    'employment discrimination attorney'
+  ],
+  'real estate': [
+    'real estate lawyer near me',
+    'property attorney',
+    'real estate attorney {city}',
+    'landlord tenant lawyer',
+    'real estate closing attorney'
+  ],
+  'ip': [
+    'patent lawyer near me',
+    'trademark attorney',
+    'intellectual property lawyer {city}',
+    'copyright attorney',
+    'ip lawyer near me'
   ],
   'default': [
     'lawyer near me',
@@ -253,6 +285,10 @@ function getPracticeAreaCategory(practiceArea) {
   if (lower.includes('business') || lower.includes('corporate')) return 'business';
   if (lower.includes('bankruptcy')) return 'bankruptcy';
   if (lower.includes('litigation')) return 'litigation';
+  if (lower.includes('civil rights') || lower.includes('police') || lower.includes('misconduct')) return 'civil rights';
+  if (lower.includes('employment') || lower.includes('discrimination') || lower.includes('labor')) return 'employment';
+  if (lower.includes('real estate') || lower.includes('property')) return 'real estate';
+  if (lower.includes('intellectual property') || lower.includes('patent') || lower.includes('trademark')) return 'ip';
   
   return 'default';
 }
