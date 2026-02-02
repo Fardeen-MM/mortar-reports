@@ -124,7 +124,7 @@ jobs:
             exit 1
           fi
           echo "📄 Generating report from: $REPORT_FILE"
-          node report-generator-v8.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
+          node report-generator-v9.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         
       - name: Quality Control & Iterative Fixing (AI-Powered)
@@ -133,7 +133,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
-          REPORT_HTML=$(find reports -name "*-landing-page-v8.html" -type f | head -1)
+          REPORT_HTML=$(find reports -name "*-landing-page-v9.html" -type f | head -1)
           CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
           
           echo "🔄 Starting iterative QC system..."
@@ -201,7 +201,7 @@ jobs:
           mkdir -p "$FIRM_NAME"
           
           # Copy generated HTML as index.html
-          REPORT_HTML=$(find automation/reports -name "*-landing-page-v8.html" -type f | head -1)
+          REPORT_HTML=$(find automation/reports -name "*-landing-page-v9.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
             REPORT_HTML=$(find automation/reports -name "*.html" -type f | head -1)
           fi
