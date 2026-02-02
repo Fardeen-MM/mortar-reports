@@ -114,6 +114,26 @@ jobs:
           echo "📊 Normalizing: $REPORT_FILE"
           node normalize-research-data.js "$REPORT_FILE"
         working-directory: ./automation
+      
+      - name: Debug V9 Environment
+        run: |
+          echo "=== V9 DEBUG INFO ==="
+          echo "Node: $(node --version)"
+          echo ""
+          echo "V9 files:"
+          ls -lh report-generator-v9.js report-v9-css.js
+          echo ""
+          REPORT_FILE=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
+          echo "Research file: $REPORT_FILE"
+          echo "Contact name: ${{ steps.parse.outputs.contact_name }}"
+          echo ""
+          echo "Testing module load:"
+          node -e "require('./report-generator-v9.js'); console.log('✅ V9 loads')" || echo "❌ V9 load failed"
+          node -e "const c=require('./report-v9-css.js'); c(); console.log('✅ CSS loads')" || echo "❌ CSS load failed"
+          echo ""
+          echo "Data structure:"
+          node -e "const d=require('./$REPORT_FILE'); console.log('Firm:', d.firmName); console.log('Loc:', d.location?.city, d.location?.state); console.log('Comps:', d.competitors?.length || 0); console.log('Gaps:', Array.isArray(d.gaps) ? 'array['+d.gaps.length+']' : typeof d.gaps);"
+        working-directory: ./automation
         
       - name: Generate report with AI insights
         id: report
@@ -124,7 +144,12 @@ jobs:
             exit 1
           fi
           echo "📄 Generating report from: $REPORT_FILE"
-          node report-generator-v9.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}"
+          node report-generator-v9.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
+            echo "❌ Generation failed with exit code: $?"
+            echo "Checking for generation-blocked.json:"
+            cat generation-blocked.json 2>/dev/null || echo "No generation-blocked.json found"
+            exit 1
+          }
         working-directory: ./automation
         
       - name: Quality Control & Iterative Fixing (AI-Powered)
