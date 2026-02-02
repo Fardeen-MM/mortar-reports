@@ -36,8 +36,8 @@ function normalizeResearchData(data) {
       crm: { hasGap: true, impact: 4000 }
     },
     
-    // Placeholder competitors (we don't scrape this in v5)
-    competitors: [],
+    // Competitors from v5 data
+    competitors: data.competitors || [],
     
     // Calculated metrics
     estimatedMonthlyRevenueLoss: 19000,
