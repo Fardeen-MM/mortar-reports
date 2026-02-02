@@ -175,6 +175,28 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
   const gapSections = [];
   let gapNumber = 1;
   
+  // Calculate total monthly loss and ensure gaps sum correctly
+  const totalMonthlyLoss = researchData.estimatedMonthlyRevenueLoss || 0;
+  
+  // Count how many gaps we're showing
+  const gapsToShow = [];
+  if (gaps.googleAds?.hasGap) gapsToShow.push('googleAds');
+  if (gaps.metaAds?.hasGap) gapsToShow.push('metaAds');
+  if (gaps.voiceAI?.hasGap || gaps.support24x7?.hasGap) gapsToShow.push('voiceAI');
+  
+  // Check if gaps have impact values, if not distribute total evenly
+  const totalGapImpact = (gaps.googleAds?.impact || 0) + (gaps.metaAds?.impact || 0) + 
+                          (gaps.voiceAI?.impact || gaps.support24x7?.impact || 0);
+  
+  if (totalGapImpact === 0 && gapsToShow.length > 0 && totalMonthlyLoss > 0) {
+    // Distribute total evenly across gaps
+    const perGap = totalMonthlyLoss / gapsToShow.length;
+    if (gaps.googleAds) gaps.googleAds.impact = perGap;
+    if (gaps.metaAds) gaps.metaAds.impact = perGap;
+    if (gaps.voiceAI) gaps.voiceAI.impact = perGap;
+    if (gaps.support24x7 && !gaps.voiceAI?.hasGap) gaps.support24x7.impact = perGap;
+  }
+  
   // Always show all 3 gaps in this order for consistency
   // Gap 1: Google Ads
   if (gaps.googleAds?.hasGap) {
@@ -196,7 +218,7 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
 }
 
 function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors, researchData) {
-  const impactK = Math.round(gap.impact / 1000) || 12;
+  const impactK = gap.impact ? Math.round(gap.impact / 1000) : 12;
   const practice = researchData.practiceAreas?.[0] || 'legal services';
   const city = researchData.location?.city || locationStr.split(',')[0];
   
@@ -211,7 +233,7 @@ function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">You're invisible when it matters most</div>
+        <div class="gap-title">${firmName} is invisible when it matters most</div>
         <div class="gap-cost">-$${impactK}K/mo</div>
       </div>
       
@@ -243,7 +265,7 @@ function generateGoogleAdsGap(number, gap, firmName, locationStr, topCompetitors
 }
 
 function generateMetaAdsGap(number, gap, firmName, locationStr, topCompetitors, researchData) {
-  const impactK = Math.round(gap.impact / 1000) || 15;
+  const impactK = gap.impact ? Math.round(gap.impact / 1000) : 15;
   
   // Estimate monthly traffic
   const monthlyVisitors = 800;
@@ -255,7 +277,7 @@ function generateMetaAdsGap(number, gap, firmName, locationStr, topCompetitors, 
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">Every visitor leaves and forgets you exist</div>
+        <div class="gap-title">Every ${firmName} visitor leaves and forgets you exist</div>
         <div class="gap-cost">-$${impactK}K/mo</div>
       </div>
       
@@ -289,7 +311,7 @@ function generateMetaAdsGap(number, gap, firmName, locationStr, topCompetitors, 
 }
 
 function generateVoiceAIGap(number, gap, firmName, locationStr, researchData) {
-  const impactK = Math.round(gap.impact / 1000) || 18;
+  const impactK = gap.impact ? Math.round(gap.impact / 1000) : 18;
   
   // Calculate estimates
   const monthlyInboundCalls = 60;
@@ -305,13 +327,25 @@ function generateVoiceAIGap(number, gap, firmName, locationStr, researchData) {
     <div class="section-label">GAP #${number}</div>
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">After-hours calls go straight to voicemail</div>
+        <div class="gap-title">${firmName}'s after-hours calls go straight to voicemail</div>
         <div class="gap-cost">-$${impactK}K/mo</div>
       </div>
       
       <p><strong>Here's the uncomfortable truth about legal leads:</strong> 73% of people searching for lawyers do it outside business hours. They're stressed, Googling at 8pm after the kids are in bed, or during lunch break at 12:30pm. When they call and hear voicemail, 73% hang up without leaving a message. They don't wait. They call the next firm.</p>
       
       <p><strong>You have no after-hours intake infrastructure.</strong> Your phone rings at 7:45pm. It goes to voicemail. They hang up. They're gone. Forever. Meanwhile, the firm with a 24/7 answering service—or better, voice AI that picks up in 2 rings—just captured that case.</p>
+      
+      <div class="flow-diagram">
+        <div class="flow-step">Stressed client Googles "lawyer near me" at 8:30pm</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Calls ${firmName} (first result)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Voicemail after 4 rings</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Hangs up, tries next firm</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">That firm has 24/7 AI intake → Case captured</div>
+      </div>
       
       <div class="contrast-box">
         <div class="contrast-side">
@@ -558,9 +592,9 @@ function generateSolution(gaps, firmName) {
   
   return `
     <div class="section-label">THE SOLUTION</div>
-    <h2>What full infrastructure actually requires</h2>
+    <h2>What ${firmName} needs to close these gaps</h2>
     
-    <p>The gaps are clear. Here's what it takes to close them—not surface-level fixes, but the actual systems that drive results:</p>
+    <p>The gaps are clear. Here's what it takes to close them—not surface-level fixes, but the actual systems ${firmName} needs to drive results:</p>
     
     <div class="solution-stack">
       <div class="solution-item">
@@ -669,8 +703,8 @@ function generateFinalCTA(firmName, monthlyLossK) {
     </div>
     
     <div id="booking" class="cta">
-      <h2>Ready to capture this $${monthlyLossK}K/month opportunity?</h2>
-      <p>Book a 15-minute call. We'll show you the exact game plan.</p>
+      <h2>Ready to help ${firmName} capture this $${monthlyLossK}K/month opportunity?</h2>
+      <p>Book a 15-minute call. We'll show you the exact game plan for ${firmName}.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%;border:none;overflow: hidden;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>

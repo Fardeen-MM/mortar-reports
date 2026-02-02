@@ -107,6 +107,69 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
     console.log();
     
     // ========================================================================
+    // STEP 2.5: EXTRACT LOCATION IF MISSING FROM INSTANTLY
+    // ========================================================================
+    if (!research.location.city || !research.location.state) {
+      console.log(`📍 Step 2.5: Location missing, extracting from website...`);
+      
+      // Try to extract from HTML
+      const html = homeHtml + (aboutHtml || '');
+      
+      // Pattern 1: Look for address in schema.org markup
+      const schemaMatch = html.match(/"addressLocality"\s*:\s*"([^"]+)"/);
+      const schemaStateMatch = html.match(/"addressRegion"\s*:\s*"([^"]+)"/);
+      
+      if (schemaMatch && schemaStateMatch) {
+        research.location.city = schemaMatch[1];
+        research.location.state = schemaStateMatch[1];
+        console.log(`   ✅ Extracted from schema.org: ${research.location.city}, ${research.location.state}`);
+      } else {
+        // Pattern 2: Look for common address patterns
+        const addressPatterns = [
+          /(\w+(?:\s+\w+)?),\s*([A-Z]{2})\s+\d{5}/g,  // City, ST 12345
+          /located in (\w+(?:\s+\w+)?),\s*([A-Z]{2})/gi,  // "located in City, ST"
+          /serving (\w+(?:\s+\w+)?),\s*([A-Z]{2})/gi,     // "serving City, ST"
+          /(\w+(?:\s+\w+)?)\s+area/gi                      // "City area"
+        ];
+        
+        for (const pattern of addressPatterns) {
+          const matches = html.matchAll(pattern);
+          for (const match of matches) {
+            if (match[1] && match[2]) {
+              research.location.city = match[1].trim();
+              research.location.state = match[2].trim();
+              console.log(`   ✅ Extracted from text: ${research.location.city}, ${research.location.state}`);
+              break;
+            }
+          }
+          if (research.location.city) break;
+        }
+      }
+      
+      // Pattern 3: Look in footer
+      if (!research.location.city) {
+        const footerMatch = html.match(/<footer[\s\S]*?<\/footer>/i);
+        if (footerMatch) {
+          const footer = footerMatch[0];
+          const cityStateMatch = footer.match(/(\w+(?:\s+\w+)?),\s*([A-Z]{2})/);
+          if (cityStateMatch) {
+            research.location.city = cityStateMatch[1];
+            research.location.state = cityStateMatch[2];
+            console.log(`   ✅ Extracted from footer: ${research.location.city}, ${research.location.state}`);
+          }
+        }
+      }
+      
+      if (!research.location.city) {
+        console.log(`   ⚠️  Could not extract location - will show as "your area"`);
+      }
+    } else {
+      console.log(`📍 Location provided: ${research.location.city}, ${research.location.state}`);
+    }
+    
+    console.log();
+    
+    // ========================================================================
     // STEP 3: QUICK ATTORNEY SAMPLE (for personalization)
     // ========================================================================
     console.log(`👥 Step 3: Sampling attorneys for personalization...`);
