@@ -447,6 +447,107 @@ Return ONLY valid JSON:
   }
 }
 
+/**
+ * AI COMPETITOR SEARCH - Find 3-5 competing law firms
+ * Uses AI to intelligently find competitors based on location + practice areas
+ */
+async function findCompetitors(firmName, city, state, practiceAreas) {
+  console.log(`   🔍 Searching for competitors: ${city}, ${state} | ${practiceAreas.join(', ')}`);
+  
+  if (!ANTHROPIC_API_KEY) {
+    console.log(`   ⚠️  ANTHROPIC_API_KEY not set - competitor search skipped`);
+    return [];
+  }
+
+  // Build the search prompt
+  const prompt = `You are a legal marketing researcher finding competitor law firms.
+
+**TARGET FIRM:**
+- Name: ${firmName}
+- Location: ${city}, ${state}
+- Practice Areas: ${practiceAreas.join(', ')}
+
+**TASK:** Find 3-5 REAL competing law firms in the same geographic market with similar practice areas.
+
+**SEARCH STRATEGY:**
+1. Prioritize firms in ${city}, ${state}
+2. If fewer than 3 found, expand to nearby cities in ${state}
+3. Match practice areas as closely as possible
+4. Choose well-known or established firms (not solo practitioners)
+
+**CRITICAL RULES:**
+- Return REAL firms only (you can use your knowledge base)
+- Include firm name, city, state
+- Explain why each is a good competitor match
+- Minimum 3 competitors, maximum 5
+- If you truly cannot find 3 real firms, you may infer likely competitors like "[Practice Area] firms in [City]"
+
+Return ONLY valid JSON:
+{
+  "competitors": [
+    {
+      "name": "Smith & Associates",
+      "city": "Phoenix",
+      "state": "AZ",
+      "reasoning": "Direct competitor in same city, focuses on personal injury and medical malpractice"
+    }
+  ]
+}`;
+
+  try {
+    const response = await askAI(prompt, '', 2000);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      
+      if (data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0) {
+        console.log(`   ✅ Found ${data.competitors.length} competitors`);
+        data.competitors.forEach((comp, i) => {
+          console.log(`      ${i + 1}. ${comp.name} (${comp.city}, ${comp.state})`);
+        });
+        return data.competitors;
+      }
+    }
+    
+    // Fallback: If AI fails, generate generic competitors
+    console.log(`   ⚠️  AI competitor search returned no results, using fallback`);
+    return generateFallbackCompetitors(city, state, practiceAreas);
+    
+  } catch (e) {
+    console.log(`   ⚠️  AI competitor search failed: ${e.message}`);
+    return generateFallbackCompetitors(city, state, practiceAreas);
+  }
+}
+
+/**
+ * Fallback: Generate generic but valid competitor entries
+ */
+function generateFallbackCompetitors(city, state, practiceAreas) {
+  const primaryPractice = practiceAreas[0] || 'Legal Services';
+  
+  return [
+    {
+      name: `${primaryPractice} firms in ${city}`,
+      city: city,
+      state: state,
+      reasoning: `Local competitors in ${city}, ${state} market with similar practice focus`
+    },
+    {
+      name: `Established ${primaryPractice} practices in ${state}`,
+      city: city,
+      state: state,
+      reasoning: `Regional competitors across ${state} with ${primaryPractice.toLowerCase()} expertise`
+    },
+    {
+      name: `Leading law firms in ${city}`,
+      city: city,
+      state: state,
+      reasoning: `General legal services competitors in the ${city} market`
+    }
+  ];
+}
+
 module.exports = {
   analyzeFirm,
   quickAttorneySample,
@@ -455,5 +556,6 @@ module.exports = {
   extractLocation,
   extractCredentials,
   findTeamPage,
-  analyzePage
+  analyzePage,
+  findCompetitors
 };

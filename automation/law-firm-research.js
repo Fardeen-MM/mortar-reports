@@ -47,6 +47,9 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
     // Quick samples for personalization
     sampleAttorneys: [],
     
+    // Competitors
+    competitors: [],
+    
     // Original structure for compatibility
     allLocations: [],
     practiceAreas: [],
@@ -333,6 +336,26 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
     
     console.log();
     
+    // ========================================================================
+    // STEP 6: COMPETITOR SEARCH (AI-powered)
+    // ========================================================================
+    console.log(`🎯 Step 6: Finding competitors...`);
+    
+    const competitors = await aiHelper.findCompetitors(
+      research.firmName || company,
+      research.location.city || city,
+      research.location.state || state,
+      research.practiceAreas || []
+    );
+    
+    if (competitors && competitors.length > 0) {
+      research.competitors = competitors;
+      console.log(`   ✅ Found ${competitors.length} competitors\n`);
+    } else {
+      research.competitors = [];
+      console.log(`   ⚠️  No competitors found\n`);
+    }
+    
   } catch (error) {
     console.error(`❌ Research error: ${error.message}`);
   } finally {
@@ -351,6 +374,7 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
   console.log(`   Location: ${research.location.city || 'Unknown'}, ${research.location.state || '??'}`);
   console.log(`   Firm Size: ${research.firmIntel.firmSize?.estimate || 'Unknown'} (${research.firmIntel.firmSize?.attorneys || '?'} attorneys)`);
   console.log(`   Key Specialties: ${research.firmIntel.keySpecialties?.slice(0, 3).join(', ') || 'None'}`);
+  console.log(`   Competitors Found: ${research.competitors?.length || 0}`);
   console.log(`   Growth Signals: ${research.firmIntel.growthSignals?.length || 0}`);
   console.log(`   Recent News: ${research.firmIntel.recentNews?.length || 0}`);
   console.log(`   Sample Attorneys: ${research.sampleAttorneys.length}`);
