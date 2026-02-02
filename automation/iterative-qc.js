@@ -37,7 +37,7 @@ async function runQCValidation() {
   console.log('🔍 Running validation checks...\n');
   
   try {
-    execSync(`node automation/ai-quality-control.js ${researchFile} ${reportFile}`, {
+    execSync(`node ai-quality-control.js ${researchFile} ${reportFile}`, {
       stdio: 'inherit'
     });
     return { passed: true };
@@ -89,7 +89,7 @@ async function regenerateReport(research, aiGuidance, iteration, qcIssues) {
   console.log('📊 Applying fixes to research data...');
   try {
     execSync(
-      `node automation/apply-qc-fixes.js ${researchFile} "${aiGuidance.replace(/"/g, '\\"')}" '${JSON.stringify(qcIssues)}'`,
+      `node apply-qc-fixes.js ${researchFile} "${aiGuidance.replace(/"/g, '\\"')}" '${JSON.stringify(qcIssues)}'`,
       { stdio: 'inherit' }
     );
   } catch (error) {
@@ -128,7 +128,7 @@ HERO REQUIREMENTS:
   
   // Step 3: Regenerate with v8 generator
   try {
-    execSync(`node automation/report-generator-v8.js ${researchFile} "${contactName}"`, {
+    execSync(`node report-generator-v8.js ${researchFile} "${contactName}"`, {
       stdio: 'inherit'
     });
     

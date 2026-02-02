@@ -129,7 +129,6 @@ jobs:
         
       - name: Quality Control & Iterative Fixing (AI-Powered)
         id: qc
-        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
