@@ -5,8 +5,9 @@
  */
 
 function normalizeResearchData(data) {
-  // If it's already old format, return as-is
-  if (data.gaps || data.competitors) {
+  // If it's already old format with gaps, return as-is
+  // (Don't check competitors alone - empty array [] is truthy but needs normalization)
+  if (data.gaps) {
     return data;
   }
   
