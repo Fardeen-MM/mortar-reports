@@ -19,6 +19,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      
+      - name: Cache dependencies and Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: |
+            automation/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('automation/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
           
       - name: Install dependencies
         run: |
@@ -206,25 +216,7 @@ jobs:
           echo "📄 Found report: $REPORT_HTML"
           cp "$REPORT_HTML" "$FIRM_NAME/index.html"
           
-          # Configure git
-          git config user.name "Mortar Metrics Bot"
-          git config user.email "automation@mortarmetrics.com"
-          
-          # Pull latest changes first to avoid conflicts
-          git pull --rebase origin main || echo "⚠️  No upstream changes to pull"
-          
-          # Stage and commit
-          git add "$FIRM_NAME/index.html"
-          git commit -m "Add report for $FIRM_NAME" || echo "⚠️  No changes to commit"
-          
-          # Push with retry
-          git push origin main || {
-            echo "⚠️  Push failed, pulling and retrying..."
-            git pull --rebase origin main
-            git push origin main
-          }
-          
-          # Save for email step
+          # Save for next step (will push after creating approval JSON)
           echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
         id: deploy
           
@@ -263,10 +255,32 @@ jobs:
           # Send to Telegram
           node telegram-approval-bot.js "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
           
-          # Commit the approval file
-          git add "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
-          git commit -m "Pending approval: ${{ steps.deploy.outputs.firm_folder }}"
-          git push origin main || echo "No changes to push"
-          
           echo "✅ Telegram approval request sent for ${{ steps.deploy.outputs.firm_folder }}"
         working-directory: ./automation
+        
+      - name: Commit and push report + approval (single push)
+        run: |
+          FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
+          
+          # Configure git
+          git config user.name "Mortar Metrics Bot"
+          git config user.email "automation@mortarmetrics.com"
+          
+          # Pull latest changes first to avoid conflicts
+          git pull --rebase origin main || echo "⚠️  No upstream changes to pull"
+          
+          # Stage both report and approval JSON
+          git add "$FIRM_FOLDER/index.html"
+          git add "automation/pending-approvals/$FIRM_FOLDER.json"
+          
+          # Single commit for both files
+          git commit -m "Add report and approval for $FIRM_FOLDER" || echo "⚠️  No changes to commit"
+          
+          # Single push (triggers only 1 Pages build)
+          git push origin main || {
+            echo "⚠️  Push failed, pulling and retrying..."
+            git pull --rebase origin main
+            git push origin main
+          }
+          
+          echo "✅ Pushed report and approval in single commit"
