@@ -80,7 +80,22 @@ if (require.main === module) {
   }
   
   const data = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
+  
+  // DEBUG: Log what we received
+  console.log(`📊 Input data:`);
+  console.log(`   Firm: ${data.firmName}`);
+  console.log(`   Location: ${data.location?.city}, ${data.location?.state}`);
+  console.log(`   Competitors (input): ${data.competitors ? data.competitors.length : 0}`);
+  console.log(`   Has gaps field: ${!!data.gaps}`);
+  
   const normalized = normalizeResearchData(data);
+  
+  // DEBUG: Log what we're outputting
+  console.log(`📊 Output data:`);
+  console.log(`   Competitors (output): ${normalized.competitors ? normalized.competitors.length : 0}`);
+  if (normalized.competitors && normalized.competitors.length > 0) {
+    normalized.competitors.forEach((c, i) => console.log(`      ${i+1}. ${c.name}`));
+  }
   
   // Overwrite the file with normalized data
   fs.writeFileSync(inputPath, JSON.stringify(normalized, null, 2));

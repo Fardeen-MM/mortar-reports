@@ -119,6 +119,18 @@ const SEARCH_TERMS = {
 function generateReport(researchData, prospectName) {
   console.log(`\n📝 Generating V11 Report (7 Critical Fixes) for ${prospectName}...\n`);
   
+  // DEBUG: Log what we received
+  console.log(`📊 Input validation:`);
+  console.log(`   Firm: ${researchData.firmName}`);
+  console.log(`   Location: ${researchData.location?.city}, ${researchData.location?.state}`);
+  console.log(`   Competitors: ${researchData.competitors ? researchData.competitors.length : 0}`);
+  if (researchData.competitors) {
+    researchData.competitors.slice(0, 3).forEach((c, i) => {
+      console.log(`      ${i+1}. ${c.name || c.firmName || '[NO NAME]'}`);
+    });
+  }
+  console.log('');
+  
   // PHASE 0: HARD VALIDATION GATE
   const validation = validateData(researchData);
   if (!validation.passed) {
