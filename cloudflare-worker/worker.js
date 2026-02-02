@@ -47,7 +47,7 @@ export default {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${GITHUB_TOKEN}`,
+            'Authorization': `token ${GITHUB_TOKEN}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json',
             'User-Agent': 'Cloudflare-Worker-Instantly-Proxy'
