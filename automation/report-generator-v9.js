@@ -90,10 +90,17 @@ function generateReport(researchData, prospectName) {
     
     fs.writeFileSync(
       path.join(__dirname, 'generation-blocked.json'),
-      JSON.stringify({ errors: validation.errors, data: researchData }, null, 2)
+      JSON.stringify({ errors: validation.errors, warnings: validation.warnings, data: researchData }, null, 2)
     );
     
     throw new Error(`GENERATION_BLOCKED: ${validation.errors.join(', ')}`);
+  }
+  
+  // Log warnings (non-blocking)
+  if (validation.warnings && validation.warnings.length > 0) {
+    console.log('⚠️  Warnings (non-blocking):');
+    validation.warnings.forEach(warn => console.log(`   - ${warn}`));
+    console.log('');
   }
   
   console.log('✅ Data validation passed\n');
@@ -178,13 +185,14 @@ function generateReport(researchData, prospectName) {
 // PHASE 0: DATA VALIDATION
 function validateData(data) {
   const errors = [];
+  const warnings = [];
   
-  // Firm name
+  // CRITICAL: Firm name (BLOCKS)
   if (!data.firmName || data.firmName === 'Unknown' || data.firmName === 'Unknown Firm') {
     errors.push('Firm name is invalid or missing');
   }
   
-  // Location
+  // CRITICAL: Location (BLOCKS)
   if (!data.location?.city || !data.location?.state) {
     errors.push('Location (city/state) is missing');
   }
@@ -193,42 +201,43 @@ function validateData(data) {
     errors.push('State must be 2-letter abbreviation');
   }
   
-  // Practice area
+  // Practice area (WARNING only)
   if (!data.practiceAreas || data.practiceAreas.length === 0) {
-    errors.push('Practice area is missing');
+    warnings.push('Practice area is missing');
   }
   
   if (data.practiceAreas?.[0] === 'legal services') {
-    errors.push('Practice area is too generic (legal services)');
+    warnings.push('Practice area is too generic (legal services)');
   }
   
-  // CRITICAL: Competitors
+  // Competitors (WARNING only - report can generate without them)
   if (!data.competitors || data.competitors.length === 0) {
-    errors.push('No competitor data found - BLOCKING GENERATION');
+    warnings.push('No competitor data found - competitor section will be minimal');
   }
   
   if (data.competitors && data.competitors.length < 3) {
-    errors.push(`Only ${data.competitors.length} competitors found (need 3+)`);
+    warnings.push(`Only ${data.competitors.length} competitors found (less than 3)`);
   }
   
-  // Validate competitor data
+  // Validate competitor data (WARNING only)
   if (data.competitors) {
     data.competitors.forEach((comp, i) => {
       if (!comp.name) {
-        errors.push(`Competitor ${i+1} missing name`);
+        warnings.push(`Competitor ${i+1} missing name`);
       }
       if (comp.reviewCount === undefined) {
-        errors.push(`Competitor ${i+1} missing review count`);
+        warnings.push(`Competitor ${i+1} missing review count`);
       }
       if (comp.rating === undefined) {
-        errors.push(`Competitor ${i+1} missing rating`);
+        warnings.push(`Competitor ${i+1} missing rating`);
       }
     });
   }
   
   return {
     passed: errors.length === 0,
-    errors
+    errors,
+    warnings
   };
 }
 
