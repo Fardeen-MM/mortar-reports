@@ -132,7 +132,16 @@ function generateHero(firmName, locationStr, monthlyLossK, prospectFirstName, ga
   
   // Priority 2: Not running ads (specific and painful)
   if (!comparison && gaps.googleAds?.hasGap) {
-    const practice = researchData.practiceAreas?.[0] || 'lawyer';
+    // Get practice area, but clean it if it's too long or weird
+    let practice = researchData.practiceAreas?.[0] || 'lawyer';
+    
+    // If practice area is too long (>50 chars), it's probably malformed - use generic
+    if (practice.length > 50) {
+      practice = 'lawyer';
+    }
+    
+    // Clean up common issues
+    practice = practice.replace(/\s+/g, ' ').trim();
     
     // Use full locationStr to be safe - don't risk bad city names
     comparison = `When someone searches "${practice} ${locationStr}" at 9pm, they see 3 ads. None are yours.`;
@@ -175,7 +184,7 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
   const gapSections = [];
   let gapNumber = 1;
   
-  // Calculate total monthly loss and ensure gaps sum correctly
+  // CRITICAL: Calculate total monthly loss from hero and FORCE gaps to match
   const totalMonthlyLoss = researchData.estimatedMonthlyRevenueLoss || 0;
   
   // Count how many gaps we're showing
@@ -184,17 +193,65 @@ function generateGaps(gaps, firmName, locationStr, topCompetitors, researchData)
   if (gaps.metaAds?.hasGap) gapsToShow.push('metaAds');
   if (gaps.voiceAI?.hasGap || gaps.support24x7?.hasGap) gapsToShow.push('voiceAI');
   
-  // Check if gaps have impact values, if not distribute total evenly
-  const totalGapImpact = (gaps.googleAds?.impact || 0) + (gaps.metaAds?.impact || 0) + 
-                          (gaps.voiceAI?.impact || gaps.support24x7?.impact || 0);
-  
-  if (totalGapImpact === 0 && gapsToShow.length > 0 && totalMonthlyLoss > 0) {
-    // Distribute total evenly across gaps
-    const perGap = totalMonthlyLoss / gapsToShow.length;
-    if (gaps.googleAds) gaps.googleAds.impact = perGap;
-    if (gaps.metaAds) gaps.metaAds.impact = perGap;
-    if (gaps.voiceAI) gaps.voiceAI.impact = perGap;
-    if (gaps.support24x7 && !gaps.voiceAI?.hasGap) gaps.support24x7.impact = perGap;
+  if (gapsToShow.length > 0 && totalMonthlyLoss > 0) {
+    // Get current gap impacts (if any)
+    const currentImpacts = {
+      googleAds: gaps.googleAds?.impact || 0,
+      metaAds: gaps.metaAds?.impact || 0,
+      voiceAI: gaps.voiceAI?.impact || gaps.support24x7?.impact || 0
+    };
+    
+    const currentTotal = currentImpacts.googleAds + currentImpacts.metaAds + currentImpacts.voiceAI;
+    
+    if (currentTotal === 0) {
+      // No impacts set - distribute evenly
+      const perGap = totalMonthlyLoss / gapsToShow.length;
+      if (gaps.googleAds) gaps.googleAds.impact = perGap;
+      if (gaps.metaAds) gaps.metaAds.impact = perGap;
+      if (gaps.voiceAI) gaps.voiceAI.impact = perGap;
+      if (gaps.support24x7 && !gaps.voiceAI?.hasGap) gaps.support24x7.impact = perGap;
+    } else if (Math.abs(currentTotal - totalMonthlyLoss) > totalMonthlyLoss * 0.01) {
+      // Impacts exist but don't match total (more than 1% off) - scale proportionally
+      const scaleFactor = totalMonthlyLoss / currentTotal;
+      
+      if (gaps.googleAds && currentImpacts.googleAds > 0) {
+        gaps.googleAds.impact = currentImpacts.googleAds * scaleFactor;
+      }
+      if (gaps.metaAds && currentImpacts.metaAds > 0) {
+        gaps.metaAds.impact = currentImpacts.metaAds * scaleFactor;
+      }
+      if (gaps.voiceAI && currentImpacts.voiceAI > 0) {
+        gaps.voiceAI.impact = currentImpacts.voiceAI * scaleFactor;
+      }
+      if (gaps.support24x7 && !gaps.voiceAI?.hasGap && currentImpacts.voiceAI > 0) {
+        gaps.support24x7.impact = currentImpacts.voiceAI * scaleFactor;
+      }
+      
+      // Round to nearest 1000 to avoid weird decimals
+      if (gaps.googleAds) gaps.googleAds.impact = Math.round(gaps.googleAds.impact / 1000) * 1000;
+      if (gaps.metaAds) gaps.metaAds.impact = Math.round(gaps.metaAds.impact / 1000) * 1000;
+      if (gaps.voiceAI) gaps.voiceAI.impact = Math.round(gaps.voiceAI.impact / 1000) * 1000;
+      if (gaps.support24x7) gaps.support24x7.impact = Math.round(gaps.support24x7.impact / 1000) * 1000;
+      
+      // Adjust last gap to ensure perfect sum
+      const newTotal = (gaps.googleAds?.impact || 0) + (gaps.metaAds?.impact || 0) + 
+                       (gaps.voiceAI?.impact || gaps.support24x7?.impact || 0);
+      const diff = totalMonthlyLoss - newTotal;
+      
+      if (diff !== 0) {
+        // Add difference to last gap
+        if (gaps.voiceAI) {
+          gaps.voiceAI.impact += diff;
+        } else if (gaps.support24x7) {
+          gaps.support24x7.impact += diff;
+        } else if (gaps.metaAds) {
+          gaps.metaAds.impact += diff;
+        } else if (gaps.googleAds) {
+          gaps.googleAds.impact += diff;
+        }
+      }
+    }
+    // else: gaps already match total (within 1%), use as-is
   }
   
   // Always show all 3 gaps in this order for consistency
