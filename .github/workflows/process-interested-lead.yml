@@ -115,20 +115,20 @@ jobs:
           node normalize-research-data.js "$REPORT_FILE"
         working-directory: ./automation
       
-      - name: Debug V9 Environment
+      - name: Debug V10 Environment
         run: |
-          echo "=== V9 DEBUG INFO ==="
+          echo "=== V10 DEBUG INFO ==="
           echo "Node: $(node --version)"
           echo ""
-          echo "V9 files:"
-          ls -lh report-generator-v9.js report-v9-css.js
+          echo "V10 files:"
+          ls -lh report-generator-v10.js report-v9-css.js
           echo ""
           REPORT_FILE=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
           echo "Research file: $REPORT_FILE"
           echo "Contact name: ${{ steps.parse.outputs.contact_name }}"
           echo ""
           echo "Testing module load:"
-          node -e "require('./report-generator-v9.js'); console.log('✅ V9 loads')" || echo "❌ V9 load failed"
+          node -e "require('./report-generator-v10.js'); console.log('✅ V10 loads')" || echo "❌ V10 load failed"
           node -e "const c=require('./report-v9-css.js'); c(); console.log('✅ CSS loads')" || echo "❌ CSS load failed"
           echo ""
           echo "Data structure:"
@@ -144,7 +144,7 @@ jobs:
             exit 1
           fi
           echo "📄 Generating report from: $REPORT_FILE"
-          node report-generator-v9.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
+          node report-generator-v10.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
             echo "❌ Generation failed with exit code: $?"
             echo "Checking for generation-blocked.json:"
             cat generation-blocked.json 2>/dev/null || echo "No generation-blocked.json found"
@@ -158,7 +158,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           REPORT_JSON=$(find reports -name "*-intel-v5.json" -o -name "*-research.json" -type f | head -1)
-          REPORT_HTML=$(find reports -name "*-landing-page-v9.html" -type f | head -1)
+          REPORT_HTML=$(find reports -name "*-landing-page-v10.html" -type f | head -1)
           CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
           
           echo "🔄 Starting iterative QC system..."
@@ -226,7 +226,7 @@ jobs:
           mkdir -p "$FIRM_NAME"
           
           # Copy generated HTML as index.html
-          REPORT_HTML=$(find automation/reports -name "*-landing-page-v9.html" -type f | head -1)
+          REPORT_HTML=$(find automation/reports -name "*-landing-page-v10.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
             REPORT_HTML=$(find automation/reports -name "*.html" -type f | head -1)
           fi
