@@ -112,7 +112,13 @@ jobs:
             exit 1
           fi
           echo "📊 Normalizing: $REPORT_FILE"
+          echo "📄 BEFORE normalize - competitors:"
+          cat "$REPORT_FILE" | jq '.competitors | length'
           node normalize-research-data.js "$REPORT_FILE"
+          echo "📄 AFTER normalize - competitors:"
+          cat "$REPORT_FILE" | jq '.competitors | length'
+          echo "📄 AFTER normalize - has gaps:"
+          cat "$REPORT_FILE" | jq 'has("gaps")'
         working-directory: ./automation
       
       - name: Debug V11 Environment
@@ -144,6 +150,10 @@ jobs:
             exit 1
           fi
           echo "📄 Generating report from: $REPORT_FILE"
+          echo "📄 V11 INPUT - competitors:"
+          cat "$REPORT_FILE" | jq '.competitors | length'
+          echo "📄 V11 INPUT - has gaps:"
+          cat "$REPORT_FILE" | jq 'has("gaps")'
           node report-generator-v11.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
             echo "❌ Generation failed with exit code: $?"
             echo "Checking for generation-blocked.json:"
