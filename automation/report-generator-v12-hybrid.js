@@ -296,13 +296,11 @@ function validateData(data) {
     warnings.push(`State "${data.location.state}" should be 2-letter abbreviation`);
   }
   
-  // CRITICAL: COMPETITORS (HARD BLOCK)
+  // COMPETITORS (WARNING ONLY - gracefully handle 0-2)
   if (!data.competitors || data.competitors.length === 0) {
-    errors.push('HARD BLOCK: No competitor data found. Cannot generate report.');
-  }
-  
-  if (data.competitors && data.competitors.length < 3) {
-    errors.push(`HARD BLOCK: Only ${data.competitors.length} competitors found. Need minimum 3.`);
+    warnings.push('No competitor data found - report will proceed without competitive analysis.');
+  } else if (data.competitors.length < 3) {
+    warnings.push(`Only ${data.competitors.length} competitors found. Report will work with available data.`);
   }
   
   // Validate competitor data quality
@@ -819,11 +817,31 @@ function generateGap3(gap3, caseValue, firmName, currency = '$') {
 }
 
 function generateCompetitors(competitors, city) {
-  if (!competitors || competitors.length < 3) {
-    return ''; // Should never reach here due to hard validation
+  // Handle 0 competitors - show market opportunity message
+  if (!competitors || competitors.length === 0) {
+    return `
+    <p class="section-pull"><strong>We couldn't find detailed competitor data for ${city}.</strong></p>
+    
+    <div class="section-label">MARKET OPPORTUNITY</div>
+    
+    <div class="tldr-box">
+      <div class="tldr-label">TL;DR</div>
+      <p>Limited competitor visibility = first-mover advantage.</p>
+    </div>
+    
+    <p><strong>This is actually good news.</strong> When competitor data is hard to find, it usually means one of two things:</p>
+    
+    <ol style="margin: 20px 0; padding-left: 40px;">
+      <li><strong>Under-marketed space:</strong> Most firms in ${city} are relying on referrals, not active marketing. First to build infrastructure wins.</li>
+      <li><strong>Opportunity for differentiation:</strong> Even if competitors exist, their digital presence is weak enough that aggressive marketing captures majority share.</li>
+    </ol>
+    
+    <p><strong>Bottom line:</strong> The gaps we identified (Google Ads, Meta Ads, 24/7 intake) matter even more in markets with weak competitive infrastructure. Being first means you set the standard everyone else tries to catch up to.</p>
+    `;
   }
   
-  const top3 = competitors.slice(0, 3);
+  // Handle 1-2 competitors - show what we have
+  const top3 = competitors.slice(0, Math.min(3, competitors.length));
   const topComp = top3[0];
   
   // FIX #6: Check if all competitor data is identical (likely placeholder/missing data)
@@ -873,8 +891,14 @@ function generateCompetitors(competitors, city) {
     insight = `The market is competitive, but nobody's running the full stack (Google Ads + Meta + 24/7 intake + CRM). Most firms have 1-2 pieces. First to deploy all four wins the majority of high-intent traffic.`;
   }
   
+  // Adjust intro based on how many competitors we found
+  const competitorCount = top3.length;
+  const countText = competitorCount === 1 ? 'your closest competitor' : 
+                    competitorCount === 2 ? 'your top 2 competitors' : 
+                    'your top 3 competitors';
+  
   return `
-    <p class="section-pull"><strong>So who in ${city} is winning? Let's look at the data.</strong></p>
+    <p class="section-pull"><strong>So who in ${city} is winning? Let's look at ${countText}.</strong></p>
     
     <div class="section-label">COMPETITIVE INTELLIGENCE</div>
     
