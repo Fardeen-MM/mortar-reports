@@ -187,7 +187,11 @@ function generateReport(researchData, prospectName) {
   
   const city = location.city || '';
   const state = location.state || '';
+  const country = location.country || 'US';
   const locationStr = city && state ? `${city}, ${state}` : state || 'your area';
+  
+  // Currency detection: UK/GB = £, otherwise $
+  const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
   
   // Determine practice area category
   const practiceArea = getPracticeAreaCategory(practiceAreas[0] || 'legal services');
@@ -228,7 +232,8 @@ function generateReport(researchData, prospectName) {
     totalMonthly,
     gapCalculations,
     competitors,
-    gaps
+    gaps,
+    currency
   });
   
   // Save report
@@ -302,9 +307,28 @@ function validateData(data) {
   
   // Validate competitor data quality
   if (data.competitors && data.competitors.length >= 3) {
+    const FAKE_COMPETITOR_PATTERNS = [
+      /acme\s+law/i,
+      /goldstein/i,
+      /riverside\s+law/i,
+      /smith\s*&\s*associates/i,
+      /jones\s+law\s+group/i,
+      /example\s+law/i,
+      /placeholder/i,
+      /test\s+firm/i,
+      /sample\s+law/i,
+      /generic\s+law/i
+    ];
+    
     data.competitors.slice(0, 3).forEach((comp, i) => {
       if (!comp.name) {
         errors.push(`Competitor ${i+1} missing name`);
+      } else {
+        // Check if competitor name matches fake patterns
+        const isFake = FAKE_COMPETITOR_PATTERNS.some(pattern => pattern.test(comp.name));
+        if (isFake) {
+          errors.push(`HARD BLOCK: Competitor "${comp.name}" appears to be a placeholder/fake name. Cannot generate report with fabricated competitor data.`);
+        }
       }
       if (comp.reviewCount === undefined && comp.reviews === undefined) {
         warnings.push(`Competitor ${i+1} missing review count`);
@@ -530,7 +554,8 @@ function generateHTML(data) {
     totalMonthly,
     gapCalculations,
     competitors,
-    gaps
+    gaps,
+    currency = '$'
   } = data;
   
   const heroTotalK = Math.round(totalMonthly / 1000);
@@ -554,11 +579,11 @@ function generateHTML(data) {
 <body>
   <div class="container">
     ${generateHeader(prospectName, today)}
-    ${generateHero(practiceLabel, city, searchTerms, heroTotalK)}
-    ${generateSectionIntro('gaps', `Where you are losing $${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
-    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName)}
-    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName)}
-    ${generateGap3(gapCalculations.gap3, caseValue, firmName)}
+    ${generateHero(practiceLabel, city, searchTerms, heroTotalK, currency)}
+    ${generateSectionIntro('gaps', `Where you are losing ${currency}${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
+    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName, currency)}
+    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName, currency)}
+    ${generateGap3(gapCalculations.gap3, caseValue, firmName, currency)}
     ${generateSectionIntro('competitors', 'Your competitive landscape', `We analyzed your top competitors in ${city} to see who is running ads, who is capturing after-hours leads, and where the opportunity is.`)}
     ${generateCompetitors(competitors, city)}
     ${generateSectionIntro('solution', 'What it takes to fix this', `Closing these gaps is not one quick fix. It is a system: ads, intake, CRM, reporting that works together.`)}
@@ -584,7 +609,7 @@ function generateHeader(prospectName, date) {
   `;
 }
 
-function generateHero(practiceLabel, city, searchTerms, heroTotalK) {
+function generateHero(practiceLabel, city, searchTerms, heroTotalK, currency = '$') {
   return `
     <section class="hero">
       <div class="hero-label">FOR ${practiceLabel} ATTORNEYS IN ${city.toUpperCase()}</div>
@@ -607,7 +632,7 @@ function generateHero(practiceLabel, city, searchTerms, heroTotalK) {
       </h1>
       
       <p class="hero-cost">
-        That's <strong>$${heroTotalK}K/month</strong>—and the cases that should be yours—going to someone else.
+        That's <strong>${currency}${heroTotalK}K/month</strong>—and the cases that should be yours—going to someone else.
       </p>
       
       <a href="#gaps" class="hero-cta">See where you're losing →</a>
@@ -657,7 +682,7 @@ if (require.main === module) {
 
 module.exports = { generateReport };
 
-function generateGap1(gap1, searchTerm, caseValue, firmName) {
+function generateGap1(gap1, searchTerm, caseValue, firmName, currency = '$') {
   return `
     <div class="section-label" id="gaps">GAP #1</div>
     
@@ -665,14 +690,14 @@ function generateGap1(gap1, searchTerm, caseValue, firmName) {
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
         <strong>The firm down the street isn't better. They just show up. You don't.</strong><br>
-        <span class="tldr-cost">Cost: ~$${gap1.cost}K/month</span>
+        <span class="tldr-cost">Cost: ~${currency}${gap1.cost}K/month</span>
       </div>
     </div>
     
     <div class="gap-box">
       <div class="gap-header">
         <div class="gap-title">${firmName} is invisible when it matters</div>
-        <div class="gap-cost">-$${gap1.cost}K/mo</div>
+        <div class="gap-cost">-${currency}${gap1.cost}K/mo</div>
       </div>
       
       <p><strong>65% of high-intent legal searches click on ads.</strong> When someone types "${searchTerm}" at 9pm, they're ready to hire. Three firms show up. None are you.</p>
@@ -692,7 +717,7 @@ function generateGap1(gap1, searchTerm, caseValue, firmName) {
         <div class="stat-label">of high-intent clicks go to ads</div>
       </div>
       
-      <p class="math-line"><strong>The math:</strong> ${gap1.formula} = <strong>$${gap1.cost}K/month</strong></p>
+      <p class="math-line"><strong>The math:</strong> ${gap1.formula} = <strong>${currency}${gap1.cost}K/month</strong></p>
       
       <p class="proof-line">Phoenix tax attorney: 0 → 47 leads/month in six weeks.</p>
     </div>
@@ -701,7 +726,7 @@ function generateGap1(gap1, searchTerm, caseValue, firmName) {
   `;
 }
 
-function generateGap2(gap2, city, practiceArea, caseValue, firmName) {
+function generateGap2(gap2, city, practiceArea, caseValue, firmName, currency = '$') {
   return `
     <div class="section-label">GAP #2</div>
     
@@ -709,14 +734,14 @@ function generateGap2(gap2, city, practiceArea, caseValue, firmName) {
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
         <strong>Someone in ${city} is scrolling Instagram right now with a legal problem. They'll hire whoever they see first.</strong><br>
-        <span class="tldr-cost">Cost: ~$${gap2.cost}K/month</span>
+        <span class="tldr-cost">Cost: ~${currency}${gap2.cost}K/month</span>
       </div>
     </div>
     
     <div class="gap-box">
       <div class="gap-header">
         <div class="gap-title">Every ${firmName} visitor could be a client</div>
-        <div class="gap-cost">-$${gap2.cost}K/mo</div>
+        <div class="gap-cost">-${currency}${gap2.cost}K/mo</div>
       </div>
       
       <p><strong>Your clients spend 2.5 hours/day on social media.</strong> Some need a ${practiceArea} attorney. Most won't Google it—they'll hire whoever shows up in their feed. You have no presence there.</p>
@@ -736,7 +761,7 @@ function generateGap2(gap2, city, practiceArea, caseValue, firmName) {
         <div class="stat-label">daily time on social media</div>
       </div>
       
-      <p class="math-line"><strong>The math:</strong> ${gap2.formula} = <strong>$${gap2.cost}K/month</strong></p>
+      <p class="math-line"><strong>The math:</strong> ${gap2.formula} = <strong>${currency}${gap2.cost}K/month</strong></p>
       
       <p class="proof-line">Austin family law firm: 23 leads in first month from Meta—none had Googled.</p>
     </div>
@@ -745,7 +770,7 @@ function generateGap2(gap2, city, practiceArea, caseValue, firmName) {
   `;
 }
 
-function generateGap3(gap3, caseValue, firmName) {
+function generateGap3(gap3, caseValue, firmName, currency = '$') {
   return `
     <div class="section-label">GAP #3</div>
     
@@ -753,14 +778,14 @@ function generateGap3(gap3, caseValue, firmName) {
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
         <strong>Last night, someone needed you. They called. Voicemail. They called someone else.</strong><br>
-        <span class="tldr-cost">Cost: ~$${gap3.cost}K/month</span>
+        <span class="tldr-cost">Cost: ~${currency}${gap3.cost}K/month</span>
       </div>
     </div>
     
     <div class="gap-box">
       <div class="gap-header">
         <div class="gap-title">${firmName}'s after-hours calls go to voicemail</div>
-        <div class="gap-cost">-$${gap3.cost}K/mo</div>
+        <div class="gap-cost">-${currency}${gap3.cost}K/mo</div>
       </div>
       
       <p><strong>73% of people searching for lawyers do it outside business hours.</strong> When they call and hit voicemail, 73% hang up. They needed you at 9pm. You weren't there.</p>
@@ -786,7 +811,7 @@ function generateGap3(gap3, caseValue, firmName) {
         </div>
       </div>
       
-      <p class="math-line"><strong>The math:</strong> ${gap3.formula} = <strong>$${gap3.cost}K/month</strong></p>
+      <p class="math-line"><strong>The math:</strong> ${gap3.formula} = <strong>${currency}${gap3.cost}K/month</strong></p>
       
       <p class="proof-line">Dallas litigation firm: close rate 18% → 31% after 24/7 intake.</p>
     </div>
