@@ -180,9 +180,9 @@ jobs:
           echo "Creating folder: $FIRM_FOLDER for $RAW_FIRM_NAME"
           mkdir -p "$FIRM_FOLDER"
           
-          REPORT_HTML=$(find automation/reports -name "*-landing-page-v12-ai.html" -type f | head -1)
+          REPORT_HTML=$(find automation/reports -name "*-landing-page-v12-hybrid.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
-            echo "Error: No V12 HTML found"
+            echo "Error: No V12 Hybrid HTML found"
             exit 1
           fi
           

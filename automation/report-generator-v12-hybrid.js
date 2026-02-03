@@ -238,7 +238,7 @@ function generateReport(researchData, prospectName) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }
   
-  const outputPath = path.resolve(reportsDir, `${firmSlug}-landing-page-v11.html`);
+  const outputPath = path.resolve(reportsDir, `${firmSlug}-landing-page-v12-hybrid.html`);
   
   // Apply typography cleanup (FIX #6/#7 from QC)
   let cleanedHTML = html;
