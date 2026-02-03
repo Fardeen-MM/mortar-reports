@@ -26,7 +26,10 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
   if (city) console.log(`📍 Location: ${city}, ${state}, ${country}\n`);
   
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    ignoreHTTPSErrors: true  // Ignore SSL cert errors
+  });
+  const page = await context.newPage();
   
   const research = {
     firmName: company || '',
