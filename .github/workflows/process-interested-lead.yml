@@ -32,9 +32,8 @@ jobs:
           
       - name: Install dependencies
         run: |
-          npm install playwright
-          npx playwright install chromium
           npm install
+          npx playwright install chromium
         working-directory: ./automation
         
       - name: Extract lead data
@@ -113,10 +112,10 @@ jobs:
           fi
           echo "📊 Normalizing: $REPORT_FILE"
           echo "📄 BEFORE normalize - competitors:"
-          cat "$REPORT_FILE" | jq '.competitors | length'
+          cat "$REPORT_FILE" | jq -r '.competitors // [] | length'
           node normalize-research-data.js "$REPORT_FILE"
           echo "📄 AFTER normalize - competitors:"
-          cat "$REPORT_FILE" | jq '.competitors | length'
+          cat "$REPORT_FILE" | jq -r '.competitors // [] | length'
           echo "📄 AFTER normalize - has gaps:"
           cat "$REPORT_FILE" | jq 'has("gaps")'
         working-directory: ./automation
@@ -151,7 +150,7 @@ jobs:
           fi
           echo "📄 Generating report from: $REPORT_FILE"
           echo "📄 V11 INPUT - competitors:"
-          cat "$REPORT_FILE" | jq '.competitors | length'
+          cat "$REPORT_FILE" | jq -r '.competitors // [] | length'
           echo "📄 V11 INPUT - has gaps:"
           cat "$REPORT_FILE" | jq 'has("gaps")'
           node report-generator-v11.js "$REPORT_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
