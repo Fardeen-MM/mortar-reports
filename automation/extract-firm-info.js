@@ -1,129 +1,232 @@
 /**
- * FIRM INFO EXTRACTION
- * Extracts firm name and contact info when webhook payload is incomplete
+ * INTELLIGENT FIRM INFO EXTRACTION
+ * Uses Claude to extract EVERYTHING useful from scraped website data
+ * 
+ * Philosophy: Give Claude ALL the data, let it figure out what's important
  */
 
 const Anthropic = require('@anthropic-ai/sdk');
 
 // ============================================================================
-// FIRM NAME EXTRACTION
+// COMPREHENSIVE EXTRACTION WITH AI
 // ============================================================================
 
-async function extractFirmName(websitePages, firmWebsite, anthropicClient) {
-  console.log('\n🔍 EXTRACTING FIRM NAME (webhook payload was incomplete)');
+async function extractEverything(websitePages, firmWebsite, anthropicClient) {
+  console.log('\n🧠 INTELLIGENT EXTRACTION WITH CLAUDE');
+  console.log('   Analyzing all scraped pages...\n');
   
   if (!websitePages || websitePages.length === 0) {
     console.log('   ⚠️  No website pages to extract from');
-    return extractFromDomain(firmWebsite);
+    return getFallbackData(firmWebsite);
   }
   
-  const homepage = websitePages[0];
+  // Build comprehensive context from ALL pages
+  const context = buildContext(websitePages, firmWebsite);
   
-  // Method 1: Extract from <title> tag
-  if (homepage.title) {
-    const titleName = cleanFirmName(homepage.title);
-    if (titleName && titleName.length > 3) {
-      console.log(`   ✅ Extracted from <title>: ${titleName}`);
-      return titleName;
-    }
-  }
-  
-  // Method 2: Look for law firm patterns in HTML
-  const htmlName = extractFromHTML(homepage.html);
-  if (htmlName) {
-    console.log(`   ✅ Extracted from HTML: ${htmlName}`);
-    return htmlName;
-  }
-  
-  // Method 3: AI inference from homepage text
-  try {
-    const aiName = await extractWithAI(homepage.text, firmWebsite, anthropicClient);
-    if (aiName) {
-      console.log(`   ✅ AI extracted: ${aiName}`);
-      return aiName;
-    }
-  } catch (error) {
-    console.log(`   ⚠️  AI extraction failed: ${error.message}`);
-  }
-  
-  // Method 4: Extract from domain
-  const domainName = extractFromDomain(firmWebsite);
-  console.log(`   ⚠️  Using domain-based name: ${domainName}`);
-  return domainName;
-}
+  const prompt = `You are analyzing a law firm's website. Extract EVERYTHING useful for creating a personalized marketing report.
 
-function cleanFirmName(rawName) {
-  if (!rawName) return '';
-  
-  // Remove common suffixes and noise
-  let cleaned = rawName
-    .replace(/\s*[-|–—]\s*.*/g, '') // Remove everything after dash/pipe
-    .replace(/\s*(LLC|LLP|PLLC|PC|P\.C\.|L\.L\.C\.|L\.L\.P\.|P\.L\.L\.C\.)\.?\s*$/i, '') // Remove entity types
-    .replace(/\s*(Law Firm|Attorneys?|Lawyers?)\s*$/i, '') // Remove generic terms
-    .replace(/\s*\(.*?\)\s*/g, '') // Remove parentheses
-    .trim();
-  
-  return cleaned;
-}
+REQUIRED FIELDS (extract these with 100% certainty or return null):
+1. **firmName** - The actual business name (NOT the SEO page title). Look for:
+   - Footer copyright
+   - Logo text
+   - "About Us" mentions
+   - Domain name
+   Example: If page title is "Best Divorce Lawyers Chicago | Smith Law", the firm name is "Smith Law"
 
-function extractFromHTML(html) {
-  if (!html) return null;
-  
-  // Look for law firm name patterns in common HTML structures
-  const patterns = [
-    /<h1[^>]*>([^<]{3,60}(?:Law|Legal|Attorney|Lawyer|Firm)[^<]{0,30})<\/h1>/i,
-    /<h1[^>]*>([A-Z][a-zA-Z\s&,.']+(?:LLC|LLP|PLLC|PC))<\/h1>/i,
-    /class=["'](?:logo|site-title|firm-name|brand)["'][^>]*>([^<]{3,60})<\/[^>]+>/i,
-    /<title>([^<]{3,60}(?:Law|Legal|Attorney|Lawyer)[^<]{0,30})<\/title>/i
-  ];
-  
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match && match[1]) {
-      const name = cleanFirmName(match[1]);
-      if (name.length > 3) {
-        return name;
-      }
-    }
-  }
-  
-  return null;
-}
+2. **city** - Physical office location city
+3. **state** - Physical office location state (2-letter code)
+4. **fullAddress** - Complete address with zip
+5. **phone** - Main phone number
+6. **practiceAreas** - Array of practice areas (be specific: "divorce", "personal injury", not "family law")
 
-async function extractWithAI(homepageText, website, anthropicClient) {
-  const prompt = `Extract the law firm name from this homepage text. Return ONLY the firm name, nothing else.
+LEADERSHIP & TEAM:
+7. **foundingPartners** - Array of founding partners with {name, title, background, photo_url}
+8. **keyAttorneys** - Array of all attorneys mentioned with {name, title, specialization, years_experience, bar_admissions, photo_url}
+9. **leadership** - Who runs the firm? Managing partner, senior partner, etc.
 
-Homepage text:
-${homepageText.substring(0, 5000)}
+FIRM DETAILS:
+10. **foundedYear** - When was the firm established?
+11. **firmSize** - "solo", "small (2-10)", "mid (11-50)", "large (51+)"
+12. **officeCount** - How many office locations?
+13. **otherLocations** - Array of other office cities/states
 
-Website: ${website}
+SPECIALIZATION & POSITIONING:
+14. **primaryFocus** - What are they KNOWN for? (1-2 practice areas they emphasize most)
+15. **nicheSpecializations** - Any unique/rare specializations? (e.g., "aviation law", "cannabis law")
+16. **targetMarket** - Who are their ideal clients? (individuals, businesses, specific industries)
+17. **serviceArea** - Geographic area they serve
 
-Rules:
-- Return the FULL legal name (e.g., "Smith & Associates LLP" not just "Smith")
-- Do NOT include "Law Firm", "Attorneys", etc. unless part of official name
-- Return ONLY the name, no explanation
-- If you can't determine it with 90%+ confidence, return: UNKNOWN`;
+CREDIBILITY & PROOF:
+18. **awards** - Any awards, recognitions, "Best Lawyers", Super Lawyers, etc.
+19. **barAssociations** - Memberships (ABA, state bar, specialty bars)
+20. **notableCases** - Any case wins or results mentioned?
+21. **clientTestimonials** - Pull 2-3 specific client quotes if available
+22. **yearsInBusiness** - How long operating?
+
+MARKETING & TECH:
+23. **websiteModernization** - "modern" (2020+), "dated" (2015-2019), "ancient" (<2015)
+24. **hasLiveChat** - true/false
+25. **hasBlog** - true/false (active = posted in last 6 months)
+26. **blogLastPosted** - Date of most recent blog post if has blog
+27. **socialMediaPresence** - {facebook, linkedin, twitter, instagram} with URLs if found
+28. **videoContent** - Do they have video on site? Attorney intros, testimonials, etc.
+29. **languagesOffered** - Any non-English languages mentioned?
+
+BUSINESS SIGNALS:
+30. **growthIndicators** - Array of signals (e.g., "hiring", "new office opening", "expanding practice areas")
+31. **recentNews** - Any recent news, press releases, or announcements?
+32. **communityInvolvement** - Sponsorships, pro bono work, community service mentioned?
+
+DIFFERENTIATION:
+33. **uniqueSellingPoints** - What makes them different? Pull from "Why Choose Us" type content
+34. **guarantees** - Any guarantees offered? (free consultation, no win no fee, etc.)
+35. **pricing** - Any pricing info mentioned? Hourly rates, flat fees, payment plans?
+
+PERSONALITY & CULTURE:
+36. **firmPersonality** - "corporate/formal", "approachable/friendly", "aggressive/fighter", "compassionate"
+37. **missionStatement** - Their stated mission/values if clearly articulated
+38. **firmStory** - Origin story, why they started, personal motivations
+
+CONTACT & OPERATIONS:
+39. **email** - General contact email
+40. **hoursOfOperation** - Office hours if mentioned
+41. **afterHoursAvailable** - Any 24/7 or after-hours service mentioned?
+42. **freeConsultation** - Do they offer free initial consultations?
+
+EXTRACT ANYTHING ELSE INTERESTING:
+43. **otherInsights** - Array of any other notable facts, unique approaches, specialties, or hooks
+
+RULES:
+- Extract from ALL pages, not just homepage
+- Use exact text from website when quoting (testimonials, awards, etc.)
+- If you can't find something with 90%+ confidence, return null for that field
+- For arrays, return empty array [] if nothing found (not null)
+- Be specific and accurate - this data will be used in a personalized report
+- Look beyond homepage - check About, Team, Practice Areas, Contact pages
+
+Return ONLY valid JSON (no markdown, no explanation):`;
 
   try {
     const response = await anthropicClient.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 100,
+      max_tokens: 8000,
       temperature: 0,
       messages: [{
         role: 'user',
-        content: prompt
+        content: `${prompt}\n\n${context}`
       }]
     });
     
-    const name = response.content[0].text.trim();
-    if (name && name !== 'UNKNOWN' && name.length > 2) {
-      return cleanFirmName(name);
+    const text = response.content[0].text;
+    
+    // Extract JSON from response (handles markdown code blocks)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.log('   ❌ AI did not return valid JSON');
+      return getFallbackData(firmWebsite);
     }
+    
+    const extracted = JSON.parse(jsonMatch[0]);
+    
+    // Log what was extracted
+    console.log('   ✅ Extracted:');
+    console.log(`      Firm: ${extracted.firmName || 'MISSING'}`);
+    console.log(`      Location: ${extracted.city || '?'}, ${extracted.state || '?'}`);
+    console.log(`      Practice Areas: ${(extracted.practiceAreas || []).length} found`);
+    console.log(`      Attorneys: ${(extracted.keyAttorneys || []).length} found`);
+    console.log(`      Founding Partners: ${(extracted.foundingPartners || []).length} found`);
+    console.log(`      Founded: ${extracted.foundedYear || 'unknown'}`);
+    console.log(`      Unique Insights: ${(extracted.otherInsights || []).length} found`);
+    console.log('');
+    
+    // Validate critical fields
+    if (!extracted.firmName || extracted.firmName === 'null') {
+      console.log('   ⚠️  Firm name missing, using domain fallback');
+      extracted.firmName = extractFromDomain(firmWebsite);
+    }
+    
+    if (!extracted.city && !extracted.state) {
+      console.log('   ⚠️  Location missing, attempting fallback extraction');
+      const locationFallback = await extractLocationFallback(context, anthropicClient);
+      extracted.city = locationFallback.city;
+      extracted.state = locationFallback.state;
+    }
+    
+    // Ensure arrays are arrays
+    extracted.practiceAreas = extracted.practiceAreas || [];
+    extracted.keyAttorneys = extracted.keyAttorneys || [];
+    extracted.foundingPartners = extracted.foundingPartners || [];
+    extracted.otherInsights = extracted.otherInsights || [];
+    
+    return extracted;
+    
   } catch (error) {
-    console.log(`   ⚠️  AI extraction error: ${error.message}`);
+    console.log(`   ❌ AI extraction failed: ${error.message}`);
+    console.error(error.stack);
+    return getFallbackData(firmWebsite);
   }
+}
+
+// ============================================================================
+// CONTEXT BUILDING
+// ============================================================================
+
+function buildContext(websitePages, firmWebsite) {
+  let context = `WEBSITE: ${firmWebsite}\n\n`;
   
-  return null;
+  // Prioritize important pages
+  const pageOrder = ['/', '/about', '/team', '/attorneys', '/contact', '/practice-areas', '/services'];
+  
+  const sortedPages = websitePages.sort((a, b) => {
+    const aPath = new URL(a.url).pathname.toLowerCase();
+    const bPath = new URL(b.url).pathname.toLowerCase();
+    const aIndex = pageOrder.findIndex(p => aPath.includes(p));
+    const bIndex = pageOrder.findIndex(p => bPath.includes(p));
+    
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+  
+  // Take first 10 pages (prioritized), include text content
+  sortedPages.slice(0, 10).forEach((page, i) => {
+    const url = page.url;
+    const pageName = url.split('/').pop() || 'homepage';
+    
+    context += `\n${'='.repeat(80)}\n`;
+    context += `PAGE ${i + 1}: ${pageName}\n`;
+    context += `URL: ${url}\n`;
+    context += `TITLE: ${page.title}\n`;
+    context += `${'='.repeat(80)}\n\n`;
+    context += page.text.substring(0, 8000); // First 8KB of text per page
+    context += '\n\n';
+  });
+  
+  return context.substring(0, 180000); // Claude's context limit
+}
+
+// ============================================================================
+// FALLBACK EXTRACTION (if AI fails completely)
+// ============================================================================
+
+function getFallbackData(firmWebsite) {
+  console.log('   ⚠️  Using minimal fallback data');
+  
+  return {
+    firmName: extractFromDomain(firmWebsite),
+    website: firmWebsite,
+    city: null,
+    state: null,
+    fullAddress: null,
+    phone: null,
+    practiceAreas: [],
+    foundingPartners: [],
+    keyAttorneys: [],
+    primaryFocus: null,
+    firmSize: 'unknown',
+    extraction_method: 'fallback'
+  };
 }
 
 function extractFromDomain(website) {
@@ -133,7 +236,6 @@ function extractFromDomain(website) {
     const parts = hostname.split('.');
     
     if (parts.length >= 2) {
-      // Take the domain name part, convert to Title Case
       let name = parts[0]
         .replace(/[-_]/g, ' ')
         .split(' ')
@@ -150,13 +252,55 @@ function extractFromDomain(website) {
 }
 
 // ============================================================================
-// CONTACT NAME EXTRACTION
+// LOCATION FALLBACK (focused extraction if comprehensive fails)
 // ============================================================================
 
-async function extractContactName(email, intelligence, anthropicClient) {
-  console.log('\n👤 EXTRACTING CONTACT NAME (webhook payload was incomplete)');
+async function extractLocationFallback(context, anthropicClient) {
+  console.log('   🔍 Attempting focused location extraction...');
   
-  // Method 1: Extract from email
+  const prompt = `Extract ONLY the physical office location from this law firm website.
+
+${context.substring(0, 50000)}
+
+Return ONLY JSON:
+{
+  "city": "city name",
+  "state": "2-letter state code",
+  "fullAddress": "complete address if found"
+}
+
+If you cannot find the location with 90%+ confidence, return null for those fields.`;
+
+  try {
+    const response = await anthropicClient.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 200,
+      temperature: 0,
+      messages: [{ role: 'user', content: prompt }]
+    });
+    
+    const jsonMatch = response.content[0].text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+  } catch (error) {
+    console.log(`   ⚠️  Location fallback failed: ${error.message}`);
+  }
+  
+  return { city: null, state: null, fullAddress: null };
+}
+
+// ============================================================================
+// LEGACY COMPATIBILITY (for existing code that calls old functions)
+// ============================================================================
+
+async function extractFirmName(websitePages, firmWebsite, anthropicClient) {
+  const data = await extractEverything(websitePages, firmWebsite, anthropicClient);
+  return data.firmName;
+}
+
+async function extractContactName(email, intelligence, anthropicClient) {
+  // Try to extract from email
   if (email && email.includes('@')) {
     const namePart = email.split('@')[0];
     const cleanName = namePart
@@ -165,27 +309,21 @@ async function extractContactName(email, intelligence, anthropicClient) {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
     
-    if (cleanName.length > 2) {
-      console.log(`   ✅ Extracted from email: ${cleanName}`);
+    if (cleanName.length > 2 && !cleanName.match(/^(info|contact|admin|office|support|hello)$/i)) {
       return cleanName;
     }
   }
   
-  // Method 2: Use first key decision maker from AI intelligence
+  // Use key decision maker from intelligence
   if (intelligence && intelligence.keyDecisionMakers && intelligence.keyDecisionMakers.length > 0) {
-    const firstContact = intelligence.keyDecisionMakers[0];
-    if (firstContact.name) {
-      console.log(`   ✅ Using key decision maker: ${firstContact.name}`);
-      return firstContact.name;
-    }
+    return intelligence.keyDecisionMakers[0].name;
   }
   
-  // Fallback
-  console.log('   ⚠️  Using generic fallback: Partner');
   return 'Partner';
 }
 
 module.exports = {
+  extractEverything,
   extractFirmName,
   extractContactName
 };

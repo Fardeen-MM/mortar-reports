@@ -549,14 +549,76 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     // Phase 1: Scrape entire website
     research.websitePages = await scrapeEntireWebsite(page, firmWebsite);
     
-    // Phase 1.5: Extract firm name if not provided
-    let effectiveFirmName = company;
-    if (!effectiveFirmName || effectiveFirmName.trim() === '') {
-      const { extractFirmName } = require('./extract-firm-info');
-      effectiveFirmName = await extractFirmName(research.websitePages, firmWebsite, anthropic);
-      research.firmName = effectiveFirmName;
-      console.log(`\n📝 Updated firm name: ${effectiveFirmName}\n`);
-    }
+    // Phase 1.5: INTELLIGENT EXTRACTION - Let Claude extract EVERYTHING
+    const { extractEverything } = require('./extract-firm-info');
+    const extractedData = await extractEverything(research.websitePages, firmWebsite, anthropic);
+    
+    // Merge extracted data into research (this is now the source of truth)
+    research.firmName = extractedData.firmName || company || '';
+    research.location = {
+      city: extractedData.city || city,
+      state: extractedData.state || state,
+      country: country,
+      fullAddress: extractedData.fullAddress,
+      otherLocations: extractedData.otherLocations || []
+    };
+    research.contact = {
+      phone: extractedData.phone,
+      email: extractedData.email,
+      hoursOfOperation: extractedData.hoursOfOperation,
+      afterHoursAvailable: extractedData.afterHoursAvailable,
+      freeConsultation: extractedData.freeConsultation
+    };
+    research.firmDetails = {
+      foundedYear: extractedData.foundedYear,
+      firmSize: extractedData.firmSize,
+      officeCount: extractedData.officeCount,
+      yearsInBusiness: extractedData.yearsInBusiness
+    };
+    research.team = {
+      foundingPartners: extractedData.foundingPartners || [],
+      keyAttorneys: extractedData.keyAttorneys || [],
+      leadership: extractedData.leadership
+    };
+    research.practice = {
+      practiceAreas: extractedData.practiceAreas || [],
+      primaryFocus: extractedData.primaryFocus,
+      nicheSpecializations: extractedData.nicheSpecializations || [],
+      targetMarket: extractedData.targetMarket,
+      serviceArea: extractedData.serviceArea
+    };
+    research.credibility = {
+      awards: extractedData.awards || [],
+      barAssociations: extractedData.barAssociations || [],
+      notableCases: extractedData.notableCases || [],
+      clientTestimonials: extractedData.clientTestimonials || []
+    };
+    research.marketing = {
+      websiteModernization: extractedData.websiteModernization,
+      hasLiveChat: extractedData.hasLiveChat,
+      hasBlog: extractedData.hasBlog,
+      blogLastPosted: extractedData.blogLastPosted,
+      socialMediaPresence: extractedData.socialMediaPresence || {},
+      videoContent: extractedData.videoContent,
+      languagesOffered: extractedData.languagesOffered || []
+    };
+    research.positioning = {
+      uniqueSellingPoints: extractedData.uniqueSellingPoints || [],
+      guarantees: extractedData.guarantees,
+      pricing: extractedData.pricing,
+      firmPersonality: extractedData.firmPersonality,
+      missionStatement: extractedData.missionStatement,
+      firmStory: extractedData.firmStory
+    };
+    research.insights = {
+      growthIndicators: extractedData.growthIndicators || [],
+      recentNews: extractedData.recentNews,
+      communityInvolvement: extractedData.communityInvolvement,
+      otherInsights: extractedData.otherInsights || []
+    };
+    
+    const effectiveFirmName = research.firmName;
+    console.log(`\n✨ Intelligent extraction complete for: ${effectiveFirmName}\n`);
     
     // Phase 2: LinkedIn (firm + attorneys)
     research.linkedIn = await scrapeFirmLinkedIn(page, effectiveFirmName);
