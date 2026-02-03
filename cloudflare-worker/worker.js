@@ -3,9 +3,25 @@
  * 
  * Receives webhooks from Instantly, transforms them to GitHub's format, 
  * and forwards to GitHub Actions
+ * 
+ * DEDUPLICATION: Uses in-memory cache to prevent duplicate webhooks within 5 minutes
  */
 
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
+const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+// In-memory cache for deduplication (persists across requests in same worker instance)
+const recentWebhooks = new Map();
+
+// Clean up old entries periodically
+function cleanupOldEntries() {
+  const now = Date.now();
+  for (const [key, timestamp] of recentWebhooks.entries()) {
+    if (now - timestamp > DEDUP_WINDOW_MS) {
+      recentWebhooks.delete(key);
+    }
+  }
+}
 
 export default {
   async fetch(request, env) {
@@ -20,6 +36,37 @@ export default {
       const instantlyPayload = await request.json();
       
       console.log('Received webhook from Instantly:', instantlyPayload);
+
+      // Generate deduplication key from lead_email + email_id
+      const dedupKey = `${instantlyPayload.lead_email || 'unknown'}_${instantlyPayload.email_id || 'no-id'}`;
+      const now = Date.now();
+      
+      // Check if we've seen this webhook recently
+      if (recentWebhooks.has(dedupKey)) {
+        const lastSeen = recentWebhooks.get(dedupKey);
+        const timeSinceLastSeen = now - lastSeen;
+        
+        if (timeSinceLastSeen < DEDUP_WINDOW_MS) {
+          console.log(`⚠️  DUPLICATE webhook detected: ${dedupKey} (seen ${Math.round(timeSinceLastSeen / 1000)}s ago)`);
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Duplicate webhook ignored (already processed recently)',
+            dedupKey,
+            timeSinceLastSeen: Math.round(timeSinceLastSeen / 1000)
+          }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
+      
+      // Record this webhook
+      recentWebhooks.set(dedupKey, now);
+      
+      // Clean up old entries (async, don't wait)
+      cleanupOldEntries();
+      
+      console.log(`✅ New webhook: ${dedupKey}`);
 
       // Transform to GitHub's required format
       const githubPayload = {
