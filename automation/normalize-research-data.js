@@ -37,27 +37,26 @@ function normalizeResearchData(data) {
       crm: { hasGap: true, impact: 4000 }
     },
     
-    // Competitors from v5 data - ensure they have required fields
-    competitors: (data.competitors && data.competitors.length >= 3) 
+    // Competitors from research data - NO FALLBACKS (no fake names)
+    // If we don't have real competitor data, return empty array
+    // The report generator handles this gracefully with "limited data" messaging
+    competitors: (data.competitors && data.competitors.length > 0)
       ? data.competitors.map(c => ({
-          name: c.name || c.firmName || 'Unknown Firm',
+          name: c.name || c.firmName,
           city: c.city || data.location?.city || '',
           state: c.state || data.location?.state || '',
           reviews: c.reviews || c.reviewCount || 0,
           rating: c.rating || 0,
           hasGoogleAds: c.hasGoogleAds || false,
           hasMetaAds: c.hasMetaAds || false,
+          hasVoiceAI: c.hasVoiceAI || c.has24x7 || false,
           ...c
-        }))
-      : [
-          // Fallback: Generate 3 generic competitors if research failed
-          { name: `${data.location?.city || 'Local'} Law Firm A`, city: data.location?.city || '', state: data.location?.state || '', reviews: 0, rating: 0, hasGoogleAds: false, hasMetaAds: false },
-          { name: `${data.location?.city || 'Local'} Law Firm B`, city: data.location?.city || '', state: data.location?.state || '', reviews: 0, rating: 0, hasGoogleAds: false, hasMetaAds: false },
-          { name: `${data.location?.city || 'Local'} Law Firm C`, city: data.location?.city || '', state: data.location?.state || '', reviews: 0, rating: 0, hasGoogleAds: false, hasMetaAds: false }
-        ],
+        })).filter(c => c.name) // Filter out any without names
+      : [], // Empty array - no fake fallbacks
     
-    // Calculated metrics
-    estimatedMonthlyRevenueLoss: 19000,
+    // Calculated metrics - no longer used since hero total is calculated from gaps
+    // Keeping field for backwards compatibility but not using a hardcoded default
+    estimatedMonthlyRevenueLoss: data.estimatedMonthlyRevenueLoss || 0,
     
     // V5-specific data to preserve
     firmIntel: data.firmIntel,

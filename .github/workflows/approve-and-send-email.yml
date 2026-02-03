@@ -32,7 +32,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        
+        with:
+          token: ${{ secrets.GH_PAT }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -63,6 +65,70 @@ jobs:
             echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
           fi
       
+      - name: Deploy report from pending to live
+        id: deploy
+        run: |
+          FIRM_NAME="${{ steps.inputs.outputs.firm_name }}"
+
+          # Generate folder name from firm name (same logic as process workflow)
+          FIRM_FOLDER=$(node -e "
+            const name = '$FIRM_NAME';
+            const clean = name
+              .replace(/[^a-zA-Z0-9\\s&]/g, '')
+              .split(/\\s+/)
+              .filter(w => w.length > 0)
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join('');
+            console.log(clean || 'UnknownFirm');
+          ")
+
+          echo "firm_folder=$FIRM_FOLDER" >> $GITHUB_OUTPUT
+
+          # Check if pending report exists
+          if [ -f "pending-reports/$FIRM_FOLDER/index.html" ]; then
+            echo "📂 Moving report from pending-reports/$FIRM_FOLDER to $FIRM_FOLDER (LIVE)"
+            mkdir -p "$FIRM_FOLDER"
+            mv "pending-reports/$FIRM_FOLDER/index.html" "$FIRM_FOLDER/index.html"
+            rmdir "pending-reports/$FIRM_FOLDER" 2>/dev/null || true
+
+            # Update approval status
+            if [ -f "automation/pending-approvals/$FIRM_FOLDER.json" ]; then
+              # Update status to approved
+              node -e "
+                const fs = require('fs');
+                const file = 'automation/pending-approvals/$FIRM_FOLDER.json';
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                data.status = 'approved';
+                data.approved_at = new Date().toISOString();
+                fs.writeFileSync(file, JSON.stringify(data, null, 2));
+              "
+            fi
+          else
+            echo "⚠️  No pending report found at pending-reports/$FIRM_FOLDER"
+            echo "   Report may have already been deployed or path is different"
+            # Check if live report exists already
+            if [ -f "$FIRM_FOLDER/index.html" ]; then
+              echo "   Live report already exists - continuing with email"
+            fi
+          fi
+
+      - name: Commit and push live report
+        run: |
+          FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
+          git config user.name "Mortar Metrics Bot"
+          git config user.email "automation@mortarmetrics.com"
+          git pull --rebase origin main || echo "No upstream changes"
+
+          # Add live folder and updated approval status
+          git add "$FIRM_FOLDER/" 2>/dev/null || true
+          git add "automation/pending-approvals/$FIRM_FOLDER.json" 2>/dev/null || true
+          git add "pending-reports/" 2>/dev/null || true
+          git commit -m "Deploy approved report for $FIRM_FOLDER" || echo "No changes to commit"
+          git push origin main || {
+            git pull --rebase origin main
+            git push origin main
+          }
+
       - name: Send approved email
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
@@ -71,7 +137,7 @@ jobs:
           echo "🏢 Firm: ${{ steps.inputs.outputs.firm_name }}"
           echo "📨 From: ${{ steps.inputs.outputs.from_email }}"
           echo "🔗 Report: ${{ steps.inputs.outputs.report_url }}"
-          
+
           node send-email.js \
             "${{ steps.inputs.outputs.lead_email }}" \
             "${{ steps.inputs.outputs.contact_name }}" \

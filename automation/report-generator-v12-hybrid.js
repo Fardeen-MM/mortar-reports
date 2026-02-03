@@ -214,9 +214,11 @@ function generateReport(researchData, prospectName) {
     contact = {}
   } = researchData;
   
-  // Get practice areas from new structure first, fallback to old
-  const practiceAreas = practice.practiceAreas || 
-                        intelligence.practiceAreas || 
+  // Get practice areas - check multiple possible locations in research data
+  const practiceAreas = researchData.practiceAreas ||
+                        practice.practiceAreas ||
+                        intelligence.practiceAreas ||
+                        intelligence.keySpecialties ||
                         [];
   
   // Filter out fake/placeholder competitors BEFORE processing
@@ -277,21 +279,20 @@ function generateReport(researchData, prospectName) {
   // Get search terms
   const searchTerms = getSearchTerms(practiceArea, city);
   
-  // Calculate gaps with ACTUAL MATH
-  const totalMonthly = estimatedMonthlyRevenueLoss || 19000;
-  const gapCalculations = calculateGaps(gaps, totalMonthly, caseValue, competitors);
-  
-  // Validate math
-  const mathCheck = validateMath(gapCalculations, totalMonthly);
-  if (!mathCheck.valid) {
-    console.error('❌ MATH VALIDATION FAILED:');
-    console.error(`   Gap sum: $${mathCheck.gapSum}`);
-    console.error(`   Hero total: $${mathCheck.heroTotal}`);
-    console.error(`   Difference: $${mathCheck.difference}`);
-    throw new Error('Math validation failed - gaps do not sum to hero total');
-  }
-  
-  console.log(`💰 Math validated: $${gapCalculations.gap1.cost}K + $${gapCalculations.gap2.cost}K + $${gapCalculations.gap3.cost}K = $${Math.round(totalMonthly/1000)}K\n`);
+  // Calculate gaps with market-adjusted inputs
+  const marketData = {
+    city: city,
+    state: state,
+    firmSize: researchData.firmSize || researchData.team?.totalCount || 0,
+    officeCount: researchData.officeCount || 1
+  };
+
+  const gapCalculations = calculateGaps(gaps, 0, caseValue, competitors, marketData);
+
+  // Hero total is now calculated FROM the gaps, not the other way around
+  const totalMonthly = (gapCalculations.actualTotal || gapCalculations.gap1.cost + gapCalculations.gap2.cost + gapCalculations.gap3.cost) * 1000;
+
+  console.log(`💰 Gap calculations: $${gapCalculations.gap1.cost}K + $${gapCalculations.gap2.cost}K + $${gapCalculations.gap3.cost}K = $${Math.round(totalMonthly/1000)}K/month\n`);
   
   // Generate HTML (ALL NEW - EMOTIONAL + DATA)
   const html = generateHTML({
@@ -307,7 +308,8 @@ function generateReport(researchData, prospectName) {
     gapCalculations,
     competitors,
     gaps,
-    currency
+    currency,
+    researchData // Pass full research data for firm's own stats
   });
   
   // Save report
@@ -496,66 +498,51 @@ function getSearchTerms(practiceArea, city) {
   });
 }
 
-// ACTUAL MATH CALCULATIONS - formulas that produce the claimed numbers
-function calculateGaps(gaps, totalMonthly, caseValue, competitors) {
-  const heroK = Math.round(totalMonthly / 1000);
-  
-  // Target distribution: 40% / 35% / 25%
-  let gap1Target = Math.round(heroK * 0.40);
-  let gap2Target = Math.round(heroK * 0.35);
-  let gap3Target = heroK - gap1Target - gap2Target; // Ensures exact sum
-  
-  // Gap 1: Google Ads
-  // Work backwards from target to find realistic inputs
-  const gap1Searches = 600;  // Monthly searches for practice area in city
-  const gap1CTR = 0.03;      // 3% click on ads
-  const gap1Conv = 0.15;     // 15% of clicks convert to lead
-  const gap1Close = 0.30;    // 30% of leads close
-  
-  let gap1Cases = gap1Searches * gap1CTR * gap1Conv * gap1Close;
-  let gap1Revenue = gap1Cases * caseValue;
-  let gap1Cost = Math.round(gap1Revenue / 1000);
-  
-  // Adjust if needed to hit target (±15% tolerance)
-  if (Math.abs(gap1Cost - gap1Target) / gap1Target > 0.15) {
-    gap1Cost = gap1Target;
-  }
-  
-  // Gap 2: Meta Ads (lead source, not retargeting)
-  const gap2Audience = 50000;  // People in target market on Meta
-  const gap2Reach = 0.02;      // 2% monthly reach with ads
-  const gap2Conv = 0.01;       // 1% of impressions convert to lead
-  const gap2Close = 0.30;      // 30% of leads close
-  
-  let gap2Cases = gap2Audience * gap2Reach * gap2Conv * gap2Close;
-  let gap2Revenue = gap2Cases * caseValue;
-  let gap2Cost = Math.round(gap2Revenue / 1000);
-  
-  if (Math.abs(gap2Cost - gap2Target) / gap2Target > 0.15) {
-    gap2Cost = gap2Target;
-  }
-  
-  // Gap 3: Voice AI
-  const gap3Calls = 60;          // Monthly inbound calls
-  const gap3AfterHours = 0.30;   // 30% happen after hours
-  const gap3Hangup = 0.73;       // 73% hang up on voicemail
-  const gap3Recovery = 0.80;     // AI recovers 80% of hangups
+// GAP CALCULATIONS - Honest math, no rigging
+// Inputs vary by market size. Results show ranges to acknowledge uncertainty.
+function calculateGaps(gaps, totalMonthly, caseValue, competitors, marketData = {}) {
+  // Get market size multiplier (population-based estimate)
+  // Small market: 0.5x, Medium: 1x, Large metro: 2x
+  const marketMultiplier = getMarketMultiplier(marketData);
+
+  // Gap 1: Google Ads opportunity
+  // Base: 200-800 monthly searches depending on market size
+  const gap1Searches = Math.round(400 * marketMultiplier);
+  const gap1CTR = 0.035;      // 3.5% CTR (industry average for legal)
+  const gap1Conv = 0.12;      // 12% of clicks become leads
+  const gap1Close = 0.25;     // 25% of leads close
+
+  const gap1Cases = gap1Searches * gap1CTR * gap1Conv * gap1Close;
+  const gap1Revenue = gap1Cases * caseValue;
+  const gap1Cost = Math.round(gap1Revenue / 1000);
+
+  // Gap 2: Meta Ads opportunity
+  // Audience size varies with market: 20K-100K
+  const gap2Audience = Math.round(40000 * marketMultiplier);
+  const gap2Reach = 0.015;     // 1.5% monthly reach with ads
+  const gap2Conv = 0.008;      // 0.8% of impressions convert
+  const gap2Close = 0.25;      // 25% of leads close
+
+  const gap2Cases = gap2Audience * gap2Reach * gap2Conv * gap2Close;
+  const gap2Revenue = gap2Cases * caseValue;
+  const gap2Cost = Math.round(gap2Revenue / 1000);
+
+  // Gap 3: After-hours / Voice AI opportunity
+  // Calls vary by firm size: 20-100/month
+  const firmSizeMultiplier = getFirmSizeMultiplier(marketData);
+  const gap3Calls = Math.round(40 * firmSizeMultiplier);
+  const gap3AfterHours = 0.35;   // 35% outside business hours
+  const gap3MissRate = 0.60;     // 60% of after-hours calls missed
+  const gap3Recovery = 0.70;     // AI recovers 70% of missed
   const gap3Close = 0.20;        // 20% of recovered calls close
-  
-  let gap3Cases = gap3Calls * gap3AfterHours * gap3Hangup * gap3Recovery * gap3Close;
-  let gap3Revenue = gap3Cases * caseValue;
-  let gap3Cost = Math.round(gap3Revenue / 1000);
-  
-  if (Math.abs(gap3Cost - gap3Target) / gap3Target > 0.15) {
-    gap3Cost = gap3Target;
-  }
-  
-  // Final adjustment to ensure exact sum
-  const currentSum = gap1Cost + gap2Cost + gap3Cost;
-  if (currentSum !== heroK) {
-    gap3Cost = heroK - gap1Cost - gap2Cost;
-  }
-  
+
+  const gap3Cases = gap3Calls * gap3AfterHours * gap3MissRate * gap3Recovery * gap3Close;
+  const gap3Revenue = gap3Cases * caseValue;
+  const gap3Cost = Math.round(gap3Revenue / 1000);
+
+  // Calculate actual total (no forcing to match hero)
+  const actualTotal = gap1Cost + gap2Cost + gap3Cost;
+
   return {
     gap1: {
       cost: gap1Cost,
@@ -564,7 +551,7 @@ function calculateGaps(gaps, totalMonthly, caseValue, competitors) {
       conv: gap1Conv * 100,
       close: gap1Close * 100,
       cases: Math.round(gap1Cases * 10) / 10,
-      formula: `${gap1Searches} searches × ${Math.round(gap1CTR*100)}% CTR × ${Math.round(gap1Conv*100)}% conversion × ${Math.round(gap1Close*100)}% close × $${caseValue.toLocaleString()}`
+      formula: `~${gap1Searches} searches/mo × ${(gap1CTR*100).toFixed(1)}% CTR × ${Math.round(gap1Conv*100)}% conversion × ${Math.round(gap1Close*100)}% close`
     },
     gap2: {
       cost: gap2Cost,
@@ -573,33 +560,66 @@ function calculateGaps(gaps, totalMonthly, caseValue, competitors) {
       conv: gap2Conv * 100,
       close: gap2Close * 100,
       cases: Math.round(gap2Cases * 10) / 10,
-      formula: `${gap2Audience.toLocaleString()} reachable people × ${Math.round(gap2Reach*100)}% reach × ${Math.round(gap2Conv*100)}% conversion × ${Math.round(gap2Close*100)}% close × $${caseValue.toLocaleString()}`
+      formula: `~${(gap2Audience/1000).toFixed(0)}K audience × ${(gap2Reach*100).toFixed(1)}% reach × ${(gap2Conv*100).toFixed(1)}% conversion × ${Math.round(gap2Close*100)}% close`
     },
     gap3: {
       cost: gap3Cost,
       calls: gap3Calls,
       afterHours: gap3AfterHours * 100,
-      hangup: gap3Hangup * 100,
+      missRate: gap3MissRate * 100,
       recovery: gap3Recovery * 100,
       close: gap3Close * 100,
       cases: Math.round(gap3Cases * 10) / 10,
-      formula: `${gap3Calls} calls × ${Math.round(gap3AfterHours*100)}% after-hours × ${Math.round(gap3Hangup*100)}% hangup × ${Math.round(gap3Recovery*100)}% recovered × ${Math.round(gap3Close*100)}% close × $${caseValue.toLocaleString()}`
-    }
+      formula: `~${gap3Calls} calls/mo × ${Math.round(gap3AfterHours*100)}% after-hours × ${Math.round(gap3MissRate*100)}% missed × ${Math.round(gap3Recovery*100)}% recovered`
+    },
+    actualTotal: actualTotal
   };
 }
 
-function validateMath(gapCalcs, heroTotal) {
-  const gapSum = (gapCalcs.gap1.cost + gapCalcs.gap2.cost + gapCalcs.gap3.cost) * 1000;
-  const heroTotalDollars = Math.round(heroTotal);
-  const difference = Math.abs(gapSum - heroTotalDollars);
-  
-  return {
-    valid: difference <= 1000,
-    gapSum,
-    heroTotal: heroTotalDollars,
-    difference
-  };
+// Market size multiplier based on city population
+function getMarketMultiplier(marketData) {
+  const city = (marketData.city || '').toLowerCase();
+  const state = (marketData.state || '').toUpperCase();
+
+  // Major metros get 2x
+  const majorMetros = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix',
+    'philadelphia', 'san antonio', 'san diego', 'dallas', 'san jose', 'austin',
+    'jacksonville', 'fort worth', 'columbus', 'charlotte', 'san francisco',
+    'indianapolis', 'seattle', 'denver', 'washington', 'boston', 'nashville',
+    'baltimore', 'oklahoma city', 'portland', 'las vegas', 'milwaukee', 'toronto'];
+
+  if (majorMetros.some(m => city.includes(m))) return 1.8;
+
+  // Mid-size cities get 1.2x
+  const midSize = ['memphis', 'louisville', 'richmond', 'new orleans', 'raleigh',
+    'salt lake city', 'birmingham', 'rochester', 'fresno', 'tucson', 'sacramento',
+    'mesa', 'kansas city', 'atlanta', 'omaha', 'miami', 'tulsa', 'oakland',
+    'minneapolis', 'cleveland', 'wichita', 'arlington', 'bakersfield', 'tampa',
+    'aurora', 'honolulu', 'anaheim', 'santa ana', 'corpus christi', 'riverside',
+    'st. louis', 'lexington', 'pittsburgh', 'anchorage', 'stockton', 'cincinnati',
+    'st. paul', 'toledo', 'newark', 'greensboro', 'plano', 'henderson', 'lincoln',
+    'buffalo', 'fort wayne', 'jersey city', 'chula vista', 'norfolk', 'orlando',
+    'chandler', 'laredo', 'madison', 'durham', 'lubbock', 'winston-salem'];
+
+  if (midSize.some(m => city.includes(m))) return 1.2;
+
+  // Default for smaller markets
+  return 0.8;
 }
+
+// Firm size multiplier based on extracted data
+function getFirmSizeMultiplier(marketData) {
+  const firmSize = marketData.firmSize || marketData.team?.totalCount || 0;
+  const officeCount = marketData.officeCount || 1;
+
+  if (firmSize > 20 || officeCount > 3) return 2.0;
+  if (firmSize > 10 || officeCount > 1) return 1.5;
+  if (firmSize > 5) return 1.2;
+  return 1.0; // Solo/small firm
+}
+
+// Math validation removed - hero total is now calculated FROM gaps, not forced to match
+// The old validation was part of the rigging system
 
 function generateHTML(data) {
   const {
@@ -615,7 +635,8 @@ function generateHTML(data) {
     gapCalculations,
     competitors,
     gaps,
-    currency = '$'
+    currency = '$',
+    researchData = {}
   } = data;
   
   const heroTotalK = Math.round(totalMonthly / 1000);
@@ -641,14 +662,14 @@ function generateHTML(data) {
     ${generateHeader(prospectName, today)}
     ${generateHero(practiceLabel, city, state, searchTerms, heroTotalK, currency)}
     ${generateSectionIntro('gaps', `Where you are losing ${currency}${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
-    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName, currency)}
-    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName, currency)}
-    ${generateGap3(gapCalculations.gap3, caseValue, firmName, currency)}
-    ${generateSectionIntro('competitors', 'Your competitive landscape', `We analyzed your top competitors in ${city} to see who is running ads, who is capturing after-hours leads, and where the opportunity is.`)}
-    ${generateCompetitors(competitors, city)}
+    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName, currency, researchData)}
+    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName, currency, researchData)}
+    ${generateGap3(gapCalculations.gap3, caseValue, firmName, currency, researchData)}
+    ${generateSectionIntro('competitors', 'Your competitive landscape', `We looked at who's advertising in ${city || 'your market'} to understand where the opportunity is.`)}
+    ${generateCompetitors(competitors, city, researchData)}
     ${generateSectionIntro('solution', 'What it takes to fix this', `Closing these gaps is not one quick fix. It is a system: ads, intake, CRM, reporting that works together.`)}
     ${generateSolution(firmName)}
-    ${generateSectionIntro('proof', 'We have done this before', `This is not theory. We have built this system for 23 law firms. Here is what happened.`)}
+    ${generateSectionIntro('proof', 'How this works', `This is a proven system. Here's what it looks like when it's running.`)}
     ${generateProof()}
     ${generateSectionIntro('next', 'What happens next', `Two choices. Neither is wrong, but one keeps things the same.`)}
     ${generateTwoOptions(heroTotalK, competitors)}
@@ -746,217 +767,337 @@ if (require.main === module) {
 
 module.exports = { generateReport };
 
-function generateGap1(gap1, searchTerm, caseValue, firmName, currency = '$') {
-  return `
+function generateGap1(gap1, searchTerm, caseValue, firmName, currency = '$', firmData = {}) {
+  // Check if firm already runs Google Ads
+  const hasGoogleAds = firmData.hasGoogleAds || firmData.gaps?.googleAds?.status === 'running';
+
+  if (hasGoogleAds) {
+    // Firm has Google Ads - focus on optimization
+    return `
     <div class="section-label" id="gaps">GAP #1</div>
-    
+
     <div class="tldr-box">
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
-        <strong>The firm down the street isn't better. They just show up. You don't.</strong><br>
-        <span class="tldr-cost">Cost: ~${currency}${gap1.cost}K/month</span>
+        <strong>You're running Google Ads. The opportunity is optimization—better targeting, lower CPA, higher conversion.</strong><br>
+        <span class="tldr-cost">Potential: ~${currency}${gap1.cost}K/month additional</span>
       </div>
     </div>
-    
+
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">${firmName} is invisible when it matters</div>
-        <div class="gap-cost">-${currency}${gap1.cost}K/mo</div>
+        <div class="gap-title">Optimizing ${firmName}'s Google Ads</div>
+        <div class="gap-cost">+${currency}${gap1.cost}K/mo</div>
       </div>
-      
-      <p><strong>65% of high-intent legal searches click on ads.</strong> When someone types "${searchTerm}" at 9pm, they're ready to hire. Three firms show up. None are you.</p>
-      
+
+      <p><strong>You're already capturing search traffic.</strong> The opportunity is optimization: tighter geo-targeting, negative keywords, dayparting, and conversion tracking that ties every lead back to its source.</p>
+
       <div class="flow-diagram">
-        <div class="flow-step">Client searches "${searchTerm}" at 9pm</div>
+        <div class="flow-step">Client searches "${searchTerm}"</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">3 ads appear at top of results</div>
+        <div class="flow-step">Your ad appears (already running)</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">${firmName} is nowhere on page 1</div>
+        <div class="flow-step">Optimized landing page + tracking</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">They click competitor's ad and book</div>
+        <div class="flow-step">Higher conversion, lower cost per case</div>
       </div>
-      
-      <div class="stat-box">
-        <div class="stat-number">65%</div>
-        <div class="stat-label">of high-intent clicks go to ads</div>
-      </div>
-      
+
       <p class="math-line"><strong>The math:</strong> ${gap1.formula} = <strong>${currency}${gap1.cost}K/month</strong></p>
-      
-      <p class="proof-line">Phoenix tax attorney: 0 → 47 leads/month in six weeks.</p>
     </div>
-    
+
+    <p class="section-pull"><strong>Google is working. What about social?</strong></p>
+  `;
+  }
+
+  // Firm doesn't have Google Ads
+  return `
+    <div class="section-label" id="gaps">GAP #1</div>
+
+    <div class="tldr-box">
+      <div class="tldr-label">TLDR</div>
+      <div class="tldr-content">
+        <strong>When someone searches for a lawyer in your area, you're not in the results. Competitors are.</strong><br>
+        <span class="tldr-cost">Estimated: ~${currency}${gap1.cost}K/month</span>
+      </div>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Search visibility opportunity</div>
+        <div class="gap-cost">~${currency}${gap1.cost}K/mo</div>
+      </div>
+
+      <p><strong>High-intent searches drive high-value cases.</strong> When someone types "${searchTerm}", they're actively looking for help. Paid search puts you at the top of those results.</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">Client searches "${searchTerm}"</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Paid ads appear at top of results</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Without ads, organic results are below the fold</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Firms with ads capture high-intent traffic</div>
+      </div>
+
+      <p class="math-line"><strong>The math:</strong> ${gap1.formula} = <strong>${currency}${gap1.cost}K/month</strong></p>
+    </div>
+
     <p class="section-pull"><strong>But Google is only half the picture. Where else are your clients?</strong></p>
   `;
 }
 
-function generateGap2(gap2, city, practiceArea, caseValue, firmName, currency = '$') {
-  return `
+function generateGap2(gap2, city, practiceArea, caseValue, firmName, currency = '$', firmData = {}) {
+  // Check if firm already runs Meta Ads
+  const hasMetaAds = firmData.hasMetaAds || firmData.gaps?.metaAds?.status === 'running';
+  const locationStr = city || 'your area';
+
+  if (hasMetaAds) {
+    // Firm has Meta Ads - focus on optimization
+    return `
     <div class="section-label">GAP #2</div>
-    
+
     <div class="tldr-box">
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
-        <strong>Someone in ${city} is scrolling Instagram right now with a legal problem. They'll hire whoever they see first.</strong><br>
-        <span class="tldr-cost">Cost: ~${currency}${gap2.cost}K/month</span>
+        <strong>You're on social media. The opportunity is better targeting, retargeting, and conversion optimization.</strong><br>
+        <span class="tldr-cost">Potential: ~${currency}${gap2.cost}K/month additional</span>
       </div>
     </div>
-    
+
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">Every ${firmName} visitor could be a client</div>
-        <div class="gap-cost">-${currency}${gap2.cost}K/mo</div>
+        <div class="gap-title">Optimizing ${firmName}'s social presence</div>
+        <div class="gap-cost">+${currency}${gap2.cost}K/mo</div>
       </div>
-      
-      <p><strong>Your clients spend 2.5 hours/day on social media.</strong> Some need a ${practiceArea} attorney. Most won't Google it—they'll hire whoever shows up in their feed. You have no presence there.</p>
-      
+
+      <p><strong>You're already reaching people on social.</strong> The opportunity: custom audiences, lookalike targeting, retargeting website visitors, and creative testing to lower cost per lead.</p>
+
       <div class="flow-diagram">
-        <div class="flow-step">Person in ${city} has a legal problem</div>
+        <div class="flow-step">Person in ${locationStr} has a legal problem</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Scrolling Instagram/Facebook at 9pm</div>
+        <div class="flow-step">Sees your ad (already running)</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Sees competitor's ad for ${practiceArea} lawyer</div>
+        <div class="flow-step">Optimized creative + landing page</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Clicks, books, never finds ${firmName}</div>
+        <div class="flow-step">Higher conversion, lower cost per case</div>
       </div>
-      
-      <div class="stat-box">
-        <div class="stat-number">2.5 hrs</div>
-        <div class="stat-label">daily time on social media</div>
-      </div>
-      
+
       <p class="math-line"><strong>The math:</strong> ${gap2.formula} = <strong>${currency}${gap2.cost}K/month</strong></p>
-      
-      <p class="proof-line">Austin family law firm: 23 leads in first month from Meta—none had Googled.</p>
     </div>
-    
+
+    <p class="section-pull"><strong>Ads are running. What about after-hours intake?</strong></p>
+  `;
+  }
+
+  // Firm doesn't have Meta Ads
+  return `
+    <div class="section-label">GAP #2</div>
+
+    <div class="tldr-box">
+      <div class="tldr-label">TLDR</div>
+      <div class="tldr-content">
+        <strong>People in ${locationStr} spend hours on social media daily. Some have legal problems. They'll contact whoever they see.</strong><br>
+        <span class="tldr-cost">Estimated: ~${currency}${gap2.cost}K/month</span>
+      </div>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">Social media opportunity</div>
+        <div class="gap-cost">~${currency}${gap2.cost}K/mo</div>
+      </div>
+
+      <p><strong>Not everyone Googles their legal problem.</strong> Many people with legal needs are on Facebook and Instagram daily. Targeted ads reach them where they already spend time.</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">Person in ${locationStr} has a legal problem</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Scrolling social media in the evening</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Sees a ${practiceArea} attorney's ad</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Clicks, learns about the firm, reaches out</div>
+      </div>
+
+      <p class="math-line"><strong>The math:</strong> ${gap2.formula} = <strong>${currency}${gap2.cost}K/month</strong></p>
+    </div>
+
     <p class="section-pull"><strong>And when someone actually calls after hours?</strong></p>
   `;
 }
 
-function generateGap3(gap3, caseValue, firmName, currency = '$') {
-  return `
+function generateGap3(gap3, caseValue, firmName, currency = '$', firmData = {}) {
+  // Check if firm already has after-hours coverage
+  const hasAfterHours = firmData.afterHoursAvailable || firmData.hasLiveChat || firmData.has24x7;
+
+  if (hasAfterHours) {
+    // Firm has some after-hours coverage - focus on optimization instead
+    return `
     <div class="section-label">GAP #3</div>
-    
+
     <div class="tldr-box">
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
-        <strong>Last night, someone needed you. They called. Voicemail. They called someone else.</strong><br>
-        <span class="tldr-cost">Cost: ~${currency}${gap3.cost}K/month</span>
+        <strong>You have after-hours coverage. The opportunity is in optimization—faster response, better qualification, more conversions.</strong><br>
+        <span class="tldr-cost">Potential: ~${currency}${gap3.cost}K/month additional</span>
       </div>
     </div>
-    
+
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">${firmName}'s after-hours calls go to voicemail</div>
-        <div class="gap-cost">-${currency}${gap3.cost}K/mo</div>
+        <div class="gap-title">Optimizing ${firmName}'s after-hours intake</div>
+        <div class="gap-cost">+${currency}${gap3.cost}K/mo</div>
       </div>
-      
-      <p><strong>73% of people searching for lawyers do it outside business hours.</strong> When they call and hit voicemail, 73% hang up. They needed you at 9pm. You weren't there.</p>
-      
+
+      <p><strong>You're already capturing after-hours leads.</strong> The opportunity is optimization: instant response, AI-powered qualification, automatic booking, and zero dropped calls.</p>
+
       <div class="contrast-box">
         <div class="contrast-side">
-          <div class="contrast-label bad">Right now:</div>
+          <div class="contrast-label">Current:</div>
           <ul>
-            <li>Call at 8pm → voicemail</li>
-            <li>They hang up (73%)</li>
-            <li>Call next firm</li>
-            <li>Gone forever</li>
+            <li>After-hours coverage active</li>
+            <li>Some qualification process</li>
+            <li>Manual follow-up</li>
+            <li>Variable response time</li>
           </ul>
         </div>
         <div class="contrast-side">
-          <div class="contrast-label good">With Voice AI:</div>
+          <div class="contrast-label good">Optimized:</div>
           <ul>
-            <li>Answered in 2 rings</li>
-            <li>AI qualifies them</li>
-            <li>Books consultation</li>
-            <li>Alerts your team</li>
+            <li>Sub-5-second response</li>
+            <li>AI qualifies + books instantly</li>
+            <li>Automatic CRM entry</li>
+            <li>Zero human bottleneck</li>
           </ul>
         </div>
       </div>
-      
+
       <p class="math-line"><strong>The math:</strong> ${gap3.formula} = <strong>${currency}${gap3.cost}K/month</strong></p>
-      
-      <p class="proof-line">Dallas litigation firm: close rate 18% → 31% after 24/7 intake.</p>
+    </div>
+  `;
+  }
+
+  // Firm doesn't have after-hours coverage
+  return `
+    <div class="section-label">GAP #3</div>
+
+    <div class="tldr-box">
+      <div class="tldr-label">TLDR</div>
+      <div class="tldr-content">
+        <strong>Many potential clients call outside business hours. Without 24/7 intake, those calls often go to competitors.</strong><br>
+        <span class="tldr-cost">Estimated: ~${currency}${gap3.cost}K/month</span>
+      </div>
+    </div>
+
+    <div class="gap-box">
+      <div class="gap-header">
+        <div class="gap-title">After-hours intake opportunity</div>
+        <div class="gap-cost">~${currency}${gap3.cost}K/mo</div>
+      </div>
+
+      <p><strong>A significant portion of legal searches happen outside business hours.</strong> Without 24/7 intake, potential clients who call after hours may move on to firms that answer.</p>
+
+      <div class="contrast-box">
+        <div class="contrast-side">
+          <div class="contrast-label">Without 24/7 intake:</div>
+          <ul>
+            <li>After-hours calls → voicemail</li>
+            <li>Many callers don't leave messages</li>
+            <li>Delayed response next business day</li>
+            <li>Potential clients may try competitors</li>
+          </ul>
+        </div>
+        <div class="contrast-side">
+          <div class="contrast-label good">With AI intake:</div>
+          <ul>
+            <li>Answered in seconds, 24/7</li>
+            <li>AI qualifies the lead</li>
+            <li>Books consultation automatically</li>
+            <li>Team alerted immediately</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="math-line"><strong>The math:</strong> ${gap3.formula} = <strong>${currency}${gap3.cost}K/month</strong></p>
     </div>
   `;
 }
 
-function generateCompetitors(competitors, city) {
-  // We ALWAYS have 3 competitors now (generated with reasonable data)
+function generateCompetitors(competitors, city, firmData = {}) {
+  // Handle case where we have no competitor data
+  if (!competitors || competitors.length === 0) {
+    return generateNoCompetitorSection(city, firmData);
+  }
+
   const top3 = competitors.slice(0, 3);
   const topComp = top3[0];
-  
-  // FIX #6: Check if all competitor data is identical (likely placeholder/missing data)
-  const allIdentical = top3.every(c => 
-    (c.reviews || c.reviewCount || 0) === (top3[0].reviews || top3[0].reviewCount || 0) &&
-    (c.rating || 0) === (top3[0].rating || 0) &&
-    c.hasGoogleAds === top3[0].hasGoogleAds &&
-    c.hasMetaAds === top3[0].hasMetaAds
-  );
-  
-  const hasLimitedData = allIdentical && (top3[0].reviews || top3[0].reviewCount || 0) === 0;
-  
-  // FIX #6: Format helper - show "—" instead of "0.0★" or "0"
+
+  // Format helpers
   const formatReviews = (c) => {
     const count = c.reviews || c.reviewCount || 0;
     return count === 0 ? '—' : count;
   };
-  
+
   const formatRating = (c) => {
     const rating = c.rating || 0;
     if (rating === 0) return '—';
-    // Handle both string and number ratings
     const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
     return `${ratingNum.toFixed(1)}★`;
   };
-  
+
+  // Format the firm's own data (Task #2 fix - use actual scraped data)
+  const firmReviews = firmData.googleReviews || firmData.reviewCount || 0;
+  const firmRating = firmData.googleRating || firmData.rating || 0;
+  const firmHasGoogleAds = firmData.hasGoogleAds || firmData.gaps?.googleAds?.status === 'running' || false;
+  const firmHasMetaAds = firmData.hasMetaAds || firmData.gaps?.metaAds?.status === 'running' || false;
+  const firmHas24x7 = firmData.afterHoursAvailable || firmData.hasLiveChat || firmData.has24x7 || false;
+
+  const formatFirmReviews = firmReviews === 0 ? '—' : firmReviews;
+  const formatFirmRating = firmRating === 0 ? '—' : `${parseFloat(firmRating).toFixed(1)}★`;
+
   const hasAds = top3.some(c => c.hasGoogleAds);
-  
-  // Generate TLDR
+
+  // Generate TLDR based on actual data
   let tldr = '';
   if (!hasAds) {
-    tldr = `Nobody in your market has the full stack. First-mover opportunity.`;
-  } else if (topComp.reviews > 100 || topComp.reviewCount > 100) {
+    tldr = `Limited advertising activity in your market. First-mover opportunity.`;
+  } else if ((topComp.reviews || topComp.reviewCount || 0) > 100) {
     const reviews = topComp.reviews || topComp.reviewCount;
-    tldr = `${topComp.name} dominates with ${reviews} reviews and ads. But their intake has gaps.`;
+    tldr = `${topComp.name} leads with ${reviews} reviews and active ads.`;
   } else {
-    tldr = `Market is competitive but nobody's running full infrastructure yet.`;
+    tldr = `Market is competitive but most firms lack full infrastructure.`;
   }
-  
-  // FIX #7: Generate EXPANDED insight (must be different from TLDR)
+
+  // Generate insight
   let insight = '';
-  if (hasLimitedData) {
-    insight = `We found limited public data on your direct competitors. This often indicates an under-marketed space—strong first-mover advantage for whoever builds infrastructure first.`;
-  } else if (!hasAds) {
-    insight = `None of your direct competitors are running Google Ads or Meta Ads. In most markets, at least one firm is advertising—this is rare. The first firm to build infrastructure here will capture the majority of high-intent leads while competitors rely on referrals alone.`;
-  } else if (topComp.reviews > 100 || topComp.reviewCount > 100) {
+  if (!hasAds) {
+    insight = `We found limited advertising activity among firms in your market. This often indicates an opportunity for the first firm to build comprehensive marketing infrastructure.`;
+  } else if ((topComp.reviews || topComp.reviewCount || 0) > 100) {
     const reviews = topComp.reviews || topComp.reviewCount;
-    insight = `${topComp.name} has ${reviews} reviews and is running Google Ads, but our analysis shows gaps in their after-hours intake and retargeting. They're capturing leads everyone else misses, but leaving money on the table with incomplete infrastructure.`;
+    insight = `${topComp.name} has ${reviews} reviews and is running ads. Building infrastructure now positions you to compete for the same high-intent traffic.`;
   } else {
-    insight = `The market is competitive, but nobody's running the full stack (Google Ads + Meta + 24/7 intake + CRM). Most firms have 1-2 pieces. First to deploy all four wins the majority of high-intent traffic.`;
+    insight = `Multiple firms are advertising, but comprehensive infrastructure (ads + 24/7 intake + CRM) is uncommon. Full-stack deployment creates competitive advantage.`;
   }
-  
-  // Adjust intro based on how many competitors we found
+
   const competitorCount = top3.length;
-  const countText = competitorCount === 1 ? 'your closest competitor' : 
-                    competitorCount === 2 ? 'your top 2 competitors' : 
-                    'your top 3 competitors';
-  
+  const countText = competitorCount === 1 ? 'your closest competitor' :
+                    competitorCount === 2 ? '2 competitors' :
+                    '3 competitors';
+
   return `
-    <p class="section-pull"><strong>So who in ${city} is winning? Let's look at ${countText}.</strong></p>
-    
-    <div class="section-label">COMPETITIVE INTELLIGENCE</div>
-    
+    <p class="section-pull"><strong>Here's what we found looking at ${countText} in ${city || 'your market'}.</strong></p>
+
+    <div class="section-label">COMPETITIVE LANDSCAPE</div>
+
     <div class="tldr-box">
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
         <strong>${tldr}</strong>
       </div>
     </div>
-    
+
     <h2>Your market at a glance</h2>
-    
+
     <table class="competitor-table">
       <thead>
         <tr>
@@ -968,36 +1109,101 @@ function generateCompetitors(competitors, city) {
       <tbody>
         <tr>
           <td><strong>Google Reviews</strong></td>
-          <td>—</td>
+          <td>${formatFirmReviews}</td>
           ${top3.map(c => `<td>${formatReviews(c)}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>Rating</strong></td>
-          <td>—</td>
+          <td>${formatFirmRating}</td>
           ${top3.map(c => `<td>${formatRating(c)}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>Google Ads</strong></td>
-          <td>❌</td>
+          <td>${firmHasGoogleAds ? '✓' : '❌'}</td>
           ${top3.map(c => `<td>${c.hasGoogleAds ? '✓' : '❌'}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>Meta Ads</strong></td>
-          <td>❌</td>
+          <td>${firmHasMetaAds ? '✓' : '❌'}</td>
           ${top3.map(c => `<td>${c.hasMetaAds ? '✓' : '❌'}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>24/7 Intake</strong></td>
-          <td>❌</td>
+          <td>${firmHas24x7 ? '✓' : '❌'}</td>
           ${top3.map(c => `<td>${c.has24x7 || c.hasVoiceAI ? '✓' : '❌'}</td>`).join('')}
         </tr>
       </tbody>
     </table>
-    
+
     <div class="competitor-insight">
       <strong>${insight}</strong>
     </div>
-    
+
+    <div class="big-divider"></div>
+  `;
+}
+
+// New function for when we have no competitor data
+function generateNoCompetitorSection(city, firmData = {}) {
+  const locationStr = city || 'your market';
+
+  // Still show the firm's own data if we have it
+  const firmReviews = firmData.googleReviews || firmData.reviewCount || 0;
+  const firmRating = firmData.googleRating || firmData.rating || 0;
+  const firmHasGoogleAds = firmData.hasGoogleAds || firmData.gaps?.googleAds?.status === 'running' || false;
+  const firmHasMetaAds = firmData.hasMetaAds || firmData.gaps?.metaAds?.status === 'running' || false;
+  const firmHas24x7 = firmData.afterHoursAvailable || firmData.hasLiveChat || firmData.has24x7 || false;
+
+  const formatFirmReviews = firmReviews === 0 ? '—' : firmReviews;
+  const formatFirmRating = firmRating === 0 ? '—' : `${parseFloat(firmRating).toFixed(1)}★`;
+
+  return `
+    <div class="section-label">MARKET OPPORTUNITY</div>
+
+    <div class="tldr-box">
+      <div class="tldr-label">TLDR</div>
+      <div class="tldr-content">
+        <strong>We don't have verified competitor data for ${locationStr} yet. That's often a sign of an under-marketed space.</strong>
+      </div>
+    </div>
+
+    <h2>Your current position</h2>
+
+    <table class="competitor-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>You</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Google Reviews</strong></td>
+          <td>${formatFirmReviews}</td>
+        </tr>
+        <tr>
+          <td><strong>Rating</strong></td>
+          <td>${formatFirmRating}</td>
+        </tr>
+        <tr>
+          <td><strong>Google Ads</strong></td>
+          <td>${firmHasGoogleAds ? '✓' : '❌'}</td>
+        </tr>
+        <tr>
+          <td><strong>Meta Ads</strong></td>
+          <td>${firmHasMetaAds ? '✓' : '❌'}</td>
+        </tr>
+        <tr>
+          <td><strong>24/7 Intake</strong></td>
+          <td>${firmHas24x7 ? '✓' : '❌'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="competitor-insight">
+      <strong>Markets with limited competitor advertising often present the best opportunities. The first firm to build comprehensive infrastructure captures the majority of high-intent leads.</strong>
+    </div>
+
     <div class="big-divider"></div>
   `;
 }
@@ -1009,7 +1215,7 @@ function generateSolution(firmName) {
     <div class="tldr-box">
       <div class="tldr-label">TLDR</div>
       <div class="tldr-content">
-        <strong>Full infrastructure = Google Ads + Meta Ads + Voice AI + CRM + reporting.</strong> We've built this 23 times for law firms. The system works.
+        <strong>Full infrastructure = Google Ads + Meta Ads + Voice AI + CRM + reporting.</strong> Each piece works together to capture leads that would otherwise be lost.
       </div>
     </div>
     
@@ -1058,38 +1264,38 @@ function generateSolution(firmName) {
     </div>
     
     <div class="callout">
-      <strong>Sound like a lot?</strong> It is. That's why most firms never do it. But we've built this 23 times. The system works.
+      <strong>Sound like a lot?</strong> It is. That's why most firms never do it. We handle the build and management so you focus on practicing law.
     </div>
     
     <div class="big-divider"></div>
   `;
 }
 
-function generateProof() {
+function generateProof(practiceArea) {
   return `
-    <div class="section-label">PROOF</div>
-    <h2>We've done this before</h2>
-    
+    <div class="section-label">THE SYSTEM</div>
+    <h2>What the infrastructure delivers</h2>
+
     <div class="proof-grid">
       <div class="proof-box">
-        <div class="proof-number">47</div>
-        <div class="proof-label">leads/month</div>
-        <p>Phoenix tax firm, from 0 to 47 after paid search</p>
+        <div class="proof-number">24/7</div>
+        <div class="proof-label">lead capture</div>
+        <p>Every call answered, every form submitted—even at 2am</p>
       </div>
-      
+
       <div class="proof-box">
-        <div class="proof-number">31%</div>
-        <div class="proof-label">close rate</div>
-        <p>Dallas firm: 18% → 31% after 24/7 intake</p>
+        <div class="proof-number">&lt;5 min</div>
+        <div class="proof-label">response time</div>
+        <p>Speed to lead is the #1 factor in conversion</p>
       </div>
-      
+
       <div class="proof-box">
-        <div class="proof-number">23</div>
-        <div class="proof-label">firms</div>
-        <p>Tax, family, PI, immigration—same system works</p>
+        <div class="proof-number">100%</div>
+        <div class="proof-label">attribution</div>
+        <p>Know exactly which ads drive which cases</p>
       </div>
     </div>
-    
+
     <div class="section-divider"></div>
   `;
 }
