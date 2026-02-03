@@ -548,12 +548,81 @@ function generateFallbackCompetitors(city, state, practiceAreas) {
   ];
 }
 
+/**
+ * AI-powered location inference from firm name, website domain, or any context
+ * Use as LAST RESORT when location extraction completely fails
+ */
+async function inferLocation(firmName, website, contextHtml = null) {
+  if (!ANTHROPIC_API_KEY) {
+    console.log(`   ❌ Cannot infer location - ANTHROPIC_API_KEY not set`);
+    return null;
+  }
+
+  const prompt = `You are a location inference AI. Based on the law firm name, website domain, and any available context, infer the MOST LIKELY primary location of this law firm.
+
+Firm Name: ${firmName}
+Website: ${website}
+
+Look for clues:
+- City/state names IN the firm name (e.g., "Boston Legal" → Boston, MA)
+- Common location patterns (e.g., "McLean" is in Virginia)
+- Domain patterns (e.g., .la domains are often Louisiana)
+- Regional terms (e.g., "Bay Area" → San Francisco, CA)
+- State abbreviations in name
+
+${contextHtml ? 'Additional context from website (if extraction failed, this might be partial):' : 'No additional context available.'}
+
+Return ONLY valid JSON (no markdown, no explanations):
+{
+  "city": "Boston",
+  "state": "MA",
+  "confidence": 7,
+  "reasoning": "Firm name contains 'Boston', common legal market"
+}
+
+If you CANNOT make a confident inference (confidence < 5), return:
+{"city": null, "state": null, "confidence": 0, "reasoning": "Insufficient data"}`;
+
+  try {
+    const response = await askAI(
+      prompt, 
+      contextHtml ? contextHtml.substring(0, 50000) : '', 
+      500
+    );
+    
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      
+      if (data.city && data.state && data.confidence >= 5) {
+        console.log(`   🧠 AI inferred location: ${data.city}, ${data.state} (confidence: ${data.confidence}/10)`);
+        console.log(`      Reasoning: ${data.reasoning}`);
+        return {
+          city: data.city,
+          state: data.state,
+          country: 'US',
+          inferredByAI: true,
+          confidence: data.confidence,
+          reasoning: data.reasoning
+        };
+      }
+    }
+    
+    console.log(`   ⚠️  AI location inference returned low confidence or no result`);
+    return null;
+  } catch (e) {
+    console.log(`   ⚠️  AI location inference failed: ${e.message}`);
+    return null;
+  }
+}
+
 module.exports = {
   analyzeFirm,
   quickAttorneySample,
   findAttorneyProfiles,
   extractAttorneys,
   extractLocation,
+  inferLocation,
   extractCredentials,
   findTeamPage,
   analyzePage,

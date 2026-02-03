@@ -306,15 +306,37 @@ async function firmIntelligence(firmWebsite, contactName = '', city = '', state 
         research.confidence.location = 6;
         console.log(`   ⚠️  Using Instantly webhook location: ${city}, ${state}`);
       }
-      // Complete failure
+      // Try 7: AI inference from firm name/website as LAST RESORT
       else {
-        research.location = { city: '', state: '', country: 'US' };
-        research.allLocations = [{ city: '', state: '', country: 'US', address: '' }];
-        research.confidence.location = 0;
-        console.log(`   ❌ NO LOCATION FOUND ANYWHERE`);
-        console.log(`      - AI extraction: failed (4 attempts)`);
-        console.log(`      - Firm analysis: no hint`);
-        console.log(`      - Instantly webhook: empty`);
+        console.log(`   Step 4f: Attempting AI location inference from firm name/website...`);
+        const inferredLocation = await aiHelper.inferLocation(research.firmName, firmWebsite, homeHtml);
+        
+        if (inferredLocation && inferredLocation.city && inferredLocation.state) {
+          research.location = {
+            city: inferredLocation.city,
+            state: inferredLocation.state,
+            country: inferredLocation.country || 'US',
+            inferredByAI: true
+          };
+          research.allLocations = [{ 
+            city: inferredLocation.city, 
+            state: inferredLocation.state, 
+            country: inferredLocation.country || 'US', 
+            address: '(AI inferred)' 
+          }];
+          research.confidence.location = inferredLocation.confidence;
+          console.log(`   ✅ AI INFERRED: ${research.location.city}, ${research.location.state}`);
+        } else {
+          // Complete failure
+          research.location = { city: '', state: '', country: 'US' };
+          research.allLocations = [{ city: '', state: '', country: 'US', address: '' }];
+          research.confidence.location = 0;
+          console.log(`   ❌ NO LOCATION FOUND ANYWHERE`);
+          console.log(`      - AI extraction: failed (4 attempts)`);
+          console.log(`      - Firm analysis: no hint`);
+          console.log(`      - Instantly webhook: empty`);
+          console.log(`      - AI inference: failed or low confidence`);
+        }
       }
     }
     

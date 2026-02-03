@@ -267,12 +267,15 @@ function validateData(data) {
     errors.push('Firm name is invalid or missing');
   }
   
+  // Location validation - warn but don't block (will use "your area" fallback)
   if (!data.location?.city || !data.location?.state) {
-    errors.push('Location (city/state) is missing');
-  }
-  
-  if (data.location?.state && data.location.state.length !== 2) {
-    errors.push('State must be 2-letter abbreviation');
+    warnings.push('Location (city/state) is missing - will use "your area" fallback');
+    // Ensure location object exists with empty strings for safe access
+    if (!data.location) data.location = {};
+    if (!data.location.city) data.location.city = '';
+    if (!data.location.state) data.location.state = '';
+  } else if (data.location.state.length !== 2) {
+    warnings.push(`State "${data.location.state}" should be 2-letter abbreviation`);
   }
   
   // CRITICAL: COMPETITORS (HARD BLOCK)
@@ -540,18 +543,18 @@ function generateHTML(data) {
     ${generateHeader(prospectName, today)}
     ${generateHero(practiceLabel, city, searchTerms, heroTotalK)}
     ${generateSectionIntro('gaps', `Where you are losing $${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
-    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue)}
-    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue)}
+    ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName)}
+    ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName)}
     ${generateGap3(gapCalculations.gap3, caseValue, firmName)}
     ${generateSectionIntro('competitors', 'Your competitive landscape', `We analyzed your top competitors in ${city} to see who is running ads, who is capturing after-hours leads, and where the opportunity is.`)}
     ${generateCompetitors(competitors, city)}
     ${generateSectionIntro('solution', 'What it takes to fix this', `Closing these gaps is not one quick fix. It is a system: ads, intake, CRM, reporting that works together.`)}
-    ${generateSolution()}
+    ${generateSolution(firmName)}
     ${generateSectionIntro('proof', 'We have done this before', `This is not theory. We have built this system for 23 law firms. Here is what happened.`)}
     ${generateProof()}
     ${generateSectionIntro('next', 'What happens next', `Two choices. Neither is wrong, but one keeps things the same.`)}
     ${generateTwoOptions(heroTotalK, competitors)}
-    ${generateCTA(heroTotalK)}
+    ${generateCTA(heroTotalK, firmName)}
     ${generateFooter()}
   </div>
   ${generateTypingAnimation(searchTerms)}
@@ -641,7 +644,7 @@ if (require.main === module) {
 
 module.exports = { generateReport };
 
-function generateGap1(gap1, searchTerm, caseValue) {
+function generateGap1(gap1, searchTerm, caseValue, firmName) {
   return `
     <div class="section-label" id="gaps">GAP #1</div>
     
@@ -685,7 +688,7 @@ function generateGap1(gap1, searchTerm, caseValue) {
   `;
 }
 
-function generateGap2(gap2, city, practiceArea, caseValue) {
+function generateGap2(gap2, city, practiceArea, caseValue, firmName) {
   return `
     <div class="section-label">GAP #2</div>
     
@@ -891,7 +894,7 @@ function generateCompetitors(competitors, city) {
   `;
 }
 
-function generateSolution() {
+function generateSolution(firmName) {
   return `
     <div class="section-label">THE SOLUTION</div>
     
@@ -1015,7 +1018,7 @@ function generateTwoOptions(heroTotalK, competitors) {
   `;
 }
 
-function generateCTA(heroTotalK) {
+function generateCTA(heroTotalK, firmName) {
   return `
     <div id="booking" class="cta">
       <h2>Ready to help ${firmName} stop losing cases to firms that aren't better?</h2>
