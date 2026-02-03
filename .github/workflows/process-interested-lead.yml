@@ -132,27 +132,56 @@ jobs:
             console.log(data.firmName || 'Unknown Firm');
           ")
           
-          # Extract contact name from research or email
+          # Extract contact name from research or email (NEW: check extracted team data first)
           CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
           if [ -z "$CONTACT_NAME" ] || [ "$CONTACT_NAME" = " " ]; then
-            # Try to get from intelligence.keyDecisionMakers
+            # Try multiple sources in order of preference
             CONTACT_NAME=$(node -e "
               const data = JSON.parse(require('fs').readFileSync('$RESEARCH_FILE', 'utf8'));
+              
+              // 1. Founding partners (most likely decision maker)
+              if (data.team?.foundingPartners?.[0]?.name) {
+                console.log(data.team.foundingPartners[0].name);
+                return;
+              }
+              
+              // 2. Leadership
+              if (data.team?.leadership?.name) {
+                console.log(data.team.leadership.name);
+                return;
+              }
+              
+              // 3. Key attorneys
+              if (data.team?.keyAttorneys?.[0]?.name) {
+                console.log(data.team.keyAttorneys[0].name);
+                return;
+              }
+              
+              // 4. Old intelligence structure
               if (data.intelligence?.keyDecisionMakers?.[0]?.name) {
                 console.log(data.intelligence.keyDecisionMakers[0].name);
-              } else {
-                // Extract from email
-                const email = '${{ steps.lead_data.outputs.lead_email }}';
-                if (email && email.includes('@')) {
-                  const name = email.split('@')[0]
-                    .replace(/[._-]/g, ' ')
-                    .split(' ')
-                    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-                    .join(' ');
-                  console.log(name || 'Partner');
-                } else {
+                return;
+              }
+              
+              // 5. Extract from email (smart - avoid generic addresses)
+              const email = '${{ steps.lead_data.outputs.lead_email }}';
+              if (email && email.includes('@')) {
+                const localPart = email.split('@')[0].toLowerCase();
+                
+                // Skip generic addresses
+                if (['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail'].includes(localPart)) {
                   console.log('Partner');
+                  return;
                 }
+                
+                const name = localPart
+                  .replace(/[._-]/g, ' ')
+                  .split(' ')
+                  .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                  .join(' ');
+                console.log(name || 'Partner');
+              } else {
+                console.log('Partner');
               }
             ")
           fi

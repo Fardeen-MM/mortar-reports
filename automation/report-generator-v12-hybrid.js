@@ -45,7 +45,10 @@ const CASE_VALUES = {
   'civil rights': 8000,
   'employment': 6000,
   'real estate': 5000,
-  'ip': 7500
+  'ip': 7500,
+  'landlord': 3500,
+  'medical malpractice': 15000,
+  'workers comp': 8000
 };
 
 // Realistic search terms (natural, what people actually type)
@@ -120,6 +123,27 @@ const SEARCH_TERMS = {
     'ip lawyer near me',
     'copyright attorney'
   ],
+  'landlord': [
+    'eviction lawyer near me',
+    'landlord attorney',
+    'how to evict a tenant',
+    'landlord tenant lawyer',
+    'property law attorney near me'
+  ],
+  'medical malpractice': [
+    'medical malpractice lawyer near me',
+    'can I sue my doctor',
+    'medical negligence attorney',
+    'surgical error lawyer',
+    'hospital malpractice attorney'
+  ],
+  'workers comp': [
+    'workers comp lawyer near me',
+    'injured at work attorney',
+    'work injury lawyer',
+    'workers compensation attorney',
+    'workplace injury lawyer'
+  ],
   'default': [
     'lawyer near me',
     'attorney near me',
@@ -172,15 +196,28 @@ function generateReport(researchData, prospectName) {
   
   console.log('✅ Data validation passed\n');
   
+  // Extract data from research (supports both old and new structure)
   const {
     firmName: rawFirmName,
     website,
     location = {},
-    practiceAreas = [],
     competitors: rawCompetitors = [],
     gaps = {},
-    estimatedMonthlyRevenueLoss = 0
+    estimatedMonthlyRevenueLoss = 0,
+    intelligence = {},
+    // NEW: Extracted structured data
+    practice = {},
+    team = {},
+    credibility = {},
+    positioning = {},
+    firmDetails = {},
+    contact = {}
   } = researchData;
+  
+  // Get practice areas from new structure first, fallback to old
+  const practiceAreas = practice.practiceAreas || 
+                        intelligence.practiceAreas || 
+                        [];
   
   // Filter out fake/placeholder competitors BEFORE processing
   const FAKE_COMPETITOR_PATTERNS = [
@@ -212,6 +249,7 @@ function generateReport(researchData, prospectName) {
   // Normalize firm name (capitalize entity types)
   const firmName = normalizeFirmName(rawFirmName);
   
+  // Extract location (support both old and new structure)
   const city = location.city || '';
   const state = location.state || '';
   const country = location.country || 'US';
@@ -220,9 +258,18 @@ function generateReport(researchData, prospectName) {
   // Currency detection: UK/GB = £, otherwise $
   const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
   
-  // Determine practice area category
-  const practiceArea = getPracticeAreaCategory(practiceAreas[0] || 'legal services');
+  // Determine practice area - use extracted primary focus first
+  let practiceAreaRaw = practice.primaryFocus || 
+                        practiceAreas[0] || 
+                        intelligence.mainFocus?.[0] || 
+                        'legal services';
+  
+  const practiceArea = getPracticeAreaCategory(practiceAreaRaw);
   const practiceLabel = getPracticeLabel(practiceArea);
+  
+  // Log what we're using
+  console.log(`📍 Using location: ${city}${state ? ', ' + state : ''}`);
+  console.log(`⚖️  Using practice area: ${practiceLabel} (from: ${practiceAreaRaw})\n`);
   
   // Get case value (same for ALL gaps)
   const caseValue = getCaseValue(practiceArea, estimatedMonthlyRevenueLoss);
@@ -379,12 +426,14 @@ function normalizeFirmName(name) {
 function getPracticeAreaCategory(practiceArea) {
   const lower = practiceArea.toLowerCase();
   
+  // More specific matching first
+  if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
   if (lower.includes('divorce') || lower.includes('family')) return 'divorce';
   if (lower.includes('tax')) return 'tax';
   if (lower.includes('injury') || lower.includes('accident')) return 'personal injury';
   if (lower.includes('immigration')) return 'immigration';
   if (lower.includes('criminal') || lower.includes('dui')) return 'criminal';
-  if (lower.includes('estate')) return 'estate';
+  if (lower.includes('estate') || lower.includes('probate') || lower.includes('trust')) return 'estate';
   if (lower.includes('business') || lower.includes('corporate')) return 'business';
   if (lower.includes('bankruptcy')) return 'bankruptcy';
   if (lower.includes('litigation')) return 'litigation';
@@ -392,6 +441,8 @@ function getPracticeAreaCategory(practiceArea) {
   if (lower.includes('employment') || lower.includes('discrimination') || lower.includes('labor')) return 'employment';
   if (lower.includes('real estate') || lower.includes('property')) return 'real estate';
   if (lower.includes('intellectual property') || lower.includes('patent') || lower.includes('trademark')) return 'ip';
+  if (lower.includes('malpractice') || lower.includes('medical')) return 'medical malpractice';
+  if (lower.includes('worker') || lower.includes('comp')) return 'workers comp';
   
   return 'default';
 }
@@ -412,6 +463,9 @@ function getPracticeLabel(category) {
     'employment': 'EMPLOYMENT',
     'real estate': 'REAL ESTATE',
     'ip': 'INTELLECTUAL PROPERTY',
+    'landlord': 'LANDLORD LAW',
+    'medical malpractice': 'MEDICAL MALPRACTICE',
+    'workers comp': 'WORKERS COMPENSATION',
     'default': 'LAW'
   };
   
@@ -585,7 +639,7 @@ function generateHTML(data) {
 <body>
   <div class="container">
     ${generateHeader(prospectName, today)}
-    ${generateHero(practiceLabel, city, searchTerms, heroTotalK, currency)}
+    ${generateHero(practiceLabel, city, state, searchTerms, heroTotalK, currency)}
     ${generateSectionIntro('gaps', `Where you are losing ${currency}${heroTotalK}K/month`, `We found 3 gaps in your marketing infrastructure. Each one is costing you cases every month.`)}
     ${generateGap1(gapCalculations.gap1, searchTerms[0], caseValue, firmName, currency)}
     ${generateGap2(gapCalculations.gap2, city, practiceArea, caseValue, firmName, currency)}
@@ -615,10 +669,14 @@ function generateHeader(prospectName, date) {
   `;
 }
 
-function generateHero(practiceLabel, city, searchTerms, heroTotalK, currency = '$') {
+function generateHero(practiceLabel, city, state, searchTerms, heroTotalK, currency = '$') {
+  const locationLabel = city && state ? `${city.toUpperCase()}, ${state.toUpperCase()}` : 
+                        city ? city.toUpperCase() : 
+                        state ? state.toUpperCase() : '';
+  
   return `
     <section class="hero">
-      <div class="hero-label">FOR ${practiceLabel} ATTORNEYS IN ${city.toUpperCase()}</div>
+      <div class="hero-label">FOR ${practiceLabel} ATTORNEYS IN ${locationLabel}</div>
       <h2 class="hero-setup">When someone searches</h2>
       
       <div class="search-bar-mockup">
