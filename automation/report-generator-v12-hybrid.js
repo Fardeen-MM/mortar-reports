@@ -29,6 +29,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { findCompetitors } = require('./ai-research-helper.js');
 
 // Case value minimums by practice area
 const CASE_VALUES = {
@@ -153,7 +154,7 @@ const SEARCH_TERMS = {
   ]
 };
 
-function generateReport(researchData, prospectName) {
+async function generateReport(researchData, prospectName) {
   console.log(`\n📝 Generating V11 Report (7 Critical Fixes) for ${prospectName}...\n`);
   
   // DEBUG: Log what we received
@@ -247,31 +248,45 @@ function generateReport(researchData, prospectName) {
   if (rawCompetitors.length > competitors.length) {
     console.log(`   ℹ️  Filtered ${rawCompetitors.length - competitors.length} fake competitors, ${competitors.length} real ones remaining\n`);
   }
-  
+
   // Normalize firm name (capitalize entity types)
   const firmName = normalizeFirmName(rawFirmName);
-  
+
   // Extract location (support both old and new structure)
   const city = location.city || '';
   const state = location.state || '';
   const country = location.country || 'US';
   const locationStr = city && state ? `${city}, ${state}` : state || 'your area';
-  
+
   // Currency detection: UK/GB = £, otherwise $
   const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
-  
+
   // Determine practice area - use extracted primary focus first
-  let practiceAreaRaw = practice.primaryFocus || 
-                        practiceAreas[0] || 
-                        intelligence.mainFocus?.[0] || 
+  let practiceAreaRaw = practice.primaryFocus ||
+                        practiceAreas[0] ||
+                        intelligence.mainFocus?.[0] ||
                         'legal services';
-  
+
   const practiceArea = getPracticeAreaCategory(practiceAreaRaw);
   const practiceLabel = getPracticeLabel(practiceArea);
-  
+
   // Log what we're using
   console.log(`📍 Using location: ${city}${state ? ', ' + state : ''}`);
   console.log(`⚖️  Using practice area: ${practiceLabel} (from: ${practiceAreaRaw})\n`);
+
+  // If no competitors, try to fetch them now via Google Places API
+  if (competitors.length === 0 && city) {
+    console.log(`   🔍 No competitors in research data - fetching via Google Places API...`);
+    try {
+      const fetchedCompetitors = await findCompetitors(rawFirmName, city, state, practiceAreas);
+      if (fetchedCompetitors && fetchedCompetitors.length > 0) {
+        competitors.push(...fetchedCompetitors);
+        console.log(`   ✅ Fetched ${fetchedCompetitors.length} real competitors\n`);
+      }
+    } catch (e) {
+      console.log(`   ⚠️  Could not fetch competitors: ${e.message}\n`);
+    }
+  }
   
   // Get case value (same for ALL gaps)
   const caseValue = getCaseValue(practiceArea, estimatedMonthlyRevenueLoss);
@@ -737,32 +752,34 @@ function generateSectionIntro(id, title, description) {
 
 // CLI Handler
 if (require.main === module) {
-  const args = process.argv.slice(2);
-  
-  if (args.length < 2) {
-    console.log('Usage: node report-generator-v10.js <research-json> <contact-name>');
-    process.exit(1);
-  }
-  
-  const researchFile = args[0];
-  const contactName = args[1];
-  
-  if (!fs.existsSync(researchFile)) {
-    console.error(`❌ Research file not found: ${researchFile}`);
-    process.exit(1);
-  }
-  
-  try {
-    const researchData = JSON.parse(fs.readFileSync(researchFile, 'utf8'));
-    generateReport(researchData, contactName);
-  } catch (error) {
-    console.error('❌ Error generating report:', error.message);
-    if (error.message.includes('GENERATION_BLOCKED')) {
-      console.error('\n⚠️  Report generation was HARD BLOCKED due to validation failures.');
-      console.error('   Check generation-blocked.json for details.');
+  (async () => {
+    const args = process.argv.slice(2);
+
+    if (args.length < 2) {
+      console.log('Usage: node report-generator-v12-hybrid.js <research-json> <contact-name>');
+      process.exit(1);
     }
-    process.exit(1);
-  }
+
+    const researchFile = args[0];
+    const contactName = args[1];
+
+    if (!fs.existsSync(researchFile)) {
+      console.error(`❌ Research file not found: ${researchFile}`);
+      process.exit(1);
+    }
+
+    try {
+      const researchData = JSON.parse(fs.readFileSync(researchFile, 'utf8'));
+      await generateReport(researchData, contactName);
+    } catch (error) {
+      console.error('❌ Error generating report:', error.message);
+      if (error.message.includes('GENERATION_BLOCKED')) {
+        console.error('\n⚠️  Report generation was HARD BLOCKED due to validation failures.');
+        console.error('   Check generation-blocked.json for details.');
+      }
+      process.exit(1);
+    }
+  })();
 }
 
 module.exports = { generateReport };
@@ -1120,17 +1137,17 @@ function generateCompetitors(competitors, city, firmData = {}) {
         <tr>
           <td><strong>Google Ads</strong></td>
           <td>${firmHasGoogleAds ? '✓' : '❌'}</td>
-          ${top3.map(c => `<td>${c.hasGoogleAds ? '✓' : '❌'}</td>`).join('')}
+          ${top3.map(c => `<td>${c.hasGoogleAds === true ? '✓' : c.hasGoogleAds === false ? '❌' : '—'}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>Meta Ads</strong></td>
           <td>${firmHasMetaAds ? '✓' : '❌'}</td>
-          ${top3.map(c => `<td>${c.hasMetaAds ? '✓' : '❌'}</td>`).join('')}
+          ${top3.map(c => `<td>${c.hasMetaAds === true ? '✓' : c.hasMetaAds === false ? '❌' : '—'}</td>`).join('')}
         </tr>
         <tr>
           <td><strong>24/7 Intake</strong></td>
           <td>${firmHas24x7 ? '✓' : '❌'}</td>
-          ${top3.map(c => `<td>${c.has24x7 || c.hasVoiceAI ? '✓' : '❌'}</td>`).join('')}
+          ${top3.map(c => `<td>${c.has24x7 === true || c.hasVoiceAI === true ? '✓' : c.has24x7 === false ? '❌' : '—'}</td>`).join('')}
         </tr>
       </tbody>
     </table>

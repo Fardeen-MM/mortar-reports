@@ -448,29 +448,92 @@ Return ONLY valid JSON:
 }
 
 /**
- * COMPETITOR SEARCH - Returns empty array (no fabrication)
+ * COMPETITOR SEARCH - Uses Google Places API for REAL competitor data
  *
- * IMPORTANT: This function previously generated fake competitor names using AI
- * or random surname pairs. That approach is dishonest - any lawyer who Googles
- * a competitor from the report and finds nothing loses all trust instantly.
- *
- * TO IMPLEMENT REAL COMPETITOR DATA:
- * Option 1: Google Maps Places API - search for "{practice area} lawyer near {city, state}"
- *           Returns real firms with real ratings and review counts. ~$0.03/request.
- * Option 2: SERP API (SerpAPI, Bright Data, etc.) - scrape actual Google results
- * Option 3: Manual curation - maintain a database of verified competitors by market
- *
- * Until one of these is implemented, this returns an empty array and the report
- * generator handles the "no competitor data" case gracefully.
+ * Searches Google Maps for law firms matching the practice area and location.
+ * Returns real firms with real ratings and review counts.
  */
 async function findCompetitors(firmName, city, state, practiceAreas) {
-  console.log(`   🔍 Competitor search: ${city}, ${state} | ${practiceAreas.join(', ')}`);
-  console.log(`   ℹ️  Real competitor lookup requires Google Maps API or SERP API`);
-  console.log(`   ℹ️  Returning empty array - report will show market opportunity messaging`);
+  console.log(`   🔍 Finding real competitors via Google Places API...`);
+  console.log(`   📍 Location: ${city}, ${state}`);
+  console.log(`   ⚖️  Practice: ${practiceAreas.slice(0, 3).join(', ')}`);
 
-  // Return empty array - no fabricated data
-  // The report generator will handle this gracefully with "limited competitor data" messaging
-  return [];
+  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+
+  // Build search query - use first practice area for specificity
+  const practiceArea = practiceAreas[0] || 'lawyer';
+  const location = state ? `${city}, ${state}` : city;
+  const query = `${practiceArea} lawyer ${location}`;
+
+  try {
+    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY);
+
+    if (results.status !== 'OK' || !results.results || results.results.length === 0) {
+      console.log(`   ⚠️  Google Places returned: ${results.status}`);
+      if (results.error_message) {
+        console.log(`   ⚠️  Error: ${results.error_message}`);
+      }
+      return [];
+    }
+
+    // Filter out the target firm and get top 3 competitors
+    const competitors = results.results
+      .filter(place => {
+        // Exclude the target firm itself
+        const placeName = (place.name || '').toLowerCase();
+        const targetName = (firmName || '').toLowerCase();
+        return !placeName.includes(targetName) && !targetName.includes(placeName);
+      })
+      .slice(0, 3)
+      .map(place => ({
+        name: place.name,
+        city: city,
+        state: state,
+        rating: place.rating || 0,
+        reviewCount: place.user_ratings_total || 0,
+        reviews: place.user_ratings_total || 0,
+        address: place.formatted_address || '',
+        // We don't know their ad status from Places API - leave as unknown
+        hasGoogleAds: null,
+        hasMetaAds: null,
+        hasVoiceAI: null,
+        source: 'google_places'
+      }));
+
+    console.log(`   ✅ Found ${competitors.length} real competitors:`);
+    competitors.forEach((comp, i) => {
+      console.log(`      ${i + 1}. ${comp.name} (${comp.rating}★, ${comp.reviewCount} reviews)`);
+    });
+
+    return competitors;
+
+  } catch (error) {
+    console.log(`   ❌ Google Places API error: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Search Google Places API
+ */
+function searchGooglePlaces(query, apiKey) {
+  return new Promise((resolve, reject) => {
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error(`Failed to parse Places API response: ${e.message}`));
+        }
+      });
+    }).on('error', (e) => {
+      reject(new Error(`Places API request failed: ${e.message}`));
+    });
+  });
 }
 
 /**
