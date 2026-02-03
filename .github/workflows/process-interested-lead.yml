@@ -80,11 +80,40 @@ jobs:
           echo "company=$COMPANY" >> $GITHUB_OUTPUT
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
       
+      - name: Check for duplicate lead
+        id: dedup_check
+        run: |
+          LEAD_EMAIL="${{ steps.lead_data.outputs.lead_email }}"
+          
+          # Check if any pending approval exists for this email
+          if ls automation/pending-approvals/*.json 1> /dev/null 2>&1; then
+            for file in automation/pending-approvals/*.json; do
+              EXISTING_EMAIL=$(node -e "
+                try {
+                  const data = JSON.parse(require('fs').readFileSync('$file', 'utf8'));
+                  console.log(data.lead_email || '');
+                } catch(e) { console.log(''); }
+              ")
+              
+              if [ "$EXISTING_EMAIL" = "$LEAD_EMAIL" ]; then
+                echo "⚠️  Duplicate lead detected: $LEAD_EMAIL"
+                echo "   Existing approval: $(basename $file)"
+                echo "is_duplicate=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+          fi
+          
+          echo "✅ New lead: $LEAD_EMAIL"
+          echo "is_duplicate=false" >> $GITHUB_OUTPUT
+      
       - name: Create reports directory
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         run: mkdir -p reports
         working-directory: ./automation
           
       - name: Run Maximal Research Engine V2
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         id: research
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
@@ -100,6 +129,7 @@ jobs:
         timeout-minutes: 10
         
       - name: Extract firm info from research
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         id: extract
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
@@ -145,6 +175,7 @@ jobs:
         working-directory: ./automation
         
       - name: Generate V12 Hybrid Report
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         id: report
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
@@ -161,6 +192,7 @@ jobs:
         timeout-minutes: 5
         
       - name: Deploy report to GitHub Pages
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         run: |
           # Use extracted firm name from research
           RAW_FIRM_NAME="${{ steps.extract.outputs.firm_name }}"
@@ -192,6 +224,7 @@ jobs:
         id: deploy
           
       - name: Send Telegram approval request
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -221,6 +254,7 @@ jobs:
         working-directory: ./automation
         
       - name: Commit and push report
+        if: steps.dedup_check.outputs.is_duplicate != 'true'
         run: |
           FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
           git config user.name "Mortar Metrics Bot"
