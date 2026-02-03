@@ -549,8 +549,17 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     // Phase 1: Scrape entire website
     research.websitePages = await scrapeEntireWebsite(page, firmWebsite);
     
+    // Phase 1.5: Extract firm name if not provided
+    let effectiveFirmName = company;
+    if (!effectiveFirmName || effectiveFirmName.trim() === '') {
+      const { extractFirmName } = require('./extract-firm-info');
+      effectiveFirmName = await extractFirmName(research.websitePages, firmWebsite, anthropic);
+      research.firmName = effectiveFirmName;
+      console.log(`\n📝 Updated firm name: ${effectiveFirmName}\n`);
+    }
+    
     // Phase 2: LinkedIn (firm + attorneys)
-    research.linkedIn = await scrapeFirmLinkedIn(page, company);
+    research.linkedIn = await scrapeFirmLinkedIn(page, effectiveFirmName);
     
     // Extract attorney names from website first
     const attorneyNames = research.websitePages
@@ -565,21 +574,21 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
         return { name: parts[0].trim(), title: parts[1]?.trim() || 'Attorney' };
       });
     
-    research.attorneyLinkedIns = await scrapeAttorneyLinkedIns(page, company, attorneyNames);
+    research.attorneyLinkedIns = await scrapeAttorneyLinkedIns(page, effectiveFirmName, attorneyNames);
     
     // Phase 3: Google My Business
-    research.googleBusiness = await scrapeGoogleBusiness(page, company, city, state);
+    research.googleBusiness = await scrapeGoogleBusiness(page, effectiveFirmName, city, state);
     
     // Phase 4: Social media
-    research.socialMedia = await scrapeSocialMedia(page, company, firmWebsite);
+    research.socialMedia = await scrapeSocialMedia(page, effectiveFirmName, firmWebsite);
     
     // Phase 5: Recent news
-    research.news = await scrapeRecentNews(page, company);
+    research.news = await scrapeRecentNews(page, effectiveFirmName);
     
     // Phase 6: Competitor research (needs competitors first)
     // Quick competitor discovery with AI
     const aiHelper = require('./ai-research-helper');
-    const basicCompetitors = await aiHelper.findCompetitors(company, city, state, ['legal services']);
+    const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, ['legal services']);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
     
     // Phase 7: AI Synthesis

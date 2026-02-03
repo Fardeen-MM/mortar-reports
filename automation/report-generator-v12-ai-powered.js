@@ -403,7 +403,8 @@ async function generateReport(researchData, contactName) {
 </html>`;
 
   // Save report
-  const slug = researchData.firmName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  const firmName = researchData.firmName || 'unknown-firm';
+  const slug = firmName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
   const outputPath = path.join(__dirname, 'reports', `${slug}-landing-page-v12-ai.html`);
   fs.writeFileSync(outputPath, html);
   

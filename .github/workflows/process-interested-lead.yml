@@ -48,13 +48,22 @@ jobs:
         run: |
           # Extract ALL fields from Instantly
           WEBSITE="${{ github.event.client_payload.website }}"
-          CONTACT_NAME="${{ github.event.client_payload.first_name }} ${{ github.event.client_payload.last_name }}"
+          FIRST_NAME="${{ github.event.client_payload.first_name }}"
+          LAST_NAME="${{ github.event.client_payload.last_name }}"
           CITY="${{ github.event.client_payload.city }}"
           STATE="${{ github.event.client_payload.state }}"
           COUNTRY="${{ github.event.client_payload.country }}"
           COMPANY="${{ github.event.client_payload.company }}"
           
-          # If no website in payload, we'll need to extract from email domain
+          # Build contact name only if both first and last are non-empty
+          CONTACT_NAME=""
+          if [ -n "$FIRST_NAME" ] && [ -n "$LAST_NAME" ]; then
+            CONTACT_NAME="$FIRST_NAME $LAST_NAME"
+          elif [ -n "$FIRST_NAME" ]; then
+            CONTACT_NAME="$FIRST_NAME"
+          fi
+          
+          # If no website in payload, extract from email domain
           if [ -z "$WEBSITE" ]; then
             DOMAIN=$(echo "${{ github.event.client_payload.email }}" | cut -d'@' -f2)
             WEBSITE="https://www.$DOMAIN"
@@ -90,6 +99,51 @@ jobs:
         working-directory: ./automation
         timeout-minutes: 10
         
+      - name: Extract firm info from research
+        id: extract
+        run: |
+          RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
+          
+          if [ -z "$RESEARCH_FILE" ]; then
+            echo "Error: No research JSON found"
+            exit 1
+          fi
+          
+          # Extract firm name from research
+          FIRM_NAME=$(node -e "
+            const data = JSON.parse(require('fs').readFileSync('$RESEARCH_FILE', 'utf8'));
+            console.log(data.firmName || 'Unknown Firm');
+          ")
+          
+          # Extract contact name from research or email
+          CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
+          if [ -z "$CONTACT_NAME" ] || [ "$CONTACT_NAME" = " " ]; then
+            # Try to get from intelligence.keyDecisionMakers
+            CONTACT_NAME=$(node -e "
+              const data = JSON.parse(require('fs').readFileSync('$RESEARCH_FILE', 'utf8'));
+              if (data.intelligence?.keyDecisionMakers?.[0]?.name) {
+                console.log(data.intelligence.keyDecisionMakers[0].name);
+              } else {
+                // Extract from email
+                const email = '${{ steps.lead_data.outputs.lead_email }}';
+                if (email && email.includes('@')) {
+                  const name = email.split('@')[0]
+                    .replace(/[._-]/g, ' ')
+                    .split(' ')
+                    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                    .join(' ');
+                  console.log(name || 'Partner');
+                } else {
+                  console.log('Partner');
+                }
+              }
+            ")
+          fi
+          
+          echo "firm_name=$FIRM_NAME" >> $GITHUB_OUTPUT
+          echo "contact_name=$CONTACT_NAME" >> $GITHUB_OUTPUT
+        working-directory: ./automation
+        
       - name: Generate V12 AI Report
         id: report
         env:
@@ -100,32 +154,31 @@ jobs:
             echo "Error: No research JSON found"
             exit 1
           fi
-          node report-generator-v12-ai-powered.js "$RESEARCH_FILE" "${{ steps.parse.outputs.contact_name }}"
+          echo "Generating report for: ${{ steps.extract.outputs.firm_name }}"
+          echo "Contact: ${{ steps.extract.outputs.contact_name }}"
+          node report-generator-v12-ai-powered.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}"
         working-directory: ./automation
         timeout-minutes: 5
         
       - name: Deploy report to GitHub Pages
         run: |
-          REPORT_JSON=$(find automation/reports -name "*-maximal-research.json" -type f | head -1)
+          # Use extracted firm name from research
+          RAW_FIRM_NAME="${{ steps.extract.outputs.firm_name }}"
           
-          if [ -z "$REPORT_JSON" ]; then
-            echo "Error: No research JSON found"
-            exit 1
-          fi
-          
-          FIRM_NAME=$(node -e "
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
-            const name = data.firmName || data.title || 'UnknownFirm';
+          # Clean firm name for folder (PascalCase, no special chars except &)
+          FIRM_FOLDER=$(node -e "
+            const name = '$RAW_FIRM_NAME';
             const clean = name
               .replace(/[^a-zA-Z0-9\\s&]/g, '')
               .split(/\\s+/)
+              .filter(w => w.length > 0)
               .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
               .join('');
-            console.log(clean);
+            console.log(clean || 'UnknownFirm');
           ")
           
-          mkdir -p "$FIRM_NAME"
+          echo "Creating folder: $FIRM_FOLDER for $RAW_FIRM_NAME"
+          mkdir -p "$FIRM_FOLDER"
           
           REPORT_HTML=$(find automation/reports -name "*-landing-page-v12-ai.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
@@ -133,8 +186,9 @@ jobs:
             exit 1
           fi
           
-          cp "$REPORT_HTML" "$FIRM_NAME/index.html"
-          echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
+          cp "$REPORT_HTML" "$FIRM_FOLDER/index.html"
+          echo "firm_folder=$FIRM_FOLDER" >> $GITHUB_OUTPUT
+          echo "firm_name=$RAW_FIRM_NAME" >> $GITHUB_OUTPUT
         id: deploy
           
       - name: Send Telegram approval request
@@ -143,20 +197,16 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
-          REPORT_JSON=$(find reports -name "*-maximal-research.json" -type f | head -1)
-          ORIGINAL_FIRM_NAME=$(node -e "
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
-            console.log(data.firmName || '${{ steps.deploy.outputs.firm_folder }}');
-          ")
+          FIRM_NAME="${{ steps.deploy.outputs.firm_name }}"
+          CONTACT_NAME="${{ steps.extract.outputs.contact_name }}"
           
           mkdir -p pending-approvals
           cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
           {
-            "firm_name": "$ORIGINAL_FIRM_NAME",
+            "firm_name": "$FIRM_NAME",
             "firm_folder": "${{ steps.deploy.outputs.firm_folder }}",
             "lead_email": "${{ steps.lead_data.outputs.lead_email }}",
-            "contact_name": "${{ steps.parse.outputs.contact_name }}",
+            "contact_name": "$CONTACT_NAME",
             "report_url": "$REPORT_URL",
             "email_id": "${{ steps.lead_data.outputs.email_id }}",
             "from_email": "${{ steps.lead_data.outputs.from_email }}",
@@ -166,6 +216,7 @@ jobs:
           }
           EOF
           
+          echo "Sending Telegram approval for $FIRM_NAME (contact: $CONTACT_NAME)"
           node telegram-approval-bot.js "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
         working-directory: ./automation
         
