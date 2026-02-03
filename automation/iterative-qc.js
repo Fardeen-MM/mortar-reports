@@ -126,9 +126,9 @@ HERO REQUIREMENTS:
 
   fs.writeFileSync('improvement-notes.txt', improvementNotes);
   
-  // Step 3: Regenerate with v10 generator
+  // Step 3: Regenerate with v11 generator
   try {
-    execSync(`node report-generator-v10.js ${researchFile} "${contactName}"`, {
+    execSync(`node report-generator-v11.js ${researchFile} "${contactName}"`, {
       stdio: 'inherit'
     });
     
@@ -210,6 +210,16 @@ async function iterativeQC() {
     
     if (!regenerated) {
       console.log('\n❌ Could not regenerate report - aborting');
+      
+      // Write failure result before aborting
+      fs.writeFileSync('iterative-qc-result.json', JSON.stringify({
+        status: 'FAILED',
+        iterations: iteration,
+        issues: qcResult.issues,
+        byPhase: qcResult.byPhase,
+        abortReason: 'Regeneration failed'
+      }, null, 2));
+      
       return 1;
     }
     

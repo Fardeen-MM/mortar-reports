@@ -232,12 +232,15 @@ function validateData(data) {
     errors.push('Firm name is invalid or missing');
   }
   
+  // Location validation - warn but don't block (will use "your area" fallback)
   if (!data.location?.city || !data.location?.state) {
-    errors.push('Location (city/state) is missing');
-  }
-  
-  if (data.location?.state && data.location.state.length !== 2) {
-    errors.push('State must be 2-letter abbreviation');
+    warnings.push('Location (city/state) is missing - will use "your area" fallback');
+    // Ensure location object exists with empty strings for safe access
+    if (!data.location) data.location = {};
+    if (!data.location.city) data.location.city = '';
+    if (!data.location.state) data.location.state = '';
+  } else if (data.location.state.length !== 2) {
+    warnings.push(`State "${data.location.state}" should be 2-letter abbreviation (non-US locations are acceptable)`);
   }
   
   // CRITICAL: COMPETITORS (HARD BLOCK)
