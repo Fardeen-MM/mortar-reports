@@ -75,20 +75,11 @@ jobs:
         run: mkdir -p reports
         working-directory: ./automation
           
-      - name: Run MAXIMAL RESEARCH ENGINE V2 (AI-Powered Deep Scrape)
+      - name: Run Maximal Research Engine V2
         id: research
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
-          echo "==============================================="
-          echo "🚀 MAXIMAL RESEARCH ENGINE V2"
-          echo "==============================================="
-          echo ""
-          echo "🎯 Target: ${{ steps.parse.outputs.company }}"
-          echo "👤 Contact: ${{ steps.parse.outputs.contact_name }}"
-          echo "📍 Location: ${{ steps.parse.outputs.city }}, ${{ steps.parse.outputs.state }}"
-          echo ""
-          
           node maximal-research-v2.js \
             "${{ steps.parse.outputs.website }}" \
             "${{ steps.parse.outputs.contact_name }}" \
@@ -98,81 +89,34 @@ jobs:
             "${{ steps.parse.outputs.company }}"
         working-directory: ./automation
         timeout-minutes: 10
-      
-      - name: Verify Maximal Research Output
-        run: |
-          RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
-          
-          if [ -z "$RESEARCH_FILE" ]; then
-            echo "❌ Error: No maximal research JSON found"
-            exit 1
-          fi
-          
-          echo "✅ Research file: $RESEARCH_FILE"
-          echo ""
-          echo "📊 Research summary:"
-          node -e "
-            const data = require('./$RESEARCH_FILE');
-            console.log('   Firm:', data.firmName);
-            console.log('   Location:', data.location?.city + ', ' + data.location?.state);
-            console.log('   Website pages scraped:', data.websitePages?.length || 0);
-            console.log('   Attorney profiles:', data.attorneyLinkedIns?.length || 0);
-            console.log('   Google rating:', data.googleBusiness?.rating + '⭐ (' + data.googleBusiness?.reviews + ' reviews)');
-            console.log('   Social profiles:', Object.values(data.socialMedia || {}).filter(v => v).length);
-            console.log('   News mentions:', data.news?.length || 0);
-            console.log('   Competitors:', data.competitors?.length || 0);
-            console.log('   AI intelligence:', data.intelligence ? '✅' : '❌');
-          "
-        working-directory: ./automation
         
-      - name: Generate AI-POWERED REPORT V12 (100% AI-Generated)
+      - name: Generate V12 AI Report
         id: report
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
-          
           if [ -z "$RESEARCH_FILE" ]; then
-            echo "❌ Error: No research JSON found"
+            echo "Error: No research JSON found"
             exit 1
           fi
-          
-          echo "==============================================="
-          echo "🤖 AI-POWERED REPORT GENERATION V12"
-          echo "==============================================="
-          echo ""
-          echo "📄 Input: $RESEARCH_FILE"
-          echo "👤 Contact: ${{ steps.parse.outputs.contact_name }}"
-          echo ""
-          
-          node report-generator-v12-ai-powered.js "$RESEARCH_FILE" "${{ steps.parse.outputs.contact_name }}" 2>&1 || {
-            echo ""
-            echo "❌ V12 generation failed with exit code: $?"
-            exit 1
-          }
-          
-          echo ""
-          echo "✅ V12 AI-powered report generated successfully"
+          node report-generator-v12-ai-powered.js "$RESEARCH_FILE" "${{ steps.parse.outputs.contact_name }}"
         working-directory: ./automation
         timeout-minutes: 5
-
-      - name: Deploy V12 AI-Powered Report to GitHub Pages
+        
+      - name: Deploy report to GitHub Pages
         run: |
-          # Get the research JSON to extract firm name
           REPORT_JSON=$(find automation/reports -name "*-maximal-research.json" -type f | head -1)
           
           if [ -z "$REPORT_JSON" ]; then
-            echo "❌ Error: No maximal research JSON found"
+            echo "Error: No research JSON found"
             exit 1
           fi
           
-          # Extract firm name from JSON and create clean folder name
-          # Remove spaces, special chars, convert to PascalCase
           FIRM_NAME=$(node -e "
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
             const name = data.firmName || data.title || 'UnknownFirm';
-            // Clean: remove non-alphanumeric except spaces, then PascalCase
             const clean = name
               .replace(/[^a-zA-Z0-9\\s&]/g, '')
               .split(/\\s+/)
@@ -181,53 +125,32 @@ jobs:
             console.log(clean);
           ")
           
-          echo "📁 Creating folder: $FIRM_NAME"
-          
-          # Create firm folder at root level (not inside reports/)
           mkdir -p "$FIRM_NAME"
           
-          # Copy V12 AI-powered report as index.html
           REPORT_HTML=$(find automation/reports -name "*-landing-page-v12-ai.html" -type f | head -1)
-          
           if [ -z "$REPORT_HTML" ]; then
-            echo "❌ Error: No V12 HTML report found in automation/reports/"
-            echo "Looking for: *-landing-page-v12-ai.html"
-            ls -la automation/reports/
+            echo "Error: No V12 HTML found"
             exit 1
           fi
           
-          echo "📄 Found report: $REPORT_HTML"
           cp "$REPORT_HTML" "$FIRM_NAME/index.html"
-          
-          # Save for next step (will push after creating approval JSON)
           echo "firm_folder=$FIRM_NAME" >> $GITHUB_OUTPUT
         id: deploy
           
-      - name: Send Telegram approval request (V12 AI-Powered Report)
+      - name: Send Telegram approval request
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
-          
-          # Extract original firm name from maximal research JSON
           REPORT_JSON=$(find reports -name "*-maximal-research.json" -type f | head -1)
           ORIGINAL_FIRM_NAME=$(node -e "
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
-            console.log(data.firmName || data.title || '${{ steps.deploy.outputs.firm_folder }}');
-          ")
-          
-          # Get research quality metrics
-          RESEARCH_QUALITY=$(node -e "
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync('$REPORT_JSON', 'utf8'));
-            console.log('📊 Pages: ' + (data.websitePages?.length || 0) + ' | ⭐ ' + (data.googleBusiness?.rating || 'N/A') + ' (' + (data.googleBusiness?.reviews || 0) + ' reviews) | 🎯 Competitors: ' + (data.competitors?.length || 0) + ' | 🧠 AI: ' + (data.intelligence ? 'YES' : 'NO'));
+            console.log(data.firmName || '${{ steps.deploy.outputs.firm_folder }}');
           ")
           
           mkdir -p pending-approvals
-          
-          # Create approval data file with V12 metadata
           cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
           {
             "firm_name": "$ORIGINAL_FIRM_NAME",
@@ -239,84 +162,23 @@ jobs:
             "from_email": "${{ steps.lead_data.outputs.from_email }}",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
-            "report_version": "V12-AI-Powered",
-            "research_quality": "$RESEARCH_QUALITY"
+            "report_version": "V12-AI"
           }
           EOF
           
-          # Send to Telegram with V12 info
-          echo "📧 Sending Telegram approval..."
-          echo ""
-          echo "🤖 Report: V12 AI-Powered (100% AI-generated)"
-          echo "$RESEARCH_QUALITY"
-          echo ""
-          
           node telegram-approval-bot.js "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
-          
-          echo "✅ Telegram approval request sent for ${{ steps.deploy.outputs.firm_folder }}"
         working-directory: ./automation
         
-      - name: Commit and push report + approval (single push)
+      - name: Commit and push report
         run: |
           FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
-          
-          # Configure git
           git config user.name "Mortar Metrics Bot"
           git config user.email "automation@mortarmetrics.com"
-          
-          # Pull latest changes first to avoid conflicts
-          git pull --rebase origin main || echo "⚠️  No upstream changes to pull"
-          
-          # Stage both report and approval JSON
+          git pull --rebase origin main || echo "No upstream changes"
           git add "$FIRM_FOLDER/index.html"
           git add "automation/pending-approvals/$FIRM_FOLDER.json"
-          
-          # Single commit for both files with V12 metadata
-          git commit -m "Add V12 AI-Powered report for $FIRM_FOLDER
-
-Research: Maximal Engine V2 (50+ pages, LinkedIn, social, news)
-Report: 100% AI-generated (Claude Sonnet 4)
-Generated: $(date -u +%Y-%m-%d)" || echo "⚠️  No changes to commit"
-          
-          # Single push (triggers only 1 Pages build)
+          git commit -m "Add V12 AI report for $FIRM_FOLDER" || echo "No changes"
           git push origin main || {
-            echo "⚠️  Push failed, pulling and retrying..."
             git pull --rebase origin main
             git push origin main
           }
-          
-          echo "✅ Pushed report and approval in single commit"
-      
-      - name: Summary - V12 AI-Powered Pipeline Complete
-        run: |
-          echo ""
-          echo "==============================================="
-          echo "✅ V12 AI-POWERED PIPELINE COMPLETE"
-          echo "==============================================="
-          echo ""
-          echo "🎯 Firm: ${{ steps.deploy.outputs.firm_folder }}"
-          echo "👤 Contact: ${{ steps.parse.outputs.contact_name }}"
-          echo "📍 Location: ${{ steps.parse.outputs.city }}, ${{ steps.parse.outputs.state }}"
-          echo ""
-          echo "🔬 Research: Maximal Engine V2"
-          echo "   - Website deep scrape (50+ pages)"
-          echo "   - LinkedIn (firm + attorneys)"
-          echo "   - Google My Business"
-          echo "   - Social media discovery"
-          echo "   - Recent news mentions"
-          echo "   - Competitor deep dive"
-          echo "   - AI synthesis (Claude)"
-          echo ""
-          echo "🤖 Report: V12 AI-Powered"
-          echo "   - 100% AI-generated content"
-          echo "   - Zero templates"
-          echo "   - Ultra-personalized"
-          echo "   - Real competitor data"
-          echo "   - Calculated dollar losses"
-          echo ""
-          echo "📊 Output: https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
-          echo ""
-          echo "⏱️  Total time: ~5-7 minutes"
-          echo "💰 Quality: PEAK"
-          echo ""
-
