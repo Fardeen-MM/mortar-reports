@@ -144,7 +144,7 @@ jobs:
           echo "contact_name=$CONTACT_NAME" >> $GITHUB_OUTPUT
         working-directory: ./automation
         
-      - name: Generate V12 AI Report
+      - name: Generate V12 Hybrid Report
         id: report
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
@@ -156,7 +156,7 @@ jobs:
           fi
           echo "Generating report for: ${{ steps.extract.outputs.firm_name }}"
           echo "Contact: ${{ steps.extract.outputs.contact_name }}"
-          node report-generator-v12-ai-powered.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}"
+          node report-generator-v12-hybrid.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}"
         working-directory: ./automation
         timeout-minutes: 5
         
