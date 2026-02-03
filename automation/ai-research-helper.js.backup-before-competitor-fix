@@ -452,114 +452,101 @@ Return ONLY valid JSON:
  * Uses AI to intelligently find competitors based on location + practice areas
  */
 async function findCompetitors(firmName, city, state, practiceAreas) {
-  console.log(`   🔍 Finding competitors: ${city}, ${state} | ${practiceAreas.join(', ')}`);
+  console.log(`   🔍 Searching for competitors: ${city}, ${state} | ${practiceAreas.join(', ')}`);
   
-  // ALWAYS return exactly 3 competitors with reasonable made-up data
-  // This is faster, more reliable, and always works
-  
-  const competitors = [];
-  const practiceArea = practiceAreas[0] || 'law';
-  
-  // Generate 3 competitor names using AI (if available) or fallback to pattern
-  if (ANTHROPIC_API_KEY) {
-    try {
-      const prompt = `Generate exactly 3 REAL law firm names in ${city}, ${state} that practice ${practiceArea}.
+  if (!ANTHROPIC_API_KEY) {
+    console.log(`   ⚠️  ANTHROPIC_API_KEY not set - competitor search skipped`);
+    return [];
+  }
 
-Rules:
-- Use actual law firm naming patterns (Partner names, LLC/LLP/PLLC)
-- Make them sound legitimate (not generic like "Acme Law")
-- Vary the formats (some with partner names, some descriptive)
-- These should sound like real firms someone would find in ${city}
+  // Build the search prompt
+  const prompt = `You are a legal marketing researcher finding competitor law firms.
+
+**TARGET FIRM:**
+- Name: ${firmName}
+- Location: ${city}, ${state}
+- Practice Areas: ${practiceAreas.join(', ')}
+
+**TASK:** Find 3-5 REAL competing law firms in the same geographic market with similar practice areas.
+
+**SEARCH STRATEGY:**
+1. Prioritize firms in ${city}, ${state}
+2. If fewer than 3 found, expand to nearby cities in ${state}
+3. Match practice areas as closely as possible
+4. Choose well-known or established firms (not solo practitioners)
+
+**CRITICAL RULES:**
+- Return REAL firms only (you can use your knowledge base)
+- Include firm name, city, state
+- Explain why each is a good competitor match
+- Minimum 3 competitors, maximum 5
+- If you truly cannot find 3 real firms, you may infer likely competitors like "[Practice Area] firms in [City]"
 
 Return ONLY valid JSON:
 {
-  "firms": [
-    "First Law Firm Name, PLLC",
-    "Second Law Firm Name, LLP", 
-    "Third Law Firm Name, LLC"
+  "competitors": [
+    {
+      "name": "Smith & Associates",
+      "city": "Phoenix",
+      "state": "AZ",
+      "reasoning": "Direct competitor in same city, focuses on personal injury and medical malpractice"
+    }
   ]
 }`;
 
-      const response = await askAI(prompt, '', 1000);
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      
-      if (jsonMatch) {
-        const data = JSON.parse(jsonMatch[0]);
-        if (data.firms && Array.isArray(data.firms) && data.firms.length === 3) {
-          data.firms.forEach(name => {
-            competitors.push({
-              name: name,
-              city: city,
-              state: state,
-              rating: (4.5 + Math.random() * 0.4).toFixed(1), // 4.5-4.9
-              reviewCount: Math.floor(20 + Math.random() * 130), // 20-150
-              hasGoogleAds: Math.random() > 0.5, // 50/50 chance
-              hasMetaAds: Math.random() > 0.6, // ~40% have Meta ads
-              hasVoiceAI: Math.random() > 0.8 // ~20% have voice AI
-            });
-          });
-          
-          console.log(`   ✅ Generated 3 competitors:`);
-          competitors.forEach((comp, i) => {
-            const ads = [];
-            if (comp.hasGoogleAds) ads.push('Google');
-            if (comp.hasMetaAds) ads.push('Meta');
-            if (comp.hasVoiceAI) ads.push('Voice AI');
-            console.log(`      ${i + 1}. ${comp.name} (${comp.rating}⭐, ${comp.reviewCount} reviews${ads.length ? ', ' + ads.join('+') : ''})`);
-          });
-          
-          return competitors;
-        }
-      }
-    } catch (e) {
-      console.log(`   ⚠️  AI name generation failed, using fallback pattern`);
-    }
-  }
-  
-  // Fallback: Generate reasonable names without AI
-  const surnames = ['Anderson', 'Brown', 'Carter', 'Davis', 'Evans', 'Foster', 'Garcia', 'Harris', 'Jackson', 'Johnson', 'King', 'Lewis', 'Martin', 'Miller', 'Moore', 'Nelson', 'Parker', 'Roberts', 'Smith', 'Taylor', 'Thomas', 'Walker', 'White', 'Williams', 'Wilson', 'Young'];
-  const entities = ['LLC', 'LLP', 'PLLC', 'P.C.', 'Law Group'];
-  
-  for (let i = 0; i < 3; i++) {
-    const name1 = surnames[Math.floor(Math.random() * surnames.length)];
-    const name2 = surnames[Math.floor(Math.random() * surnames.length)];
-    const entity = entities[Math.floor(Math.random() * entities.length)];
-    const firmName = `${name1} & ${name2}, ${entity}`;
+  try {
+    const response = await askAI(prompt, '', 2000);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
     
-    competitors.push({
-      name: firmName,
-      city: city,
-      state: state,
-      rating: (4.5 + Math.random() * 0.4).toFixed(1), // 4.5-4.9
-      reviewCount: Math.floor(20 + Math.random() * 130), // 20-150
-      hasGoogleAds: Math.random() > 0.5, // 50/50 chance
-      hasMetaAds: Math.random() > 0.6, // ~40% have Meta ads  
-      hasVoiceAI: Math.random() > 0.8 // ~20% have voice AI
-    });
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      
+      if (data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0) {
+        console.log(`   ✅ Found ${data.competitors.length} competitors`);
+        data.competitors.forEach((comp, i) => {
+          console.log(`      ${i + 1}. ${comp.name} (${comp.city}, ${comp.state})`);
+        });
+        return data.competitors;
+      }
+    }
+    
+    // Fallback: If AI fails, generate generic competitors
+    console.log(`   ⚠️  AI competitor search returned no results, using fallback`);
+    return generateFallbackCompetitors(city, state, practiceAreas);
+    
+  } catch (e) {
+    console.log(`   ⚠️  AI competitor search failed: ${e.message}`);
+    return generateFallbackCompetitors(city, state, practiceAreas);
   }
-  
-  console.log(`   ✅ Generated 3 competitors (fallback):`);
-  competitors.forEach((comp, i) => {
-    const ads = [];
-    if (comp.hasGoogleAds) ads.push('Google');
-    if (comp.hasMetaAds) ads.push('Meta');
-    if (comp.hasVoiceAI) ads.push('Voice AI');
-    console.log(`      ${i + 1}. ${comp.name} (${comp.rating}⭐, ${comp.reviewCount} reviews${ads.length ? ', ' + ads.join('+') : ''})`);
-  });
-  
-  return competitors;
 }
 
 /**
- * DEPRECATED - NO LONGER USED
- * Fallback function removed to prevent fake competitor names.
- * AI must return real firms or empty array.
+ * Fallback: Generate generic but valid competitor entries
  */
-// function generateFallbackCompetitors() {
-//   // This function is intentionally disabled
-//   // We never use fake/placeholder competitor names
-//   return [];
-// }
+function generateFallbackCompetitors(city, state, practiceAreas) {
+  const primaryPractice = practiceAreas[0] || 'Legal Services';
+  
+  return [
+    {
+      name: `${primaryPractice} firms in ${city}`,
+      city: city,
+      state: state,
+      reasoning: `Local competitors in ${city}, ${state} market with similar practice focus`
+    },
+    {
+      name: `Established ${primaryPractice} practices in ${state}`,
+      city: city,
+      state: state,
+      reasoning: `Regional competitors across ${state} with ${primaryPractice.toLowerCase()} expertise`
+    },
+    {
+      name: `Leading law firms in ${city}`,
+      city: city,
+      state: state,
+      reasoning: `General legal services competitors in the ${city} market`
+    }
+  ];
+}
 
 /**
  * AI-powered location inference from firm name, website domain, or any context
