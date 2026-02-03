@@ -177,10 +177,37 @@ function generateReport(researchData, prospectName) {
     website,
     location = {},
     practiceAreas = [],
-    competitors = [],
+    competitors: rawCompetitors = [],
     gaps = {},
     estimatedMonthlyRevenueLoss = 0
   } = researchData;
+  
+  // Filter out fake/placeholder competitors BEFORE processing
+  const FAKE_COMPETITOR_PATTERNS = [
+    /acme\s+law/i,
+    /goldstein/i,
+    /riverside\s+law/i,
+    /smith\s*&\s*associates/i,
+    /jones\s+law\s+group/i,
+    /example\s+law/i,
+    /placeholder/i,
+    /test\s+firm/i,
+    /sample\s+law/i,
+    /generic\s+law/i
+  ];
+  
+  const competitors = rawCompetitors.filter(comp => {
+    if (!comp.name) return false;
+    const isFake = FAKE_COMPETITOR_PATTERNS.some(pattern => pattern.test(comp.name));
+    if (isFake) {
+      console.log(`   ⚠️  Filtered out fake competitor: "${comp.name}"`);
+    }
+    return !isFake;
+  });
+  
+  if (rawCompetitors.length > competitors.length) {
+    console.log(`   ℹ️  Filtered ${rawCompetitors.length - competitors.length} fake competitors, ${competitors.length} real ones remaining\n`);
+  }
   
   // Normalize firm name (capitalize entity types)
   const firmName = normalizeFirmName(rawFirmName);
@@ -303,30 +330,11 @@ function validateData(data) {
     warnings.push(`Only ${data.competitors.length} competitors found. Report will work with available data.`);
   }
   
-  // Validate competitor data quality
-  if (data.competitors && data.competitors.length >= 3) {
-    const FAKE_COMPETITOR_PATTERNS = [
-      /acme\s+law/i,
-      /goldstein/i,
-      /riverside\s+law/i,
-      /smith\s*&\s*associates/i,
-      /jones\s+law\s+group/i,
-      /example\s+law/i,
-      /placeholder/i,
-      /test\s+firm/i,
-      /sample\s+law/i,
-      /generic\s+law/i
-    ];
-    
+  // Validate competitor data quality (fake names are filtered before this point)
+  if (data.competitors && data.competitors.length > 0) {
     data.competitors.slice(0, 3).forEach((comp, i) => {
       if (!comp.name) {
         errors.push(`Competitor ${i+1} missing name`);
-      } else {
-        // Check if competitor name matches fake patterns
-        const isFake = FAKE_COMPETITOR_PATTERNS.some(pattern => pattern.test(comp.name));
-        if (isFake) {
-          errors.push(`HARD BLOCK: Competitor "${comp.name}" appears to be a placeholder/fake name. Cannot generate report with fabricated competitor data.`);
-        }
       }
       if (comp.reviewCount === undefined && comp.reviews === undefined) {
         warnings.push(`Competitor ${i+1} missing review count`);
