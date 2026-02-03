@@ -460,39 +460,56 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
   }
 
   // Build the search prompt
-  const prompt = `You are a legal marketing researcher finding competitor law firms.
+  const prompt = `You are a legal marketing researcher finding REAL competitor law firms.
 
 **TARGET FIRM:**
 - Name: ${firmName}
 - Location: ${city}, ${state}
 - Practice Areas: ${practiceAreas.join(', ')}
 
-**TASK:** Find 3-5 REAL competing law firms in the same geographic market with similar practice areas.
+**TASK:** Find 3-5 REAL competing law firms that ACTUALLY EXIST in the same geographic market.
 
-**SEARCH STRATEGY:**
-1. Prioritize firms in ${city}, ${state}
-2. If fewer than 3 found, expand to nearby cities in ${state}
-3. Match practice areas as closely as possible
-4. Choose well-known or established firms (not solo practitioners)
+**SEARCH HARDER - Try Multiple Strategies:**
+1. **Local Market:** Firms in ${city}, ${state} with same practice areas
+2. **Regional Firms:** Well-known firms in ${state} (even if different city)
+3. **National Firms:** If applicable, national firms with ${state} offices
+4. **Adjacent Markets:** Firms in nearby major cities if ${city} is small
+5. **General Practice:** If niche is too narrow, include general practice firms in ${city}
+
+**USE YOUR KNOWLEDGE BASE:**
+- Think of actual law firms you know of in ${state}
+- Consider well-established firms (BigLaw, regional firms, boutiques)
+- For major cities: there are ALWAYS multiple firms
+- For small cities: look at county seat firms, regional firms
+
+**ABSOLUTELY FORBIDDEN - DO NOT USE:**
+- Generic names like "Acme Law Group"
+- Placeholders like "Goldstein & Partners"  
+- Made-up names like "Riverside Law Firm"
+- Generic descriptions like "[Practice Area] firms in [City]"
+- Template names like "Smith & Associates", "Jones Law Group"
+- ANY name you're not confident actually exists
 
 **CRITICAL RULES:**
-- Return REAL firms only (you can use your knowledge base)
-- Include firm name, city, state
-- Explain why each is a good competitor match
-- Minimum 3 competitors, maximum 5
-- If you truly cannot find 3 real firms, you may infer likely competitors like "[Practice Area] firms in [City]"
+- Return ONLY firms you believe actually exist (use your training data)
+- Each firm must have a specific, real-sounding name
+- Minimum 3 competitors IF you can find real ones
+- If you CANNOT find 3 REAL firms, return fewer (even 0) rather than fake names
+- Better to return 0 competitors than fake ones
 
 Return ONLY valid JSON:
 {
   "competitors": [
     {
-      "name": "Smith & Associates",
-      "city": "Phoenix",
-      "state": "AZ",
-      "reasoning": "Direct competitor in same city, focuses on personal injury and medical malpractice"
+      "name": "Full Legal Name of Real Firm",
+      "city": "Actual City",
+      "state": "XX",
+      "reasoning": "Why they compete (practice areas, location, size)"
     }
   ]
-}`;
+}
+
+If you cannot find ANY real competitors, return: {"competitors": []}`;
 
   try {
     const response = await askAI(prompt, '', 2000);
@@ -502,7 +519,7 @@ Return ONLY valid JSON:
       const data = JSON.parse(jsonMatch[0]);
       
       if (data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0) {
-        console.log(`   ✅ Found ${data.competitors.length} competitors`);
+        console.log(`   ✅ Found ${data.competitors.length} real competitors`);
         data.competitors.forEach((comp, i) => {
           console.log(`      ${i + 1}. ${comp.name} (${comp.city}, ${comp.state})`);
         });
@@ -510,43 +527,26 @@ Return ONLY valid JSON:
       }
     }
     
-    // Fallback: If AI fails, generate generic competitors
-    console.log(`   ⚠️  AI competitor search returned no results, using fallback`);
-    return generateFallbackCompetitors(city, state, practiceAreas);
+    // NO FALLBACK - Return empty array if AI can't find real firms
+    console.log(`   ⚠️  AI competitor search returned no results - no fake placeholders will be used`);
+    return [];
     
   } catch (e) {
-    console.log(`   ⚠️  AI competitor search failed: ${e.message}`);
-    return generateFallbackCompetitors(city, state, practiceAreas);
+    console.log(`   ⚠️  AI competitor search failed: ${e.message} - returning empty array`);
+    return [];
   }
 }
 
 /**
- * Fallback: Generate generic but valid competitor entries
+ * DEPRECATED - NO LONGER USED
+ * Fallback function removed to prevent fake competitor names.
+ * AI must return real firms or empty array.
  */
-function generateFallbackCompetitors(city, state, practiceAreas) {
-  const primaryPractice = practiceAreas[0] || 'Legal Services';
-  
-  return [
-    {
-      name: `${primaryPractice} firms in ${city}`,
-      city: city,
-      state: state,
-      reasoning: `Local competitors in ${city}, ${state} market with similar practice focus`
-    },
-    {
-      name: `Established ${primaryPractice} practices in ${state}`,
-      city: city,
-      state: state,
-      reasoning: `Regional competitors across ${state} with ${primaryPractice.toLowerCase()} expertise`
-    },
-    {
-      name: `Leading law firms in ${city}`,
-      city: city,
-      state: state,
-      reasoning: `General legal services competitors in the ${city} market`
-    }
-  ];
-}
+// function generateFallbackCompetitors() {
+//   // This function is intentionally disabled
+//   // We never use fake/placeholder competitor names
+//   return [];
+// }
 
 /**
  * AI-powered location inference from firm name, website domain, or any context
