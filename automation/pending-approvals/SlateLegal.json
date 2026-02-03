@@ -1,13 +1,13 @@
 {
   "firm_name": "Slate Legal",
   "firm_folder": "SlateLegal",
-  "lead_email": "test-extraction@slatelegal.co.uk",
+  "lead_email": "james.moss@slatelegal.co.uk",
   "contact_name": "James Moss",
   "report_url": "https://reports.mortarmetrics.com/SlateLegal/",
   "email_id": "",
   "from_email": "",
-  "created_at": "2026-02-03T17:43:36Z",
+  "created_at": "2026-02-03T17:50:54Z",
   "status": "awaiting_approval",
   "report_version": "V12-AI",
-  "telegram_message_id": 23
+  "telegram_message_id": 24
 }
