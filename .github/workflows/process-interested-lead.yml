@@ -142,25 +142,25 @@ jobs:
               // 1. Founding partners (most likely decision maker)
               if (data.team?.foundingPartners?.[0]?.name) {
                 console.log(data.team.foundingPartners[0].name);
-                return;
+                process.exit(0);
               }
               
               // 2. Leadership
               if (data.team?.leadership?.name) {
                 console.log(data.team.leadership.name);
-                return;
+                process.exit(0);
               }
               
               // 3. Key attorneys
               if (data.team?.keyAttorneys?.[0]?.name) {
                 console.log(data.team.keyAttorneys[0].name);
-                return;
+                process.exit(0);
               }
               
               // 4. Old intelligence structure
               if (data.intelligence?.keyDecisionMakers?.[0]?.name) {
                 console.log(data.intelligence.keyDecisionMakers[0].name);
-                return;
+                process.exit(0);
               }
               
               // 5. Extract from email (smart - avoid generic addresses)
@@ -171,7 +171,7 @@ jobs:
                 // Skip generic addresses
                 if (['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail'].includes(localPart)) {
                   console.log('Partner');
-                  return;
+                  process.exit(0);
                 }
                 
                 const name = localPart
