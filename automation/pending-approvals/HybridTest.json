@@ -1,0 +1,13 @@
+{
+  "firm_name": "Hybrid Test",
+  "firm_folder": "HybridTest",
+  "lead_email": "hybrid-test@example.com",
+  "contact_name": "Hybrid Test",
+  "report_url": "https://reports.mortarmetrics.com/HybridTest/",
+  "email_id": "",
+  "from_email": "",
+  "created_at": "2026-02-03T17:26:27Z",
+  "status": "awaiting_approval",
+  "report_version": "V12-AI",
+  "telegram_message_id": 21
+}
