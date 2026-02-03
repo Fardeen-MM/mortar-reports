@@ -36,6 +36,7 @@ export default {
       const instantlyPayload = await request.json();
       
       console.log('Received webhook from Instantly:', instantlyPayload);
+      console.log('ALL FIELDS FROM INSTANTLY:', JSON.stringify(instantlyPayload, null, 2));
 
       // Generate deduplication key from lead_email + email_id
       const dedupKey = `${instantlyPayload.lead_email || 'unknown'}_${instantlyPayload.email_id || 'no-id'}`;
@@ -69,20 +70,25 @@ export default {
       console.log(`✅ New webhook: ${dedupKey}`);
 
       // Transform to GitHub's required format
+      // Forward ALL fields from Instantly, plus normalized versions
       const githubPayload = {
         event_type: 'interested_lead', // GitHub expects this exact value
         client_payload: {
-          email: instantlyPayload.lead_email || '',
-          first_name: instantlyPayload.first_name || '',
-          last_name: instantlyPayload.last_name || '',
-          website: instantlyPayload.website || '',
+          // Normalized field names (backward compatible)
+          email: instantlyPayload.lead_email || instantlyPayload.email || '',
+          first_name: instantlyPayload.first_name || instantlyPayload.firstName || '',
+          last_name: instantlyPayload.last_name || instantlyPayload.lastName || '',
+          website: instantlyPayload.website || instantlyPayload.companyUrl || '',
           city: instantlyPayload.city || '',
           state: instantlyPayload.state || '',
           country: instantlyPayload.country || '',
-          company: instantlyPayload.company || '',
-          email_id: instantlyPayload.email_id || '',
-          from_email: instantlyPayload.from_email || '',
-          reply_text: instantlyPayload.reply_text || ''
+          company: instantlyPayload.company || instantlyPayload.companyName || '',
+          email_id: instantlyPayload.email_id || instantlyPayload.emailId || '',
+          from_email: instantlyPayload.from_email || instantlyPayload.fromEmail || '',
+          reply_text: instantlyPayload.reply_text || instantlyPayload.replyText || '',
+          
+          // Forward ALL other fields from Instantly (catch everything)
+          ...instantlyPayload
         }
       };
 

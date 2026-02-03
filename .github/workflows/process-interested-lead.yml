@@ -43,6 +43,14 @@ jobs:
           echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
           echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
           
+      - name: Debug - Show ALL webhook data
+        run: |
+          echo "========================================="
+          echo "ALL FIELDS FROM INSTANTLY WEBHOOK:"
+          echo "========================================="
+          echo '${{ toJSON(github.event.client_payload) }}' | jq '.'
+          echo "========================================="
+          
       - name: Parse website from lead data
         id: parse
         run: |
@@ -54,6 +62,15 @@ jobs:
           STATE="${{ github.event.client_payload.state }}"
           COUNTRY="${{ github.event.client_payload.country }}"
           COMPANY="${{ github.event.client_payload.company }}"
+          
+          echo "Extracted values:"
+          echo "  website: $WEBSITE"
+          echo "  first_name: $FIRST_NAME"
+          echo "  last_name: $LAST_NAME"
+          echo "  city: $CITY"
+          echo "  state: $STATE"
+          echo "  country: $COUNTRY"
+          echo "  company: $COMPANY"
           
           # Build contact name only if both first and last are non-empty
           CONTACT_NAME=""
