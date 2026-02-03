@@ -655,18 +655,20 @@ function generateGap1(gap1, searchTerm, caseValue) {
     
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">You're invisible when it matters</div>
+        <div class="gap-title">${firmName} is invisible when it matters</div>
         <div class="gap-cost">-$${gap1.cost}K/mo</div>
       </div>
       
       <p><strong>65% of high-intent legal searches click on ads.</strong> When someone types "${searchTerm}" at 9pm, they're ready to hire. Three firms show up. None are you.</p>
       
       <div class="flow-diagram">
-        <div class="flow-step">"${searchTerm}" at 9pm</div>
+        <div class="flow-step">Client searches "${searchTerm}" at 9pm</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">3 ads appear—you're not one of them</div>
+        <div class="flow-step">3 ads appear at top of results</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">They click. You never existed.</div>
+        <div class="flow-step">${firmName} is nowhere on page 1</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">They click competitor's ad and book</div>
       </div>
       
       <div class="stat-box">
@@ -697,7 +699,7 @@ function generateGap2(gap2, city, practiceArea, caseValue) {
     
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">You're invisible where your clients are</div>
+        <div class="gap-title">Every ${firmName} visitor could be a client</div>
         <div class="gap-cost">-$${gap2.cost}K/mo</div>
       </div>
       
@@ -706,9 +708,11 @@ function generateGap2(gap2, city, practiceArea, caseValue) {
       <div class="flow-diagram">
         <div class="flow-step">Person in ${city} has a legal problem</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Scrolling Facebook at 9pm</div>
+        <div class="flow-step">Scrolling Instagram/Facebook at 9pm</div>
         <div class="flow-arrow">↓</div>
-        <div class="flow-step">Sees competitor's ad → books with them</div>
+        <div class="flow-step">Sees competitor's ad for ${practiceArea} lawyer</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Clicks, books, never finds ${firmName}</div>
       </div>
       
       <div class="stat-box">
@@ -739,7 +743,7 @@ function generateGap3(gap3, caseValue, firmName) {
     
     <div class="gap-box">
       <div class="gap-header">
-        <div class="gap-title">After-hours calls go to voicemail</div>
+        <div class="gap-title">${firmName}'s after-hours calls go to voicemail</div>
         <div class="gap-cost">-$${gap3.cost}K/mo</div>
       </div>
       
@@ -898,7 +902,7 @@ function generateSolution() {
       </div>
     </div>
     
-    <h2>What it takes to close these gaps</h2>
+    <h2>What ${firmName} needs to close these gaps</h2>
     
     <div class="solution-stack">
       <div class="solution-item">
@@ -1014,7 +1018,7 @@ function generateTwoOptions(heroTotalK, competitors) {
 function generateCTA(heroTotalK) {
   return `
     <div id="booking" class="cta">
-      <h2>Ready to stop losing cases to firms that aren't better than you?</h2>
+      <h2>Ready to help ${firmName} stop losing cases to firms that aren't better?</h2>
       <p>15 minutes. We'll show you exactly what's broken and how to fix it.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%;border:none;overflow: hidden;min-height:600px" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
