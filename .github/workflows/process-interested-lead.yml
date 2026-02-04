@@ -304,6 +304,7 @@ jobs:
           
       - name: Send Telegram approval request
         if: steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
+        continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
