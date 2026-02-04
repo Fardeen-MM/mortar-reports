@@ -342,7 +342,19 @@ async function generateReport(researchData, prospectName) {
   // Replace em dashes with regular dashes
   cleanedHTML = cleanedHTML.replace(/—/g, '-');
   
-  // Limit exclamation points to max 2
+  // Limit exclamation points to max 2 in visible text only (preserve JS syntax)
+  // Split by script tags, only process non-script parts
+  const scriptRegex = /(<script[^>]*>)([\s\S]*?)(<\/script>)/gi;
+  const scripts = [];
+  let scriptIndex = 0;
+
+  // Extract scripts and replace with placeholders
+  cleanedHTML = cleanedHTML.replace(scriptRegex, (match, open, content, close) => {
+    scripts.push({ open, content, close });
+    return `__SCRIPT_PLACEHOLDER_${scriptIndex++}__`;
+  });
+
+  // Now limit exclamation points in the HTML (without scripts)
   const exclamationMatches = cleanedHTML.match(/!/g);
   if (exclamationMatches && exclamationMatches.length > 2) {
     let count = 0;
@@ -351,6 +363,12 @@ async function generateReport(researchData, prospectName) {
       return count > 2 ? '.' : match;
     });
   }
+
+  // Restore scripts
+  cleanedHTML = cleanedHTML.replace(/__SCRIPT_PLACEHOLDER_(\d+)__/g, (match, idx) => {
+    const script = scripts[parseInt(idx)];
+    return script.open + script.content + script.close;
+  });
   
   fs.writeFileSync(outputPath, cleanedHTML);
   
