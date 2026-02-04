@@ -37,8 +37,10 @@ let linkedIn = null;
 
 if (approvalData.firm_name) {
   const reportsDir = path.join(__dirname, 'reports');
-  // Match the slug format from law-firm-research.js: replace non-alphanumeric with hyphen
-  const firmSlug = approvalData.firm_name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  // Use firm_folder if available (already in correct format), otherwise generate slug
+  const firmSlug = approvalData.firm_folder
+    ? approvalData.firm_folder.toLowerCase()
+    : approvalData.firm_name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
   const possibleFiles = [
     `${firmSlug}-intel-v5.json`,
     `${firmSlug}-research.json`,

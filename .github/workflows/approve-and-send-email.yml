@@ -55,9 +55,11 @@ jobs:
             echo "report_url=${{ github.event.inputs.report_url }}" >> $GITHUB_OUTPUT
             echo "email_id=${{ github.event.inputs.email_id }}" >> $GITHUB_OUTPUT
             echo "from_email=${{ github.event.inputs.from_email }}" >> $GITHUB_OUTPUT
+            echo "firm_folder=" >> $GITHUB_OUTPUT
           else
-            # repository_dispatch (from Telegram)
+            # repository_dispatch (from Telegram webhook)
             echo "firm_name=${{ github.event.client_payload.firm_name }}" >> $GITHUB_OUTPUT
+            echo "firm_folder=${{ github.event.client_payload.firm_folder }}" >> $GITHUB_OUTPUT
             echo "lead_email=${{ github.event.client_payload.lead_email }}" >> $GITHUB_OUTPUT
             echo "contact_name=${{ github.event.client_payload.contact_name }}" >> $GITHUB_OUTPUT
             echo "report_url=${{ github.event.client_payload.report_url }}" >> $GITHUB_OUTPUT
@@ -69,18 +71,26 @@ jobs:
         id: deploy
         run: |
           FIRM_NAME="${{ steps.inputs.outputs.firm_name }}"
+          INPUT_FIRM_FOLDER="${{ steps.inputs.outputs.firm_folder }}"
 
-          # Generate folder name from firm name (same logic as process workflow)
-          FIRM_FOLDER=$(node -e "
-            const name = '$FIRM_NAME';
-            const clean = name
-              .replace(/[^a-zA-Z0-9\\s&]/g, '')
-              .split(/\\s+/)
-              .filter(w => w.length > 0)
-              .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-              .join('');
-            console.log(clean || 'UnknownFirm');
-          ")
+          # Use firm_folder if provided, otherwise generate from firm name
+          if [ -n "$INPUT_FIRM_FOLDER" ]; then
+            FIRM_FOLDER="$INPUT_FIRM_FOLDER"
+            echo "Using provided firm_folder: $FIRM_FOLDER"
+          else
+            # Generate folder name from firm name (same logic as process workflow)
+            FIRM_FOLDER=$(node -e "
+              const name = '$FIRM_NAME';
+              const clean = name
+                .replace(/[^a-zA-Z0-9\\s&]/g, '')
+                .split(/\\s+/)
+                .filter(w => w.length > 0)
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join('');
+              console.log(clean || 'UnknownFirm');
+            ")
+            echo "Generated firm_folder: $FIRM_FOLDER"
+          fi
 
           echo "firm_folder=$FIRM_FOLDER" >> $GITHUB_OUTPUT
 
@@ -104,11 +114,14 @@ jobs:
               "
             fi
           else
-            echo "⚠️  No pending report found at pending-reports/$FIRM_FOLDER"
-            echo "   Report may have already been deployed or path is different"
+            echo "❌ ERROR: No pending report found at pending-reports/$FIRM_FOLDER"
+            echo "   Cannot proceed without report to deploy"
             # Check if live report exists already
             if [ -f "$FIRM_FOLDER/index.html" ]; then
               echo "   Live report already exists - continuing with email"
+            else
+              echo "   No live report either - aborting"
+              exit 1
             fi
           fi
 

@@ -309,7 +309,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           # Report URL is PREVIEW only until approved
-          REPORT_URL="https://reports.mortarmetrics.com/${{ steps.deploy.outputs.firm_folder }}/"
+          REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${{ steps.deploy.outputs.firm_folder }}/"
           FIRM_NAME="${{ steps.deploy.outputs.firm_name }}"
           CONTACT_NAME="${{ steps.extract.outputs.contact_name }}"
 

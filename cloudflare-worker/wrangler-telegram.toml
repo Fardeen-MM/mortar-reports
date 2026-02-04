@@ -1,0 +1,14 @@
+name = "telegram-webhook-handler"
+main = "telegram-webhook.js"
+compatibility_date = "2024-01-01"
+
+# Deploy with: wrangler deploy -c wrangler-telegram.toml
+#
+# After deployment, set the Telegram webhook URL:
+# curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+#   -H "Content-Type: application/json" \
+#   -d '{"url":"https://telegram-webhook-handler.<your-subdomain>.workers.dev"}'
+#
+# Required environment variables (set via wrangler secret):
+# wrangler secret put TELEGRAM_BOT_TOKEN -c wrangler-telegram.toml
+# wrangler secret put GITHUB_TOKEN -c wrangler-telegram.toml
