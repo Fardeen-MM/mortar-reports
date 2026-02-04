@@ -82,11 +82,22 @@ if (linkedIn) {
 // Use firm_folder for display if available (prettier), fallback to firm_name
 const displayName = approvalData.firm_folder || approvalData.firm_name;
 
+// Build QC status indicator
+let qcStatus = '';
+if (approvalData.qc_passed === 'true') {
+  qcStatus = '\n✅ *QC:* Passed';
+} else if (approvalData.qc_passed === 'false') {
+  const issues = approvalData.qc_issues || '?';
+  qcStatus = `\n⚠️ *QC:* Issues found (${issues})`;
+} else if (approvalData.qc_passed === 'unknown') {
+  qcStatus = '\n❓ *QC:* Not run';
+}
+
 const message = `🟡 *REPORT READY FOR APPROVAL*
 
 📊 *Firm:* ${displayName}
 👤 *Contact:* ${approvalData.contact_name}
-📧 *Email:* ${approvalData.lead_email}
+📧 *Email:* ${approvalData.lead_email}${qcStatus}
 ${contextSection}
 🔗 *Review Report:*
 ${approvalData.report_url}

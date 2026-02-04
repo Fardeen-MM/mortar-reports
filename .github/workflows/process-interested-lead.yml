@@ -252,6 +252,42 @@ jobs:
         working-directory: ./automation
         timeout-minutes: 5
 
+      - name: Run QC Validation
+        id: qc
+        if: steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
+        run: |
+          RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
+          REPORT_FILE=$(find reports -name "*-report-v3.html" -type f | head -1)
+
+          if [ -z "$RESEARCH_FILE" ] || [ -z "$REPORT_FILE" ]; then
+            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
+            echo "qc_issues=0" >> $GITHUB_OUTPUT
+            echo "Skipping QC - missing files"
+            exit 0
+          fi
+
+          echo "Running QC on:"
+          echo "  Research: $RESEARCH_FILE"
+          echo "  Report: $REPORT_FILE"
+
+          # Run QC (don't fail the workflow on QC failure)
+          set +e
+          node ai-quality-control-basic.js "$RESEARCH_FILE" "$REPORT_FILE"
+          QC_EXIT=$?
+          set -e
+
+          if [ -f qc-result.json ]; then
+            QC_STATUS=$(cat qc-result.json | jq -r '.status')
+            QC_ISSUES=$(cat qc-result.json | jq -r '.qualityIssues // 0')
+            echo "qc_passed=$([[ $QC_STATUS == 'PASSED' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "qc_issues=$QC_ISSUES" >> $GITHUB_OUTPUT
+            echo "QC Status: $QC_STATUS (issues: $QC_ISSUES)"
+          else
+            echo "qc_passed=unknown" >> $GITHUB_OUTPUT
+            echo "qc_issues=0" >> $GITHUB_OUTPUT
+          fi
+        working-directory: ./automation
+
       - name: Send failure notification
         if: steps.validate.outputs.valid != 'true' || steps.report.outputs.blocked == 'true'
         env:
@@ -315,6 +351,11 @@ jobs:
           CONTACT_NAME="${{ steps.extract.outputs.contact_name }}"
 
           mkdir -p pending-approvals
+
+          # Get QC results
+          QC_PASSED="${{ steps.qc.outputs.qc_passed }}"
+          QC_ISSUES="${{ steps.qc.outputs.qc_issues }}"
+
           cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
           {
             "firm_name": "$FIRM_NAME",
@@ -326,7 +367,9 @@ jobs:
             "from_email": "${{ steps.lead_data.outputs.from_email }}",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
-            "report_version": "V3"
+            "report_version": "V3",
+            "qc_passed": "$QC_PASSED",
+            "qc_issues": "$QC_ISSUES"
           }
           EOF
 

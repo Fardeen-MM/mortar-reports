@@ -28,6 +28,7 @@
 const fs = require('fs');
 const path = require('path');
 const { findCompetitors, getSearchTerms } = require('./ai-research-helper.js');
+const { getContentWithFallback } = require('./ai-content-generator.js');
 
 // Case value ranges by practice area (low-high for ranges)
 const CASE_VALUES = {
@@ -120,10 +121,23 @@ async function generateReport(researchData, prospectName) {
   // Determine practice area - try multiple sources
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
-  const clientLabels = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-  const clientLabel = clientLabels.singular;
-  const clientLabelPlural = clientLabels.plural;
-  const emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+
+  // Try AI content generation with fallback to hardcoded mappings
+  let clientLabel, clientLabelPlural, emergencyScenario;
+  try {
+    const aiContent = await getContentWithFallback(practiceAreas, firmName, city, state);
+    clientLabel = aiContent.clientLabel;
+    clientLabelPlural = aiContent.clientLabelPlural;
+    emergencyScenario = aiContent.emergencyScenario;
+    console.log(`📝 Content source: ${aiContent.source}`);
+  } catch (e) {
+    // Fallback to hardcoded if AI module fails entirely
+    console.log(`⚠️  AI content module failed, using hardcoded: ${e.message}`);
+    const clientLabels = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
+    clientLabel = clientLabels.singular;
+    clientLabelPlural = clientLabels.plural;
+    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+  }
   
   console.log(`📍 Location: ${city}, ${state}`);
   console.log(`⚖️  Practice: ${practiceLabel}`);
@@ -416,6 +430,23 @@ function getAttorneyType(category) {
   return types[category] || '';
 }
 
+// Detect if a word starts with a vowel sound (for a/an grammar)
+function startsWithVowelSound(word) {
+  const lower = (word || '').toLowerCase();
+  // Words that start with vowel letters but have consonant sounds
+  if (/^(uni|use|eu|one|once)/.test(lower)) return false;
+  // Words that start with silent h or vowel sounds
+  if (/^(honest|hour|heir|honor)/.test(lower)) return true;
+  // Standard vowel check
+  if (/^[aeiou]/.test(lower)) return true;
+  return false;
+}
+
+// Get the correct article (a/an) for a word
+function getArticle(word) {
+  return startsWithVowelSound(word) ? 'an' : 'a';
+}
+
 function getMarketMultiplier(city) {
   const c = (city || '').toLowerCase();
   const major = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
@@ -608,7 +639,7 @@ ${css}
     <!-- GAP 1 - Google Ads -->
     <div class="gap-card">
       <div class="badge badge-search">Google Ads</div>
-      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? 'a ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
+      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? getArticle(getAttorneyType(practiceArea)) + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
       <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>

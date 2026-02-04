@@ -463,7 +463,20 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
   // Build search query - use first practice area for specificity
   const practiceArea = practiceAreas[0] || 'lawyer';
   const location = state ? `${city}, ${state}` : city;
-  const query = `${practiceArea} lawyer ${location}`;
+
+  // Disambiguation map for practice areas that Google confuses
+  const disambiguationMap = {
+    'estate': 'wills trusts probate',
+    'estate planning': 'wills trusts',
+    'real estate': 'property transaction closing',
+    'family': 'divorce custody child support',
+    'criminal': 'defense DUI felony'
+  };
+  const practiceAreaLower = practiceArea.toLowerCase();
+  const modifier = disambiguationMap[practiceAreaLower] || '';
+  const query = modifier
+    ? `${practiceArea} ${modifier} lawyer ${location}`
+    : `${practiceArea} lawyer ${location}`;
 
   try {
     const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY);
@@ -476,13 +489,33 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
       return [];
     }
 
-    // Filter out the target firm and get top 3 competitors
+    // Filter out the target firm and wrong-category results, then get top 3 competitors
     const competitors = results.results
       .filter(place => {
         // Exclude the target firm itself
         const placeName = (place.name || '').toLowerCase();
         const targetName = (firmName || '').toLowerCase();
-        return !placeName.includes(targetName) && !targetName.includes(placeName);
+        if (placeName.includes(targetName) || targetName.includes(placeName)) {
+          return false;
+        }
+
+        // Estate planning should NOT include real estate firms
+        if (practiceAreaLower.includes('estate planning') || practiceAreaLower === 'estate') {
+          if (placeName.includes('real estate') || placeName.includes('realty') ||
+              placeName.includes('property law') || placeName.includes('property attorney')) {
+            return false;
+          }
+        }
+
+        // Real estate should NOT include estate planning/probate firms
+        if (practiceAreaLower.includes('real estate')) {
+          if (placeName.includes('probate') || placeName.includes('trust') ||
+              placeName.includes('wills') || placeName.includes('estate planning')) {
+            return false;
+          }
+        }
+
+        return true;
       })
       .slice(0, 3)
       .map(place => ({
