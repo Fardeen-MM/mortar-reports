@@ -1,15 +1,15 @@
 {
   "firm_name": "Paletz Law",
   "firm_folder": "PaletzLaw",
-  "lead_email": "sfontanilla@paletzlaw.com",
-  "contact_name": "Matthew I. Paletz",
+  "lead_email": "test-rerun@paletzlaw.com",
+  "contact_name": "Matthew Paletz",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/PaletzLaw/",
   "email_id": "",
   "from_email": "",
-  "created_at": "2026-02-04T22:06:28Z",
+  "created_at": "2026-02-04T22:20:25Z",
   "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "0",
-  "telegram_message_id": 66
+  "telegram_message_id": 67
 }
