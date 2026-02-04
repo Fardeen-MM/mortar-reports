@@ -274,6 +274,22 @@ function detectPracticeArea(practiceAreas, researchData) {
     }
   }
 
+  // Try practice.primaryFocus (often populated when practiceAreas is empty)
+  if (researchData.practice?.primaryFocus) {
+    const category = getPracticeAreaCategory(researchData.practice.primaryFocus);
+    if (category !== 'default') {
+      return category;
+    }
+  }
+
+  // Try practice.nicheSpecializations
+  for (const spec of (researchData.practice?.nicheSpecializations || [])) {
+    const category = getPracticeAreaCategory(spec);
+    if (category !== 'default') {
+      return category;
+    }
+  }
+
   // Try to infer from services
   const services = researchData.services || researchData.intelligence?.services || [];
   for (const service of services) {
@@ -294,6 +310,19 @@ function detectPracticeArea(practiceAreas, researchData) {
   if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
   if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
   if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
+
+  // Try to infer from website URL/domain
+  const websiteLower = (researchData.website || '').toLowerCase();
+  if (websiteLower.includes('family') || websiteLower.includes('divorce')) return 'divorce';
+  if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
+  if (websiteLower.includes('immigration')) return 'immigration';
+  if (websiteLower.includes('criminal') || websiteLower.includes('defense') || websiteLower.includes('dui')) return 'criminal';
+  if (websiteLower.includes('estate') || websiteLower.includes('probate') || websiteLower.includes('trust')) return 'estate';
+  if (websiteLower.includes('tax')) return 'tax';
+  if (websiteLower.includes('landlord') || websiteLower.includes('eviction') || websiteLower.includes('tenant')) return 'landlord';
+  if (websiteLower.includes('employment') || websiteLower.includes('labor') || websiteLower.includes('worker')) return 'employment';
+  if (websiteLower.includes('bankruptcy')) return 'bankruptcy';
+  if (websiteLower.includes('business') || websiteLower.includes('corporate')) return 'business';
 
   // Default to 'default' which will show "LEGAL SERVICES"
   return 'default';
@@ -529,7 +558,7 @@ ${css}
 
     <div class="header">
       <div class="logo">Mortar Metrics</div>
-      <div class="meta">Prepared for ${prospectName} - ${today}</div>
+      <div class="meta">Prepared for ${prospectName} · ${today}</div>
     </div>
 
     <!-- HERO -->
@@ -582,7 +611,7 @@ ${css}
       <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? 'a ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
-      <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack - which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>
+      <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>
 
       <p>This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
 
@@ -611,7 +640,7 @@ ${css}
     <!-- GAP 3 - Voice AI -->
     <div class="gap-card">
       <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
-      <h3>When a ${clientLabel} calls at 7pm about ${emergencyScenario} - what happens?</h3>
+      <h3>When a ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
 
       <p>A ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
@@ -690,7 +719,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
         <div class="build-number">3</div>
         <div class="build-content">
           <strong>AI-powered intake that answers every call, 24/7</strong>
-          <p>No more voicemail. Every call answered, qualified, and booked - even at 2am. Your team gets notified instantly.</p>
+          <p>No more voicemail. Every call answered, qualified, and booked — even at 2am. Your team gets notified instantly.</p>
           <span class="build-timeline">Typically live in 1-2 weeks</span>
         </div>
       </div>
@@ -718,7 +747,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
 
 
     <div class="footer">
-      Mortar Metrics - Legal Growth Agency - Toronto, ON<br>
+      Mortar Metrics · Legal Growth Agency · ${locationStr}<br>
       <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a>
     </div>
 

@@ -37,7 +37,15 @@ REQUIRED FIELDS (extract these with 100% certainty or return null):
 3. **state** - Physical office location state (2-letter code)
 4. **fullAddress** - Complete address with zip
 5. **phone** - Main phone number
-6. **practiceAreas** - Array of practice areas (be specific: "divorce", "personal injury", not "family law")
+6. **practiceAreas** - Array of practice areas. CRITICAL EXTRACTION RULES:
+   - Be SPECIFIC: "divorce", "child custody", "personal injury", "car accident", NOT just "family law"
+   - Look at URL patterns: /divorce/, /family-law/, /personal-injury/, /immigration/
+   - Check navigation menu items for practice areas
+   - Look at page titles and H1 headings
+   - Extract from attorney bio specializations
+   - If general practice, list their top 3-5 areas
+   - NEVER return empty array if the site clearly serves legal clients
+   - Examples: ["divorce", "child custody", "spousal support"] NOT ["family law"]
 
 LEADERSHIP & TEAM:
 7. **foundingPartners** - Array of founding partners with {name, title, background, photo_url}
