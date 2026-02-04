@@ -547,6 +547,55 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
 }
 
 /**
+ * Fetch the firm's own Google Business data (reviews, rating)
+ * Searches Google Places for the firm name + location to find their profile
+ */
+async function fetchFirmGoogleData(firmName, city, state) {
+  if (!firmName || !city) {
+    return { reviews: 0, rating: 0 };
+  }
+
+  console.log(`   🔍 Fetching Google Business data for "${firmName}"...`);
+
+  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+  const location = state ? `${city}, ${state}` : city;
+  const query = `${firmName} ${location}`;
+
+  try {
+    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY);
+
+    if (results.status !== 'OK' || !results.results || results.results.length === 0) {
+      console.log(`   ⚠️  Could not find Google Business for "${firmName}"`);
+      return { reviews: 0, rating: 0 };
+    }
+
+    // Find the best match - look for the firm name in results
+    const firmNameLower = firmName.toLowerCase();
+    const match = results.results.find(place => {
+      const placeName = (place.name || '').toLowerCase();
+      // Check if firm name is contained in place name or vice versa
+      return placeName.includes(firmNameLower) || firmNameLower.includes(placeName);
+    }) || results.results[0]; // Fall back to first result if no exact match
+
+    const reviews = match.user_ratings_total || 0;
+    const rating = match.rating || 0;
+
+    console.log(`   ✅ Found: "${match.name}" - ${rating}★, ${reviews} reviews`);
+
+    return {
+      reviews,
+      rating,
+      name: match.name,
+      address: match.formatted_address || ''
+    };
+
+  } catch (error) {
+    console.log(`   ⚠️  Error fetching firm data: ${error.message}`);
+    return { reviews: 0, rating: 0 };
+  }
+}
+
+/**
  * Search Google Places API
  */
 function searchGooglePlaces(query, apiKey) {
@@ -792,6 +841,7 @@ module.exports = {
   findTeamPage,
   analyzePage,
   findCompetitors,
+  fetchFirmGoogleData,
   checkGoogleAds,
   checkMetaAds,
   enrichCompetitorWithAds,

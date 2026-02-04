@@ -27,7 +27,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { findCompetitors, getSearchTerms } = require('./ai-research-helper.js');
+const { findCompetitors, fetchFirmGoogleData, getSearchTerms } = require('./ai-research-helper.js');
 const { getContentWithFallback } = require('./ai-content-generator.js');
 
 // Case value ranges by practice area (low-high for ranges)
@@ -183,8 +183,22 @@ async function generateReport(researchData, prospectName) {
   console.log(`   Total: ${currency}${formatRange(totalLow, totalHigh)}/month\n`);
   
   // Get firm's own data for competitor comparison
-  const firmReviews = researchData.googleReviews || researchData.googleBusiness?.reviews || 0;
-  const firmRating = researchData.googleRating || researchData.googleBusiness?.rating || 0;
+  let firmReviews = researchData.googleReviews || researchData.googleBusiness?.reviews || 0;
+  let firmRating = researchData.googleRating || researchData.googleBusiness?.rating || 0;
+
+  // If no reviews in research data, try to fetch from Google Places
+  if (firmReviews === 0 && city) {
+    try {
+      const googleData = await fetchFirmGoogleData(firmName, city, state);
+      if (googleData.reviews > 0) {
+        firmReviews = googleData.reviews;
+        firmRating = googleData.rating;
+        console.log(`📊 Fetched firm reviews: ${firmReviews} reviews, ${firmRating}★`);
+      }
+    } catch (e) {
+      console.log(`⚠️  Could not fetch firm Google data: ${e.message}`);
+    }
+  }
   
   // Generate HTML
   const html = generateHTML({
