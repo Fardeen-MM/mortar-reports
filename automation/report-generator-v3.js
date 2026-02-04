@@ -122,22 +122,28 @@ async function generateReport(researchData, prospectName) {
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
 
-  // Try AI content generation with fallback to hardcoded mappings
-  // Pass the detected practiceArea (not raw array) to ensure consistency
-  let clientLabel, clientLabelPlural, emergencyScenario;
+  // AI content generation - let AI handle all the nuance
+  // Pass FULL practiceAreas so AI can understand context
+  let clientLabel, clientLabelPlural, emergencyScenario, articleForClient, articleForAttorney;
   try {
-    const aiContent = await getContentWithFallback([practiceArea], firmName, city, state);
+    const aiContent = await getContentWithFallback(practiceAreas, firmName, city, state);
     clientLabel = aiContent.clientLabel;
     clientLabelPlural = aiContent.clientLabelPlural;
     emergencyScenario = aiContent.emergencyScenario;
-    console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
+    articleForClient = aiContent.articleForClient || getArticle(clientLabel);
+    articleForAttorney = aiContent.articleForAttorney || getArticle(getAttorneyType(practiceArea));
+    console.log(`📝 Content source: ${aiContent.source}`);
+    if (aiContent.primaryPracticeArea) {
+      console.log(`   AI detected primary: "${aiContent.primaryPracticeArea}"`);
+    }
   } catch (e) {
     // Fallback to hardcoded if AI module fails entirely
-    console.log(`⚠️  AI content module failed, using hardcoded: ${e.message}`);
-    const clientLabels = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-    clientLabel = clientLabels.singular;
-    clientLabelPlural = clientLabels.plural;
-    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+    console.log(`⚠️  AI content module failed: ${e.message}`);
+    clientLabel = 'potential client';
+    clientLabelPlural = 'potential clients';
+    emergencyScenario = 'a legal situation';
+    articleForClient = 'a';
+    articleForAttorney = getArticle(getAttorneyType(practiceArea));
   }
   
   console.log(`📍 Location: ${city}, ${state}`);
@@ -192,6 +198,8 @@ async function generateReport(researchData, prospectName) {
     clientLabel,
     clientLabelPlural,
     emergencyScenario,
+    articleForClient,
+    articleForAttorney,
     searchTerms,
     caseValues,
     currency,
@@ -554,6 +562,8 @@ function generateHTML(data) {
     clientLabel,
     clientLabelPlural,
     emergencyScenario,
+    articleForClient,
+    articleForAttorney,
     searchTerms,
     caseValues,
     currency,
@@ -640,7 +650,7 @@ ${css}
     <!-- GAP 1 - Google Ads -->
     <div class="gap-card">
       <div class="badge badge-search">Google Ads</div>
-      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? getArticle(getAttorneyType(practiceArea)) + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
+      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
       <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>
@@ -659,7 +669,7 @@ ${css}
       <h3>Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo</div>
 
-      <p>Think about it from ${getArticle(clientLabel)} ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
+      <p>Think about it from ${articleForClient} ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
 
       <p>A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing firms we've seen use both channels because they capture completely different people at different stages.</p>
 
@@ -672,10 +682,10 @@ ${css}
     <!-- GAP 3 - Voice AI -->
     <div class="gap-card">
       <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
-      <h3>When ${getArticle(clientLabel)} ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
+      <h3>When ${articleForClient} ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
 
-      <p>${getArticle(clientLabel).charAt(0).toUpperCase() + getArticle(clientLabel).slice(1)} ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
+      <p>${articleForClient.charAt(0).toUpperCase() + articleForClient.slice(1)} ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
 
       <p>Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.</p>
 
