@@ -677,8 +677,9 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
   console.log(`📰 News mentions: ${research.news.length}`);
   console.log(`🎯 Competitors analyzed: ${research.competitors.length}\n`);
   
-  // Save to file
-  const slug = company.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  // Save to file - use extracted firm name, fallback to company, then domain
+  const slugSource = research.firmName || company || new URL(firmWebsite).hostname.replace(/^www\./, '').split('.')[0];
+  const slug = slugSource.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase() || 'unknown-firm';
   const outputPath = path.join(__dirname, 'reports', `${slug}-maximal-research.json`);
   
   if (!fs.existsSync(path.join(__dirname, 'reports'))) {

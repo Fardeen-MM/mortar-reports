@@ -218,8 +218,8 @@ async function generateReport(researchData, prospectName) {
   // Get practice areas - check multiple possible locations in research data
   const practiceAreas = researchData.practiceAreas ||
                         practice.practiceAreas ||
-                        intelligence.practiceAreas ||
-                        intelligence.keySpecialties ||
+                        intelligence?.practiceAreas ||
+                        intelligence?.keySpecialties ||
                         [];
   
   // Filter out fake/placeholder competitors BEFORE processing
@@ -264,7 +264,7 @@ async function generateReport(researchData, prospectName) {
   // Determine practice area - use extracted primary focus first
   let practiceAreaRaw = practice.primaryFocus ||
                         practiceAreas[0] ||
-                        intelligence.mainFocus?.[0] ||
+                        intelligence?.mainFocus?.[0] ||
                         'legal services';
 
   const practiceArea = getPracticeAreaCategory(practiceAreaRaw);
