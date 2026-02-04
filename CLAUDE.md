@@ -6,140 +6,205 @@ Mortar Reports is an automated marketing report system for Mortar Metrics, a leg
 
 1. **Instantly.ai** sends webhook → **Cloudflare Worker** (`cloudflare-worker/worker.js`) forwards to GitHub
 2. **GitHub Actions** (`process-interested-lead.yml`) triggers the pipeline
-3. **Research engine** (`automation/maximal-research-v2.js` + `automation/extract-firm-info.js`) scrapes the firm's website with Playwright and extracts intelligence using Claude Sonnet 4
-4. **AI research helper** (`automation/ai-research-helper.js`) fetches real competitor data via Google Places API
-5. **Normalizer** (`automation/normalize-research-data.js`) reshapes data for the report generator
-6. **Report generator** (`automation/report-generator-v12-hybrid.js`) produces a personalized HTML landing page
-7. **CSS** lives in `automation/report-v9-css.js`
-8. Report saves to `pending-reports/{FirmName}/` (NOT live until approved)
-9. **Telegram bot** (`automation/telegram-approval-bot.js`) sends approval request with inline buttons
-10. On approve: **email workflow** (`approve-and-send-email.yml`) moves report to live folder + sends email via Instantly API
+3. **Research engine** (`automation/maximal-research-v2.js`) scrapes firm's website with Playwright + Claude Sonnet 4
+4. **Report generator** (`automation/report-generator-v12-hybrid.js`) fetches real competitors via Google Places API and produces HTML
+5. Report saves to `pending-reports/{FirmName}/` (NOT live until approved)
+6. **Telegram bot** sends approval request
+7. On approve: **email workflow** moves report to live folder + sends email via Instantly API
 
 ## The Owner
 
-Fardeen — runs Mortar Metrics. Not a developer. Wants reports that sell outcomes to law firm partners, not technical marketing jargon. The principle: lawyers don't care about products, they want to stop losing cases to competitors and fix what's broken.
+Fardeen — runs Mortar Metrics. Not a developer. Wants reports that sell outcomes to law firm partners. Principle: lawyers want to stop losing cases to competitors, not hear about marketing products.
 
 ## Design System
 
 - Fonts: Fraunces (serif, headings) + Outfit (sans-serif, body)
-- Glass morphism effects, dark backgrounds, modern typography
+- Glass morphism effects, dark backgrounds
 - Reports must match mortarmetrics.com aesthetic
-- Hero section should dominate viewport
 
 ---
 
-## System Audit Status (2026-02-03)
+## Complete Fix Log (2026-02-03/04 Session)
 
-All critical issues from the original audit have been fixed.
+### 1. Competitor Data — FIXED
+**Problem:** `findCompetitors()` in `automation/ai-research-helper.js` generated fake names via AI prompt or random surname pairs. Ratings/reviews were `Math.random()`.
 
-### ✅ FIXED — Competitor Data
-- **Was:** `findCompetitors()` generated fake names via AI, random ratings/reviews with `Math.random()`
-- **Now:** Uses Google Places API to fetch real firms with real ratings and review counts
-- **Test:** Doss Law (Toronto) returns Russell Alexander (4.9★, 1604 reviews), GOLDSTEIN (4.8★, 127 reviews), Divorce Go (4.9★, 484 reviews)
+**Solution:** Replaced with Google Places API integration.
+- Searches `"{practice area} lawyer {city, state}"`
+- Returns real firms with real ratings and review counts
+- API key hardcoded: `AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc`
+- If API fails, returns empty array (report shows "market opportunity" messaging)
 
-### ✅ FIXED — "You" Column
-- **Was:** Always showed ❌ for everything even if firm had the capability
-- **Now:** Shows firm's actual scraped data (afterHoursAvailable, hasLiveChat, hasGoogleAds, hasMetaAds)
+**Test result:**
+```
+Doss Law (Toronto, family law) →
+- Russell Alexander Collaborative Family Lawyers (4.9★, 1604 reviews)
+- GOLDSTEIN Divorce & Family Law Group (4.8★, 127 reviews)
+- Divorce Go (4.9★, 484 reviews)
+```
 
-### ✅ FIXED — Case Studies
-- **Was:** Hardcoded "Phoenix tax attorney: 0 → 47 leads/month", "Austin family law", "Dallas litigation", "23 times"
-- **Now:** Removed fabricated claims, proof grid shows system benefits (24/7, <5 min response, attribution)
+### 2. "You" Column — FIXED
+**Problem:** Competitor table always showed ❌ for firm even if they had reviews/ads/24x7.
 
-### ✅ FIXED — Gap Math
-- **Was:** Rigged to hit arbitrary targets, forced gaps to sum to hero total, identical inputs for all firms
-- **Now:** Honest calculations, inputs vary by market size (major metro 1.8x, small market 0.8x) and firm size
+**Solution:** `generateCompetitors()` now accepts `firmData` parameter and displays:
+- `firmData.googleReviews` / `firmData.googleRating`
+- `firmData.hasGoogleAds` / `firmData.hasMetaAds`
+- `firmData.afterHoursAvailable` / `firmData.hasLiveChat`
 
-### ✅ FIXED — Hero Total
-- **Was:** Defaulted to $19K hardcoded
-- **Now:** Calculated FROM the gap calculations (not reverse-engineered)
+Shows ✓ where firm has capability, ❌ where they don't, — for unknown.
 
-### ✅ FIXED — Gap Assumptions
-- **Was:** Always claimed firm has no Google Ads, no Meta Ads, no after-hours
-- **Now:** Checks research data first; if firm has capability, shows optimization opportunity instead
+### 3. Case Studies — FIXED
+**Problem:** Hardcoded fabricated claims:
+- "Phoenix tax attorney: 0 → 47 leads/month"
+- "Austin family law firm: 23 leads in first month"
+- "Dallas litigation firm: close rate 18% → 31%"
+- "We've built this 23 times"
 
-### ✅ FIXED — Pipeline Order
-- **Was:** Report deployed to live folder BEFORE approval
-- **Now:** Report saves to `pending-reports/` folder, only moves to live on explicit approval
+**Solution:** Removed all fabricated claims. Proof grid now shows system benefits:
+- 24/7 lead capture
+- <5 min response time
+- 100% attribution
 
-### ✅ FIXED — Validation
-- **Was:** "Unknown Firm" and garbage names got through
-- **Now:** Rejects Unknown Firm, names >60 chars; sends Telegram failure alert
+### 4. Gap Math — FIXED
+**Problem:** Math was rigged:
+- Took hero total (default $19K), split 40%/35%/25%
+- If formula result >15% off target → replaced with target
+- Forced gap3 = heroTotal - gap1 - gap2
 
-### ✅ FIXED — Statistics
-- **Was:** Unsourced claims like "65%", "73%", "2.5 hours"
-- **Now:** Removed or softened
+**Solution:** `calculateGaps()` rewritten:
+- Hero total calculated FROM gaps (not reverse)
+- Inputs vary by market size (major metro 1.8x, mid-size 1.2x, small 0.8x)
+- Inputs vary by firm size (uses `firmSize`, `officeCount` from research)
+- No rigging — if math gives $3.6K, shows $3.6K
 
-### ✅ FIXED — Attack-Style Titles
-- **Was:** "${firmName} is invisible when it matters"
-- **Now:** Market-focused: "Search visibility opportunity", "After-hours intake opportunity"
+Market multipliers in `getMarketMultiplier()`:
+- Major metros (NYC, LA, Chicago, Toronto, etc.): 1.8x
+- Mid-size cities: 1.2x
+- Small markets: 0.8x
+
+### 5. Hero Total — FIXED
+**Problem:** `const totalMonthly = estimatedMonthlyRevenueLoss || 19000` hardcoded.
+
+**Solution:** Hero total = sum of gap calculations. No default fallback.
+
+### 6. Gap Assumptions — FIXED
+**Problem:** Gaps assumed firm has nothing (no ads, no after-hours, etc.)
+
+**Solution:** Each gap function checks firm's actual capabilities:
+- `generateGap1()` checks `firmData.hasGoogleAds` — if true, shows "optimization opportunity"
+- `generateGap2()` checks `firmData.hasMetaAds` — if true, shows "optimization opportunity"
+- `generateGap3()` checks `firmData.afterHoursAvailable` / `firmData.hasLiveChat` — if true, shows optimization
+
+### 7. Pipeline Order — FIXED
+**Problem:** Report deployed to live folder BEFORE approval.
+
+**Solution:**
+- Reports save to `pending-reports/{FirmName}/` (new folder)
+- `approve-and-send-email.yml` now moves from `pending-reports/` to live folder on approval
+- Only committed to repo after approval
+
+### 8. Validation — FIXED
+**Problem:** "Unknown Firm" and garbage names got through.
+
+**Solution:** Added validation step in workflow:
+- Rejects if firm name is empty, "Unknown Firm", or "Unknown"
+- Rejects if firm name >60 characters
+- Sends Telegram failure notification with reason
+
+### 9. Statistics — FIXED
+**Problem:** Unsourced claims: "65% of high-intent clicks", "73% outside business hours", "2.5 hours/day on social"
+
+**Solution:** Removed all specific percentage claims. Language softened.
+
+### 10. Attack-Style Titles — FIXED
+**Problem:** "${firmName} is invisible when it matters", "${firmName}'s after-hours calls go to voicemail"
+
+**Solution:** Reframed as market opportunities:
+- "Search visibility opportunity"
+- "Social media opportunity"
+- "After-hours intake opportunity"
+
+### 11. Normalizer Fallbacks — FIXED
+**Problem:** `normalize-research-data.js` created fake "City Law Firm A/B/C" competitors.
+
+**Solution:** Returns empty array if no real competitors. No fake fallbacks.
+
+---
+
+## Current Issue (In Progress)
+
+**GitHub Actions workflow completes but reports not deploying**
+
+Symptoms:
+- Workflow shows ✅ success
+- "Send failure notification" step runs
+- "Store report in pending folder" step skipped
+- No new files committed
+
+Debug logging added (commit 842d21f) to show:
+- Contents of reports directory
+- Which research file was found
+- Full report generator output
+- Exit code
+
+**Next lead from Instantly will reveal the issue.**
+
+Possible causes:
+1. Research file not found (wrong path pattern)
+2. Google Places API failing from GitHub Actions IPs
+3. Report generator throwing unhandled error
+
+---
+
+## Key Files Modified
+
+| File | Changes |
+|------|---------|
+| `automation/ai-research-helper.js` | Replaced fake competitor generation with Google Places API |
+| `automation/report-generator-v12-hybrid.js` | Async, fetches competitors if missing, uses firm data, honest math |
+| `automation/normalize-research-data.js` | Removed fake fallback competitors, removed $19K default |
+| `.github/workflows/process-interested-lead.yml` | Added validation, failure alerts, pending-reports folder, debug logging |
+| `.github/workflows/approve-and-send-email.yml` | Moves report from pending to live on approval |
+
+---
+
+## Testing
+
+```bash
+# Generate report locally (works)
+node automation/report-generator-v12-hybrid.js reports/doss-law-research.json "Test User"
+
+# Open generated HTML
+open automation/reports/doss-law-landing-page-v12-hybrid.html
+
+# List research files
+ls reports/*-research.json
+```
+
+---
+
+## API Keys
+
+- **Google Places API:** Hardcoded in `ai-research-helper.js` as `AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc`
+- **Anthropic:** In GitHub secrets as `ANTHROPIC`
+- **Telegram:** In GitHub secrets as `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- **Instantly:** In GitHub secrets as `INSTANTLY_API_KEY`
 
 ---
 
 ## Remaining Known Issues
 
-- LinkedIn scraping fails (blocked by LinkedIn) — accept limitation
-- Google scraping from GitHub Actions IPs sometimes blocked — Places API is more reliable
-- Cloudflare Worker dedup uses in-memory Map (resets on cold start) — consider KV store
-- Cloudflare Worker has no authentication — add shared secret header
-- Telegram approve button callback needs webhook handler deployed
-
-## Testing
-
-```bash
-# Generate report for any research JSON
-node automation/report-generator-v12-hybrid.js reports/doss-law-research.json "Test User"
-
-# Open the generated HTML
-open automation/reports/doss-law-landing-page-v12-hybrid.html
-
-# List available research files
-ls reports/*-research.json
-```
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `automation/report-generator-v12-hybrid.js` | Main report generator |
-| `automation/ai-research-helper.js` | Google Places API for competitors |
-| `automation/normalize-research-data.js` | Data normalization |
-| `automation/maximal-research-v2.js` | Website scraping + AI extraction |
-| `.github/workflows/process-interested-lead.yml` | Main pipeline |
-| `.github/workflows/approve-and-send-email.yml` | Approval + deployment |
-
-## Working With Fardeen
-
-- He's not a developer — explain what you're doing in plain English
-- He wants reports that sell outcomes: "stop losing cases to competitors"
-- He gives brutal honest feedback — iterate based on it
-- Always test changes against a real research JSON before pushing
-- The research JSONs are in `reports/` — use one as a test fixture
+- LinkedIn scraping fails (blocked) — accept limitation
+- Telegram approve button callback needs webhook handler
+- Cloudflare Worker dedup uses in-memory Map (resets on cold start)
+- Cloudflare Worker has no authentication
 
 ---
 
-## Current Session (2026-02-03/04)
+## Working With Fardeen
 
-### What Was Done
-1. Fixed all 47 audit issues (competitor fabrication, rigged math, fake case studies, etc.)
-2. Integrated Google Places API for real competitor data
-3. Updated pipeline to save reports to `pending-reports/` until approved
-4. Added validation (rejects Unknown Firm, names >60 chars)
-5. Added failure alerting via Telegram
-
-### Active Issue
-**GitHub Actions workflow runs but reports not deploying**
-- Workflow shows ✅ success but "Send failure notification" fires
-- Steps after report generation are skipped
-- Added debug logging to see what's happening (commit 842d21f)
-- Next lead from Instantly will show: research file path, report generator output, exit code
-
-### To Investigate
-- Check if research file is being found (`find reports -name "*-maximal-research.json"`)
-- Check if Google Places API works from GitHub Actions IPs
-- May need to add `GOOGLE_PLACES_API_KEY` to GitHub secrets (currently hardcoded)
-
-### Local Testing Works
-```bash
-node automation/report-generator-v12-hybrid.js reports/doss-law-research.json "Test"
-# Successfully generates report with real competitors from Google Places API
-```
+- Not a developer — explain in plain English
+- Wants reports that sell outcomes
+- Gives brutal honest feedback — iterate on it
+- Always test against real research JSON before pushing
+- Research JSONs are in `reports/`
