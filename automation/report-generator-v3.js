@@ -123,13 +123,14 @@ async function generateReport(researchData, prospectName) {
   const practiceLabel = getPracticeLabel(practiceArea);
 
   // Try AI content generation with fallback to hardcoded mappings
+  // Pass the detected practiceArea (not raw array) to ensure consistency
   let clientLabel, clientLabelPlural, emergencyScenario;
   try {
-    const aiContent = await getContentWithFallback(practiceAreas, firmName, city, state);
+    const aiContent = await getContentWithFallback([practiceArea], firmName, city, state);
     clientLabel = aiContent.clientLabel;
     clientLabelPlural = aiContent.clientLabelPlural;
     emergencyScenario = aiContent.emergencyScenario;
-    console.log(`📝 Content source: ${aiContent.source}`);
+    console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
   } catch (e) {
     // Fallback to hardcoded if AI module fails entirely
     console.log(`⚠️  AI content module failed, using hardcoded: ${e.message}`);
