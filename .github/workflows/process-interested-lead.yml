@@ -209,7 +209,7 @@ jobs:
             echo "valid=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Generate V12 Hybrid Report
+      - name: Generate V3 Report
         id: report
         if: steps.validate.outputs.valid == 'true'
         env:
@@ -229,12 +229,12 @@ jobs:
             exit 0
           fi
 
-          echo "Generating report for: ${{ steps.extract.outputs.firm_name }}"
+          echo "Generating V3 report for: ${{ steps.extract.outputs.firm_name }}"
           echo "Contact: ${{ steps.extract.outputs.contact_name }}"
 
-          # Run report generator and capture output
+          # Run V3 report generator and capture output
           set +e
-          OUTPUT=$(node report-generator-v12-hybrid.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}" 2>&1)
+          OUTPUT=$(node report-generator-v3.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}" 2>&1)
           EXIT_CODE=$?
           set -e
 
@@ -292,7 +292,7 @@ jobs:
           echo "Creating pending folder: pending-reports/$FIRM_FOLDER"
           mkdir -p "pending-reports/$FIRM_FOLDER"
 
-          REPORT_HTML=$(find automation/reports -name "*-landing-page-v12-hybrid.html" -type f | head -1)
+          REPORT_HTML=$(find automation/reports -name "*-report-v3.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
             echo "Error: No V12 Hybrid HTML found"
             exit 1
@@ -325,7 +325,7 @@ jobs:
             "from_email": "${{ steps.lead_data.outputs.from_email }}",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
-            "report_version": "V12-HONEST"
+            "report_version": "V3"
           }
           EOF
 

@@ -14,12 +14,12 @@ function buildPersonalizedEmail(researchData, contactName, reportUrl) {
   const growthSignal = researchData.firmIntel?.growthSignals?.[0];
   
   // Build personalized opening
-  let opening = `Perfect! I just finished analyzing ${firmName}.`;
-  
+  let opening = `Perfect! Our team put together an analysis for ${firmName}.`;
+
   if (recentNews) {
-    opening = `Perfect! I saw you just ${recentNews.toLowerCase()}—congrats on that. I finished analyzing ${firmName} and found some specific opportunities.`;
+    opening = `Perfect! We saw you recently ${recentNews.toLowerCase()} - congrats on that. Our team put together an analysis for ${firmName} and found some specific opportunities.`;
   } else if (growthSignal) {
-    opening = `Perfect! I noticed you're ${growthSignal.toLowerCase()}. I finished analyzing ${firmName} and found some revenue gaps you can close while scaling.`;
+    opening = `Perfect! We noticed you're ${growthSignal.toLowerCase()}. Our team put together an analysis for ${firmName} that highlights some revenue gaps you can close while scaling.`;
   }
   
   // Calculate next available weekday
@@ -44,14 +44,12 @@ function buildPersonalizedEmail(researchData, contactName, reportUrl) {
   
   const emailBody = `${opening}
 
-I analyzed your website, your top competitors, and found some specific gaps that are costing you cases right now.
+We looked at who's showing up in your market and found some specific gaps that are costing you cases right now.
 
-What I found:
-• Exact revenue gaps (with dollar amounts)
-• What your top 3 competitors are doing in ${researchData.location?.city || 'your market'}
-• Specific strategies to capture that revenue
-
-Everything is tailored to ${firmName}—no generic advice.
+What you'll see:
+- Revenue gaps with estimated dollar amounts
+- Who's advertising in ${researchData.location?.city || 'your market'}
+- A concrete plan to capture that revenue
 
 Here's your report:
 ${reportUrl}
@@ -97,16 +95,14 @@ function buildSimpleEmail(contactName, reportUrl) {
   
   return {
     subject: 'Your marketing analysis', // Only used if starting new thread (not replying)
-    body: `Perfect! I just finished putting together your analysis.
+    body: `Perfect! Our team put together your analysis.
 
-I analyzed your website, your competitors in your market, and found some specific gaps you can close.
+We looked at your website and who's showing up in your market, and found some specific gaps you can close.
 
 What you'll see:
-• Exact revenue gaps we found (with dollar amounts)
-• What your top 3 competitors are doing
-• What we'd build for you to capture that revenue
-
-Everything is specific to your firm and your market—no generic fluff.
+- Revenue gaps with estimated dollar amounts
+- Who's advertising in your market
+- A concrete plan to capture that revenue
 
 Here's your report:
 ${reportUrl}

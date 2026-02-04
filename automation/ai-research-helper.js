@@ -615,6 +615,139 @@ If you CANNOT make a confident inference (confidence < 5), return:
   }
 }
 
+/**
+ * Check if a competitor is running Google Ads
+ * Uses Google Ads Transparency Center (best-effort, may not always work)
+ */
+async function checkGoogleAds(companyName) {
+  // Google Ads Transparency Center doesn't have a public API
+  // This is a placeholder that returns null (unknown)
+  // In production, you'd need to either:
+  // 1. Use a third-party service like SpyFu, SEMrush API
+  // 2. Manually check during research phase
+  // 3. Use Playwright to scrape (complex, rate-limited)
+  return { detected: null, adCount: null };
+}
+
+/**
+ * Check if a competitor is running Meta Ads
+ * Uses Meta Ad Library API
+ */
+async function checkMetaAds(companyName) {
+  // Meta Ad Library doesn't have a public API for programmatic access
+  // Would need to use their official Ad Library API (requires approval)
+  // or scrape with Playwright (against ToS)
+  return { detected: null, activeCount: null };
+}
+
+/**
+ * Enrich competitors with ad research data
+ * Best-effort: returns null for unknown values rather than false
+ */
+async function enrichCompetitorWithAds(competitor) {
+  // For now, return the competitor with null ad status
+  // This preserves the "unknown" state vs "definitely no ads"
+  return {
+    ...competitor,
+    googleAds: { detected: null, adCount: null },
+    metaAds: { detected: null, activeCount: null }
+  };
+}
+
+/**
+ * Generate practice-area-specific search terms
+ * Returns 5 terms tailored to the practice area and location
+ */
+function getSearchTerms(practiceArea, city, state) {
+  const terms = {
+    'landlord': [
+      'eviction lawyer near me',
+      `landlord attorney ${city} ${state}`,
+      `how to evict a tenant ${state}`,
+      'landlord tenant lawyer',
+      'property owner legal help'
+    ],
+    'personal injury': [
+      'car accident lawyer near me',
+      `personal injury attorney ${city}`,
+      'injury lawyer free consultation',
+      'how much is my case worth',
+      'accident lawyer near me'
+    ],
+    'divorce': [
+      'divorce lawyer near me',
+      `divorce attorney ${city} ${state}`,
+      'how much does divorce cost',
+      'child custody lawyer',
+      'family law attorney near me'
+    ],
+    'family': [
+      'family lawyer near me',
+      `family law attorney ${city}`,
+      'child custody lawyer',
+      'adoption attorney near me',
+      'guardianship lawyer'
+    ],
+    'immigration': [
+      'immigration lawyer near me',
+      `immigration attorney ${city}`,
+      'green card lawyer',
+      'visa attorney near me',
+      'citizenship lawyer'
+    ],
+    'criminal': [
+      'criminal lawyer near me',
+      `criminal defense attorney ${city}`,
+      'dui lawyer near me',
+      'drug charge attorney',
+      'felony lawyer'
+    ],
+    'tax': [
+      'tax attorney near me',
+      `irs lawyer ${city}`,
+      'tax debt relief attorney',
+      'irs audit lawyer',
+      'tax settlement attorney'
+    ],
+    'estate': [
+      'estate planning attorney near me',
+      `wills and trusts lawyer ${city}`,
+      'probate attorney',
+      'living trust lawyer',
+      'estate lawyer near me'
+    ],
+    'employment': [
+      'employment lawyer near me',
+      `wrongful termination attorney ${city}`,
+      'discrimination lawyer',
+      'harassment attorney',
+      'wage theft lawyer'
+    ],
+    'real estate': [
+      'real estate lawyer near me',
+      `property attorney ${city}`,
+      'closing attorney',
+      'title lawyer',
+      'real estate transaction attorney'
+    ],
+    'default': [
+      'lawyer near me',
+      `attorney ${city} ${state}`,
+      'legal help near me',
+      'law firm near me',
+      'free legal consultation'
+    ]
+  };
+
+  const practiceKey = Object.keys(terms).find(key =>
+    practiceArea.toLowerCase().includes(key)
+  ) || 'default';
+
+  return terms[practiceKey].map(term =>
+    term.replace(/undefined/g, '').replace(/\s+/g, ' ').trim()
+  );
+}
+
 module.exports = {
   analyzeFirm,
   quickAttorneySample,
@@ -625,5 +758,9 @@ module.exports = {
   extractCredentials,
   findTeamPage,
   analyzePage,
-  findCompetitors
+  findCompetitors,
+  checkGoogleAds,
+  checkMetaAds,
+  enrichCompetitorWithAds,
+  getSearchTerms
 };
