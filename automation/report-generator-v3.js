@@ -55,17 +55,17 @@ const CASE_VALUES = {
 const CLIENT_LABELS = {
   'landlord': { singular: 'landlord', plural: 'landlords' },
   'personal injury': { singular: 'accident victim', plural: 'accident victims' },
-  'divorce': { singular: 'person facing divorce', plural: 'people facing divorce' },
-  'family': { singular: 'parent', plural: 'parents' },
+  'divorce': { singular: 'spouse', plural: 'people going through divorce' },
+  'family': { singular: 'parent', plural: 'families' },
   'immigration': { singular: 'immigrant', plural: 'immigrants' },
   'criminal': { singular: 'defendant', plural: 'defendants' },
-  'estate': { singular: 'family', plural: 'families' },
+  'estate': { singular: 'family member', plural: 'families' },
   'business': { singular: 'business owner', plural: 'business owners' },
   'bankruptcy': { singular: 'debtor', plural: 'people in debt' },
   'tax': { singular: 'taxpayer', plural: 'taxpayers' },
   'employment': { singular: 'employee', plural: 'employees' },
-  'real estate': { singular: 'property buyer', plural: 'property buyers' },
-  'default': { singular: 'client', plural: 'potential clients' }
+  'real estate': { singular: 'buyer', plural: 'property buyers' },
+  'default': { singular: 'potential client', plural: 'potential clients' }
 };
 
 // Emergency scenarios by practice area
@@ -117,9 +117,8 @@ async function generateReport(researchData, prospectName) {
   const country = location.country || 'US';
   const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
   
-  // Determine practice area
-  const practiceAreaRaw = practiceAreas[0] || 'legal services';
-  const practiceArea = getPracticeAreaCategory(practiceAreaRaw);
+  // Determine practice area - try multiple sources
+  const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
   const clientLabels = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
   const clientLabel = clientLabels.singular;
@@ -242,7 +241,66 @@ function isFakeCompetitor(name) {
   return patterns.some(p => p.test(name));
 }
 
+// Sanitize competitor names - truncate long names, clean up garbage
+function sanitizeCompetitorName(name) {
+  if (!name) return 'Competitor';
+
+  // If name has multiple commas, it's likely concatenated garbage - take first part
+  if ((name.match(/,/g) || []).length >= 2) {
+    name = name.split(',')[0].trim();
+  }
+
+  // If still too long (>50 chars), truncate intelligently
+  if (name.length > 50) {
+    // Try to cut at a word boundary
+    const truncated = name.substring(0, 47);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 30) {
+      return truncated.substring(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+  }
+
+  return name;
+}
+
+// Try to detect practice area from multiple sources
+function detectPracticeArea(practiceAreas, researchData) {
+  // Try each practice area in order until we find a specific one
+  for (const pa of (practiceAreas || [])) {
+    const category = getPracticeAreaCategory(pa);
+    if (category !== 'default') {
+      return category;
+    }
+  }
+
+  // Try to infer from services
+  const services = researchData.services || researchData.intelligence?.services || [];
+  for (const service of services) {
+    const category = getPracticeAreaCategory(service);
+    if (category !== 'default') {
+      return category;
+    }
+  }
+
+  // Try to infer from firm name
+  const firmNameLower = (researchData.firmName || '').toLowerCase();
+  if (firmNameLower.includes('family') || firmNameLower.includes('divorce')) return 'divorce';
+  if (firmNameLower.includes('injury') || firmNameLower.includes('accident')) return 'personal injury';
+  if (firmNameLower.includes('immigration')) return 'immigration';
+  if (firmNameLower.includes('criminal') || firmNameLower.includes('defense')) return 'criminal';
+  if (firmNameLower.includes('estate') || firmNameLower.includes('trust') || firmNameLower.includes('probate')) return 'estate';
+  if (firmNameLower.includes('tax')) return 'tax';
+  if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
+  if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
+  if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
+
+  // Default to 'default' which will show "LEGAL SERVICES"
+  return 'default';
+}
+
 function getPracticeAreaCategory(raw) {
+  if (!raw) return 'default';
   const lower = raw.toLowerCase();
   if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
   if (lower.includes('divorce') || lower.includes('family')) return 'divorce';
@@ -267,20 +325,66 @@ function getPracticeLabel(category) {
     'family': 'FAMILY LAW',
     'tax': 'TAX LAW',
     'personal injury': 'PERSONAL INJURY',
-    'immigration': 'IMMIGRATION',
+    'immigration': 'IMMIGRATION LAW',
     'criminal': 'CRIMINAL DEFENSE',
     'estate': 'ESTATE PLANNING',
     'business': 'BUSINESS LAW',
-    'bankruptcy': 'BANKRUPTCY',
+    'bankruptcy': 'BANKRUPTCY LAW',
     'employment': 'EMPLOYMENT LAW',
-    'real estate': 'REAL ESTATE',
+    'real estate': 'REAL ESTATE LAW',
     'ip': 'INTELLECTUAL PROPERTY',
     'landlord': 'LANDLORD LAW',
     'medical malpractice': 'MEDICAL MALPRACTICE',
     'workers comp': 'WORKERS COMPENSATION',
-    'default': 'LAW'
+    'default': 'LEGAL SERVICES'
   };
-  return labels[category] || 'LAW';
+  return labels[category] || 'LEGAL SERVICES';
+}
+
+// Get practice area description for prose (lowercase, readable)
+function getPracticeDescription(category) {
+  const descriptions = {
+    'divorce': 'family law',
+    'family': 'family law',
+    'tax': 'tax law',
+    'personal injury': 'personal injury',
+    'immigration': 'immigration',
+    'criminal': 'criminal defense',
+    'estate': 'estate planning',
+    'business': 'business law',
+    'bankruptcy': 'bankruptcy',
+    'employment': 'employment law',
+    'real estate': 'real estate',
+    'ip': 'intellectual property',
+    'landlord': 'landlord law',
+    'medical malpractice': 'medical malpractice',
+    'workers comp': 'workers compensation',
+    'default': 'legal services'
+  };
+  return descriptions[category] || 'legal services';
+}
+
+// Get attorney type for "X attorney" phrasing
+function getAttorneyType(category) {
+  const types = {
+    'divorce': 'family',
+    'family': 'family',
+    'tax': 'tax',
+    'personal injury': 'personal injury',
+    'immigration': 'immigration',
+    'criminal': 'criminal defense',
+    'estate': 'estate planning',
+    'business': 'business',
+    'bankruptcy': 'bankruptcy',
+    'employment': 'employment',
+    'real estate': 'real estate',
+    'ip': 'IP',
+    'landlord': 'landlord',
+    'medical malpractice': 'medical malpractice',
+    'workers comp': 'workers comp',
+    'default': ''
+  };
+  return types[category] || '';
 }
 
 function getMarketMultiplier(city) {
@@ -430,7 +534,7 @@ ${css}
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-context">${practiceLabel} - ${locationLabel}</div>
+      <div class="hero-context">${practiceLabel} · ${locationLabel}</div>
 
       <h2 class="hero-setup">Every month, people in ${city || 'your area'} search for</h2>
 
@@ -452,7 +556,7 @@ ${css}
       </h1>
 
       <p class="hero-sub">
-        We analyzed the ${practiceArea.replace('default', 'legal services')} market in ${locationStr} - who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.
+        We analyzed the ${getPracticeDescription(practiceArea)} market in ${locationStr} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.
       </p>
 
       <div class="scroll-hint">
@@ -468,51 +572,51 @@ ${css}
     <div class="narrative">
       <h2>Where you're losing cases right now</h2>
 
-      <p>We looked at how people find and contact ${practiceArea.replace('default', 'legal')} attorneys in ${locationStr}. Three specific gaps came up - places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
+      <p>We looked at how people find and contact ${getAttorneyType(practiceArea) ? getAttorneyType(practiceArea) + ' attorneys' : 'attorneys'} in ${locationStr}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
     </div>
 
 
     <!-- GAP 1 - Google Ads -->
     <div class="gap-card">
       <div class="badge badge-search">Google Ads</div>
-      <h3>~${gap1.searches} people searched for a ${practiceArea.replace('default', 'legal')} attorney last month. The firms running ads got those clicks.</h3>
+      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? 'a ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
       <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack - which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>
 
-      <p>This is the highest-intent channel in legal marketing - these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
+      <p>This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
 
       <div class="math-box">
-        <strong>How we estimated this:</strong> ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets - your actual numbers will vary based on your intake process and close rate.
+        <strong>How we estimated this:</strong> ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets — your actual numbers will vary based on your intake process and close rate.
       </div>
     </div>
 
 
     <!-- GAP 2 - Meta Ads -->
     <div class="gap-card">
-      <div class="badge badge-social">Meta Ads - Facebook + Instagram</div>
+      <div class="badge badge-social">Meta Ads · Facebook + Instagram</div>
       <h3>Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo</div>
 
-      <p>Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet - they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
+      <p>Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
 
       <p>A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing firms we've seen use both channels because they capture completely different people at different stages.</p>
 
       <div class="math-box">
-        <strong>How we estimated this:</strong> ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting - but well-run campaigns for legal services consistently outperform these baselines.
+        <strong>How we estimated this:</strong> ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting — but well-run campaigns for legal services consistently outperform these baselines.
       </div>
     </div>
 
 
     <!-- GAP 3 - Voice AI -->
     <div class="gap-card">
-      <div class="badge badge-intake">Voice AI - 24/7 Intake</div>
+      <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
       <h3>When a ${clientLabel} calls at 7pm about ${emergencyScenario} - what happens?</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
 
       <p>A ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
 
-      <p>Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies - it's the most common leak in the funnel we see.</p>
+      <p>Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.</p>
 
       <div class="before-after">
         <div class="ba-side ba-before">
@@ -538,7 +642,7 @@ ${css}
     </div>
 
     <div class="narrative">
-      <p>That's the range - not a guarantee. It depends on your case values, close rate, and how well the system is optimized. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other firms instead of you.</p>
+      <p>That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is optimized. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other firms instead of you.</p>
     </div>
 
 
@@ -548,7 +652,7 @@ ${css}
     <div class="narrative">
       <h2>And those other firms? Here's who's getting your cases.</h2>
 
-      <p>We pulled the firms showing up for ${practiceArea.replace('default', 'legal')} searches in ${locationStr}. Google uses reviews as a major trust signal - more reviews and higher ratings push firms into the Map Pack at the top of results, where most clicks happen. Here's where you stand.</p>
+      <p>We pulled the firms showing up for ${getPracticeDescription(practiceArea)} searches in ${locationStr}. Google uses reviews as a major trust signal — more reviews and higher ratings push firms into the Map Pack at the top of results, where most clicks happen. Here's where you stand.</p>
     </div>
 
 ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
@@ -560,14 +664,14 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
     <div class="narrative">
       <h2>Here's how we'd close these gaps</h2>
 
-      <p>It's not one thing - it's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on practicing law.</p>
+      <p>It's not one thing — it's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on practicing law.</p>
     </div>
 
     <div class="build-list">
       <div class="build-item">
         <div class="build-number">1</div>
         <div class="build-content">
-          <strong>Google Ads targeting ${practiceArea.replace('default', 'legal')} searches in your area</strong>
+          <strong>Google Ads targeting ${getAttorneyType(practiceArea) ? getAttorneyType(practiceArea) + ' law' : 'legal'} searches in your area</strong>
           <p>You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded, every dollar accounted for.</p>
           <span class="build-timeline">Typically live in 1-2 weeks</span>
         </div>
@@ -577,7 +681,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
         <div class="build-number">2</div>
         <div class="build-content">
           <strong>Meta Ads reaching ${clientLabelPlural} before they search</strong>
-          <p>Targeted campaigns on Facebook and Instagram - putting your firm in front of ${clientLabelPlural} who need help but haven't started looking.</p>
+          <p>Targeted campaigns on Facebook and Instagram — putting your firm in front of ${clientLabelPlural} who need help but haven't started looking.</p>
           <span class="build-timeline">Typically live in 2-3 weeks</span>
         </div>
       </div>
@@ -647,11 +751,12 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
     const reviews = comp.reviews || comp.reviewCount || 0;
     const rating = comp.rating || 0;
     const width = Math.max((reviews / maxReviews) * 100, 2);
-    
+    const cleanName = sanitizeCompetitorName(comp.name);
+
     bars += `      <div class="review-bar-group">
         <div class="review-bar-label">
-          <span class="review-bar-name">${comp.name}</span>
-          <span class="review-bar-count">${reviews.toLocaleString()} reviews${rating ? ` - ${rating.toFixed(1)}★` : ''}</span>
+          <span class="review-bar-name">${cleanName}</span>
+          <span class="review-bar-count">${reviews.toLocaleString()} reviews${rating ? ` · ${rating.toFixed(1)}★` : ''}</span>
         </div>
         <div class="review-bar-track">
           <div class="review-bar-fill competitor" style="width: ${width.toFixed(1)}%"></div>
@@ -666,7 +771,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
   bars += `      <div class="review-bar-group">
         <div class="review-bar-label">
           <span class="review-bar-name you">${firmName} (You)</span>
-          <span class="review-bar-count you">${firmReviews || 0} reviews${firmRating ? ` - ${firmRating.toFixed(1)}★` : ''}</span>
+          <span class="review-bar-count you">${firmReviews || 0} reviews${firmRating ? ` · ${firmRating.toFixed(1)}★` : ''}</span>
         </div>
         <div class="review-bar-track">
           <div class="review-bar-fill yours" style="width: ${firmWidth.toFixed(2)}%"></div>
@@ -674,7 +779,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
       </div>
 
       <div class="competitor-takeaway">
-        <strong>This doesn't mean they're better attorneys.</strong> In every market we've analyzed, the firms that dominate search results aren't always the best lawyers - they're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.
+        <strong>This doesn't mean they're better attorneys.</strong> In every market we've analyzed, the firms that dominate search results aren't always the best lawyers — they're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.
       </div>
     </div>
 `;
