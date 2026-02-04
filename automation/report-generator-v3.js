@@ -122,20 +122,19 @@ async function generateReport(researchData, prospectName) {
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
 
-  // AI content generation - let AI handle all the nuance
-  // Pass FULL practiceAreas so AI can understand context
+  // AI content generation - let AI handle nuance, but use OUR detected practice area
+  // This ensures consistency between practice label and content
   let clientLabel, clientLabelPlural, emergencyScenario, articleForClient, articleForAttorney;
   try {
-    const aiContent = await getContentWithFallback(practiceAreas, firmName, city, state);
+    // Pass the detected practiceArea so AI generates content for the SAME practice area
+    // that we're showing in the report header
+    const aiContent = await getContentWithFallback([practiceArea], firmName, city, state);
     clientLabel = aiContent.clientLabel;
     clientLabelPlural = aiContent.clientLabelPlural;
     emergencyScenario = aiContent.emergencyScenario;
     articleForClient = aiContent.articleForClient || getArticle(clientLabel);
     articleForAttorney = aiContent.articleForAttorney || getArticle(getAttorneyType(practiceArea));
-    console.log(`📝 Content source: ${aiContent.source}`);
-    if (aiContent.primaryPracticeArea) {
-      console.log(`   AI detected primary: "${aiContent.primaryPracticeArea}"`);
-    }
+    console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
   } catch (e) {
     // Fallback to hardcoded if AI module fails entirely
     console.log(`⚠️  AI content module failed: ${e.message}`);
