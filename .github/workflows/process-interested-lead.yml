@@ -214,24 +214,40 @@ jobs:
         if: steps.validate.outputs.valid == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
         run: |
+          echo "=== DEBUG: Listing reports directory ==="
+          ls -la reports/ || echo "reports/ directory not found"
+
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
+          echo "=== DEBUG: Found research file: $RESEARCH_FILE ==="
+
           if [ -z "$RESEARCH_FILE" ]; then
             echo "Error: No research JSON found"
             echo "blocked=true" >> $GITHUB_OUTPUT
             echo "reason=No research file found" >> $GITHUB_OUTPUT
             exit 0
           fi
+
           echo "Generating report for: ${{ steps.extract.outputs.firm_name }}"
           echo "Contact: ${{ steps.extract.outputs.contact_name }}"
 
-          # Capture exit code - don't fail workflow
-          if node report-generator-v12-hybrid.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}" 2>&1; then
+          # Run report generator and capture output
+          set +e
+          OUTPUT=$(node report-generator-v12-hybrid.js "$RESEARCH_FILE" "${{ steps.extract.outputs.contact_name }}" 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "=== Report Generator Output ==="
+          echo "$OUTPUT"
+          echo "=== Exit code: $EXIT_CODE ==="
+
+          if [ $EXIT_CODE -eq 0 ]; then
             echo "blocked=false" >> $GITHUB_OUTPUT
           else
-            echo "Report generation failed or blocked"
+            echo "Report generation failed with exit code $EXIT_CODE"
             echo "blocked=true" >> $GITHUB_OUTPUT
-            echo "reason=Report generation blocked" >> $GITHUB_OUTPUT
+            echo "reason=Report generation failed (exit $EXIT_CODE)" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
         timeout-minutes: 5
