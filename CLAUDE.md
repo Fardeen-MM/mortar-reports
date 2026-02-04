@@ -114,3 +114,32 @@ ls reports/*-research.json
 - He gives brutal honest feedback — iterate based on it
 - Always test changes against a real research JSON before pushing
 - The research JSONs are in `reports/` — use one as a test fixture
+
+---
+
+## Current Session (2026-02-03/04)
+
+### What Was Done
+1. Fixed all 47 audit issues (competitor fabrication, rigged math, fake case studies, etc.)
+2. Integrated Google Places API for real competitor data
+3. Updated pipeline to save reports to `pending-reports/` until approved
+4. Added validation (rejects Unknown Firm, names >60 chars)
+5. Added failure alerting via Telegram
+
+### Active Issue
+**GitHub Actions workflow runs but reports not deploying**
+- Workflow shows ✅ success but "Send failure notification" fires
+- Steps after report generation are skipped
+- Added debug logging to see what's happening (commit 842d21f)
+- Next lead from Instantly will show: research file path, report generator output, exit code
+
+### To Investigate
+- Check if research file is being found (`find reports -name "*-maximal-research.json"`)
+- Check if Google Places API works from GitHub Actions IPs
+- May need to add `GOOGLE_PLACES_API_KEY` to GitHub secrets (currently hardcoded)
+
+### Local Testing Works
+```bash
+node automation/report-generator-v12-hybrid.js reports/doss-law-research.json "Test"
+# Successfully generates report with real competitors from Google Places API
+```
