@@ -648,9 +648,13 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     research.news = await scrapeRecentNews(page, effectiveFirmName);
     
     // Phase 6: Competitor research (needs competitors first)
-    // Quick competitor discovery with AI
+    // Use extracted practice areas for accurate competitor search
     const aiHelper = require('./ai-research-helper');
-    const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, ['legal services']);
+    const practiceAreasForSearch = research.practice?.practiceAreas?.length > 0
+      ? research.practice.practiceAreas
+      : (extractedData.practiceAreas?.length > 0 ? extractedData.practiceAreas : ['lawyer']);
+    console.log(`   🔍 Searching competitors for: ${practiceAreasForSearch[0]}`);
+    const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
     
     // Phase 7: AI Synthesis
