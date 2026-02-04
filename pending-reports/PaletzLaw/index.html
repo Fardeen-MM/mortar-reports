@@ -1062,7 +1062,7 @@ class SearchTyper {
     
     let timeout = this.isDeleting ? this.deleteSpeed : this.typeSpeed;
     
-    if (.this.isDeleting && this.currentText === currentTerm) {
+    if (!this.isDeleting && this.currentText === currentTerm) {
       timeout = this.pauseBeforeDelete;
       this.isDeleting = true;
     } else if (this.isDeleting && this.currentText === '') {
