@@ -658,7 +658,7 @@ ${css}
       <h3>Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo</div>
 
-      <p>Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
+      <p>Think about it from ${getArticle(clientLabel)} ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
 
       <p>A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing firms we've seen use both channels because they capture completely different people at different stages.</p>
 
@@ -671,10 +671,10 @@ ${css}
     <!-- GAP 3 - Voice AI -->
     <div class="gap-card">
       <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
-      <h3>When a ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
+      <h3>When ${getArticle(clientLabel)} ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
 
-      <p>A ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
+      <p>${getArticle(clientLabel).charAt(0).toUpperCase() + getArticle(clientLabel).slice(1)} ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
 
       <p>Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.</p>
 
