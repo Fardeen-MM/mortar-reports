@@ -238,7 +238,11 @@ async function generateReport(researchData, prospectName) {
     totalHigh,
     competitors,
     firmReviews,
-    firmRating
+    firmRating,
+    runningGoogleAds,
+    runningMetaAds,
+    googleAdCount,
+    metaAdCount
   });
   
   // Save report
@@ -625,7 +629,11 @@ function generateHTML(data) {
     totalHigh,
     competitors,
     firmReviews,
-    firmRating
+    firmRating,
+    runningGoogleAds,
+    runningMetaAds,
+    googleAdCount,
+    metaAdCount
   } = data;
   
   const today = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
