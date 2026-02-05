@@ -549,19 +549,26 @@ jobs:
           # Push with conflict-resilient retry
           git push origin main || {
             echo "Push failed, pulling latest and retrying..."
-            # Undo our commit but keep files on disk
-            git reset --soft HEAD~1
-            git reset HEAD .
-            # Get latest from remote (may include same files from parallel run)
+            # Save our generated files before cleaning
+            cp "pending-reports/$FIRM_FOLDER/index.html" /tmp/report.html
+            cp "automation/pending-approvals/$FIRM_FOLDER.json" /tmp/approval.json
+            # Undo commit and remove untracked files that block pull
+            git reset HEAD~1
+            git checkout -- . 2>/dev/null || true
+            rm -f "pending-reports/$FIRM_FOLDER/index.html"
+            rm -f "automation/pending-approvals/$FIRM_FOLDER.json"
+            rmdir "pending-reports/$FIRM_FOLDER" 2>/dev/null || true
+            # Pull latest
             git pull origin main
-            # Re-stage our files on top of latest remote
-            git add "pending-reports/$FIRM_FOLDER/index.html" 2>/dev/null || true
-            git add "automation/pending-approvals/$FIRM_FOLDER.json" 2>/dev/null || true
-            # Only commit+push if there are actual differences
-            if git diff --cached --quiet; then
-              echo "✅ No changes needed — files already exist on remote"
+            # Check if parallel run already pushed our files
+            if [ -f "pending-reports/$FIRM_FOLDER/index.html" ]; then
+              echo "✅ Report already pushed by parallel run — nothing to do"
             else
+              mkdir -p "pending-reports/$FIRM_FOLDER"
+              cp /tmp/report.html "pending-reports/$FIRM_FOLDER/index.html"
+              cp /tmp/approval.json "automation/pending-approvals/$FIRM_FOLDER.json"
+              git add "pending-reports/$FIRM_FOLDER/index.html" "automation/pending-approvals/$FIRM_FOLDER.json"
               git commit -m "Add pending report for $FIRM_FOLDER (awaiting approval)"
-              git push origin main || echo "⚠️ Push failed — report may already exist from parallel run"
+              git push origin main || echo "⚠️ Push failed — report may already exist"
             fi
           }
