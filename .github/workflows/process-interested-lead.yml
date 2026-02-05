@@ -4,6 +4,11 @@ on:
   repository_dispatch:
     types: [interested_lead]
 
+# Prevent duplicate runs for the same lead
+concurrency:
+  group: lead-${{ github.event.client_payload.email }}-${{ github.event.client_payload.email_id }}
+  cancel-in-progress: false
+
 jobs:
   research-and-report:
     runs-on: ubuntu-latest
