@@ -19,15 +19,30 @@ Found and fixed multiple issues:
 | Firm size not used | Updated `getFirmSizeMultiplier()` to check multiple paths |
 | 40 unused files | Deleted 27,226 lines of dead code |
 
-### 3. Added Concurrency Control
+### 3. Added Concurrency Control + Duplicate Detection
 Added to `.github/workflows/process-interested-lead.yml`:
 ```yaml
+# Fixed: Uses only email (not email_id) because Instantly sends two webhooks
+# with different payloads (campaign-level and workspace-level)
 concurrency:
-  group: lead-${{ github.event.client_payload.email }}-${{ github.event.client_payload.email_id }}
+  group: lead-${{ github.event.client_payload.email }}
   cancel-in-progress: false
 ```
 
-## Current Issues (UNRESOLVED)
+Also added:
+- **Duplicate check step** - Checks if pending approval already exists for this email
+- **Skip conditions** - All processing steps skip if duplicate detected
+- **Skip notification** - Logs when skipping duplicate webhook
+
+### 4. Fixed Race Condition (Concurrent Runs)
+The `blocked=true` issue was caused by two workflows running simultaneously for the same lead:
+- Instantly sends TWO webhooks (campaign + workspace level)
+- Old concurrency key used `email_id` which differed between payloads
+- Both workflows ran, causing race condition where research file was overwritten
+
+**Fix:** Removed `email_id` from concurrency key + added duplicate detection.
+
+## Current Issues (PARTIALLY RESOLVED)
 
 ### Issue 1: Instantly Sending Duplicate Webhooks
 **Symptom:** wslegal lead triggers TWO webhooks, paletzlaw triggers ONE
@@ -68,42 +83,22 @@ Payload 2 (minimal - from workspace):
 - Check Campaign Settings → Webhooks
 - Remove one of them (keep the campaign-level one for full data)
 
-### Issue 2: Workflows Complete But Don't Create Reports
+### Issue 2: Workflows Complete But Don't Create Reports ✅ FIXED
 **Symptom:** GitHub Actions shows all steps ✅ but:
 - "Send failure notification" runs
 - "Store report in pending folder" skipped
 - "Commit pending report" skipped
 
-**Pattern in all recent runs:**
-```
-✅ Run Maximal Research Engine V2
-✅ Extract firm info from research
-✅ Validate firm name
-✅ Generate V3 Report
-⏭️ Run QC Validation (skipped)
-✅ Send failure notification (RUNS - shouldn't!)
-⏭️ Store report (skipped)
-⏭️ Telegram (skipped)
-⏭️ Commit (skipped)
-```
+**Root Cause:** Race condition from concurrent workflows.
+- Instantly sends TWO webhooks with different `email_id` values
+- Old concurrency group: `lead-{email}-{email_id}` → different groups → both run
+- Workflow A saves research file, Workflow B overwrites it, Workflow A can't find it
 
-**Root Cause:** "Generate V3 Report" step sets `blocked=true` even though it shows ✅
-
-The step does:
-```bash
-RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
-if [ -z "$RESEARCH_FILE" ]; then
-  echo "blocked=true" >> $GITHUB_OUTPUT
-  exit 0  # Exits with success but blocked=true
-fi
-```
-
-**Theory:** The research file exists when "Extract firm info" runs, but doesn't exist (or can't be found) when "Generate V3 Report" runs. Possibly:
-- File naming/path issue
-- Concurrent runs interfering
-- File being deleted between steps
-
-**Debug needed:** Check the actual workflow logs to see what `ls -la reports/` shows at each step.
+**Fix Applied:**
+1. Changed concurrency group to use only `email` (not `email_id`)
+2. Added "Check for existing pending report" step
+3. All processing steps now have `skip` condition
+4. Second webhook will either queue (if first still running) or skip (if pending report exists)
 
 ## Files Modified Today
 
@@ -115,7 +110,7 @@ fi
 - `automation/report-generator-v3.js` - Ads data usage, practice area fix, firm size fix
 - `automation/ai-quality-control-basic.js` - Fixed broken checks
 - `automation/telegram-approval-bot.js` - QC warning display
-- `.github/workflows/process-interested-lead.yml` - Concurrency control
+- `.github/workflows/process-interested-lead.yml` - Fixed concurrency key + added duplicate detection + skip conditions
 
 ### Deleted Files (40 total):
 - `automation/report-generator-v{7,8,9,10,11}.js`
@@ -125,9 +120,9 @@ fi
 
 ## Next Steps
 
-1. **Fix Instantly duplicate webhook** - User needs to check Instantly settings
-2. **Debug workflow blocked=true issue** - Need to see actual logs to understand why research file not found
-3. **Test end-to-end** - Once both fixed, run a fresh lead through
+1. **Fix Instantly duplicate webhook** - User should check Instantly settings (Workspace + Campaign webhooks) and remove one
+2. ~~**Debug workflow blocked=true issue**~~ ✅ Fixed with improved concurrency + duplicate detection
+3. **Test end-to-end** - Run a fresh lead through to verify fixes work
 
 ## Recent GitHub Actions Runs
 

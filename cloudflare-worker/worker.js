@@ -212,6 +212,7 @@ async function handleInstantlyWebhook(env, payload) {
   recentWebhooks.set(dedupKey, now);
   cleanupOldEntries();
 
+  // GitHub limits client_payload to 10 properties - only include essential fields
   const githubPayload = {
     event_type: 'interested_lead',
     client_payload: {
@@ -219,14 +220,12 @@ async function handleInstantlyWebhook(env, payload) {
       first_name: payload.first_name || payload.firstName || '',
       last_name: payload.last_name || payload.lastName || '',
       website: payload.website || payload.companyUrl || '',
-      city: payload.city || '',
-      state: payload.state || '',
-      country: payload.country || '',
+      city: payload.city || payload.City || '',
+      state: payload.state || payload.State || '',
+      country: payload.country || payload.Country || '',
       company: payload.company || payload.companyName || '',
       email_id: payload.email_id || payload.emailId || '',
-      from_email: payload.from_email || payload.fromEmail || '',
-      reply_text: payload.reply_text || payload.replyText || '',
-      ...payload
+      from_email: payload.from_email || payload.fromEmail || ''
     }
   };
 
