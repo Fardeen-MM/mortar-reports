@@ -151,13 +151,15 @@ jobs:
           FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
           git config user.name "Mortar Metrics Bot"
           git config user.email "automation@mortarmetrics.com"
-          git pull --rebase origin main || echo "No upstream changes"
 
-          # Add live folder and updated approval status
+          # Stage and commit BEFORE pulling — moved/modified files
+          # from the deploy step block rebase if unstaged
           git add "$FIRM_FOLDER/" 2>/dev/null || true
           git add "automation/pending-approvals/$FIRM_FOLDER.json" 2>/dev/null || true
           git add "pending-reports/" 2>/dev/null || true
           git commit -m "Deploy approved report for $FIRM_FOLDER" || echo "No changes to commit"
+
+          # Push with rebase retry
           git push origin main || {
             git pull --rebase origin main
             git push origin main
