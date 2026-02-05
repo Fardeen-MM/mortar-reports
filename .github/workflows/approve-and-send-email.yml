@@ -152,19 +152,26 @@ jobs:
           git config user.name "Mortar Metrics Bot"
           git config user.email "automation@mortarmetrics.com"
 
-          # Stage and commit BEFORE pulling — moved/modified files
-          # from the deploy step block rebase if unstaged
           git add "$FIRM_FOLDER/" 2>/dev/null || true
           git add "automation/pending-approvals/$FIRM_FOLDER.json" 2>/dev/null || true
           git add "pending-reports/" 2>/dev/null || true
           git commit -m "Deploy approved report for $FIRM_FOLDER" || echo "No changes to commit"
 
-          # Push with rebase retry — stash generated files that block rebase
+          # Push with conflict-resilient retry
           git push origin main || {
-            git stash --include-untracked
-            git pull --rebase origin main
-            git stash pop || true
-            git push origin main
+            echo "Push failed, pulling latest and retrying..."
+            git reset --soft HEAD~1
+            git reset HEAD .
+            git pull origin main
+            git add "$FIRM_FOLDER/" 2>/dev/null || true
+            git add "automation/pending-approvals/$FIRM_FOLDER.json" 2>/dev/null || true
+            git add "pending-reports/" 2>/dev/null || true
+            if git diff --cached --quiet; then
+              echo "✅ No changes needed — files already exist on remote"
+            else
+              git commit -m "Deploy approved report for $FIRM_FOLDER"
+              git push origin main || echo "⚠️ Push failed — report may already exist from parallel run"
+            fi
           }
 
       - name: Send approved email

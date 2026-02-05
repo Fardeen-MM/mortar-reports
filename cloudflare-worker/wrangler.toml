@@ -8,3 +8,7 @@ compatibility_date = "2024-01-01"
 # Required secrets: GITHUB_TOKEN
 #
 # For Telegram webhook handler, see wrangler-telegram.toml
+
+[[kv_namespaces]]
+binding = "WEBHOOK_KV"
+id = "cf35f880d2f9444f8519400af63eb03e"

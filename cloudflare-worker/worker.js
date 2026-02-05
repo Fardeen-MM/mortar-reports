@@ -9,19 +9,6 @@
  */
 
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
-const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-
-// In-memory cache for deduplication (stores { score, timestamp })
-const recentWebhooks = new Map();
-
-function cleanupOldEntries() {
-  const now = Date.now();
-  for (const [key, entry] of recentWebhooks.entries()) {
-    if (now - entry.timestamp > DEDUP_WINDOW_MS) {
-      recentWebhooks.delete(key);
-    }
-  }
-}
 
 // ============ TELEGRAM HANDLERS ============
 
@@ -197,6 +184,11 @@ async function handleTelegramCallback(env, update) {
 
 // ============ INSTANTLY HANDLER ============
 
+// Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
+// One has lead data (website, company, city), the other has email data (email_id, from_email).
+// We use Cloudflare KV to persist the first webhook across isolates, then merge when
+// the second arrives. A 10s timer forwards as-is if only one webhook ever comes.
+
 const WAIT_FOR_SECOND_WEBHOOK_MS = 10_000; // 10 seconds
 
 function buildGithubPayload(payload) {
@@ -247,46 +239,54 @@ function mergePayloads(a, b) {
   return merged;
 }
 
-// Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
-// One has lead data (website, company, city), the other has email data (email_id, from_email).
-// We wait up to 10s for both to arrive, merge them, then forward one complete payload.
 async function handleInstantlyWebhook(env, payload, ctx) {
   const dedupKey = payload.lead_email || payload.email || 'unknown';
-  const now = Date.now();
   const githubPayload = buildGithubPayload(payload);
 
-  cleanupOldEntries();
+  // Log raw payload so we can inspect actual field names in Cloudflare dashboard
+  console.log('RAW INSTANTLY PAYLOAD:', JSON.stringify(payload));
+  console.log('BUILT GITHUB PAYLOAD:', JSON.stringify(githubPayload));
 
-  if (recentWebhooks.has(dedupKey)) {
-    const prev = recentWebhooks.get(dedupKey);
-    if (now - prev.timestamp < DEDUP_WINDOW_MS) {
-      if (prev.forwarded) {
-        // Already forwarded (timer fired before second webhook arrived) — too late to merge
-        console.log(`Late webhook for ${dedupKey}: already forwarded, ignoring`);
-        return { success: true, message: 'Duplicate ignored (already forwarded)' };
-      }
+  // Check KV for an existing entry for this email (persists across isolates)
+  const existing = await env.WEBHOOK_KV.get(`webhook:${dedupKey}`, { type: 'json' });
 
-      // Second webhook arrived before timer — merge both and forward now
-      const merged = mergePayloads(prev.githubPayload, githubPayload);
-      console.log(`Both webhooks for ${dedupKey}: merged and forwarding`);
-      recentWebhooks.set(dedupKey, { timestamp: prev.timestamp, forwarded: true });
-      await forwardToGitHub(env, merged);
-      return { success: true, message: 'Merged payload forwarded' };
+  if (existing) {
+    if (existing.forwarded) {
+      console.log(`Late webhook for ${dedupKey}: already forwarded, ignoring`);
+      return { success: true, message: 'Duplicate ignored (already forwarded)' };
     }
+
+    // Second webhook arrived — merge both payloads and forward
+    const merged = mergePayloads(existing.githubPayload, githubPayload);
+    console.log(`Both webhooks for ${dedupKey}: merged and forwarding`);
+    console.log('MERGED PAYLOAD:', JSON.stringify(merged));
+
+    // Mark as forwarded in KV (keep for 5 min to block further duplicates)
+    await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({ forwarded: true }), { expirationTtl: 300 });
+
+    await forwardToGitHub(env, merged);
+    return { success: true, message: 'Merged payload forwarded' };
   }
 
-  // First webhook for this email — store it and wait for the second
-  recentWebhooks.set(dedupKey, { timestamp: now, forwarded: false, githubPayload });
-  console.log(`First webhook for ${dedupKey}, waiting ${WAIT_FOR_SECOND_WEBHOOK_MS / 1000}s for second`);
+  // First webhook for this email — store in KV and wait for the second
+  await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({
+    forwarded: false,
+    githubPayload,
+    timestamp: Date.now()
+  }), { expirationTtl: 300 }); // Auto-expire after 5 minutes
 
-  // Schedule a delayed forward in case the second webhook never arrives
+  console.log(`First webhook for ${dedupKey}, stored in KV, waiting for second`);
+
+  // Safety: if only one webhook arrives, forward after 10s delay
   ctx.waitUntil(
     new Promise(resolve => setTimeout(resolve, WAIT_FOR_SECOND_WEBHOOK_MS)).then(async () => {
-      const entry = recentWebhooks.get(dedupKey);
+      const entry = await env.WEBHOOK_KV.get(`webhook:${dedupKey}`, { type: 'json' });
       if (entry && !entry.forwarded) {
-        entry.forwarded = true;
         console.log(`Timer: only one webhook for ${dedupKey}, forwarding as-is`);
+        await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({ forwarded: true }), { expirationTtl: 300 });
         await forwardToGitHub(env, entry.githubPayload);
+      } else {
+        console.log(`Timer: ${dedupKey} already forwarded (merged), nothing to do`);
       }
     })
   );
