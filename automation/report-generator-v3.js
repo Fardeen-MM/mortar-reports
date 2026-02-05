@@ -30,6 +30,13 @@ const path = require('path');
 const { findCompetitors, fetchFirmGoogleData, getSearchTerms } = require('./ai-research-helper.js');
 const { getContentWithFallback } = require('./ai-content-generator.js');
 
+// HTML-escape user-provided strings to prevent XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Case value ranges by practice area (low-high for ranges) — USD
 const CASE_VALUES = {
   'tax': { low: 3500, high: 5500 },
@@ -132,12 +139,12 @@ async function generateReport(researchData, prospectName) {
     adsData = {}
   } = researchData;
 
-  // Extract ads status
+  // Extract ads status (check multiple paths for old + new JSON formats)
   const adsDetectionFailed = adsData?.detectionSucceeded === false;
-  const runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || false;
-  const runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || false;
-  const googleAdCount = adsData?.googleAds?.adCount || 0;
-  const metaAdCount = adsData?.metaAds?.activeCount || 0;
+  const runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || researchData.googleAdsData?.running || false;
+  const runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || researchData.metaAdsData?.running || false;
+  const googleAdCount = adsData?.googleAds?.adCount || researchData.googleAdsData?.adCount || 0;
+  const metaAdCount = adsData?.metaAds?.activeCount || researchData.metaAdsData?.activeCount || researchData.metaAdsData?.inactiveAdCount || 0;
 
   if (adsDetectionFailed) {
     console.log(`📢 Ads detection: FAILED (${adsData?.detectionError || 'unknown error'}) - treating as unknown`);
@@ -167,7 +174,8 @@ async function generateReport(researchData, prospectName) {
     clientLabelPlural = aiContent.clientLabelPlural;
     emergencyScenario = aiContent.emergencyScenario;
     articleForClient = aiContent.articleForClient || getArticle(clientLabel);
-    articleForAttorney = aiContent.articleForAttorney || getArticle(getAttorneyType(practiceArea));
+    // Always compute articleForAttorney from the actual attorney type we'll use in the template
+    articleForAttorney = getArticle(getAttorneyType(practiceArea));
     console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
 
     // Validate clientLabel length - verbose labels create awkward sentences
@@ -188,7 +196,33 @@ async function generateReport(researchData, prospectName) {
     articleForClient = 'a';
     articleForAttorney = getArticle(getAttorneyType(practiceArea));
   }
-  
+
+  // Guaranteed fallbacks — ensure nothing is empty regardless of AI output
+  if (!clientLabel) {
+    const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
+    clientLabel = fallback.singular;
+    clientLabelPlural = fallback.plural;
+    articleForClient = getArticle(clientLabel);
+  }
+  if (!clientLabelPlural) {
+    clientLabelPlural = (CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default']).plural;
+  }
+  if (!emergencyScenario) {
+    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+  }
+  if (!articleForClient) {
+    articleForClient = getArticle(clientLabel);
+  }
+  if (!articleForAttorney) {
+    articleForAttorney = getArticle(getAttorneyType(practiceArea));
+  }
+
+  // Validate emergencyScenario length — verbose AI-generated scenarios create awkward Gap 3 headings
+  if (emergencyScenario && emergencyScenario.split(' ').length > 8) {
+    console.log(`⚠️  Emergency scenario too verbose: "${emergencyScenario}", using fallback`);
+    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+  }
+
   console.log(`📍 Location: ${city}, ${state}`);
   console.log(`⚖️  Practice: ${practiceLabel}`);
   
@@ -209,7 +243,10 @@ async function generateReport(researchData, prospectName) {
   }
   
   // Get search terms for typing animation
-  const searchTerms = getSearchTerms(practiceArea, city, state);
+  let searchTerms = getSearchTerms(practiceArea, city, state, country);
+  if (!searchTerms || searchTerms.length === 0 || !searchTerms[0]) {
+    searchTerms = [`${getPracticeDescription(practiceArea)} near me`];
+  }
   
   // Calculate gaps with RANGES
   const isUK = (country === 'GB' || country === 'UK');
@@ -338,7 +375,7 @@ function isFakeCompetitor(name) {
   return patterns.some(p => p.test(name));
 }
 
-// Sanitize competitor names - truncate long names, clean up garbage
+// Sanitize competitor names - strip suffixes, truncate long names, clean up garbage
 function sanitizeCompetitorName(name) {
   if (!name) return 'Competitor';
 
@@ -347,9 +384,14 @@ function sanitizeCompetitorName(name) {
     name = name.split(',')[0].trim();
   }
 
-  // If still too long (>50 chars), truncate intelligently
+  // Strip common suffixes before checking length
+  name = name
+    .replace(/\s*-\s*(Tax|Family|Criminal|Immigration|Estate|Property|Customs|VAT)(\s*-\s*\w+)*/i, '')
+    .replace(/,?\s*(Solicitors?|Barristers?|Lawyers?|Attorneys?( at Law)?|Law (Firm|Office|Practice|Group)|LLP|LLC|Ltd\.?|Limited|P\.?C\.?|P\.?L\.?L\.?C\.?)$/i, '')
+    .trim();
+
+  // Truncate if still too long (>50 chars)
   if (name.length > 50) {
-    // Try to cut at a word boundary
     const truncated = name.substring(0, 47);
     const lastSpace = truncated.lastIndexOf(' ');
     if (lastSpace > 30) {
@@ -358,7 +400,7 @@ function sanitizeCompetitorName(name) {
     return truncated + '...';
   }
 
-  return name;
+  return name || 'Competitor';
 }
 
 // Try to detect practice area from multiple sources
@@ -516,9 +558,9 @@ function getAttorneyType(category) {
     'landlord': 'landlord',
     'medical malpractice': 'medical malpractice',
     'workers comp': 'workers comp',
-    'default': ''
+    'default': 'legal'
   };
-  return types[category] || '';
+  return types[category] || 'legal';
 }
 
 // Detect if a word starts with a vowel sound (for a/an grammar)
@@ -581,16 +623,23 @@ function getCountryBaseline(country) {
 // Replace US legal terminology with UK equivalents in final HTML
 function localizeForUK(html) {
   return html
-    // Preserve proper nouns (firm names containing "Lawyers"/"Law") by targeting common patterns
+    // Attorney → Solicitor (case-preserving)
     .replace(/\battorneys\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors')
     .replace(/\battorney\b/gi, (m) => m[0] === 'A' ? 'Solicitor' : 'solicitor')
-    // Search terms in typing animation
-    .replace(/lawyer near me/gi, 'solicitor near me')
-    .replace(/law attorney/gi, 'law solicitor')
+    // Lawyer → Solicitor (case-preserving) — BEFORE specific "lawyer near me" rule
+    .replace(/\blawyers\b/gi, (m) => m[0] === 'L' ? 'Solicitors' : 'solicitors')
+    .replace(/\blawyer\b/gi, (m) => m[0] === 'L' ? 'Solicitor' : 'solicitor')
+    // Law firm → Law practice (case-preserving)
+    .replace(/\blaw firms\b/gi, (m) => m[0] === 'L' ? 'Law practices' : 'law practices')
+    .replace(/\blaw firm\b/gi, (m) => m[0] === 'L' ? 'Law practice' : 'law practice')
     // US-specific terms
     .replace(/\bIRS\b/g, 'HMRC')
+    .replace(/\bchild custody\b/gi, 'child arrangements')
     .replace(/\bgreen card\b/gi, 'visa')
-    .replace(/\b401\(k\)/gi, 'pension');
+    .replace(/\b401\(k\)/gi, 'pension')
+    // Currency terms
+    .replace(/\bdollars\b/gi, 'pounds')
+    .replace(/\bdollar\b/gi, 'pound');
 }
 
 function getFirmSizeMultiplier(data) {
@@ -739,7 +788,7 @@ function generateHTML(data) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${firmName} | Marketing Analysis by Mortar Metrics</title>
+  <title>${escapeHtml(firmName)} | Marketing Analysis by Mortar Metrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -750,14 +799,14 @@ ${css}
 
     <div class="header">
       <div class="logo">Mortar Metrics</div>
-      <div class="meta">Prepared for ${prospectName} · ${today}</div>
+      <div class="meta">Prepared for ${escapeHtml(prospectName || 'Your Firm')} · ${today}</div>
     </div>
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-context">${practiceLabel} · ${locationLabel}</div>
+      <div class="hero-context">${practiceLabel}${locationLabel ? ' · ' + escapeHtml(locationLabel) : ''}</div>
 
-      <h2 class="hero-setup">Every month, people in ${city || 'your area'} search for</h2>
+      <h2 class="hero-setup">Every month, people in ${escapeHtml(city) || 'your area'} search for</h2>
 
       <div class="search-bar">
         <svg viewBox="0 0 24 24" width="22" height="22" style="flex-shrink:0">
@@ -767,7 +816,7 @@ ${css}
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
         <div class="search-bar-inner">
-          <span class="typed" id="typed-search"></span><span class="cursor-blink"></span>
+          <span class="typed" id="typed-search">${escapeHtml(searchTerms[0])}</span><span class="cursor-blink"></span>
         </div>
       </div>
 
@@ -777,7 +826,7 @@ ${css}
       </h1>
 
       <p class="hero-sub">
-        We analyzed the ${getPracticeDescription(practiceArea)} market in ${locationStr} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.
+        We analyzed the ${getPracticeDescription(practiceArea)} market in ${escapeHtml(locationStr)} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.
       </p>
 
       <div class="scroll-hint">
@@ -793,7 +842,7 @@ ${css}
     <div class="narrative">
       <h2>Where you're losing cases right now</h2>
 
-      <p>We looked at how people find and contact ${getAttorneyType(practiceArea) ? getAttorneyType(practiceArea) + ' attorneys' : 'attorneys'} in ${locationStr}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
+      <p>We looked at how people find and contact ${getAttorneyType(practiceArea)} attorneys in ${escapeHtml(locationStr)}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
     </div>
 
 
@@ -804,7 +853,7 @@ ${css}
       <h3>You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're optimized.</h3>
       <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value</div>
 
-      <p>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month in ${locationStr}. You're already competing for these clicks — the question is how efficiently.</p>
+      <p>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyType(practiceArea)} attorney last month in ${escapeHtml(locationStr)}. You're already competing for these clicks — the question is how efficiently.</p>
 
       <p>Most law firm ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. That's not a criticism — it's just the reality of how complex Google Ads has become. Small optimizations compound: better keywords, tighter targeting, conversion-focused landing pages.</p>
 
@@ -812,10 +861,10 @@ ${css}
         <strong>Why this matters:</strong> You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.
       </div>
       ` : `
-      <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
+      <h3>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyType(practiceArea)} attorney last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
-      <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The firms dominating these spots are the ones investing in ads and actively building their review count.</p>
+      <p>When someone types "${escapeHtml(searchTerms[0])}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The firms dominating these spots are the ones investing in ads and actively building their review count.</p>
 
       <p>This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
 
@@ -833,7 +882,7 @@ ${css}
       <h3>You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''} — are they reaching the right people?</h3>
       <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}/mo in additional value</div>
 
-      <p>You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${practiceArea.toLowerCase()} firm Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.</p>
+      <p>You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${getPracticeDescription(practiceArea)} firm Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.</p>
 
       <p>The best-performing Meta campaigns for legal services combine precise audience targeting with compelling creative and dedicated landing pages. Small improvements in any of these areas typically yield 15-30% performance gains.</p>
 
@@ -889,7 +938,7 @@ ${css}
     </div>
 
     <div class="narrative">
-      <p>That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is optimized. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other firms instead of you.</p>
+      <p>That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is optimized. The point isn't the exact number. It's that real people in ${escapeHtml(locationStr)} are searching for the exact service you provide, and right now they're finding other firms instead of you.</p>
     </div>
 
 
@@ -899,7 +948,7 @@ ${css}
     <div class="narrative">
       <h2>And those other firms? Here's who's getting your cases.</h2>
 
-      <p>We pulled the firms showing up for ${getPracticeDescription(practiceArea)} searches in ${locationStr}. Google uses reviews as a major trust signal — more reviews and higher ratings push firms into the Map Pack at the top of results, where most clicks happen. Here's where you stand.</p>
+      <p>We pulled the firms showing up for ${getPracticeDescription(practiceArea)} searches in ${escapeHtml(locationStr)}. Google uses reviews as a major trust signal — more reviews and higher ratings push firms into the Map Pack at the top of results, where most clicks happen. Here's where you stand.</p>
     </div>
 
 ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
@@ -923,7 +972,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
           <p>You're already investing in search ads — we'll analyze what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.</p>
           <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
           ` : `
-          <strong>Google Ads targeting ${getAttorneyType(practiceArea) ? getAttorneyType(practiceArea) + ' law' : 'legal'} searches in your area</strong>
+          <strong>Google Ads targeting ${getAttorneyType(practiceArea)} law searches in your area</strong>
           <p>You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded, every dollar accounted for.</p>
           <span class="build-timeline">Typically live in 1-2 weeks</span>
           `}
@@ -977,7 +1026,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
 
 
     <div class="footer">
-      Mortar Metrics · Legal Growth Agency · ${locationStr}<br>
+      Mortar Metrics · Legal Growth Agency · ${escapeHtml(locationStr)}<br>
       <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a>
     </div>
 
@@ -1014,7 +1063,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
 
     bars += `      <div class="review-bar-group">
         <div class="review-bar-label">
-          <span class="review-bar-name">${cleanName}</span>
+          <span class="review-bar-name">${escapeHtml(cleanName)}</span>
           <span class="review-bar-count">${reviews.toLocaleString()} reviews${rating ? ` · ${rating.toFixed(1)}★` : ''}</span>
         </div>
         <div class="review-bar-track">
@@ -1029,7 +1078,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
   const firmWidth = Math.max((firmReviews / maxReviews) * 100, 0.5);
   bars += `      <div class="review-bar-group">
         <div class="review-bar-label">
-          <span class="review-bar-name you">${firmName} (You)</span>
+          <span class="review-bar-name you">${escapeHtml(firmName)} (You)</span>
           <span class="review-bar-count you">${firmReviews || 0} reviews${firmRating ? ` · ${firmRating.toFixed(1)}★` : ''}</span>
         </div>
         <div class="review-bar-track">
@@ -1075,6 +1124,8 @@ class SearchTyper {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('typed-search');
+  if (el) el.textContent = '';
   new SearchTyper('typed-search', ${JSON.stringify(searchTerms)}).start();
 });
 </script>

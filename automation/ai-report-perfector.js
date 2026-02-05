@@ -618,6 +618,9 @@ Based on this lead's profile, consider:
   }
 
   const prompt = `You are a BRUTAL quality control reviewer. Your job is to find EVERY issue that would make a law firm partner ignore this marketing report.
+
+IMPORTANT — DATE CONTEXT:
+Today is ${new Date().toISOString().split('T')[0]}. The current year is ${new Date().getFullYear()}. Reports dated "${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}" are CURRENT and correctly dated. Do NOT flag any ${new Date().getFullYear()} dates as future-dated or incorrect.
 ${leadContextSection}
 
 CONTEXT:

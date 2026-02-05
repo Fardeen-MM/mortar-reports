@@ -740,81 +740,85 @@ async function enrichCompetitorWithAds(competitor) {
  * Generate practice-area-specific search terms
  * Returns 5 terms tailored to the practice area and location
  */
-function getSearchTerms(practiceArea, city, state) {
+function getSearchTerms(practiceArea, city, state, country) {
+  country = (country || 'US').toUpperCase();
+  const isUK = (country === 'GB' || country === 'UK');
+  const location = isUK ? city : (city && state ? `${city} ${state}` : city || state || '');
+
   const terms = {
     'landlord': [
       'eviction lawyer near me',
-      `landlord attorney ${city} ${state}`,
-      `how to evict a tenant ${state}`,
+      `landlord attorney ${location}`,
+      `how to evict a tenant ${isUK ? '' : state}`,
       'landlord tenant lawyer',
       'property owner legal help'
     ],
     'personal injury': [
       'car accident lawyer near me',
-      `personal injury attorney ${city}`,
+      `personal injury attorney ${location}`,
       'injury lawyer free consultation',
       'how much is my case worth',
       'accident lawyer near me'
     ],
     'divorce': [
       'divorce lawyer near me',
-      `divorce attorney ${city} ${state}`,
+      `divorce attorney ${location}`,
       'how much does divorce cost',
       'child custody lawyer',
       'family law attorney near me'
     ],
     'family': [
       'family lawyer near me',
-      `family law attorney ${city}`,
+      `family law attorney ${location}`,
       'child custody lawyer',
       'adoption attorney near me',
       'guardianship lawyer'
     ],
     'immigration': [
       'immigration lawyer near me',
-      `immigration attorney ${city}`,
+      `immigration attorney ${location}`,
       'green card lawyer',
       'visa attorney near me',
       'citizenship lawyer'
     ],
     'criminal': [
       'criminal lawyer near me',
-      `criminal defense attorney ${city}`,
+      `criminal defense attorney ${location}`,
       'dui lawyer near me',
       'drug charge attorney',
       'felony lawyer'
     ],
     'tax': [
       'tax attorney near me',
-      `irs lawyer ${city}`,
+      `irs lawyer ${location}`,
       'tax debt relief attorney',
       'irs audit lawyer',
       'tax settlement attorney'
     ],
     'estate': [
       'estate planning attorney near me',
-      `wills and trusts lawyer ${city}`,
+      `wills and trusts lawyer ${location}`,
       'probate attorney',
       'living trust lawyer',
       'estate lawyer near me'
     ],
     'employment': [
       'employment lawyer near me',
-      `wrongful termination attorney ${city}`,
+      `wrongful termination attorney ${location}`,
       'discrimination lawyer',
       'harassment attorney',
       'wage theft lawyer'
     ],
     'real estate': [
       'real estate lawyer near me',
-      `property attorney ${city}`,
+      `property attorney ${location}`,
       'closing attorney',
       'title lawyer',
       'real estate transaction attorney'
     ],
     'default': [
       'lawyer near me',
-      `attorney ${city} ${state}`,
+      `attorney ${location}`,
       'legal help near me',
       'law firm near me',
       'free legal consultation'
@@ -825,9 +829,24 @@ function getSearchTerms(practiceArea, city, state) {
     practiceArea.toLowerCase().includes(key)
   ) || 'default';
 
-  return terms[practiceKey].map(term =>
+  let result = terms[practiceKey].map(term =>
     term.replace(/undefined/g, '').replace(/\s+/g, ' ').trim()
   );
+
+  // UK localization: attorney→solicitor, lawyer→solicitor, IRS→HMRC, child custody→child arrangements
+  if (isUK) {
+    result = result.map(term =>
+      term
+        .replace(/\battorney\b/gi, 'solicitor')
+        .replace(/\blawyer\b/gi, 'solicitor')
+        .replace(/\bIRS\b/g, 'HMRC')
+        .replace(/\birs\b/g, 'hmrc')
+        .replace(/\bchild custody\b/gi, 'child arrangements')
+        .replace(/\bgreen card\b/gi, 'visa')
+    );
+  }
+
+  return result;
 }
 
 module.exports = {
