@@ -651,7 +651,9 @@ function localizeForUK(html) {
     // Fix a/an articles broken by attorney→solicitor replacement
     // "an attorney" → "an solicitor" (wrong) → "a solicitor" (correct)
     .replace(/\ban solicitor\b/gi, (m) => m[0] === 'A' ? 'A solicitor' : 'a solicitor')
-    .replace(/\ban solicitors\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors');
+    .replace(/\ban solicitors\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors')
+    // Strip US corporate suffixes that look wrong in UK context
+    .replace(/\bInc\.?\b/g, '').replace(/\bCorp\.?\b/g, '').replace(/\s{2,}/g, ' ');
 }
 
 function getFirmSizeMultiplier(data) {
