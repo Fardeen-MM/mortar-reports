@@ -1,0 +1,25 @@
+{
+  "firm_name": "Eddisoncoganlaw Law",
+  "firm_folder": "EddisoncoganlawLaw",
+  "lead_email": "test@eddisoncoganlaw.co.uk",
+  "contact_name": "Test",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/EddisoncoganlawLaw/",
+  "email_id": "",
+  "from_email": "",
+  "created_at": "2026-02-05T23:37:23Z",
+  "status": "awaiting_approval",
+  "report_version": "V3",
+  "qc_passed": "false",
+  "qc_issues": "8",
+  "qc_would_book": "unknown",
+  "qc_biggest_issue": "The search volume and audience size claims are completely unrealistic for a small Wiltshire town, making the entire analysis look fabricated",
+  "qc_score": "4",
+  "lead_intelligence": {
+    "name": "",
+    "title": "",
+    "seniority": "unknown",
+    "is_decision_maker": false,
+    "source": "email_inference"
+  },
+  "telegram_message_id": 125
+}
