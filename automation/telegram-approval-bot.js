@@ -84,16 +84,21 @@ const displayName = approvalData.firm_folder || approvalData.firm_name;
 
 // Build QC status indicator
 let qcStatus = '';
+let qcWarning = '';
+let headerEmoji = '🟡';
+
 if (approvalData.qc_passed === 'true') {
   qcStatus = '\n✅ *QC:* Passed';
 } else if (approvalData.qc_passed === 'false') {
   const issues = approvalData.qc_issues || '?';
-  qcStatus = `\n⚠️ *QC:* Issues found (${issues})`;
+  qcStatus = `\n🔴 *QC:* FAILED (${issues} critical issues)`;
+  qcWarning = '\n\n⚠️ *WARNING: QC FAILED - Review carefully before approving!*';
+  headerEmoji = '🔴';
 } else if (approvalData.qc_passed === 'unknown') {
   qcStatus = '\n❓ *QC:* Not run';
 }
 
-const message = `🟡 *REPORT READY FOR APPROVAL*
+const message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
 📊 *Firm:* ${displayName}
 👤 *Contact:* ${approvalData.contact_name}

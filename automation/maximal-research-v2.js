@@ -669,11 +669,14 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     try {
       const { detectAdsWithBrowser } = require('./ads-detector');
       research.adsData = await detectAdsWithBrowser(browser, effectiveFirmName, firmWebsite, country);
-      console.log(`   📊 Google Ads: ${research.adsData.summary.runningGoogleAds ? `Running (${research.adsData.googleAds.adCount} ads)` : 'Not running'}`);
-      console.log(`   📊 Meta Ads: ${research.adsData.summary.runningMetaAds ? `Running (${research.adsData.metaAds.activeCount} active)` : 'Not running'}`);
+      research.adsData.detectionSucceeded = true;
+      console.log(`   📊 Google Ads: ${research.adsData.summary.runningGoogleAds ? `Running (${research.adsData.googleAds.adCount} ads)` : 'Not detected'}`);
+      console.log(`   📊 Meta Ads: ${research.adsData.summary.runningMetaAds ? `Running (${research.adsData.metaAds.activeCount} active)` : 'Not detected'}`);
     } catch (adsError) {
       console.log(`   ⚠️  Ads detection failed: ${adsError.message}`);
-      // Keep default values from research object initialization
+      // Mark as failed so downstream knows this is "unknown" not "confirmed no ads"
+      research.adsData.detectionSucceeded = false;
+      research.adsData.detectionError = adsError.message;
     }
 
     // Phase 8: AI Synthesis

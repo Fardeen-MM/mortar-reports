@@ -114,12 +114,18 @@ async function generateReport(researchData, prospectName) {
   } = researchData;
 
   // Extract ads status
+  const adsDetectionFailed = adsData?.detectionSucceeded === false;
   const runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || false;
   const runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || false;
   const googleAdCount = adsData?.googleAds?.adCount || 0;
   const metaAdCount = adsData?.metaAds?.activeCount || 0;
-  console.log(`📢 Google Ads: ${runningGoogleAds ? `Running (${googleAdCount} ads)` : 'Not detected'}`);
-  console.log(`📢 Meta Ads: ${runningMetaAds ? `Running (${metaAdCount} ads)` : 'Not detected'}`);
+
+  if (adsDetectionFailed) {
+    console.log(`📢 Ads detection: FAILED (${adsData?.detectionError || 'unknown error'}) - treating as unknown`);
+  } else {
+    console.log(`📢 Google Ads: ${runningGoogleAds ? `Running (${googleAdCount} ads)` : 'Not detected'}`);
+    console.log(`📢 Meta Ads: ${runningMetaAds ? `Running (${metaAdCount} ads)` : 'Not detected'}`);
+  }
   
   const firmName = normalizeFirmName(rawFirmName);
   const city = location.city || '';
@@ -264,7 +270,11 @@ function validateData(data) {
     warnings.push('Location missing - will use generic copy');
   }
   
-  if (!data.practiceAreas || data.practiceAreas.length === 0) {
+  // Check multiple paths for practice areas
+  const hasPracticeAreas = (data.practiceAreas?.length > 0) ||
+                           (data.practice?.practiceAreas?.length > 0) ||
+                           (data.practice?.primaryFocus);
+  if (!hasPracticeAreas) {
     warnings.push('Practice area missing');
   }
   
@@ -313,6 +323,14 @@ function sanitizeCompetitorName(name) {
 function detectPracticeArea(practiceAreas, researchData) {
   // Try each practice area in order until we find a specific one
   for (const pa of (practiceAreas || [])) {
+    const category = getPracticeAreaCategory(pa);
+    if (category !== 'default') {
+      return category;
+    }
+  }
+
+  // Try practice.practiceAreas (where research engine stores them)
+  for (const pa of (researchData.practice?.practiceAreas || [])) {
     const category = getPracticeAreaCategory(pa);
     if (category !== 'default') {
       return category;
@@ -493,7 +511,18 @@ function getMarketMultiplier(city) {
 }
 
 function getFirmSizeMultiplier(data) {
-  const firmSize = data.firmSize || data.team?.totalCount || 0;
+  // Check multiple paths where firm size might be stored
+  let firmSize = data.firmSize ||
+                 data.firmDetails?.firmSize ||
+                 data.team?.totalCount ||
+                 data.intelligence?.firmSize || 0;
+
+  // If firmSize is a string like "5 attorneys" or "10+", extract the number
+  if (typeof firmSize === 'string') {
+    const match = firmSize.match(/(\d+)/);
+    firmSize = match ? parseInt(match[1]) : 0;
+  }
+
   if (firmSize > 20) return 2.0;
   if (firmSize > 10) return 1.5;
   if (firmSize > 5) return 1.2;
