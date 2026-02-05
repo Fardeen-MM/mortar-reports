@@ -11,13 +11,13 @@
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
 const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
-// In-memory cache for deduplication
+// In-memory cache for deduplication (stores { score, timestamp })
 const recentWebhooks = new Map();
 
 function cleanupOldEntries() {
   const now = Date.now();
-  for (const [key, timestamp] of recentWebhooks.entries()) {
-    if (now - timestamp > DEDUP_WINDOW_MS) {
+  for (const [key, entry] of recentWebhooks.entries()) {
+    if (now - entry.timestamp > DEDUP_WINDOW_MS) {
       recentWebhooks.delete(key);
     }
   }
@@ -197,25 +197,10 @@ async function handleTelegramCallback(env, update) {
 
 // ============ INSTANTLY HANDLER ============
 
-async function handleInstantlyWebhook(env, payload) {
-  // Deduplicate by email ONLY - Instantly sends two webhooks per reply
-  // (campaign-level and workspace-level) with different email_ids
-  const dedupKey = payload.lead_email || payload.email || 'unknown';
-  const now = Date.now();
+const WAIT_FOR_SECOND_WEBHOOK_MS = 10_000; // 10 seconds
 
-  if (recentWebhooks.has(dedupKey)) {
-    const lastSeen = recentWebhooks.get(dedupKey);
-    if (now - lastSeen < DEDUP_WINDOW_MS) {
-      console.log(`Duplicate webhook: ${dedupKey}`);
-      return { success: true, message: 'Duplicate ignored' };
-    }
-  }
-
-  recentWebhooks.set(dedupKey, now);
-  cleanupOldEntries();
-
-  // GitHub limits client_payload to 10 properties - only include essential fields
-  const githubPayload = {
+function buildGithubPayload(payload) {
+  return {
     event_type: 'interested_lead',
     client_payload: {
       email: payload.lead_email || payload.email || '',
@@ -230,7 +215,9 @@ async function handleInstantlyWebhook(env, payload) {
       from_email: payload.from_email || payload.fromEmail || ''
     }
   };
+}
 
+async function forwardToGitHub(env, githubPayload) {
   const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
     method: 'POST',
     headers: {
@@ -242,18 +229,75 @@ async function handleInstantlyWebhook(env, payload) {
     body: JSON.stringify(githubPayload)
   });
 
-  if (response.status === 204) {
-    return { success: true, message: 'Forwarded to GitHub Actions' };
-  } else {
+  if (response.status !== 204) {
     const errorText = await response.text();
     throw new Error(`GitHub error: ${response.status} ${errorText}`);
   }
 }
 
+// Merge two GitHub payloads — for each field, keep whichever is non-empty.
+// This combines lead data (website, company, city) from one webhook
+// with email threading data (email_id, from_email) from the other.
+function mergePayloads(a, b) {
+  const merged = { event_type: 'interested_lead', client_payload: {} };
+  const fields = Object.keys(a.client_payload);
+  for (const field of fields) {
+    merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
+  }
+  return merged;
+}
+
+// Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
+// One has lead data (website, company, city), the other has email data (email_id, from_email).
+// We wait up to 10s for both to arrive, merge them, then forward one complete payload.
+async function handleInstantlyWebhook(env, payload, ctx) {
+  const dedupKey = payload.lead_email || payload.email || 'unknown';
+  const now = Date.now();
+  const githubPayload = buildGithubPayload(payload);
+
+  cleanupOldEntries();
+
+  if (recentWebhooks.has(dedupKey)) {
+    const prev = recentWebhooks.get(dedupKey);
+    if (now - prev.timestamp < DEDUP_WINDOW_MS) {
+      if (prev.forwarded) {
+        // Already forwarded (timer fired before second webhook arrived) — too late to merge
+        console.log(`Late webhook for ${dedupKey}: already forwarded, ignoring`);
+        return { success: true, message: 'Duplicate ignored (already forwarded)' };
+      }
+
+      // Second webhook arrived before timer — merge both and forward now
+      const merged = mergePayloads(prev.githubPayload, githubPayload);
+      console.log(`Both webhooks for ${dedupKey}: merged and forwarding`);
+      recentWebhooks.set(dedupKey, { timestamp: prev.timestamp, forwarded: true });
+      await forwardToGitHub(env, merged);
+      return { success: true, message: 'Merged payload forwarded' };
+    }
+  }
+
+  // First webhook for this email — store it and wait for the second
+  recentWebhooks.set(dedupKey, { timestamp: now, forwarded: false, githubPayload });
+  console.log(`First webhook for ${dedupKey}, waiting ${WAIT_FOR_SECOND_WEBHOOK_MS / 1000}s for second`);
+
+  // Schedule a delayed forward in case the second webhook never arrives
+  ctx.waitUntil(
+    new Promise(resolve => setTimeout(resolve, WAIT_FOR_SECOND_WEBHOOK_MS)).then(async () => {
+      const entry = recentWebhooks.get(dedupKey);
+      if (entry && !entry.forwarded) {
+        entry.forwarded = true;
+        console.log(`Timer: only one webhook for ${dedupKey}, forwarding as-is`);
+        await forwardToGitHub(env, entry.githubPayload);
+      }
+    })
+  );
+
+  return { success: true, message: 'Queued, waiting for second webhook to merge' };
+}
+
 // ============ MAIN HANDLER ============
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
     }
@@ -277,7 +321,7 @@ export default {
         });
       } else {
         // Instantly webhook
-        const result = await handleInstantlyWebhook(env, payload);
+        const result = await handleInstantlyWebhook(env, payload, ctx);
         return new Response(JSON.stringify(result), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
