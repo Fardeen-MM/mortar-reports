@@ -82,27 +82,71 @@ if (linkedIn) {
 // Use firm_folder for display if available (prettier), fallback to firm_name
 const displayName = approvalData.firm_folder || approvalData.firm_name;
 
-// Build QC status indicator
+// Build QC status indicator (including AI Perfector results)
 let qcStatus = '';
 let qcWarning = '';
 let headerEmoji = '🟡';
+let aiVerdict = '';
+
+// Get score if available
+const score = approvalData.qc_score || approvalData.score || null;
+const scoreDisplay = score ? ` (${score}/10)` : '';
 
 if (approvalData.qc_passed === 'true') {
-  qcStatus = '\n✅ *QC:* Passed';
+  qcStatus = `\n✅ *QC:* Passed${scoreDisplay}`;
+  headerEmoji = '🟢';
+  // Add AI verdict if available
+  if (approvalData.qc_would_book === 'true') {
+    aiVerdict = '\n🤖 *AI Verdict:* Would book a meeting';
+  } else if (approvalData.qc_would_book === 'false') {
+    aiVerdict = '\n🤖 *AI Verdict:* Might not book';
+    if (approvalData.qc_biggest_issue) {
+      aiVerdict += `\n📌 *Note:* ${approvalData.qc_biggest_issue}`;
+    }
+    qcWarning = '\n\n⚠️ *AI flagged potential issues - please review*';
+    headerEmoji = '🟠';
+  }
 } else if (approvalData.qc_passed === 'false') {
   const issues = approvalData.qc_issues || '?';
-  qcStatus = `\n🔴 *QC:* FAILED (${issues} critical issues)`;
-  qcWarning = '\n\n⚠️ *WARNING: QC FAILED - Review carefully before approving!*';
+  qcStatus = `\n🔴 *QC:* Needs Review${scoreDisplay}`;
+  if (approvalData.qc_biggest_issue) {
+    qcStatus += `\n📌 *Issue:* ${approvalData.qc_biggest_issue}`;
+  }
+  qcWarning = '\n\n⚠️ *WARNING: AI couldn\'t fully perfect this report - manual review needed*';
   headerEmoji = '🔴';
 } else if (approvalData.qc_passed === 'unknown') {
   qcStatus = '\n❓ *QC:* Not run';
+}
+
+// Build lead intelligence section
+let leadIntelSection = '';
+const leadIntel = approvalData.lead_intelligence;
+if (leadIntel && (leadIntel.name || leadIntel.title)) {
+  leadIntelSection = '\n\n👤 *LEAD INTELLIGENCE*';
+  if (leadIntel.name) {
+    leadIntelSection += `\n   Name: ${leadIntel.name}`;
+  }
+  if (leadIntel.title) {
+    leadIntelSection += `\n   Title: ${leadIntel.title}`;
+  }
+  if (leadIntel.seniority && leadIntel.seniority !== 'unknown') {
+    leadIntelSection += `\n   Seniority: ${leadIntel.seniority}`;
+  }
+  if (leadIntel.is_decision_maker === true) {
+    leadIntelSection += '\n   ✅ Decision-maker';
+  } else if (leadIntel.is_decision_maker === false) {
+    leadIntelSection += '\n   ⚠️ May not be decision-maker';
+  }
+  if (leadIntel.source) {
+    leadIntelSection += `\n   Source: ${leadIntel.source}`;
+  }
 }
 
 const message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
 📊 *Firm:* ${displayName}
 👤 *Contact:* ${approvalData.contact_name}
-📧 *Email:* ${approvalData.lead_email}${qcStatus}
+📧 *Email:* ${approvalData.lead_email}${qcStatus}${aiVerdict}${leadIntelSection}
 ${contextSection}
 🔗 *Review Report:*
 ${approvalData.report_url}

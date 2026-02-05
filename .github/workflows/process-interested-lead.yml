@@ -291,9 +291,11 @@ jobs:
         working-directory: ./automation
         timeout-minutes: 5
 
-      - name: Run QC Validation
+      - name: AI Report Perfector (QC + Auto-Fix)
         id: qc
         if: steps.check_existing.outputs.skip != 'true' && steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
           REPORT_FILE=$(find reports -name "*-report-v3.html" -type f | head -1)
@@ -301,31 +303,86 @@ jobs:
           if [ -z "$RESEARCH_FILE" ] || [ -z "$REPORT_FILE" ]; then
             echo "qc_passed=unknown" >> $GITHUB_OUTPUT
             echo "qc_issues=0" >> $GITHUB_OUTPUT
+            echo "qc_would_book=unknown" >> $GITHUB_OUTPUT
+            echo "qc_biggest_issue=" >> $GITHUB_OUTPUT
+            echo "qc_score=0" >> $GITHUB_OUTPUT
             echo "Skipping QC - missing files"
             exit 0
           fi
 
-          echo "Running QC on:"
+          echo "🎯 Running AI Report Perfector..."
           echo "  Research: $RESEARCH_FILE"
           echo "  Report: $REPORT_FILE"
+          echo ""
+          echo "This will:"
+          echo "  1. Run brutal AI QC"
+          echo "  2. Auto-fix any issues found"
+          echo "  3. Iterate until perfect (max 3 rounds)"
+          echo ""
 
-          # Run QC (don't fail the workflow on QC failure)
+          # Run AI Perfector - it modifies the report in place
+          # Pass lead email for LinkedIn intelligence lookup
+          LEAD_EMAIL="${{ steps.lead_data.outputs.lead_email }}"
           set +e
-          node ai-quality-control-basic.js "$RESEARCH_FILE" "$REPORT_FILE"
+          node ai-report-perfector.js "$RESEARCH_FILE" "$REPORT_FILE" "$LEAD_EMAIL"
           QC_EXIT=$?
           set -e
 
           if [ -f qc-result.json ]; then
             QC_STATUS=$(cat qc-result.json | jq -r '.status')
             QC_ISSUES=$(cat qc-result.json | jq -r '.qualityIssues // 0')
+            QC_WOULD_BOOK=$(cat qc-result.json | jq -r '.wouldBook // "unknown"')
+            QC_BIGGEST=$(cat qc-result.json | jq -r '.biggestIssue // ""')
+            QC_SCORE=$(cat qc-result.json | jq -r '.score // 0')
+            QC_ITERATIONS=$(cat qc-result.json | jq -r '.iterations // 1')
+
+            # Extract lead intelligence
+            LEAD_NAME=$(cat qc-result.json | jq -r '.leadIntelligence.name // ""')
+            LEAD_TITLE=$(cat qc-result.json | jq -r '.leadIntelligence.title // ""')
+            LEAD_SENIORITY=$(cat qc-result.json | jq -r '.leadIntelligence.seniority // "unknown"')
+            LEAD_IS_DM=$(cat qc-result.json | jq -r '.leadIntelligence.isDecisionMaker // false')
+            LEAD_SOURCE=$(cat qc-result.json | jq -r '.leadIntelligence.source // ""')
+
             echo "qc_passed=$([[ $QC_STATUS == 'PASSED' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "qc_issues=$QC_ISSUES" >> $GITHUB_OUTPUT
-            echo "QC Status: $QC_STATUS (issues: $QC_ISSUES)"
+            echo "qc_would_book=$QC_WOULD_BOOK" >> $GITHUB_OUTPUT
+            echo "qc_biggest_issue=$QC_BIGGEST" >> $GITHUB_OUTPUT
+            echo "qc_score=$QC_SCORE" >> $GITHUB_OUTPUT
+            echo "lead_name=$LEAD_NAME" >> $GITHUB_OUTPUT
+            echo "lead_title=$LEAD_TITLE" >> $GITHUB_OUTPUT
+            echo "lead_seniority=$LEAD_SENIORITY" >> $GITHUB_OUTPUT
+            echo "lead_is_dm=$LEAD_IS_DM" >> $GITHUB_OUTPUT
+            echo "lead_source=$LEAD_SOURCE" >> $GITHUB_OUTPUT
+
+            echo ""
+            echo "═══════════════════════════════════════"
+            echo "📊 PERFECTOR RESULT"
+            echo "═══════════════════════════════════════"
+            echo "Status: $QC_STATUS"
+            echo "Score: $QC_SCORE/10"
+            echo "Would book: $QC_WOULD_BOOK"
+            echo "Iterations: $QC_ITERATIONS"
+            if [ -n "$QC_BIGGEST" ]; then
+              echo "Note: $QC_BIGGEST"
+            fi
+            if [ -n "$LEAD_NAME" ]; then
+              echo "───────────────────────────────────────"
+              echo "👤 Lead: $LEAD_NAME"
+              echo "   Title: $LEAD_TITLE"
+              echo "   Seniority: $LEAD_SENIORITY"
+              echo "   Decision-maker: $LEAD_IS_DM"
+              echo "   Source: $LEAD_SOURCE"
+            fi
+            echo "═══════════════════════════════════════"
           else
             echo "qc_passed=unknown" >> $GITHUB_OUTPUT
             echo "qc_issues=0" >> $GITHUB_OUTPUT
+            echo "qc_would_book=unknown" >> $GITHUB_OUTPUT
+            echo "qc_biggest_issue=" >> $GITHUB_OUTPUT
+            echo "qc_score=0" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
+        timeout-minutes: 8
 
       - name: Send failure notification
         if: steps.check_existing.outputs.skip != 'true' && (steps.validate.outputs.valid != 'true' || steps.report.outputs.blocked == 'true')
@@ -391,9 +448,19 @@ jobs:
 
           mkdir -p pending-approvals
 
-          # Get QC results
+          # Get QC results (including AI Perfector analysis)
           QC_PASSED="${{ steps.qc.outputs.qc_passed }}"
           QC_ISSUES="${{ steps.qc.outputs.qc_issues }}"
+          QC_WOULD_BOOK="${{ steps.qc.outputs.qc_would_book }}"
+          QC_BIGGEST="${{ steps.qc.outputs.qc_biggest_issue }}"
+          QC_SCORE="${{ steps.qc.outputs.qc_score }}"
+
+          # Get lead intelligence
+          LEAD_NAME="${{ steps.qc.outputs.lead_name }}"
+          LEAD_TITLE="${{ steps.qc.outputs.lead_title }}"
+          LEAD_SENIORITY="${{ steps.qc.outputs.lead_seniority }}"
+          LEAD_IS_DM="${{ steps.qc.outputs.lead_is_dm }}"
+          LEAD_SOURCE="${{ steps.qc.outputs.lead_source }}"
 
           cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
           {
@@ -408,7 +475,17 @@ jobs:
             "status": "pending_approval",
             "report_version": "V3",
             "qc_passed": "$QC_PASSED",
-            "qc_issues": "$QC_ISSUES"
+            "qc_issues": "$QC_ISSUES",
+            "qc_would_book": "$QC_WOULD_BOOK",
+            "qc_biggest_issue": "$QC_BIGGEST",
+            "qc_score": "$QC_SCORE",
+            "lead_intelligence": {
+              "name": "$LEAD_NAME",
+              "title": "$LEAD_TITLE",
+              "seniority": "$LEAD_SENIORITY",
+              "is_decision_maker": $LEAD_IS_DM,
+              "source": "$LEAD_SOURCE"
+            }
           }
           EOF
 
