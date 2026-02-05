@@ -248,7 +248,7 @@ async function generateReport(researchData, prospectName) {
   }
   
   // Generate HTML
-  const html = generateHTML({
+  let html = generateHTML({
     firmName,
     prospectName,
     city,
