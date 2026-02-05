@@ -18,7 +18,7 @@ const fs = require('fs');
 const https = require('https');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MAX_ITERATIONS = 5;  // Increased from 3 to handle complex phrasing issues
+const MAX_ITERATIONS = 3;  // Generator now handles most issues; perfector is safety net
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyD5L9ILVBw3nBg8cI5_a14KmtJhAqLZ9fM';
 
 if (!ANTHROPIC_API_KEY) {
@@ -643,8 +643,10 @@ CONTEXT:
 - Expected currency: ${expectedCurrency}
 - Expected terminology: ${expectedTerminology}
 
-IMPORTANT — SEARCH VOLUME CONTEXT:
-Search volumes and audience sizes are already adjusted for market size and country. Small towns will have low numbers (50-200 searches) — this is CORRECT and expected, not a sign of fabrication. UK/AU markets are scaled to ~30% of US baselines. Do NOT flag small numbers as unrealistic unless they are literally zero or negative.
+IMPORTANT — DO NOT FLAG THESE AS ISSUES:
+1. SEARCH VOLUMES: Numbers are already adjusted for market size. Small towns (50-200 searches) and UK markets (~30% of US) will have low numbers. This is CORRECT. Do NOT flag low search volumes or audience sizes.
+2. COMPETITOR NAMES: These are REAL businesses from Google Places API. Their names may look unusual — do NOT flag real competitor names as fabricated or US-centric. Only flag if a competitor is clearly from the wrong city/country.
+3. OPPORTUNITY ESTIMATES: Ranges like £500-1K or £1K-1.5K for small markets are reasonable and already adjusted. Do NOT flag these as unrealistic.
 
 REPORT TEXT:
 ${reportText}

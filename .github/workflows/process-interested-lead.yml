@@ -424,7 +424,7 @@ jobs:
             echo "lead_source=" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
-        timeout-minutes: 8
+        timeout-minutes: 10
 
       - name: Send failure notification
         if: steps.check_existing.outputs.skip != 'true' && (steps.validate.outputs.valid != 'true' || steps.report.outputs.blocked == 'true')
