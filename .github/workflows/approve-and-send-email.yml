@@ -46,25 +46,42 @@ jobs:
         
       - name: Extract inputs
         id: inputs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          # workflow_dispatch inputs
+          WD_FIRM_NAME: ${{ github.event.inputs.firm_name }}
+          WD_LEAD_EMAIL: ${{ github.event.inputs.lead_email }}
+          WD_CONTACT_NAME: ${{ github.event.inputs.contact_name }}
+          WD_REPORT_URL: ${{ github.event.inputs.report_url }}
+          WD_EMAIL_ID: ${{ github.event.inputs.email_id }}
+          WD_FROM_EMAIL: ${{ github.event.inputs.from_email }}
+          # repository_dispatch payload
+          RD_FIRM_NAME: ${{ github.event.client_payload.firm_name }}
+          RD_FIRM_FOLDER: ${{ github.event.client_payload.firm_folder }}
+          RD_LEAD_EMAIL: ${{ github.event.client_payload.lead_email }}
+          RD_CONTACT_NAME: ${{ github.event.client_payload.contact_name }}
+          RD_REPORT_URL: ${{ github.event.client_payload.report_url }}
+          RD_EMAIL_ID: ${{ github.event.client_payload.email_id }}
+          RD_FROM_EMAIL: ${{ github.event.client_payload.from_email }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "firm_name=${{ github.event.inputs.firm_name }}" >> $GITHUB_OUTPUT
-            echo "lead_email=${{ github.event.inputs.lead_email }}" >> $GITHUB_OUTPUT
-            echo "contact_name=${{ github.event.inputs.contact_name }}" >> $GITHUB_OUTPUT
-            echo "report_url=${{ github.event.inputs.report_url }}" >> $GITHUB_OUTPUT
-            echo "email_id=${{ github.event.inputs.email_id }}" >> $GITHUB_OUTPUT
-            echo "from_email=${{ github.event.inputs.from_email }}" >> $GITHUB_OUTPUT
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "firm_name=$WD_FIRM_NAME" >> $GITHUB_OUTPUT
+            echo "lead_email=$WD_LEAD_EMAIL" >> $GITHUB_OUTPUT
+            echo "contact_name=$WD_CONTACT_NAME" >> $GITHUB_OUTPUT
+            echo "report_url=$WD_REPORT_URL" >> $GITHUB_OUTPUT
+            echo "email_id=$WD_EMAIL_ID" >> $GITHUB_OUTPUT
+            echo "from_email=$WD_FROM_EMAIL" >> $GITHUB_OUTPUT
             echo "firm_folder=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
-            echo "firm_name=${{ github.event.client_payload.firm_name }}" >> $GITHUB_OUTPUT
-            echo "firm_folder=${{ github.event.client_payload.firm_folder }}" >> $GITHUB_OUTPUT
-            echo "lead_email=${{ github.event.client_payload.lead_email }}" >> $GITHUB_OUTPUT
-            echo "contact_name=${{ github.event.client_payload.contact_name }}" >> $GITHUB_OUTPUT
-            echo "report_url=${{ github.event.client_payload.report_url }}" >> $GITHUB_OUTPUT
-            echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
-            echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
+            echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
+            echo "firm_folder=$RD_FIRM_FOLDER" >> $GITHUB_OUTPUT
+            echo "lead_email=$RD_LEAD_EMAIL" >> $GITHUB_OUTPUT
+            echo "contact_name=$RD_CONTACT_NAME" >> $GITHUB_OUTPUT
+            echo "report_url=$RD_REPORT_URL" >> $GITHUB_OUTPUT
+            echo "email_id=$RD_EMAIL_ID" >> $GITHUB_OUTPUT
+            echo "from_email=$RD_FROM_EMAIL" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -93,6 +110,10 @@ jobs:
           fi
 
           echo "firm_folder=$FIRM_FOLDER" >> $GITHUB_OUTPUT
+
+          # Live URL (after moving from pending)
+          LIVE_URL="https://reports.mortarmetrics.com/$FIRM_FOLDER/"
+          echo "live_report_url=$LIVE_URL" >> $GITHUB_OUTPUT
 
           # Check if pending report exists
           if [ -f "pending-reports/$FIRM_FOLDER/index.html" ]; then
@@ -146,15 +167,16 @@ jobs:
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
         run: |
+          LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📧 Sending approved email to ${{ steps.inputs.outputs.lead_email }}"
           echo "🏢 Firm: ${{ steps.inputs.outputs.firm_name }}"
           echo "📨 From: ${{ steps.inputs.outputs.from_email }}"
-          echo "🔗 Report: ${{ steps.inputs.outputs.report_url }}"
+          echo "🔗 Report: $LIVE_URL"
 
           node send-email.js \
             "${{ steps.inputs.outputs.lead_email }}" \
             "${{ steps.inputs.outputs.contact_name }}" \
-            "${{ steps.inputs.outputs.report_url }}" \
+            "$LIVE_URL" \
             "${{ steps.inputs.outputs.email_id }}" \
             "${{ steps.inputs.outputs.firm_name }}" \
             "${{ steps.inputs.outputs.from_email }}"

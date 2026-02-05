@@ -46,31 +46,37 @@ jobs:
         
       - name: Extract lead data
         id: lead_data
+        env:
+          LEAD_EMAIL: ${{ github.event.client_payload.email }}
+          EMAIL_ID: ${{ github.event.client_payload.email_id }}
+          FROM_EMAIL: ${{ github.event.client_payload.from_email }}
         run: |
-          echo "lead_email=${{ github.event.client_payload.email }}" >> $GITHUB_OUTPUT
-          echo "email_id=${{ github.event.client_payload.email_id }}" >> $GITHUB_OUTPUT
-          echo "from_email=${{ github.event.client_payload.from_email }}" >> $GITHUB_OUTPUT
+          echo "lead_email=$LEAD_EMAIL" >> $GITHUB_OUTPUT
+          echo "email_id=$EMAIL_ID" >> $GITHUB_OUTPUT
+          echo "from_email=$FROM_EMAIL" >> $GITHUB_OUTPUT
           
       - name: Debug - Show ALL webhook data
+        env:
+          PAYLOAD_JSON: ${{ toJSON(github.event.client_payload) }}
         run: |
           echo "========================================="
           echo "ALL FIELDS FROM INSTANTLY WEBHOOK:"
           echo "========================================="
-          echo '${{ toJSON(github.event.client_payload) }}' | jq '.'
+          echo "$PAYLOAD_JSON" | jq '.'
           echo "========================================="
           
       - name: Parse website from lead data
         id: parse
+        env:
+          WEBSITE: ${{ github.event.client_payload.website }}
+          FIRST_NAME: ${{ github.event.client_payload.first_name }}
+          LAST_NAME: ${{ github.event.client_payload.last_name }}
+          CITY: ${{ github.event.client_payload.city }}
+          STATE: ${{ github.event.client_payload.state }}
+          COUNTRY: ${{ github.event.client_payload.country }}
+          COMPANY: ${{ github.event.client_payload.company }}
+          LEAD_EMAIL: ${{ github.event.client_payload.email }}
         run: |
-          # Extract ALL fields from Instantly
-          WEBSITE="${{ github.event.client_payload.website }}"
-          FIRST_NAME="${{ github.event.client_payload.first_name }}"
-          LAST_NAME="${{ github.event.client_payload.last_name }}"
-          CITY="${{ github.event.client_payload.city }}"
-          STATE="${{ github.event.client_payload.state }}"
-          COUNTRY="${{ github.event.client_payload.country }}"
-          COMPANY="${{ github.event.client_payload.company }}"
-          
           echo "Extracted values:"
           echo "  website: $WEBSITE"
           echo "  first_name: $FIRST_NAME"
@@ -79,24 +85,26 @@ jobs:
           echo "  state: $STATE"
           echo "  country: $COUNTRY"
           echo "  company: $COMPANY"
-          
-          # Build contact name only if both first and last are non-empty
+
+          # Build contact name from available parts
           CONTACT_NAME=""
           if [ -n "$FIRST_NAME" ] && [ -n "$LAST_NAME" ]; then
             CONTACT_NAME="$FIRST_NAME $LAST_NAME"
           elif [ -n "$FIRST_NAME" ]; then
             CONTACT_NAME="$FIRST_NAME"
+          elif [ -n "$LAST_NAME" ]; then
+            CONTACT_NAME="$LAST_NAME"
           fi
-          
+
           # If no website in payload, extract from email domain
           if [ -z "$WEBSITE" ]; then
-            DOMAIN=$(echo "${{ github.event.client_payload.email }}" | cut -d'@' -f2)
+            DOMAIN=$(echo "$LEAD_EMAIL" | cut -d'@' -f2)
             WEBSITE="https://www.$DOMAIN"
           fi
-          
+
           # Generate slug from website
           SLUG=$(echo "$WEBSITE" | sed 's/https:\/\///' | sed 's/http:\/\///' | sed 's/www\.//' | sed 's/\..*//')
-          
+
           echo "website=$WEBSITE" >> $GITHUB_OUTPUT
           echo "contact_name=$CONTACT_NAME" >> $GITHUB_OUTPUT
           echo "city=$CITY" >> $GITHUB_OUTPUT
@@ -107,28 +115,31 @@ jobs:
       
       - name: Check for existing pending report
         id: check_existing
+        env:
+          LEAD_EMAIL: ${{ github.event.client_payload.email }}
         run: |
-          LEAD_EMAIL="${{ github.event.client_payload.email }}"
-          SLUG="${{ steps.parse.outputs.slug }}"
+          # Only skip if a pending (not yet approved) approval exists for this email
+          SKIP=false
+          for f in $(find automation/pending-approvals -name "*.json" 2>/dev/null); do
+            if grep -q "$LEAD_EMAIL" "$f" && grep -q '"pending_approval"' "$f"; then
+              echo "⚠️  Pending report already exists for $LEAD_EMAIL"
+              echo "    Found: $f"
+              SKIP=true
+              break
+            fi
+          done
 
-          # Check if pending approval already exists for this email
-          EXISTING=$(find automation/pending-approvals -name "*.json" -exec grep -l "$LEAD_EMAIL" {} \; 2>/dev/null | head -1)
-
-          if [ -n "$EXISTING" ]; then
-            echo "⚠️  Pending report already exists for $LEAD_EMAIL"
-            echo "    Found: $EXISTING"
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
+          if [ "$SKIP" = "false" ]; then
             echo "✅ No existing pending report for $LEAD_EMAIL"
-            echo "skip=false" >> $GITHUB_OUTPUT
           fi
+          echo "skip=$SKIP" >> $GITHUB_OUTPUT
 
       - name: Skip duplicate lead (already processing)
         if: steps.check_existing.outputs.skip == 'true'
         run: |
           echo "======================================="
           echo "⏭️  SKIPPING: Duplicate webhook detected"
-          echo "   Email: ${{ github.event.client_payload.email }}"
+          echo "   Email: ${{ steps.lead_data.outputs.lead_email }}"
           echo "   A pending report already exists for this lead."
           echo "   This workflow will exit without processing."
           echo "======================================="
@@ -307,6 +318,11 @@ jobs:
             echo "qc_would_book=unknown" >> $GITHUB_OUTPUT
             echo "qc_biggest_issue=" >> $GITHUB_OUTPUT
             echo "qc_score=0" >> $GITHUB_OUTPUT
+            echo "lead_name=" >> $GITHUB_OUTPUT
+            echo "lead_title=" >> $GITHUB_OUTPUT
+            echo "lead_seniority=unknown" >> $GITHUB_OUTPUT
+            echo "lead_is_dm=false" >> $GITHUB_OUTPUT
+            echo "lead_source=" >> $GITHUB_OUTPUT
             echo "Skipping QC - missing files"
             exit 0
           fi
@@ -318,7 +334,7 @@ jobs:
           echo "This will:"
           echo "  1. Run brutal AI QC"
           echo "  2. Auto-fix any issues found"
-          echo "  3. Iterate until perfect (max 3 rounds)"
+          echo "  3. Iterate until perfect (max 5 rounds)"
           echo ""
 
           # Run AI Perfector - it modifies the report in place
@@ -381,6 +397,11 @@ jobs:
             echo "qc_would_book=unknown" >> $GITHUB_OUTPUT
             echo "qc_biggest_issue=" >> $GITHUB_OUTPUT
             echo "qc_score=0" >> $GITHUB_OUTPUT
+            echo "lead_name=" >> $GITHUB_OUTPUT
+            echo "lead_title=" >> $GITHUB_OUTPUT
+            echo "lead_seniority=unknown" >> $GITHUB_OUTPUT
+            echo "lead_is_dm=false" >> $GITHUB_OUTPUT
+            echo "lead_source=" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
         timeout-minutes: 8
@@ -427,7 +448,7 @@ jobs:
 
           REPORT_HTML=$(find automation/reports -name "*-report-v3.html" -type f | head -1)
           if [ -z "$REPORT_HTML" ]; then
-            echo "Error: No V12 Hybrid HTML found"
+            echo "Error: No V3 report HTML found"
             exit 1
           fi
 
@@ -484,7 +505,7 @@ jobs:
               "name": "$LEAD_NAME",
               "title": "$LEAD_TITLE",
               "seniority": "$LEAD_SENIORITY",
-              "is_decision_maker": $LEAD_IS_DM,
+              "is_decision_maker": ${LEAD_IS_DM:-false},
               "source": "$LEAD_SOURCE"
             }
           }
