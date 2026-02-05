@@ -561,7 +561,19 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     const extractedData = await extractEverything(research.websitePages, firmWebsite, anthropic);
     
     // Merge extracted data into research (this is now the source of truth)
-    research.firmName = extractedData.firmName || company || '';
+    // If company name was passed AND extracted name looks like a domain slug (no spaces,
+    // or matches the domain), prefer the webhook-provided company name
+    let bestFirmName = extractedData.firmName || company || '';
+    if (company && bestFirmName) {
+      const extractedLower = bestFirmName.toLowerCase().replace(/\s+/g, '');
+      const domainSlug = new URL(firmWebsite).hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
+      // If extracted name looks like domain slug (no spaces, or domain+law), it's garbled
+      if ((extractedLower.includes(domainSlug) && !bestFirmName.includes(' ')) || extractedLower === domainSlug + 'law') {
+        console.log(`⚠️  Extracted firm name "${bestFirmName}" looks like domain slug, using webhook company: "${company}"`);
+        bestFirmName = company;
+      }
+    }
+    research.firmName = bestFirmName;
     research.location = {
       city: extractedData.city || city,
       state: extractedData.state || state,

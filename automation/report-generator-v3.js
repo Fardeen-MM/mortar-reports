@@ -647,7 +647,11 @@ function localizeForUK(html) {
     .replace(/\b401\(k\)/gi, 'pension')
     // Currency terms
     .replace(/\bdollars\b/gi, 'pounds')
-    .replace(/\bdollar\b/gi, 'pound');
+    .replace(/\bdollar\b/gi, 'pound')
+    // Fix a/an articles broken by attorney→solicitor replacement
+    // "an attorney" → "an solicitor" (wrong) → "a solicitor" (correct)
+    .replace(/\ban solicitor\b/gi, (m) => m[0] === 'A' ? 'A solicitor' : 'a solicitor')
+    .replace(/\ban solicitors\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors');
 }
 
 function getFirmSizeMultiplier(data) {

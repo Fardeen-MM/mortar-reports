@@ -643,6 +643,9 @@ CONTEXT:
 - Expected currency: ${expectedCurrency}
 - Expected terminology: ${expectedTerminology}
 
+IMPORTANT — SEARCH VOLUME CONTEXT:
+Search volumes and audience sizes are already adjusted for market size and country. Small towns will have low numbers (50-200 searches) — this is CORRECT and expected, not a sign of fabrication. UK/AU markets are scaled to ~30% of US baselines. Do NOT flag small numbers as unrealistic unless they are literally zero or negative.
+
 REPORT TEXT:
 ${reportText}
 
