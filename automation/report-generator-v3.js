@@ -277,13 +277,19 @@ async function generateReport(researchData, prospectName) {
     metaAdCount
   });
   
+  // Localize for UK if needed
+  if (isUK) {
+    html = localizeForUK(html);
+    console.log('🇬🇧 Applied UK localization (attorney→solicitor)');
+  }
+
   // Save report
   const firmSlug = firmName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
   const reportsDir = path.resolve(__dirname, 'reports');
   if (!fs.existsSync(reportsDir)) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }
-  
+
   const outputPath = path.resolve(reportsDir, `${firmSlug}-report-v3.html`);
   fs.writeFileSync(outputPath, html);
   
@@ -570,6 +576,21 @@ function getCountryBaseline(country) {
     case 'IE': return 0.1;
     default: return 1.0;
   }
+}
+
+// Replace US legal terminology with UK equivalents in final HTML
+function localizeForUK(html) {
+  return html
+    // Preserve proper nouns (firm names containing "Lawyers"/"Law") by targeting common patterns
+    .replace(/\battorneys\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors')
+    .replace(/\battorney\b/gi, (m) => m[0] === 'A' ? 'Solicitor' : 'solicitor')
+    // Search terms in typing animation
+    .replace(/lawyer near me/gi, 'solicitor near me')
+    .replace(/law attorney/gi, 'law solicitor')
+    // US-specific terms
+    .replace(/\bIRS\b/g, 'HMRC')
+    .replace(/\bgreen card\b/gi, 'visa')
+    .replace(/\b401\(k\)/gi, 'pension');
 }
 
 function getFirmSizeMultiplier(data) {
