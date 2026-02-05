@@ -121,7 +121,7 @@ jobs:
           # Only skip if a pending (not yet approved) approval exists for this email
           SKIP=false
           for f in $(find automation/pending-approvals -name "*.json" 2>/dev/null); do
-            if grep -q "$LEAD_EMAIL" "$f" && grep -q '"pending_approval"' "$f"; then
+            if grep -q "$LEAD_EMAIL" "$f" && (grep -q '"pending_approval"' "$f" || grep -q '"awaiting_approval"' "$f"); then
               echo "⚠️  Pending report already exists for $LEAD_EMAIL"
               echo "    Found: $f"
               SKIP=true
