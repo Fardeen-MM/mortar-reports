@@ -7,9 +7,10 @@ on:
 # Prevent duplicate runs for the same lead
 # NOTE: Uses only email (not email_id) because Instantly sends two webhooks
 # with different payloads (campaign-level and workspace-level)
+# cancel-in-progress: true will cancel the older run if a new one starts
 concurrency:
   group: lead-${{ github.event.client_payload.email }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   research-and-report:

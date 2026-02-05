@@ -198,7 +198,9 @@ async function handleTelegramCallback(env, update) {
 // ============ INSTANTLY HANDLER ============
 
 async function handleInstantlyWebhook(env, payload) {
-  const dedupKey = `${payload.lead_email || 'unknown'}_${payload.email_id || 'no-id'}`;
+  // Deduplicate by email ONLY - Instantly sends two webhooks per reply
+  // (campaign-level and workspace-level) with different email_ids
+  const dedupKey = payload.lead_email || payload.email || 'unknown';
   const now = Date.now();
 
   if (recentWebhooks.has(dedupKey)) {
