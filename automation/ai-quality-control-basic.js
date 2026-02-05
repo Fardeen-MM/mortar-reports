@@ -42,9 +42,9 @@ if (!research.firmName ||
   criticalIssues.push('❌ CRITICAL: Firm name is missing or generic');
 }
 
-// Location check
-if (!research.location?.city || !research.location?.state) {
-  criticalIssues.push('❌ CRITICAL: Location (city/state) is missing');
+// Location check - city is required, state is optional for international (UK, etc.)
+if (!research.location?.city) {
+  criticalIssues.push('❌ CRITICAL: Location (city) is missing');
 }
 
 // Placeholder text check
@@ -171,15 +171,19 @@ console.log(`✓ Practice Areas: ${practiceAreas}`);
 console.log(`✓ Competitors: ${competitorCount}`);
 console.log(`✓ Ads Data: Google=${research.adsData?.summary?.runningGoogleAds ? 'Running' : 'Not detected'}, Meta=${research.adsData?.summary?.runningMetaAds ? 'Running' : 'Not detected'}`);
 
+const locationStr = research.location?.state
+  ? `${research.location.city}, ${research.location.state}`
+  : research.location?.city || 'Unknown';
+
 const output = {
   status: 'PASSED',
   firmName: research.firmName,
-  location: `${research.location.city}, ${research.location.state}`,
+  location: locationStr,
   criticalIssues: criticalIssues.length,
   qualityIssues: qualityIssues.length,
   warnings: qualityIssues,
-  recommendation: qualityIssues.length > 0 ? 
-    'Report can deploy but has minor quality issues' : 
+  recommendation: qualityIssues.length > 0 ?
+    'Report can deploy but has minor quality issues' :
     'Report is high quality - deploy immediately'
 };
 
