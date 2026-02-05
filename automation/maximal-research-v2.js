@@ -536,7 +536,14 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     socialMedia: {},
     news: [],
     competitors: [],
-    
+
+    // Ads data (Google + Meta)
+    adsData: {
+      googleAds: { running: false, adCount: 0 },
+      metaAds: { hasActiveAds: false, activeCount: 0, hasInactiveAds: false, inactiveCount: 0 },
+      summary: { runningGoogleAds: false, runningMetaAds: false, anyAdsRunning: false }
+    },
+
     // AI-synthesized intelligence
     intelligence: null,
     
@@ -656,8 +663,20 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     console.log(`   🔍 Searching competitors for: ${practiceAreasForSearch[0]}`);
     const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
-    
-    // Phase 7: AI Synthesis
+
+    // Phase 7: Ads Detection (Google + Meta)
+    console.log(`\n📱 PHASE 7: ADS DETECTION`);
+    try {
+      const { detectAdsWithBrowser } = require('./ads-detector');
+      research.adsData = await detectAdsWithBrowser(browser, effectiveFirmName, firmWebsite, country);
+      console.log(`   📊 Google Ads: ${research.adsData.summary.runningGoogleAds ? `Running (${research.adsData.googleAds.adCount} ads)` : 'Not running'}`);
+      console.log(`   📊 Meta Ads: ${research.adsData.summary.runningMetaAds ? `Running (${research.adsData.metaAds.activeCount} active)` : 'Not running'}`);
+    } catch (adsError) {
+      console.log(`   ⚠️  Ads detection failed: ${adsError.message}`);
+      // Keep default values from research object initialization
+    }
+
+    // Phase 8: AI Synthesis
     research.intelligence = await synthesizeWithAI(research);
     
   } catch (error) {
@@ -679,7 +698,9 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
   console.log(`⭐ Google rating: ${research.googleBusiness.rating}⭐ (${research.googleBusiness.reviews} reviews)`);
   console.log(`📱 Social profiles: ${Object.values(research.socialMedia).filter(v => v).length}`);
   console.log(`📰 News mentions: ${research.news.length}`);
-  console.log(`🎯 Competitors analyzed: ${research.competitors.length}\n`);
+  console.log(`🎯 Competitors analyzed: ${research.competitors.length}`);
+  console.log(`📢 Google Ads: ${research.adsData?.summary?.runningGoogleAds ? `Running (${research.adsData.googleAds?.adCount || 0})` : 'Not running'}`);
+  console.log(`📢 Meta Ads: ${research.adsData?.summary?.runningMetaAds ? `Running (${research.adsData.metaAds?.activeCount || 0})` : 'Not running'}\n`);
   
   // Save to file - use extracted firm name, fallback to company, then domain
   const slugSource = research.firmName || company || new URL(firmWebsite).hostname.replace(/^www\./, '').split('.')[0];

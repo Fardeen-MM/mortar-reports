@@ -109,8 +109,17 @@ async function generateReport(researchData, prospectName) {
     firmName: rawFirmName,
     location = {},
     competitors: rawCompetitors = [],
-    practiceAreas = []
+    practiceAreas = [],
+    adsData = {}
   } = researchData;
+
+  // Extract ads status
+  const runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || false;
+  const runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || false;
+  const googleAdCount = adsData?.googleAds?.adCount || 0;
+  const metaAdCount = adsData?.metaAds?.activeCount || 0;
+  console.log(`📢 Google Ads: ${runningGoogleAds ? `Running (${googleAdCount} ads)` : 'Not detected'}`);
+  console.log(`📢 Meta Ads: ${runningMetaAds ? `Running (${metaAdCount} ads)` : 'Not detected'}`);
   
   const firmName = normalizeFirmName(rawFirmName);
   const city = location.city || '';
@@ -663,6 +672,18 @@ ${css}
     <!-- GAP 1 - Google Ads -->
     <div class="gap-card">
       <div class="badge badge-search">Google Ads</div>
+      ${runningGoogleAds ? `
+      <h3>You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're optimized.</h3>
+      <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value</div>
+
+      <p>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month in ${locationStr}. You're already competing for these clicks — the question is how efficiently.</p>
+
+      <p>Most law firm ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. That's not a criticism — it's just the reality of how complex Google Ads has become. Small optimizations compound: better keywords, tighter targeting, conversion-focused landing pages.</p>
+
+      <div class="math-box">
+        <strong>Why this matters:</strong> You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.
+      </div>
+      ` : `
       <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
@@ -673,12 +694,25 @@ ${css}
       <div class="math-box">
         <strong>How we estimated this:</strong> ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets — your actual numbers will vary based on your intake process and close rate.
       </div>
+      `}
     </div>
 
 
     <!-- GAP 2 - Meta Ads -->
     <div class="gap-card">
       <div class="badge badge-social">Meta Ads · Facebook + Instagram</div>
+      ${runningMetaAds ? `
+      <h3>You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''} — are they reaching the right people?</h3>
+      <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}/mo in additional value</div>
+
+      <p>You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${practiceArea.toLowerCase()} firm Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.</p>
+
+      <p>The best-performing Meta campaigns for legal services combine precise audience targeting with compelling creative and dedicated landing pages. Small improvements in any of these areas typically yield 15-30% performance gains.</p>
+
+      <div class="math-box">
+        <strong>Why this matters:</strong> Meta's algorithm rewards well-optimized campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can transform a break-even campaign into a profitable one.
+      </div>
+      ` : `
       <h3>Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo</div>
 
@@ -689,6 +723,7 @@ ${css}
       <div class="math-box">
         <strong>How we estimated this:</strong> ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting — but well-run campaigns for legal services consistently outperform these baselines.
       </div>
+      `}
     </div>
 
 
@@ -755,18 +790,30 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
       <div class="build-item">
         <div class="build-number">1</div>
         <div class="build-content">
+          ${runningGoogleAds ? `
+          <strong>Audit + optimize your existing Google Ads</strong>
+          <p>You're already investing in search ads — we'll analyze what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.</p>
+          <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
+          ` : `
           <strong>Google Ads targeting ${getAttorneyType(practiceArea) ? getAttorneyType(practiceArea) + ' law' : 'legal'} searches in your area</strong>
           <p>You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded, every dollar accounted for.</p>
           <span class="build-timeline">Typically live in 1-2 weeks</span>
+          `}
         </div>
       </div>
 
       <div class="build-item">
         <div class="build-number">2</div>
         <div class="build-content">
+          ${runningMetaAds ? `
+          <strong>Audit + optimize your Meta Ads campaigns</strong>
+          <p>You're already on Facebook/Instagram — we'll review your audiences, creative, and conversion tracking to maximize return on your existing spend.</p>
+          <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
+          ` : `
           <strong>Meta Ads reaching ${clientLabelPlural} before they search</strong>
           <p>Targeted campaigns on Facebook and Instagram — putting your firm in front of ${clientLabelPlural} who need help but haven't started looking.</p>
           <span class="build-timeline">Typically live in 2-3 weeks</span>
+          `}
         </div>
       </div>
 
