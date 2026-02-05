@@ -1,0 +1,25 @@
+{
+  "firm_name": "Eddison Cogan Lawyers",
+  "firm_folder": "EddisonCoganLawyers",
+  "lead_email": "test@eddisoncoganlaw.co.uk",
+  "contact_name": "Test",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/EddisonCoganLawyers/",
+  "email_id": "",
+  "from_email": "",
+  "created_at": "2026-02-05T23:44:03Z",
+  "status": "awaiting_approval",
+  "report_version": "V3",
+  "qc_passed": "false",
+  "qc_issues": "7",
+  "qc_would_book": "unknown",
+  "qc_biggest_issue": "Multiple competitors have US terminology ('Attorneys Inc', 'Attorneys') in a UK market report, making it look like fabricated data",
+  "qc_score": "4",
+  "lead_intelligence": {
+    "name": "",
+    "title": "",
+    "seniority": "unknown",
+    "is_decision_maker": false,
+    "source": "email_inference"
+  },
+  "telegram_message_id": 126
+}
