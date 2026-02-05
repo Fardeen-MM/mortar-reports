@@ -175,13 +175,14 @@ async function generateReport(researchData, prospectName) {
     emergencyScenario = aiContent.emergencyScenario;
     articleForClient = aiContent.articleForClient || getArticle(clientLabel);
     // Always compute articleForAttorney from the actual attorney type we'll use in the template
-    articleForAttorney = getArticle(getAttorneyType(practiceArea));
+    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
     console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
 
-    // Validate clientLabel length - verbose labels create awkward sentences
-    // e.g., "individual going through a divorce" → should be "divorcing client"
-    if (clientLabel && clientLabel.split(' ').length > 3) {
-      console.log(`⚠️  Client label too verbose: "${clientLabel}", using fallback`);
+    // Validate clientLabel — reject verbose or generic labels that create awkward prose
+    // e.g., "individual going through a divorce", "individual planning ahead", "person with a problem"
+    const genericPrefixes = /^(individual|person|someone|people|anybody|anyone)\b/i;
+    if (clientLabel && (clientLabel.split(' ').length > 3 || genericPrefixes.test(clientLabel))) {
+      console.log(`⚠️  Client label rejected: "${clientLabel}", using fallback`);
       const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
       clientLabel = fallback.singular;
       clientLabelPlural = fallback.plural;
@@ -194,7 +195,7 @@ async function generateReport(researchData, prospectName) {
     clientLabelPlural = 'potential clients';
     emergencyScenario = 'a legal situation';
     articleForClient = 'a';
-    articleForAttorney = getArticle(getAttorneyType(practiceArea));
+    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
   }
 
   // Guaranteed fallbacks — ensure nothing is empty regardless of AI output
@@ -214,7 +215,7 @@ async function generateReport(researchData, prospectName) {
     articleForClient = getArticle(clientLabel);
   }
   if (!articleForAttorney) {
-    articleForAttorney = getArticle(getAttorneyType(practiceArea));
+    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
   }
 
   // Validate emergencyScenario length — verbose AI-generated scenarios create awkward Gap 3 headings
@@ -558,9 +559,16 @@ function getAttorneyType(category) {
     'landlord': 'landlord',
     'medical malpractice': 'medical malpractice',
     'workers comp': 'workers comp',
-    'default': 'legal'
+    'default': ''
   };
-  return types[category] || 'legal';
+  return types[category] || '';
+}
+
+// Get "X attorney" or just "attorney" for default practice area (avoids "legal attorney" redundancy)
+function getAttorneyPhrase(category, plural = false) {
+  const type = getAttorneyType(category);
+  const noun = plural ? 'attorneys' : 'attorney';
+  return type ? `${type} ${noun}` : noun;
 }
 
 // Detect if a word starts with a vowel sound (for a/an grammar)
@@ -842,7 +850,7 @@ ${css}
     <div class="narrative">
       <h2>Where you're losing cases right now</h2>
 
-      <p>We looked at how people find and contact ${getAttorneyType(practiceArea)} attorneys in ${escapeHtml(locationStr)}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
+      <p>We looked at how people find and contact ${getAttorneyPhrase(practiceArea, true)} in ${escapeHtml(locationStr)}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
     </div>
 
 
@@ -853,7 +861,7 @@ ${css}
       <h3>You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're optimized.</h3>
       <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value</div>
 
-      <p>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyType(practiceArea)} attorney last month in ${escapeHtml(locationStr)}. You're already competing for these clicks — the question is how efficiently.</p>
+      <p>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyPhrase(practiceArea)} last month in ${escapeHtml(locationStr)}. You're already competing for these clicks — the question is how efficiently.</p>
 
       <p>Most law firm ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. That's not a criticism — it's just the reality of how complex Google Ads has become. Small optimizations compound: better keywords, tighter targeting, conversion-focused landing pages.</p>
 
@@ -861,7 +869,7 @@ ${css}
         <strong>Why this matters:</strong> You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.
       </div>
       ` : `
-      <h3>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyType(practiceArea)} attorney last month. The firms running ads got those clicks.</h3>
+      <h3>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyPhrase(practiceArea)} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
       <p>When someone types "${escapeHtml(searchTerms[0])}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The firms dominating these spots are the ones investing in ads and actively building their review count.</p>
@@ -972,7 +980,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
           <p>You're already investing in search ads — we'll analyze what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.</p>
           <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
           ` : `
-          <strong>Google Ads targeting ${getAttorneyType(practiceArea)} law searches in your area</strong>
+          <strong>Google Ads targeting ${getPracticeDescription(practiceArea)} searches in your area</strong>
           <p>You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded, every dollar accounted for.</p>
           <span class="build-timeline">Typically live in 1-2 weeks</span>
           `}

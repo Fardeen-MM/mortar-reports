@@ -542,11 +542,22 @@ function preFixCommonIssues(html) {
     { pattern: /person injured in an accident/gi, replacement: 'accident victim' },
     { pattern: /individual who was injured/gi, replacement: 'accident victim' },
 
+    // Generic "individual/person planning ahead" labels (common AI output for estate/general practice)
+    { pattern: /individual planning ahead/gi, replacement: 'potential client' },
+    { pattern: /individuals planning ahead/gi, replacement: 'potential clients' },
+    { pattern: /person planning ahead/gi, replacement: 'potential client' },
+    { pattern: /people planning ahead/gi, replacement: 'potential clients' },
+    { pattern: /someone planning ahead/gi, replacement: 'potential client' },
+
     // General verbose phrases
     { pattern: /individual with a legal problem/gi, replacement: 'potential client' },
     { pattern: /person with a legal problem/gi, replacement: 'potential client' },
     { pattern: /individual seeking legal help/gi, replacement: 'potential client' },
-    { pattern: /person seeking legal help/gi, replacement: 'potential client' }
+    { pattern: /person seeking legal help/gi, replacement: 'potential client' },
+
+    // Catch-all: "an individual" / "a individual" in client context → "a potential client"
+    { pattern: /\ban individual\b/gi, replacement: 'a potential client' },
+    { pattern: /\ba individual\b/gi, replacement: 'a potential client' }
   ];
 
   for (const fix of phraseFixes) {
