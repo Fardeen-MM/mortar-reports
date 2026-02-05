@@ -666,7 +666,7 @@ ${css}
       <h3>~${gap1.searches} people searched for ${getAttorneyType(practiceArea) ? articleForAttorney + ' ' + getAttorneyType(practiceArea) + ' attorney' : 'an attorney'} last month. The firms running ads got those clicks.</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
 
-      <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. Without ads and with ${firmReviews || 'few'} reviews against competitors with hundreds or thousands, you're not showing up in any of those three spots for most searches.</p>
+      <p>When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The firms dominating these spots are the ones investing in ads and actively building their review count.</p>
 
       <p>This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
 
