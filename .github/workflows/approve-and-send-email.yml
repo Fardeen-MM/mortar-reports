@@ -159,9 +159,11 @@ jobs:
           git add "pending-reports/" 2>/dev/null || true
           git commit -m "Deploy approved report for $FIRM_FOLDER" || echo "No changes to commit"
 
-          # Push with rebase retry
+          # Push with rebase retry — stash generated files that block rebase
           git push origin main || {
+            git stash --include-untracked
             git pull --rebase origin main
+            git stash pop || true
             git push origin main
           }
 

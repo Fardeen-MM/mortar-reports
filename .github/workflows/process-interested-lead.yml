@@ -528,8 +528,10 @@ jobs:
           git add "automation/pending-approvals/$FIRM_FOLDER.json"
           git commit -m "Add pending report for $FIRM_FOLDER (awaiting approval)" || echo "No changes"
 
-          # Push with rebase retry
+          # Push with rebase retry — stash generated files that block rebase
           git push origin main || {
+            git stash --include-untracked
             git pull --rebase origin main
+            git stash pop || true
             git push origin main
           }
