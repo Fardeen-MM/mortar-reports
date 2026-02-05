@@ -240,58 +240,64 @@ function mergePayloads(a, b) {
 }
 
 async function handleInstantlyWebhook(env, payload, ctx) {
-  const dedupKey = payload.lead_email || payload.email || 'unknown';
+  const email = payload.lead_email || payload.email || 'unknown';
   const githubPayload = buildGithubPayload(payload);
 
-  // Log raw payload so we can inspect actual field names in Cloudflare dashboard
+  // Log raw payload for debugging in Cloudflare dashboard
   console.log('RAW INSTANTLY PAYLOAD:', JSON.stringify(payload));
   console.log('BUILT GITHUB PAYLOAD:', JSON.stringify(githubPayload));
 
-  // Check KV for an existing entry for this email (persists across isolates)
-  const existing = await env.WEBHOOK_KV.get(`webhook:${dedupKey}`, { type: 'json' });
-
-  if (existing) {
-    if (existing.forwarded) {
-      console.log(`Late webhook for ${dedupKey}: already forwarded, ignoring`);
-      return { success: true, message: 'Duplicate ignored (already forwarded)' };
-    }
-
-    // Second webhook arrived — merge both payloads and forward
-    const merged = mergePayloads(existing.githubPayload, githubPayload);
-    console.log(`Both webhooks for ${dedupKey}: merged and forwarding`);
-    console.log('MERGED PAYLOAD:', JSON.stringify(merged));
-
-    // Mark as forwarded in KV (keep for 5 min to block further duplicates)
-    await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({ forwarded: true }), { expirationTtl: 300 });
-
-    await forwardToGitHub(env, merged);
-    return { success: true, message: 'Merged payload forwarded' };
+  // Check if this email was already dispatched (from a previous batch)
+  const dispatched = await env.WEBHOOK_KV.get(`done:${email}`);
+  if (dispatched) {
+    console.log(`Already dispatched for ${email}, ignoring`);
+    return { success: true, message: 'Already dispatched' };
   }
 
-  // First webhook for this email — store in KV and wait for the second
-  await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({
-    forwarded: false,
-    githubPayload,
-    timestamp: Date.now()
-  }), { expirationTtl: 300 }); // Auto-expire after 5 minutes
+  // Store this webhook's payload under a UNIQUE key (random suffix).
+  // This avoids write conflicts — both webhooks write to different keys,
+  // so neither overwrites the other. KV.list() finds them all later.
+  const slot = crypto.randomUUID().slice(0, 8);
+  await env.WEBHOOK_KV.put(`wh:${email}|${slot}`, JSON.stringify(githubPayload), { expirationTtl: 120 });
+  console.log(`Stored webhook for ${email} in slot ${slot}`);
 
-  console.log(`First webhook for ${dedupKey}, stored in KV, waiting for second`);
-
-  // Safety: if only one webhook arrives, forward after 10s delay
+  // Schedule a delayed merge + dispatch.
+  // Both webhooks schedule this, but the dispatched flag prevents double-send.
+  // The 5s delay gives KV time to propagate within the same PoP.
   ctx.waitUntil(
     new Promise(resolve => setTimeout(resolve, WAIT_FOR_SECOND_WEBHOOK_MS)).then(async () => {
-      const entry = await env.WEBHOOK_KV.get(`webhook:${dedupKey}`, { type: 'json' });
-      if (entry && !entry.forwarded) {
-        console.log(`Timer: only one webhook for ${dedupKey}, forwarding as-is`);
-        await env.WEBHOOK_KV.put(`webhook:${dedupKey}`, JSON.stringify({ forwarded: true }), { expirationTtl: 300 });
-        await forwardToGitHub(env, entry.githubPayload);
+      // Check dispatched flag again (another timer may have fired first)
+      const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
+      if (alreadyDone) {
+        console.log(`Timer: ${email} already dispatched by other timer`);
+        return;
+      }
+
+      // Set dispatched flag FIRST to prevent the other timer from also dispatching
+      await env.WEBHOOK_KV.put(`done:${email}`, 'true', { expirationTtl: 300 });
+
+      // Find ALL stored payloads for this email using KV.list()
+      const keys = await env.WEBHOOK_KV.list({ prefix: `wh:${email}|` });
+      console.log(`Timer: found ${keys.keys.length} webhook(s) for ${email}`);
+
+      let merged = null;
+      for (const key of keys.keys) {
+        const p = await env.WEBHOOK_KV.get(key.name, { type: 'json' });
+        if (p) {
+          merged = merged ? mergePayloads(merged, p) : p;
+        }
+      }
+
+      if (merged) {
+        console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
+        await forwardToGitHub(env, merged);
       } else {
-        console.log(`Timer: ${dedupKey} already forwarded (merged), nothing to do`);
+        console.log(`Timer: no payloads found for ${email} — nothing to dispatch`);
       }
     })
   );
 
-  return { success: true, message: 'Queued, waiting for second webhook to merge' };
+  return { success: true, message: 'Stored, merge timer running' };
 }
 
 // ============ MAIN HANDLER ============

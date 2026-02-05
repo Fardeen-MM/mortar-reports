@@ -97,9 +97,29 @@ jobs:
           fi
 
           # If no website in payload, extract from email domain
+          DOMAIN=$(echo "$LEAD_EMAIL" | cut -d'@' -f2)
           if [ -z "$WEBSITE" ]; then
-            DOMAIN=$(echo "$LEAD_EMAIL" | cut -d'@' -f2)
             WEBSITE="https://www.$DOMAIN"
+          fi
+
+          # If no country in payload, infer from email domain TLD
+          if [ -z "$COUNTRY" ]; then
+            case "$DOMAIN" in
+              *.co.uk|*.org.uk|*.uk)  COUNTRY="GB" ;;
+              *.com.au|*.au)          COUNTRY="AU" ;;
+              *.co.nz|*.nz)           COUNTRY="NZ" ;;
+              *.ca)                   COUNTRY="CA" ;;
+              *.co.za|*.za)           COUNTRY="ZA" ;;
+              *.ie)                   COUNTRY="IE" ;;
+              *.de)                   COUNTRY="DE" ;;
+              *.fr)                   COUNTRY="FR" ;;
+              *.in|*.co.in)           COUNTRY="IN" ;;
+              *.sg)                   COUNTRY="SG" ;;
+              *.hk|*.com.hk)          COUNTRY="HK" ;;
+            esac
+            if [ -n "$COUNTRY" ]; then
+              echo "  Inferred country from email domain: $COUNTRY"
+            fi
           fi
 
           # Generate slug from website
