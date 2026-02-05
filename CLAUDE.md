@@ -207,3 +207,43 @@ All issues from previous sessions have been resolved:
 9. ✅ Statistics — removed unsourced percentage claims
 10. ✅ Attack-style titles — reframed as opportunities
 11. ✅ Normalizer fallbacks — no fake competitors
+
+---
+
+## Fix Log (2026-02-05): AI Report Perfector Verbose Labels
+
+**Problem:** AI Report Perfector failing with score 3/10. Root cause was `clientLabel` being set to verbose phrases like "individual going through a divorce" instead of concise labels like "spouse" or "divorcing client". This created awkward sentences appearing 4+ times in reports.
+
+**Why perfector couldn't fix it:**
+- 3 iterations wasn't enough for complex phrasing issues
+- Whole-HTML replacement is fragile for 800+ line files
+- The source (report generator) was creating bad content
+
+**Solution implemented (two-part fix):**
+
+### Part 1: `report-generator-v3.js` (lines 154-162)
+Added clientLabel length validation after AI content generation:
+```javascript
+if (clientLabel && clientLabel.split(' ').length > 3) {
+  console.log(`⚠️  Client label too verbose: "${clientLabel}", using fallback`);
+  const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
+  clientLabel = fallback.singular;
+  clientLabelPlural = fallback.plural;
+  articleForClient = getArticle(clientLabel);
+}
+```
+
+### Part 2: `ai-report-perfector.js`
+1. **Increased MAX_ITERATIONS** from 3 to 5 (line 21)
+2. **Added `preFixCommonIssues()` function** (lines 504-569) — direct string replacement for known verbose phrases before AI QC runs
+3. **Integrated pre-pass** into perfection loop (lines 846-849)
+
+**Verbose phrases now auto-fixed:**
+- "individual going through a divorce" → "divorcing client"
+- "person going through divorce" → "divorcing client"
+- "family member dealing with estate" → "someone planning their estate"
+- "individual facing immigration issues" → "immigration client"
+- "individual injured in an accident" → "accident victim"
+- + many more patterns
+
+**Result:** Reports now generate with concise client labels. Perfector has safety net for any that slip through.

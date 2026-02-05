@@ -150,6 +150,16 @@ async function generateReport(researchData, prospectName) {
     articleForClient = aiContent.articleForClient || getArticle(clientLabel);
     articleForAttorney = aiContent.articleForAttorney || getArticle(getAttorneyType(practiceArea));
     console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
+
+    // Validate clientLabel length - verbose labels create awkward sentences
+    // e.g., "individual going through a divorce" → should be "divorcing client"
+    if (clientLabel && clientLabel.split(' ').length > 3) {
+      console.log(`⚠️  Client label too verbose: "${clientLabel}", using fallback`);
+      const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
+      clientLabel = fallback.singular;
+      clientLabelPlural = fallback.plural;
+      articleForClient = getArticle(clientLabel);
+    }
   } catch (e) {
     // Fallback to hardcoded if AI module fails entirely
     console.log(`⚠️  AI content module failed: ${e.message}`);

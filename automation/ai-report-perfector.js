@@ -18,7 +18,7 @@ const fs = require('fs');
 const https = require('https');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MAX_ITERATIONS = 3;
+const MAX_ITERATIONS = 5;  // Increased from 3 to handle complex phrasing issues
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyD5L9ILVBw3nBg8cI5_a14KmtJhAqLZ9fM';
 
 if (!ANTHROPIC_API_KEY) {
@@ -502,6 +502,73 @@ function extractText(html) {
 }
 
 /**
+ * Pre-fix common phrasing issues with direct string replacement
+ * This catches verbose client labels before AI QC runs, making fixes more reliable
+ */
+function preFixCommonIssues(html) {
+  let fixedHtml = html;
+  let fixCount = 0;
+
+  // Common verbose client label patterns → concise replacements
+  const phraseFixes = [
+    // Divorce-related verbose phrases
+    { pattern: /individual going through a divorce/gi, replacement: 'divorcing client' },
+    { pattern: /individual going through divorce/gi, replacement: 'divorcing client' },
+    { pattern: /person going through a divorce/gi, replacement: 'divorcing client' },
+    { pattern: /person going through divorce/gi, replacement: 'divorcing client' },
+    { pattern: /someone going through a divorce/gi, replacement: 'divorcing client' },
+    { pattern: /someone going through divorce/gi, replacement: 'divorcing client' },
+    { pattern: /people going through a divorce/gi, replacement: 'divorcing clients' },
+    { pattern: /people going through divorce/gi, replacement: 'divorcing clients' },
+    { pattern: /individuals going through divorce/gi, replacement: 'divorcing clients' },
+
+    // Family law verbose phrases
+    { pattern: /individual dealing with a family matter/gi, replacement: 'family law client' },
+    { pattern: /person dealing with a family matter/gi, replacement: 'family law client' },
+    { pattern: /individual facing a family issue/gi, replacement: 'family law client' },
+
+    // Estate planning verbose phrases
+    { pattern: /family member dealing with estate/gi, replacement: 'someone planning their estate' },
+    { pattern: /individual planning their estate/gi, replacement: 'estate planning client' },
+    { pattern: /person planning their estate/gi, replacement: 'estate planning client' },
+
+    // Immigration verbose phrases
+    { pattern: /individual facing immigration issues/gi, replacement: 'immigration client' },
+    { pattern: /person facing immigration issues/gi, replacement: 'immigration client' },
+    { pattern: /individual dealing with immigration/gi, replacement: 'immigration client' },
+
+    // Personal injury verbose phrases
+    { pattern: /individual injured in an accident/gi, replacement: 'accident victim' },
+    { pattern: /person injured in an accident/gi, replacement: 'accident victim' },
+    { pattern: /individual who was injured/gi, replacement: 'accident victim' },
+
+    // General verbose phrases
+    { pattern: /individual with a legal problem/gi, replacement: 'potential client' },
+    { pattern: /person with a legal problem/gi, replacement: 'potential client' },
+    { pattern: /individual seeking legal help/gi, replacement: 'potential client' },
+    { pattern: /person seeking legal help/gi, replacement: 'potential client' }
+  ];
+
+  for (const fix of phraseFixes) {
+    const beforeLength = fixedHtml.length;
+    fixedHtml = fixedHtml.replace(fix.pattern, fix.replacement);
+    if (fixedHtml.length !== beforeLength || fix.pattern.test(html)) {
+      // Check if we actually made replacements
+      const matches = html.match(fix.pattern);
+      if (matches) {
+        fixCount += matches.length;
+      }
+    }
+  }
+
+  if (fixCount > 0) {
+    console.log(`   ✅ Pre-fixed ${fixCount} verbose phrase(s)`);
+  }
+
+  return fixedHtml;
+}
+
+/**
  * BRUTAL AI QC - Find every issue that would make a lead not book
  */
 async function brutalQC(html, research, iteration, leadIntel = null) {
@@ -775,6 +842,11 @@ async function perfectReport() {
   let currentHtml = reportHtml;
   let iteration = 0;
   let finalResult = null;
+
+  // Pre-pass: Fix common verbose phrasing issues with direct string replacement
+  // This is more reliable than asking AI to rewrite entire HTML
+  console.log('\n🔧 PRE-PASS: Fixing common phrasing issues...');
+  currentHtml = preFixCommonIssues(currentHtml);
 
   while (iteration < MAX_ITERATIONS) {
     iteration++;
