@@ -453,12 +453,19 @@ Return ONLY valid JSON:
  * Searches Google Maps for law firms matching the practice area and location.
  * Returns real firms with real ratings and review counts.
  */
-async function findCompetitors(firmName, city, state, practiceAreas) {
+async function findCompetitors(firmName, city, state, practiceAreas, country) {
   console.log(`   🔍 Finding real competitors via Google Places API...`);
-  console.log(`   📍 Location: ${city}, ${state}`);
+  console.log(`   📍 Location: ${city}, ${state} (${country || 'US'})`);
   console.log(`   ⚖️  Practice: ${practiceAreas.slice(0, 3).join(', ')}`);
 
   const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+
+  // Map country code to region bias for Google Places API
+  const region = (country || 'US').toLowerCase();
+
+  // Country name for query text (belt-and-suspenders with region param)
+  const COUNTRY_NAMES = { gb: 'United Kingdom', uk: 'United Kingdom', au: 'Australia', ca: 'Canada', nz: 'New Zealand' };
+  const countryName = COUNTRY_NAMES[region] || '';
 
   // Build search query - use first practice area for specificity
   const practiceArea = practiceAreas[0] || 'lawyer';
@@ -474,12 +481,17 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
   };
   const practiceAreaLower = practiceArea.toLowerCase();
   const modifier = disambiguationMap[practiceAreaLower] || '';
-  const query = modifier
+  let query = modifier
     ? `${practiceArea} ${modifier} lawyer ${location}`
     : `${practiceArea} lawyer ${location}`;
 
+  // Append country name for non-US countries to disambiguate (e.g. Malmesbury UK vs South Africa)
+  if (countryName) {
+    query += ` ${countryName}`;
+  }
+
   try {
-    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY);
+    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY, region);
 
     if (results.status !== 'OK' || !results.results || results.results.length === 0) {
       console.log(`   ⚠️  Google Places returned: ${results.status}`);
@@ -550,7 +562,7 @@ async function findCompetitors(firmName, city, state, practiceAreas) {
  * Fetch the firm's own Google Business data (reviews, rating)
  * Searches Google Places for the firm name + location to find their profile
  */
-async function fetchFirmGoogleData(firmName, city, state) {
+async function fetchFirmGoogleData(firmName, city, state, country) {
   if (!firmName || !city) {
     return { reviews: 0, rating: 0 };
   }
@@ -558,11 +570,12 @@ async function fetchFirmGoogleData(firmName, city, state) {
   console.log(`   🔍 Fetching Google Business data for "${firmName}"...`);
 
   const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+  const region = (country || 'US').toLowerCase();
   const location = state ? `${city}, ${state}` : city;
   const query = `${firmName} ${location}`;
 
   try {
-    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY);
+    const results = await searchGooglePlaces(query, GOOGLE_PLACES_API_KEY, region);
 
     if (results.status !== 'OK' || !results.results || results.results.length === 0) {
       console.log(`   ⚠️  Could not find Google Business for "${firmName}"`);
@@ -598,9 +611,12 @@ async function fetchFirmGoogleData(firmName, city, state) {
 /**
  * Search Google Places API
  */
-function searchGooglePlaces(query, apiKey) {
+function searchGooglePlaces(query, apiKey, region) {
   return new Promise((resolve, reject) => {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+    let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+    if (region) {
+      url += `&region=${region}`;
+    }
 
     https.get(url, (res) => {
       let data = '';

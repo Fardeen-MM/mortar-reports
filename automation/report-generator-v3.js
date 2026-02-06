@@ -488,7 +488,7 @@ async function generateReport(researchData, prospectName) {
   if (competitors.length === 0 && city) {
     console.log('🔍 Fetching competitors via Google Places API...');
     try {
-      const fetched = await findCompetitors(rawFirmName, city, state, practiceAreas);
+      const fetched = await findCompetitors(rawFirmName, city, state, practiceAreas, country);
       if (fetched && fetched.length > 0) {
         competitors = fetched;
         console.log(`✅ Found ${competitors.length} real competitors`);
@@ -529,7 +529,7 @@ async function generateReport(researchData, prospectName) {
   // If no reviews in research data, try to fetch from Google Places
   if (firmReviews === 0 && city) {
     try {
-      const googleData = await fetchFirmGoogleData(firmName, city, state);
+      const googleData = await fetchFirmGoogleData(firmName, city, state, country);
       if (googleData.reviews > 0) {
         firmReviews = googleData.reviews;
         firmRating = googleData.rating;

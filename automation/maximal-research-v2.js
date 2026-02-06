@@ -689,7 +689,7 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
       ? research.practice.practiceAreas
       : (extractedData.practiceAreas?.length > 0 ? extractedData.practiceAreas : ['lawyer']);
     console.log(`   🔍 Searching competitors for: ${practiceAreasForSearch[0]}`);
-    const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch);
+    const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch, country);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
 
     // Phase 7: Ads Detection (Google + Meta)
