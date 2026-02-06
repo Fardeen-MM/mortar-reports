@@ -1,0 +1,25 @@
+{
+  "firm_name": "Sobirovs Law Firm",
+  "firm_folder": "SobirovsLawFirm",
+  "lead_email": "info@sobirovlaw.com",
+  "contact_name": "Partner",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/SobirovsLawFirm/",
+  "email_id": "",
+  "from_email": "",
+  "created_at": "2026-02-06T15:21:45Z",
+  "status": "awaiting_approval",
+  "report_version": "V3",
+  "qc_passed": "true",
+  "qc_issues": "0",
+  "qc_would_book": "true",
+  "qc_biggest_issue": "",
+  "qc_score": "10",
+  "lead_intelligence": {
+    "name": "",
+    "title": "",
+    "seniority": "unknown",
+    "is_decision_maker": false,
+    "source": "email_inference"
+  },
+  "telegram_message_id": 129
+}
