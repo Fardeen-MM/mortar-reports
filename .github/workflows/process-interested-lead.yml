@@ -508,12 +508,10 @@ jobs:
           echo "firm_folder=$FIRM_FOLDER" >> $GITHUB_OUTPUT
           echo "firm_name=$RAW_FIRM_NAME" >> $GITHUB_OUTPUT
           
-      - name: Send Telegram approval request
+      - name: Create approval JSON
+        id: approval
         if: steps.check_existing.outputs.skip != 'true' && steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
-        continue-on-error: true
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FIRM_FOLDER: ${{ steps.deploy.outputs.firm_folder }}
           FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
           CONTACT_NAME: ${{ steps.extract.outputs.contact_name }}
@@ -531,7 +529,6 @@ jobs:
           LEAD_IS_DM: ${{ steps.qc.outputs.lead_is_dm }}
           LEAD_SOURCE: ${{ steps.qc.outputs.lead_source }}
         run: |
-          # Report URL is PREVIEW only until approved
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
           mkdir -p pending-approvals
@@ -562,12 +559,10 @@ jobs:
             }
           }
           EOF
-
-          echo "Sending Telegram approval for $FIRM_NAME (contact: $CONTACT_NAME)"
-          node telegram-approval-bot.js "pending-approvals/${FIRM_FOLDER}.json"
         working-directory: ./automation
 
       - name: Commit pending report (NOT LIVE until approved)
+        id: commit
         if: steps.check_existing.outputs.skip != 'true' && steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
         run: |
           FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
@@ -579,7 +574,7 @@ jobs:
           git commit -m "Add pending report for $FIRM_FOLDER (awaiting approval)" || echo "No changes"
 
           # Push with conflict-resilient retry
-          git push origin main || {
+          git push origin main && echo "pushed=true" >> $GITHUB_OUTPUT || {
             echo "Push failed, pulling latest and retrying..."
             # Save our generated files before cleaning
             cp "pending-reports/$FIRM_FOLDER/index.html" /tmp/report.html
@@ -594,13 +589,31 @@ jobs:
             git pull origin main
             # Check if parallel run already pushed our files
             if [ -f "pending-reports/$FIRM_FOLDER/index.html" ]; then
-              echo "✅ Report already pushed by parallel run — nothing to do"
+              echo "✅ Report already pushed by parallel run — skipping commit and Telegram"
+              echo "pushed=false" >> $GITHUB_OUTPUT
             else
               mkdir -p "pending-reports/$FIRM_FOLDER"
               cp /tmp/report.html "pending-reports/$FIRM_FOLDER/index.html"
               cp /tmp/approval.json "automation/pending-approvals/$FIRM_FOLDER.json"
               git add "pending-reports/$FIRM_FOLDER/index.html" "automation/pending-approvals/$FIRM_FOLDER.json"
               git commit -m "Add pending report for $FIRM_FOLDER (awaiting approval)"
-              git push origin main || echo "⚠️ Push failed — report may already exist"
+              git push origin main && echo "pushed=true" >> $GITHUB_OUTPUT || {
+                echo "⚠️ Push failed — report may already exist"
+                echo "pushed=false" >> $GITHUB_OUTPUT
+              }
             fi
           }
+
+      - name: Send Telegram approval request
+        if: steps.commit.outputs.pushed == 'true'
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FIRM_FOLDER: ${{ steps.deploy.outputs.firm_folder }}
+          FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
+          CONTACT_NAME: ${{ steps.extract.outputs.contact_name }}
+        run: |
+          echo "Sending Telegram approval for $FIRM_NAME (contact: $CONTACT_NAME)"
+          node telegram-approval-bot.js "pending-approvals/${FIRM_FOLDER}.json"
+        working-directory: ./automation
