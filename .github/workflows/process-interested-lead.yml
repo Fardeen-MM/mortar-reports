@@ -102,24 +102,32 @@ jobs:
             WEBSITE="https://www.$DOMAIN"
           fi
 
-          # If no country in payload, infer from email domain TLD
-          if [ -z "$COUNTRY" ]; then
-            case "$DOMAIN" in
-              *.co.uk|*.org.uk|*.uk)  COUNTRY="GB" ;;
-              *.com.au|*.au)          COUNTRY="AU" ;;
-              *.co.nz|*.nz)           COUNTRY="NZ" ;;
-              *.ca)                   COUNTRY="CA" ;;
-              *.co.za|*.za)           COUNTRY="ZA" ;;
-              *.ie)                   COUNTRY="IE" ;;
-              *.de)                   COUNTRY="DE" ;;
-              *.fr)                   COUNTRY="FR" ;;
-              *.in|*.co.in)           COUNTRY="IN" ;;
-              *.sg)                   COUNTRY="SG" ;;
-              *.hk|*.com.hk)          COUNTRY="HK" ;;
-            esac
-            if [ -n "$COUNTRY" ]; then
-              echo "  Inferred country from email domain: $COUNTRY"
+          # ALWAYS infer country from email TLD — Instantly often defaults to "US" for non-US leads
+          # TLD is more reliable than webhook country field
+          TLD_COUNTRY=""
+          case "$DOMAIN" in
+            *.co.uk|*.org.uk|*.uk)  TLD_COUNTRY="GB" ;;
+            *.com.au|*.au)          TLD_COUNTRY="AU" ;;
+            *.co.nz|*.nz)           TLD_COUNTRY="NZ" ;;
+            *.ca)                   TLD_COUNTRY="CA" ;;
+            *.co.za|*.za)           TLD_COUNTRY="ZA" ;;
+            *.ie)                   TLD_COUNTRY="IE" ;;
+            *.de)                   TLD_COUNTRY="DE" ;;
+            *.fr)                   TLD_COUNTRY="FR" ;;
+            *.in|*.co.in)           TLD_COUNTRY="IN" ;;
+            *.sg)                   TLD_COUNTRY="SG" ;;
+            *.hk|*.com.hk)          TLD_COUNTRY="HK" ;;
+          esac
+          if [ -n "$TLD_COUNTRY" ]; then
+            if [ "$COUNTRY" != "$TLD_COUNTRY" ]; then
+              echo "  ⚠️  Email TLD suggests $TLD_COUNTRY but webhook says ${COUNTRY:-empty} — using TLD"
             fi
+            COUNTRY="$TLD_COUNTRY"
+            echo "  Country from email TLD: $COUNTRY"
+          fi
+          # Default to US if still empty
+          if [ -z "$COUNTRY" ]; then
+            COUNTRY="US"
           fi
 
           # Generate slug from website
