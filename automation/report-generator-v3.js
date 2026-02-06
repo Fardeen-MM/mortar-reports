@@ -41,43 +41,43 @@ function formatGapProse(text) {
 
 // Case value ranges by practice area (low-high for ranges) — USD
 const CASE_VALUES = {
-  'tax': { low: 3500, high: 5500 },
-  'family': { low: 4000, high: 6000 },
-  'divorce': { low: 4000, high: 6000 },
-  'personal injury': { low: 8000, high: 15000 },
-  'immigration': { low: 3500, high: 5000 },
-  'litigation': { low: 6000, high: 10000 },
-  'criminal': { low: 4000, high: 7000 },
-  'estate': { low: 2500, high: 4000 },
-  'business': { low: 5000, high: 8000 },
-  'bankruptcy': { low: 2000, high: 3500 },
-  'civil rights': { low: 7000, high: 12000 },
-  'employment': { low: 5000, high: 8000 },
-  'real estate': { low: 4000, high: 7000 },
-  'ip': { low: 6000, high: 10000 },
-  'landlord': { low: 3000, high: 5000 },
-  'medical malpractice': { low: 12000, high: 20000 },
-  'workers comp': { low: 6000, high: 10000 },
-  'default': { low: 3500, high: 5500 }
+  'tax': { low: 4500, high: 7000 },
+  'family': { low: 5000, high: 7500 },
+  'divorce': { low: 5000, high: 7500 },
+  'personal injury': { low: 10000, high: 19000 },
+  'immigration': { low: 4500, high: 6500 },
+  'litigation': { low: 7500, high: 12500 },
+  'criminal': { low: 5000, high: 9000 },
+  'estate': { low: 3000, high: 5000 },
+  'business': { low: 6500, high: 10000 },
+  'bankruptcy': { low: 2500, high: 4500 },
+  'civil rights': { low: 9000, high: 15000 },
+  'employment': { low: 6500, high: 10000 },
+  'real estate': { low: 5000, high: 9000 },
+  'ip': { low: 7500, high: 12500 },
+  'landlord': { low: 4000, high: 6500 },
+  'medical malpractice': { low: 15000, high: 25000 },
+  'workers comp': { low: 7500, high: 12500 },
+  'default': { low: 4500, high: 7000 }
 };
 
 // Case value ranges for UK market — GBP
 const CASE_VALUES_GBP = {
-  'tax': { low: 2500, high: 4500 },
-  'family': { low: 3000, high: 5000 },
-  'divorce': { low: 3000, high: 5000 },
-  'personal injury': { low: 5000, high: 10000 },
-  'immigration': { low: 2500, high: 4000 },
-  'litigation': { low: 4500, high: 8000 },
-  'criminal': { low: 3000, high: 5500 },
-  'estate': { low: 2000, high: 3500 },
-  'business': { low: 4000, high: 6500 },
-  'employment': { low: 4000, high: 6500 },
-  'real estate': { low: 3000, high: 5500 },
-  'ip': { low: 4500, high: 8000 },
-  'landlord': { low: 2500, high: 4000 },
-  'medical malpractice': { low: 8000, high: 15000 },
-  'default': { low: 2500, high: 4500 }
+  'tax': { low: 3000, high: 5500 },
+  'family': { low: 3500, high: 6000 },
+  'divorce': { low: 3500, high: 6000 },
+  'personal injury': { low: 6500, high: 12500 },
+  'immigration': { low: 3000, high: 5000 },
+  'litigation': { low: 5500, high: 10000 },
+  'criminal': { low: 3500, high: 7000 },
+  'estate': { low: 2500, high: 4500 },
+  'business': { low: 5000, high: 8000 },
+  'employment': { low: 5000, high: 8000 },
+  'real estate': { low: 3500, high: 7000 },
+  'ip': { low: 5500, high: 10000 },
+  'landlord': { low: 3000, high: 5000 },
+  'medical malpractice': { low: 10000, high: 19000 },
+  'default': { low: 3000, high: 5500 }
 };
 
 // Client labels by practice area (used in visuals + fallback prose)
@@ -1367,8 +1367,8 @@ function getMarketMultiplier(city, country) {
     const midUK = ['manchester', 'birmingham', 'leeds', 'glasgow', 'liverpool',
       'edinburgh', 'bristol', 'cardiff', 'belfast', 'nottingham', 'sheffield',
       'leicester', 'newcastle', 'brighton', 'reading', 'swindon'];
-    if (midUK.some(m => c.includes(m))) return 1.2;
-    return 0.8;
+    if (midUK.some(m => c.includes(m))) return 1.3;
+    return 1.0;
   }
   const major = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
     'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'san francisco',
@@ -1376,18 +1376,18 @@ function getMarketMultiplier(city, country) {
   if (major.some(m => c.includes(m))) return 1.8;
   const mid = ['memphis', 'louisville', 'richmond', 'new orleans', 'raleigh', 'salt lake city',
     'atlanta', 'miami', 'minneapolis', 'cleveland', 'tampa', 'orlando', 'pittsburgh'];
-  if (mid.some(m => c.includes(m))) return 1.2;
-  return 0.8;
+  if (mid.some(m => c.includes(m))) return 1.3;
+  return 1.0;
 }
 
 function getCountryBaseline(country) {
   const c = (country || 'US').toUpperCase();
   switch (c) {
-    case 'GB': case 'UK': return 0.3;
-    case 'AU': return 0.25;
-    case 'CA': return 0.35;
-    case 'NZ': return 0.15;
-    case 'IE': return 0.1;
+    case 'GB': case 'UK': return 0.7;
+    case 'AU': return 0.6;
+    case 'CA': return 0.75;
+    case 'NZ': return 0.4;
+    case 'IE': return 0.35;
     default: return 1.0;
   }
 }
@@ -1406,46 +1406,46 @@ function getFirmSizeMultiplier(data) {
 
 function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) {
   const sym = currency || '$';
-  const searches = Math.round(400 * marketMultiplier * countryBaseline);
-  const ctr = 0.035; const conv = 0.12; const close = 0.25;
+  const searches = Math.round(880 * marketMultiplier * countryBaseline);
+  const ctr = 0.045; const conv = 0.15; const close = 0.25;
   const casesPerMonth = searches * ctr * conv * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(1500 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(3000 * countryBaseline / 500) * 500 || 1000;
+  const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), searches,
-    formula: `~${searches} monthly searches × 3.5% CTR × 12% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+    formula: `~${searches} monthly searches × 4.5% CTR × 15% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
 
 function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency) {
   const sym = currency || '$';
-  const audience = Math.round(32000 * marketMultiplier * countryBaseline);
-  const reach = 0.015; const conv = 0.008; const close = 0.25;
+  const audience = Math.round(65000 * marketMultiplier * countryBaseline);
+  const reach = 0.020; const conv = 0.012; const close = 0.25;
   const casesPerMonth = audience * reach * conv * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(4000 * countryBaseline / 500) * 500 || 1000;
+  const minLow = Math.round(4000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(8000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area',
-    formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 1.5% monthly ad reach × 0.8% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+    formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 2.0% monthly ad reach × 1.2% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
 
 function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency) {
   const sym = currency || '$';
-  const calls = Math.round(40 * firmSizeMultiplier * countryBaseline);
-  const afterHours = 0.35; const missRate = 0.60; const recovery = 0.70; const close = 0.20;
+  const calls = Math.round(85 * firmSizeMultiplier * countryBaseline);
+  const afterHours = 0.35; const missRate = 0.60; const recovery = 0.70; const close = 0.25;
   const casesPerMonth = calls * afterHours * missRate * recovery * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(3500 * countryBaseline / 500) * 500 || 1000;
+  const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), calls,
-    formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+    formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
 
