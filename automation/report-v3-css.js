@@ -59,19 +59,19 @@ module.exports = function getV3CSS() {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 20px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
   }
 
   .logo {
     font-family: 'Fraunces', serif;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--ink);
   }
 
   .meta {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--slate-light);
     font-weight: 500;
   }
@@ -79,8 +79,8 @@ module.exports = function getV3CSS() {
   /* ========== HERO ========== */
   .hero {
     text-align: center;
-    padding: 64px 0 48px;
-    min-height: 85vh;
+    padding: 40px 0 28px;
+    min-height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -92,7 +92,7 @@ module.exports = function getV3CSS() {
     text-transform: uppercase;
     letter-spacing: 4px;
     color: var(--primary);
-    margin-bottom: 36px;
+    margin-bottom: 24px;
     opacity: 0.85;
   }
 
@@ -101,7 +101,7 @@ module.exports = function getV3CSS() {
     font-size: 1.6rem;
     font-weight: 400;
     color: var(--slate);
-    margin-bottom: 24px;
+    margin-bottom: 18px;
   }
 
   .search-bar {
@@ -111,8 +111,8 @@ module.exports = function getV3CSS() {
     background: white;
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 50px;
-    padding: 18px 32px;
-    margin: 0 auto 36px;
+    padding: 16px 28px;
+    margin: 0 auto 28px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 40px rgba(0,0,0,0.08);
     min-width: 420px;
   }
@@ -146,7 +146,7 @@ module.exports = function getV3CSS() {
     font-size: 3.25rem;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
   }
 
   .hero h1 .highlight {
@@ -162,7 +162,7 @@ module.exports = function getV3CSS() {
   }
 
   .scroll-hint {
-    margin-top: 36px;
+    margin-top: 28px;
     font-size: 0.75rem;
     color: var(--muted);
     letter-spacing: 1px;
@@ -194,6 +194,8 @@ module.exports = function getV3CSS() {
     font-size: 1.875rem;
     margin-bottom: 14px;
     letter-spacing: -0.02em;
+    padding-left: 14px;
+    border-left: 3px solid var(--primary);
   }
 
   .narrative p {
@@ -239,26 +241,62 @@ module.exports = function getV3CSS() {
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 30px;
-    margin: 18px 0;
+    margin: 20px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.025);
+  }
+
+  .gap-search { border-top: 4px solid #4285F4; }
+  .gap-social { border-top: 4px solid #3b5998; }
+  .gap-intake { border-top: 4px solid #059669; }
+
+  .gap-search .gap-stat-number { color: #4285F4; }
+  .gap-social .gap-stat-number { color: #3b5998; }
+  .gap-intake .gap-stat-number { color: #059669; }
+
+  .narrative + .gap-card {
+    margin-top: 24px;
   }
 
   .gap-card h3 {
     font-size: 1.3rem;
     line-height: 1.3;
-    margin-bottom: 4px;
+    margin-bottom: 0;
     letter-spacing: -0.01em;
   }
 
-  .gap-card-cost {
-    font-size: 0.875rem;
-    color: var(--danger);
-    font-weight: 600;
-    margin-bottom: 14px;
+  .gap-stat {
+    text-align: center;
+    padding: 18px 0;
+    margin: 14px 0 18px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gap-stat-number {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .gap-stat-number span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--slate-light);
+  }
+
+  .gap-stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-top: 4px;
   }
 
   .gap-card p {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     line-height: 1.75;
     font-size: 0.975rem;
   }
@@ -269,13 +307,24 @@ module.exports = function getV3CSS() {
 
   .math-box {
     background: var(--warm-white);
-    padding: 14px 18px;
+    padding: 18px 20px;
     border-radius: 8px;
     font-size: 0.85rem;
     border: 1px solid var(--border);
     color: var(--slate);
-    margin-top: 14px;
+    margin-top: 20px;
     line-height: 1.65;
+    position: relative;
+  }
+
+  .math-box-label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
   }
 
   .math-box strong {
@@ -322,14 +371,14 @@ module.exports = function getV3CSS() {
 
   /* ========== TOTAL STRIP ========== */
   .total-strip {
-    background: var(--ink);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: white;
     border-radius: 14px;
     padding: 28px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 32px 0 20px;
+    margin: 24px 0 16px;
   }
 
   .total-strip-text {
@@ -383,17 +432,28 @@ module.exports = function getV3CSS() {
   }
 
   .review-bar-track {
-    height: 30px;
+    height: 38px;
     background: var(--warm-white);
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid var(--border);
   }
 
+  @keyframes barFill { from { width: 0; } }
+
   .review-bar-fill {
     height: 100%;
     border-radius: 5px;
   }
+
+  .competitor-section.visible .review-bar-fill {
+    animation: barFill 0.8s ease-out backwards;
+  }
+
+  .competitor-section.visible .review-bar-group:nth-child(1) .review-bar-fill { animation-delay: 0.2s; }
+  .competitor-section.visible .review-bar-group:nth-child(2) .review-bar-fill { animation-delay: 0.45s; }
+  .competitor-section.visible .review-bar-group:nth-child(3) .review-bar-fill { animation-delay: 0.7s; }
+  .competitor-section.visible .review-bar-group:nth-child(4) .review-bar-fill { animation-delay: 0.95s; }
 
   .review-bar-fill.competitor {
     background: linear-gradient(90deg, var(--primary), var(--primary-light));
@@ -405,9 +465,9 @@ module.exports = function getV3CSS() {
   }
 
   .competitor-takeaway {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 14px;
+    background: rgba(79,70,229,0.03);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 14px 14px 0;
     padding: 22px 26px;
     margin-top: 24px;
     font-size: 0.95rem;
@@ -432,11 +492,17 @@ module.exports = function getV3CSS() {
 
   .build-number {
     font-family: 'Fraunces', serif;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--primary);
+    color: white;
+    background: var(--primary);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    width: 32px;
   }
 
   .build-content strong {
@@ -465,14 +531,105 @@ module.exports = function getV3CSS() {
     letter-spacing: 0.3px;
   }
 
+  /* ========== JOURNEY FLOW ========== */
+  .journey-heading {
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    padding-top: 8px;
+  }
+
+  .journey-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 28px 0 8px;
+  }
+
+  .journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .journey-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .journey-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--slate-light);
+  }
+
+  .journey-line {
+    width: 48px;
+    height: 2px;
+    border-top: 2px dashed var(--border);
+    margin-bottom: 24px;
+  }
+
+  /* ========== SCROLL FADE-IN ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { opacity: 0; }
+  .fade-in.visible { animation: fadeUp 0.6s ease-out forwards; }
+
+  /* ========== GAP CONNECTORS ========== */
+  .gap-connector {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  /* ========== CALLOUT ========== */
+  .callout {
+    background: rgba(79,70,229,0.03);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 24px;
+    margin: 16px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .callout p {
+    margin: 0;
+    line-height: 1.75;
+    color: var(--slate);
+  }
+
   /* ========== CTA ========== */
   .cta {
     text-align: center;
     padding: 48px 36px;
-    background: white;
+    background: linear-gradient(180deg, rgba(79,70,229,0.04), rgba(99,102,241,0.08));
     border-radius: 20px;
     margin: 48px 0 36px;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(79,70,229,0.12);
     box-shadow: 0 4px 20px rgba(0,0,0,0.035);
   }
 
@@ -515,7 +672,10 @@ module.exports = function getV3CSS() {
     .search-bar { min-width: auto; width: 100%; padding: 14px 22px; }
     .search-bar-inner { min-width: auto; font-size: 1rem; }
     .narrative h2 { font-size: 1.5rem; }
-    .gap-card { padding: 24px 20px; }
+    .gap-card { padding: 24px 20px; margin: 16px 0; }
+    .gap-card p { margin-bottom: 18px; line-height: 1.85; }
+    .narrative + .gap-card { margin-top: 20px; }
+    .gap-stat-number { font-size: 1.65rem; }
     .before-after { grid-template-columns: 1fr; }
     .total-strip { flex-direction: column; gap: 10px; text-align: center; padding: 24px; }
     .total-strip-number { font-size: 1.875rem; }
@@ -523,6 +683,9 @@ module.exports = function getV3CSS() {
     .cta { padding: 36px 22px; }
     .cta h2 { font-size: 1.4rem; }
     .divider { margin: 36px 0; }
+    .journey-flow { gap: 0; }
+    .journey-line { width: 24px; }
+    .journey-icon { width: 40px; height: 40px; }
   }
 
   @media (max-width: 480px) {

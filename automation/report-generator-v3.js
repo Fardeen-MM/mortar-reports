@@ -158,7 +158,7 @@ async function generateProseContent(context) {
   }).join(', ');
 
   const localeInstructions = isUK
-    ? `LOCALE: United Kingdom. Use UK English throughout: solicitor (not attorney), enquiry (not inquiry), practise (verb), practice (noun), law practice (not law firm), £ (not $), HMRC (not IRS), child arrangements (not child custody). Write naturally in UK English — do NOT just find-replace US terms.`
+    ? `LOCALE: United Kingdom. Use UK English throughout: solicitor (not attorney), enquiry (not inquiry), practise (verb), practice (noun), law practice (not law firm), £ (not $), HMRC (not IRS), child arrangements (not child custody). Write naturally in UK English. Do NOT just find-replace US terms.`
     : isAU
       ? `LOCALE: Australia. Use Australian English: solicitor or lawyer, enquiry, practice, A$ or $. Write naturally in Australian English.`
       : `LOCALE: United States. Use US English: attorney, lawyer, law firm, inquiry, $, IRS. Write naturally in US English.`;
@@ -182,7 +182,7 @@ ${competitorNames || 'No competitor data available'}
 
 ADS STATUS:${adsContext}
 
-GAP CALCULATIONS (already computed — use these EXACT numbers in your prose):
+GAP CALCULATIONS (already computed, use these EXACT numbers in your prose):
 - Gap 1 (Search Ads): ~${gap1.searches} monthly searches, ${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/month opportunity
 - Gap 2 (Social Ads): ~${(gap2.audience/1000).toFixed(0)}K audience, ${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/month opportunity
 - Gap 3 (After-Hours Intake): ~${gap3.calls} calls/month, ${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/month opportunity
@@ -196,39 +196,41 @@ SEARCH TERMS (for reference): ${searchTerms.join(', ')}
 STYLE GUIDE:
 - Punchy, direct, no fluff. Write like a strategist, not a salesperson.
 - Short paragraphs (2-3 sentences max per paragraph).
-- Reference THEIR specific data — don't be generic.
+- Reference THEIR specific data. Don't be generic.
 - Tone: confident but honest. Use ranges and caveats, not guarantees.
 - DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
 - DO NOT fabricate statistics, case studies, or claims.
 - Use the correct legal terminology for the country (this is critical).
-- Keep each field concise — the HTML structure provides visual breathing room.
+- Keep each field concise. The HTML structure provides visual breathing room.
+- DO NOT use em dashes (—). Use periods or commas instead.
 
 EXAMPLE STYLE (match this voice):
-"~250 people searched for a personal injury attorney in Denver last month. You're not running Google Ads. The firms that are — they got those clicks."
+"~250 people searched for a personal injury attorney in Denver last month. You're not running Google Ads. The firms that are? They got those clicks."
 
 Return ONLY valid JSON with these exact fields:
 
 {
-  "heroSubheading": "One paragraph. We analyzed the [practice] market in [location] — who shows up, who advertises, where the gaps are. 1-2 sentences.",
+  "heroSubheading": "One paragraph. We analyzed the [practice] market in [location]. Who shows up, who advertises, where the gaps are. 1-2 sentences.",
   "gapSectionHeadline": "Short punchy headline for the gap section. e.g. 'Where you're losing cases right now'",
   "gapSectionIntro": "One paragraph explaining the three gaps. 2-3 sentences. Reference their specific practice area and location.",
+  "totalStripTransition": "One sentence bridging the total opportunity number to the gap breakdown below. e.g. 'Here's where that number comes from.' or 'Three gaps. Let's break them down.' Keep it short and punchy, max 1-2 sentences.",
   "gap1Headline": "${runningGoogleAds ? 'Headline about their ads potentially being unoptimized. Reference the search volume number.' : 'Headline about missing search ad opportunity. Reference the search volume number.'}",
-  "gap1Para1": "First paragraph for Gap 1. ${runningGoogleAds ? 'They are running ads — talk about optimization opportunity.' : 'They are NOT running ads — talk about the missed clicks.'}",
+  "gap1Para1": "First paragraph for Gap 1. ${runningGoogleAds ? 'They are running ads. Talk about optimization opportunity.' : 'They are NOT running ads. Talk about the missed clicks.'}",
   "gap1Para2": "Second paragraph for Gap 1. Deeper insight, not repetitive.",
   "gap1MathIntro": "${runningGoogleAds ? '"Why this matters:" then explain optimization opportunity' : '"How we estimated this:" then explain the formula in plain English, with caveat about actual numbers varying.'}",
   "gap2Headline": "${runningMetaAds ? 'Headline about their social ads potentially being unoptimized.' : 'Headline about clients who do not Google their problem. Mention the type of client naturally.'}",
-  "gap2Para1": "First paragraph for Gap 2. ${runningMetaAds ? 'They are running Meta ads — talk about optimization.' : 'Client perspective story. They have a legal problem, scrolling social media, not searching yet.'}",
+  "gap2Para1": "First paragraph for Gap 2. ${runningMetaAds ? 'They are running Meta ads. Talk about optimization.' : 'Client perspective story. They have a legal problem, scrolling social media, not searching yet.'}",
   "gap2Para2": "Second paragraph for Gap 2. Why both channels matter.",
   "gap2MathIntro": "${runningMetaAds ? '"Why this matters:" then explain optimization value' : '"How we estimated this:" then explain the formula with caveat about creative quality.'}",
-  "gap3Headline": "Headline about after-hours calls. Natural scenario for this practice area — what emergency makes someone call at 7pm?",
+  "gap3Headline": "Headline about after-hours calls. Natural scenario for this practice area, what emergency makes someone call at 7pm?",
   "gap3Para1": "First paragraph for Gap 3. Specific emergency scenario. Someone calls, gets voicemail, calls the next firm.",
   "gap3Para2": "Second paragraph for Gap 3. Why this matters once ads are driving calls.",
   "totalStripContext": "One paragraph after the total strip. Caveat that it's a range, not a guarantee. Why the exact number isn't the point.",
   "competitorHeadline": "Headline introducing competitor comparison. Punchy.",
   "competitorIntro": "One paragraph about the competitor data source and what reviews mean for search visibility.",
-  "competitorTakeaway": "One paragraph takeaway. These firms aren't necessarily better — they just invested in marketing infrastructure. Reviews are the visible part.",
+  "competitorTakeaway": "One paragraph takeaway. These firms aren't necessarily better. They just invested in marketing infrastructure. Reviews are the visible part.",
   "buildHeadline": "Headline introducing the build list.",
-  "buildIntro": "One paragraph. It's a system — each piece feeds the next. Short.",
+  "buildIntro": "One paragraph. It's a system, each piece feeds the next. Short.",
   "buildItem1Title": "${runningGoogleAds ? 'Title for auditing/optimizing existing Google Ads' : 'Title for launching Google Ads targeting their practice area'}",
   "buildItem1Detail": "One sentence description of what this involves.",
   "buildItem1Timeline": "${runningGoogleAds ? 'Audit in 1 week, optimizations ongoing' : 'Typically live in 1-2 weeks'}",
@@ -263,6 +265,13 @@ Return ONLY valid JSON with these exact fields:
   }
 
   const prose = JSON.parse(objectMatch[0]);
+
+  // Strip any em dashes the AI generates
+  for (const key of Object.keys(prose)) {
+    if (typeof prose[key] === 'string') {
+      prose[key] = prose[key].replace(/\s*—\s*/g, '. ').replace(/\.\.\s/g, '. ');
+    }
+  }
 
   // Validate essential fields are present
   const requiredFields = ['heroSubheading', 'gap1Headline', 'gap1Para1', 'gap2Headline', 'gap2Para1', 'gap3Headline', 'gap3Para1'];
@@ -332,43 +341,44 @@ function generateFallbackProse(context) {
   const article = startsWithVowelSound(attorneyPhrase) ? 'an' : 'a';
 
   return {
-    heroSubheading: `We analyzed the ${practiceDescription} market in ${locationStr} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.`,
+    heroSubheading: `We analyzed the ${practiceDescription} market in ${locationStr}. Who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.`,
     gapSectionHeadline: "Where you're losing cases right now",
-    gapSectionIntro: `We looked at how people find and contact ${attorneyPhrasePlural} in ${locationStr}. Three specific gaps came up — places where ${clientLabel}s are looking for help and ending up with someone else.`,
+    gapSectionIntro: `We looked at how people find and contact ${attorneyPhrasePlural} in ${locationStr}. Three specific gaps came up. Places where ${clientLabel}s are looking for help and ending up with someone else.`,
+    totalStripTransition: `Here's where that number comes from. Three gaps we found in your current setup.`,
     gap1Headline: runningGoogleAds
-      ? `You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're ${isUK ? 'optimised' : 'optimized'}.`
+      ? `You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''}. The question is whether they're ${isUK ? 'optimised' : 'optimized'}.`
       : `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month. The ${lawFirmWord}s running ads got those clicks.`,
     gap1Para1: runningGoogleAds
-      ? `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month in ${locationStr}. You're already competing for these clicks — the question is how efficiently.`
-      : `When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The ${lawFirmWord}s dominating these spots are the ones investing in ads and actively building their review count.`,
+      ? `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month in ${locationStr}. You're already competing for these clicks. The question is how efficiently.`
+      : `When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack, which ranks heavily on reviews. Below that, organic results. The ${lawFirmWord}s dominating these spots are the ones investing in ads and actively building their review count.`,
     gap1Para2: runningGoogleAds
       ? `Most ${lawFirmWord} ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. Small ${isUK ? 'optimisations' : 'optimizations'} compound: better keywords, tighter targeting, conversion-focused landing pages.`
-      : `This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. Search ads consistently deliver the fastest results for ${lawFirmWord}s because the intent is already there.`,
+      : `This is the highest-intent channel in legal marketing. These people are actively looking for exactly what you do, right now. Search ads consistently deliver the fastest results for ${lawFirmWord}s because the intent is already there.`,
     gap1MathIntro: runningGoogleAds
       ? `Why this matters: You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.`
-      : `How we estimated this: ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets — your actual numbers will vary based on your intake process and close rate.`,
+      : `How we estimated this: ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets. Your actual numbers will vary based on your intake process and close rate.`,
     gap2Headline: runningMetaAds
-      ? `You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''} — are they reaching the right people?`
+      ? `You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''}. Are they reaching the right people?`
       : `Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.`,
     gap2Para1: runningMetaAds
-      ? `You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${practiceDescription} ${lawFirmWord} Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.`
-      : `Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.`,
+      ? `You're already investing in social. The question is whether your targeting, creative, and landing pages are working together. Most ${practiceDescription} ${lawFirmWord} Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.`
+      : `Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet. They're venting in groups, scrolling at night, reading posts from others in similar situations.`,
     gap2Para2: runningMetaAds
       ? `The best-performing Meta campaigns for legal services combine precise audience targeting with compelling creative and dedicated landing pages. Small improvements in any of these areas typically yield 15-30% performance gains.`
-      : `A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing ${lawFirmWord}s we've seen use both channels because they capture completely different people at different stages.`,
+      : `A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing ${lawFirmWord}s use both channels because they capture completely different people at different stages.`,
     gap2MathIntro: runningMetaAds
-      ? `Why this matters: Meta's algorithm rewards well-${isUK ? 'optimised' : 'optimized'} campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can transform a break-even campaign into a profitable one.`
-      : `How we estimated this: ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting — but well-run campaigns for legal services consistently outperform these baselines.`,
-    gap3Headline: `When a ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?`,
+      ? `Why this matters: Meta's algorithm rewards well-${isUK ? 'optimised' : 'optimized'} campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can turn a break-even campaign into a profitable one.`
+      : `How we estimated this: ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting, but well-run campaigns for legal services consistently outperform these baselines.`,
+    gap3Headline: `When a ${clientLabel} calls at 7pm about ${emergencyScenario}, what happens?`,
     gap3Para1: `A ${clientLabel} has an emergency. It's Tuesday evening. They call three ${attorneyPhrasePlural}. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which ${lawFirmWord} gets that case?`,
-    gap3Para2: `Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.`,
+    gap3Para2: `Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies. It's the most common leak in the funnel we see.`,
     gap3MathIntro: `How we estimated this: ${gap3.formula}.`,
-    totalStripContext: `That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is ${isUK ? 'optimised' : 'optimized'}. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other ${lawFirmWord}s instead of you.`,
+    totalStripContext: `That's the range, not a guarantee. It depends on your case values, close rate, and how well the system is ${isUK ? 'optimised' : 'optimized'}. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other ${lawFirmWord}s instead of you.`,
     competitorHeadline: `And those other ${lawFirmWord}s? Here's who's getting your cases.`,
-    competitorIntro: `We pulled the ${lawFirmWord}s showing up for ${practiceDescription} searches in ${locationStr}. Google uses reviews as a major trust signal — more reviews and higher ratings push ${lawFirmWord}s into the Map Pack at the top of results, where most clicks happen. Here's where you stand.`,
-    competitorTakeaway: `This doesn't mean they're better ${attorneyWordPlural}. In every market we've ${isUK ? 'analysed' : 'analyzed'}, the ${lawFirmWord}s that dominate search results aren't always the best — they're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.`,
+    competitorIntro: `We pulled the ${lawFirmWord}s showing up for ${practiceDescription} searches in ${locationStr}. Google uses reviews as a major trust signal. More reviews and higher ratings push ${lawFirmWord}s into the Map Pack at the top of results, where most clicks happen. Here's where you stand.`,
+    competitorTakeaway: `This doesn't mean they're better ${attorneyWordPlural}. In every market we've ${isUK ? 'analysed' : 'analyzed'}, the ${lawFirmWord}s that dominate search results aren't always the best. They're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.`,
     buildHeadline: `Here's how we'd close these gaps`,
-    buildIntro: `It's not one thing — it's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on ${isUK ? 'practising' : 'practicing'} law.`,
+    buildIntro: `It's not one thing. It's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on ${isUK ? 'practising' : 'practicing'} law.`,
     buildItem1Title: runningGoogleAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your existing Google Ads` : `Google Ads targeting ${practiceDescription} searches in your area`,
     buildItem1Detail: runningGoogleAds
       ? `We'll ${isUK ? 'analyse' : 'analyze'} what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.`
@@ -377,10 +387,10 @@ function generateFallbackProse(context) {
     buildItem2Title: runningMetaAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your Meta Ads campaigns` : `Meta Ads reaching people before they search`,
     buildItem2Detail: runningMetaAds
       ? `We'll review your audiences, creative, and conversion tracking to ${isUK ? 'maximise' : 'maximize'} return on your existing spend.`
-      : `Targeted campaigns on Facebook and Instagram — putting your ${lawFirmWord} in front of people who need help but haven't started looking.`,
+      : `Targeted campaigns on Facebook and Instagram, putting your ${lawFirmWord} in front of people who need help but haven't started looking.`,
     buildItem2Timeline: runningMetaAds ? `Audit in 1 week, ${isUK ? 'optimisations' : 'optimizations'} ongoing` : 'Typically live in 2-3 weeks',
     buildItem3Title: `AI-powered intake that answers every call, 24/7`,
-    buildItem3Detail: `No more voicemail. Every call answered, qualified, and booked — even at 2am. Your team gets notified instantly.`,
+    buildItem3Detail: `No more voicemail. Every call answered, qualified, and booked, even at 2am. Your team gets notified instantly.`,
     buildItem3Timeline: 'Typically live in 1-2 weeks',
     buildItem4Title: `CRM + reporting so you know what's working`,
     buildItem4Detail: `Every lead tracked from first click to signed retainer. You see exactly which ${currency === '£' ? 'pounds are' : 'dollars are'} producing cases.`,
@@ -610,15 +620,16 @@ function generateHTML(data) {
   const cssModule = require('./report-v3-css.js');
   const css = cssModule();
 
-  // Gap 1 cost line
-  const gap1CostLine = runningGoogleAds
-    ? `Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value`
-    : `Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo`;
+  // Gap stat blocks (big visual number + label)
+  const gap1Stat = runningGoogleAds
+    ? { number: `~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}`, label: 'potential monthly optimization' }
+    : { number: `~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}`, label: 'estimated monthly opportunity' };
 
-  // Gap 2 cost line
-  const gap2CostLine = runningMetaAds
-    ? `Potential optimization: ~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}/mo in additional value`
-    : `Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo`;
+  const gap2Stat = runningMetaAds
+    ? { number: `~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}`, label: 'potential monthly optimization' }
+    : { number: `~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}`, label: 'estimated monthly opportunity' };
+
+  const gap3Stat = { number: `~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}`, label: 'estimated monthly opportunity' };
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -678,48 +689,72 @@ ${css}
 
     <div class="narrative">
       <h2>${escapeHtml(prose.gapSectionHeadline)}</h2>
+    </div>
 
-      <p>${escapeHtml(prose.gapSectionIntro)}</p>
+    <!-- TOTAL STRIP -->
+    <div class="total-strip">
+      <div class="total-strip-text">Combined estimated monthly opportunity</div>
+      <div class="total-strip-number">${currency}${formatMoney(totalLow)}-${formatMoney(totalHigh)}</div>
+    </div>
+
+    <div class="callout">
+      <p>${escapeHtml(prose.totalStripTransition || "Here's where that number comes from.")}</p>
     </div>
 
 
     <!-- GAP 1 - Google Ads -->
-    <div class="gap-card">
+    <div class="gap-card gap-search fade-in">
       <div class="badge badge-search">Google Ads</div>
       <h3>${escapeHtml(prose.gap1Headline)}</h3>
-      <div class="gap-card-cost">${gap1CostLine}</div>
+
+      <div class="gap-stat">
+        <div class="gap-stat-number">${gap1Stat.number}<span>/mo</span></div>
+        <div class="gap-stat-label">${gap1Stat.label}</div>
+      </div>
 
       <p>${escapeHtml(prose.gap1Para1)}</p>
 
       <p>${escapeHtml(prose.gap1Para2)}</p>
 
       <div class="math-box">
+        <span class="math-box-label">The math</span>
         <strong>${escapeHtml(prose.gap1MathIntro)}</strong>
       </div>
     </div>
 
+    <div class="gap-connector" style="border-color: #3b5998; color: #3b5998;">+</div>
 
     <!-- GAP 2 - Meta Ads -->
-    <div class="gap-card">
+    <div class="gap-card gap-social fade-in">
       <div class="badge badge-social">Meta Ads · Facebook + Instagram</div>
       <h3>${escapeHtml(prose.gap2Headline)}</h3>
-      <div class="gap-card-cost">${gap2CostLine}</div>
+
+      <div class="gap-stat">
+        <div class="gap-stat-number">${gap2Stat.number}<span>/mo</span></div>
+        <div class="gap-stat-label">${gap2Stat.label}</div>
+      </div>
 
       <p>${escapeHtml(prose.gap2Para1)}</p>
 
       <p>${escapeHtml(prose.gap2Para2)}</p>
 
       <div class="math-box">
+        <span class="math-box-label">The math</span>
         <strong>${escapeHtml(prose.gap2MathIntro)}</strong>
       </div>
     </div>
 
+    <div class="gap-connector" style="border-color: #059669; color: #059669;">+</div>
 
     <!-- GAP 3 - Voice AI -->
-    <div class="gap-card">
+    <div class="gap-card gap-intake fade-in">
       <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
       <h3>${escapeHtml(prose.gap3Headline)}</h3>
-      <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
+
+      <div class="gap-stat">
+        <div class="gap-stat-number">${gap3Stat.number}<span>/mo</span></div>
+        <div class="gap-stat-label">${gap3Stat.label}</div>
+      </div>
 
       <p>${escapeHtml(prose.gap3Para1)}</p>
 
@@ -737,18 +772,13 @@ ${css}
       </div>
 
       <div class="math-box">
+        <span class="math-box-label">The math</span>
         <strong>${escapeHtml(prose.gap3MathIntro)}</strong>
       </div>
     </div>
 
 
-    <!-- TOTAL STRIP -->
-    <div class="total-strip">
-      <div class="total-strip-text">Combined estimated monthly opportunity</div>
-      <div class="total-strip-number">${currency}${formatMoney(totalLow)}-${formatMoney(totalHigh)}</div>
-    </div>
-
-    <div class="narrative">
+    <div class="callout">
       <p>${escapeHtml(prose.totalStripContext)}</p>
     </div>
 
@@ -774,7 +804,39 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.c
       <p>${escapeHtml(prose.buildIntro)}</p>
     </div>
 
-    <div class="build-list">
+    <!-- CLIENT JOURNEY -->
+    <div class="journey-heading">Every new client follows this path</div>
+    <div class="journey-flow">
+      <div class="journey-step">
+        <div class="journey-icon" style="background: rgba(66,133,244,0.1); color: #4285F4;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </div>
+        <span class="journey-label">Search</span>
+      </div>
+      <div class="journey-line"></div>
+      <div class="journey-step">
+        <div class="journey-icon" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
+        </div>
+        <span class="journey-label">Click</span>
+      </div>
+      <div class="journey-line"></div>
+      <div class="journey-step">
+        <div class="journey-icon" style="background: rgba(5,150,105,0.1); color: #059669;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <span class="journey-label">Call</span>
+      </div>
+      <div class="journey-line"></div>
+      <div class="journey-step">
+        <div class="journey-icon" style="background: rgba(234,88,12,0.1); color: #ea580c;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <span class="journey-label">Sign</span>
+      </div>
+    </div>
+
+    <div class="build-list fade-in">
       <div class="build-item">
         <div class="build-number">1</div>
         <div class="build-content">
@@ -816,7 +878,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.c
     <!-- CTA -->
     <div class="divider"></div>
 
-    <div id="booking" class="cta">
+    <div id="booking" class="cta fade-in">
       <h2>${escapeHtml(prose.ctaHeadline)}</h2>
       <p>${escapeHtml(prose.ctaSubtext)}</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
@@ -832,6 +894,7 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.c
   </div>
 
 ${generateTypingScript(searchTerms)}
+<noscript><style>.fade-in { opacity: 1 !important; }</style></noscript>
 </body>
 </html>`;
 }
@@ -843,7 +906,7 @@ ${generateTypingScript(searchTerms)}
 function generateCompetitorBars(competitors, firmName, firmReviews, firmRating, takeawayText) {
   if (!competitors || competitors.length === 0) {
     return `
-    <div class="competitor-section">
+    <div class="competitor-section fade-in">
       <div class="competitor-takeaway">
         <strong>We couldn't find verified competitor data for this market.</strong> That's often a sign of an under-marketed space - which means first-mover advantage for firms that build comprehensive marketing infrastructure.
       </div>
@@ -855,7 +918,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating, 
   const allReviews = [...competitors.map(c => c.reviews || c.reviewCount || 0), firmReviews];
   const maxReviews = Math.max(...allReviews, 1);
 
-  let bars = '<div class="competitor-section">\n';
+  let bars = '<div class="competitor-section fade-in">\n';
 
   // Competitor bars
   competitors.slice(0, 3).forEach(comp => {
@@ -934,6 +997,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('typed-search');
   if (el) el.textContent = '';
   new SearchTyper('typed-search', ${JSON.stringify(searchTerms)}).start();
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-in, .competitor-section').forEach(el => io.observe(el));
 });
 </script>
 `;
