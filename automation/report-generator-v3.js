@@ -1,34 +1,22 @@
 #!/usr/bin/env node
 /**
- * REPORT GENERATOR V3 - Matching paletz-report-v3.html Reference
- * 
- * Structure (in order):
- * 1. Hero - typing animation, "They find other firms. Not yours.", scroll hint
- * 2. Gap Section Intro - "Where you're losing cases right now"
- * 3. Gap Card 1 - Google Ads (badge, headline, cost range, math box with caveat)
- * 4. Gap Card 2 - Meta Ads (badge, client perspective story)
- * 5. Gap Card 3 - Voice AI (badge, before/after comparison)
- * 6. Total Strip - Black bar with combined range
- * 7. Competitor Section - Horizontal bar chart for reviews
- * 8. Build List - Numbered list with timeline badges
- * 9. CTA - Simple booking widget, no guilt trips
- * 10. Footer
- * 
- * REMOVED from V12:
- * - TLDR boxes
- * - Section labels ("GAP #1", "GAP #2")
- * - Section pull quotes
- * - Flow diagrams
- * - Proof grid
- * - Two-options guilt trip box
- * - Hero CTA button
- * - Solution stack with emoji icons
+ * REPORT GENERATOR V3 — AI Prose + Fixed Structure
+ *
+ * Architecture: Three layers
+ *   STRUCTURE (fixed) — HTML, CSS, JS animations, competitor bars
+ *   MATH (fixed) — Gap formulas, market multipliers, case values
+ *   PROSE (AI) — Claude writes ALL copy, in the correct locale, natively
+ *
+ * AI writes every prose paragraph in one call. If the AI call fails,
+ * falls back to the old hardcoded templates (kept as safety net).
  */
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { findCompetitors, fetchFirmGoogleData, getSearchTerms } = require('./ai-research-helper.js');
-const { getContentWithFallback } = require('./ai-content-generator.js');
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 // HTML-escape user-provided strings to prevent XSS
 function escapeHtml(str) {
@@ -78,43 +66,337 @@ const CASE_VALUES_GBP = {
   'default': { low: 2500, high: 4500 }
 };
 
-// Client type labels by practice area (singular and plural)
-const CLIENT_LABELS = {
-  'landlord': { singular: 'landlord', plural: 'landlords' },
-  'personal injury': { singular: 'accident victim', plural: 'accident victims' },
-  'divorce': { singular: 'spouse', plural: 'people going through divorce' },
-  'family': { singular: 'parent', plural: 'families' },
-  'immigration': { singular: 'immigrant', plural: 'immigrants' },
-  'criminal': { singular: 'defendant', plural: 'defendants' },
-  'estate': { singular: 'family member', plural: 'families' },
-  'business': { singular: 'business owner', plural: 'business owners' },
-  'bankruptcy': { singular: 'debtor', plural: 'people in debt' },
-  'tax': { singular: 'taxpayer', plural: 'taxpayers' },
-  'employment': { singular: 'employee', plural: 'employees' },
-  'real estate': { singular: 'buyer', plural: 'property buyers' },
-  'default': { singular: 'potential client', plural: 'potential clients' }
-};
+// ============================================================================
+// AI PROSE GENERATION — One Claude call writes ALL prose
+// ============================================================================
 
-// Emergency scenarios by practice area
-const EMERGENCY_SCENARIOS = {
-  'landlord': 'an eviction emergency',
-  'personal injury': 'an accident',
-  'divorce': 'a custody emergency',
-  'family': 'a family crisis',
-  'immigration': 'deportation notice',
-  'criminal': 'an arrest',
-  'estate': 'a sudden death in the family',
-  'business': 'a business dispute',
-  'bankruptcy': 'creditor harassment',
-  'tax': 'an IRS notice',
-  'employment': 'wrongful termination',
-  'real estate': 'a closing deadline',
-  'default': 'a legal emergency'
-};
+/**
+ * Call Claude API for prose generation
+ */
+function callClaude(prompt, maxTokens = 3000) {
+  return new Promise((resolve, reject) => {
+    if (!ANTHROPIC_API_KEY) {
+      reject(new Error('No ANTHROPIC_API_KEY'));
+      return;
+    }
+
+    const requestData = JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      temperature: 0.7,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(requestData)
+      },
+      timeout: 60000
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.content?.[0]?.text) {
+            resolve(result.content[0].text);
+          } else if (result.error) {
+            reject(new Error(`Claude API error: ${result.error.message || JSON.stringify(result.error)}`));
+          } else {
+            reject(new Error(`Unexpected Claude response: ${data.substring(0, 300)}`));
+          }
+        } catch (e) {
+          reject(new Error(`Parse error: ${e.message}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Claude request timeout'));
+    });
+
+    req.write(requestData);
+    req.end();
+  });
+}
+
+/**
+ * Generate ALL prose content in one Claude call.
+ * Returns structured JSON with every prose section of the report.
+ */
+async function generateProseContent(context) {
+  const {
+    firmName, city, state, country, currency,
+    practiceArea, practiceDescription,
+    searchTerms,
+    gap1, gap2, gap3, totalLow, totalHigh,
+    runningGoogleAds, runningMetaAds,
+    googleAdCount, metaAdCount,
+    competitors
+  } = context;
+
+  const isUK = (country === 'GB' || country === 'UK');
+  const isAU = (country === 'AU');
+  const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
+
+  // Build competitor context
+  const competitorNames = (competitors || []).slice(0, 3).map(c => {
+    const reviews = c.reviews || c.reviewCount || 0;
+    const rating = c.rating || 0;
+    return `${c.name} (${reviews} reviews, ${rating}★)`;
+  }).join(', ');
+
+  const localeInstructions = isUK
+    ? `LOCALE: United Kingdom. Use UK English throughout: solicitor (not attorney), enquiry (not inquiry), practise (verb), practice (noun), law practice (not law firm), £ (not $), HMRC (not IRS), child arrangements (not child custody). Write naturally in UK English — do NOT just find-replace US terms.`
+    : isAU
+      ? `LOCALE: Australia. Use Australian English: solicitor or lawyer, enquiry, practice, A$ or $. Write naturally in Australian English.`
+      : `LOCALE: United States. Use US English: attorney, lawyer, law firm, inquiry, $, IRS. Write naturally in US English.`;
+
+  const adsContext = `
+Google Ads: ${runningGoogleAds ? `RUNNING (${googleAdCount} detected)` : 'NOT running'}
+Meta Ads: ${runningMetaAds ? `RUNNING (${metaAdCount} active)` : 'NOT running'}`;
+
+  const prompt = `You are writing a personalised marketing report for a law firm. Write ALL the prose sections below.
+
+FIRM CONTEXT:
+- Name: ${firmName}
+- Location: ${locationStr}
+- Practice area: ${practiceDescription}
+- Country: ${country || 'US'}
+
+${localeInstructions}
+
+COMPETITOR DATA:
+${competitorNames || 'No competitor data available'}
+
+ADS STATUS:${adsContext}
+
+GAP CALCULATIONS (already computed — use these EXACT numbers in your prose):
+- Gap 1 (Search Ads): ~${gap1.searches} monthly searches, ${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/month opportunity
+- Gap 2 (Social Ads): ~${(gap2.audience/1000).toFixed(0)}K audience, ${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/month opportunity
+- Gap 3 (After-Hours Intake): ~${gap3.calls} calls/month, ${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/month opportunity
+- Total: ${currency}${formatMoney(totalLow)}-${formatMoney(totalHigh)}/month
+- Gap 1 formula: ${gap1.formula}
+- Gap 2 formula: ${gap2.formula}
+- Gap 3 formula: ${gap3.formula}
+
+SEARCH TERMS (for reference): ${searchTerms.join(', ')}
+
+STYLE GUIDE:
+- Punchy, direct, no fluff. Write like a strategist, not a salesperson.
+- Short paragraphs (2-3 sentences max per paragraph).
+- Reference THEIR specific data — don't be generic.
+- Tone: confident but honest. Use ranges and caveats, not guarantees.
+- DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
+- DO NOT fabricate statistics, case studies, or claims.
+- Use the correct legal terminology for the country (this is critical).
+- Keep each field concise — the HTML structure provides visual breathing room.
+
+EXAMPLE STYLE (match this voice):
+"~250 people searched for a personal injury attorney in Denver last month. You're not running Google Ads. The firms that are — they got those clicks."
+
+Return ONLY valid JSON with these exact fields:
+
+{
+  "heroSubheading": "One paragraph. We analyzed the [practice] market in [location] — who shows up, who advertises, where the gaps are. 1-2 sentences.",
+  "gapSectionHeadline": "Short punchy headline for the gap section. e.g. 'Where you're losing cases right now'",
+  "gapSectionIntro": "One paragraph explaining the three gaps. 2-3 sentences. Reference their specific practice area and location.",
+  "gap1Headline": "${runningGoogleAds ? 'Headline about their ads potentially being unoptimized. Reference the search volume number.' : 'Headline about missing search ad opportunity. Reference the search volume number.'}",
+  "gap1Para1": "First paragraph for Gap 1. ${runningGoogleAds ? 'They are running ads — talk about optimization opportunity.' : 'They are NOT running ads — talk about the missed clicks.'}",
+  "gap1Para2": "Second paragraph for Gap 1. Deeper insight, not repetitive.",
+  "gap1MathIntro": "${runningGoogleAds ? '"Why this matters:" then explain optimization opportunity' : '"How we estimated this:" then explain the formula in plain English, with caveat about actual numbers varying.'}",
+  "gap2Headline": "${runningMetaAds ? 'Headline about their social ads potentially being unoptimized.' : 'Headline about clients who do not Google their problem. Mention the type of client naturally.'}",
+  "gap2Para1": "First paragraph for Gap 2. ${runningMetaAds ? 'They are running Meta ads — talk about optimization.' : 'Client perspective story. They have a legal problem, scrolling social media, not searching yet.'}",
+  "gap2Para2": "Second paragraph for Gap 2. Why both channels matter.",
+  "gap2MathIntro": "${runningMetaAds ? '"Why this matters:" then explain optimization value' : '"How we estimated this:" then explain the formula with caveat about creative quality.'}",
+  "gap3Headline": "Headline about after-hours calls. Natural scenario for this practice area — what emergency makes someone call at 7pm?",
+  "gap3Para1": "First paragraph for Gap 3. Specific emergency scenario. Someone calls, gets voicemail, calls the next firm.",
+  "gap3Para2": "Second paragraph for Gap 3. Why this matters once ads are driving calls.",
+  "totalStripContext": "One paragraph after the total strip. Caveat that it's a range, not a guarantee. Why the exact number isn't the point.",
+  "competitorHeadline": "Headline introducing competitor comparison. Punchy.",
+  "competitorIntro": "One paragraph about the competitor data source and what reviews mean for search visibility.",
+  "competitorTakeaway": "One paragraph takeaway. These firms aren't necessarily better — they just invested in marketing infrastructure. Reviews are the visible part.",
+  "buildHeadline": "Headline introducing the build list.",
+  "buildIntro": "One paragraph. It's a system — each piece feeds the next. Short.",
+  "buildItem1Title": "${runningGoogleAds ? 'Title for auditing/optimizing existing Google Ads' : 'Title for launching Google Ads targeting their practice area'}",
+  "buildItem1Detail": "One sentence description of what this involves.",
+  "buildItem1Timeline": "${runningGoogleAds ? 'Audit in 1 week, optimizations ongoing' : 'Typically live in 1-2 weeks'}",
+  "buildItem2Title": "${runningMetaAds ? 'Title for auditing/optimizing existing Meta Ads' : 'Title for launching Meta Ads reaching their client type'}",
+  "buildItem2Detail": "One sentence description.",
+  "buildItem2Timeline": "${runningMetaAds ? 'Audit in 1 week, optimizations ongoing' : 'Typically live in 2-3 weeks'}",
+  "buildItem3Title": "Title for AI-powered 24/7 intake",
+  "buildItem3Detail": "One sentence about what this solves.",
+  "buildItem3Timeline": "Typically live in 1-2 weeks",
+  "buildItem4Title": "Title for CRM + reporting",
+  "buildItem4Detail": "One sentence about tracking leads to signed cases.",
+  "buildItem4Timeline": "Set up alongside launch",
+  "ctaHeadline": "Headline for the booking CTA. Conversational, low-pressure.",
+  "ctaSubtext": "One sentence. 15 minutes, specific to their firm, they decide."
+}`;
+
+  console.log('🤖 Generating AI prose content...');
+
+  const response = await callClaude(prompt, 3000);
+
+  // Parse JSON from response
+  let jsonStr = response;
+  const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    jsonStr = jsonMatch[1];
+  }
+
+  // Try to find JSON object in response
+  const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+  if (!objectMatch) {
+    throw new Error('No JSON object found in AI response');
+  }
+
+  const prose = JSON.parse(objectMatch[0]);
+
+  // Validate essential fields are present
+  const requiredFields = ['heroSubheading', 'gap1Headline', 'gap1Para1', 'gap2Headline', 'gap2Para1', 'gap3Headline', 'gap3Para1'];
+  const missing = requiredFields.filter(f => !prose[f]);
+  if (missing.length > 0) {
+    throw new Error(`AI prose missing fields: ${missing.join(', ')}`);
+  }
+
+  console.log('✅ AI prose generated successfully');
+  return prose;
+}
+
+// ============================================================================
+// FALLBACK PROSE — Old hardcoded templates (safety net)
+// ============================================================================
+
+function generateFallbackProse(context) {
+  const {
+    firmName, city, state, country, currency,
+    practiceArea, practiceDescription,
+    searchTerms,
+    gap1, gap2, gap3, totalLow, totalHigh,
+    runningGoogleAds, runningMetaAds,
+    googleAdCount, metaAdCount
+  } = context;
+
+  const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
+  const isUK = (country === 'GB' || country === 'UK');
+
+  // Use locale-appropriate terms
+  const attorneyWord = isUK ? 'solicitor' : 'attorney';
+  const attorneyWordPlural = isUK ? 'solicitors' : 'attorneys';
+  const lawFirmWord = isUK ? 'law practice' : 'law firm';
+  const inquiryWord = isUK ? 'enquiry' : 'inquiry';
+
+  // Client labels (fallback)
+  const CLIENT_LABELS = {
+    'landlord': 'landlord', 'personal injury': 'accident victim', 'divorce': 'spouse',
+    'family': 'parent', 'immigration': 'immigrant', 'criminal': 'defendant',
+    'estate': 'family member', 'business': 'business owner', 'bankruptcy': 'debtor',
+    'tax': 'taxpayer', 'employment': 'employee', 'default': 'potential client'
+  };
+  const clientLabel = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
+
+  const EMERGENCY_SCENARIOS = {
+    'landlord': 'an eviction emergency', 'personal injury': 'an accident',
+    'divorce': 'a custody emergency', 'family': 'a family crisis',
+    'immigration': 'deportation notice', 'criminal': 'an arrest',
+    'estate': 'a sudden death in the family', 'business': 'a business dispute',
+    'bankruptcy': 'creditor harassment', 'tax': isUK ? 'an HMRC notice' : 'an IRS notice',
+    'employment': 'wrongful termination', 'default': 'a legal emergency'
+  };
+  const emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
+
+  // Build attorney phrase
+  const ATTORNEY_TYPES = {
+    'divorce': 'family', 'family': 'family', 'tax': 'tax',
+    'personal injury': 'personal injury', 'immigration': 'immigration',
+    'criminal': 'criminal defense', 'estate': 'estate planning',
+    'business': 'business', 'bankruptcy': 'bankruptcy', 'employment': 'employment',
+    'default': ''
+  };
+  const type = ATTORNEY_TYPES[practiceArea] || '';
+  const attorneyPhrase = type ? `${type} ${attorneyWord}` : attorneyWord;
+  const attorneyPhrasePlural = type ? `${type} ${attorneyWordPlural}` : attorneyWordPlural;
+
+  const article = startsWithVowelSound(attorneyPhrase) ? 'an' : 'a';
+
+  return {
+    heroSubheading: `We analyzed the ${practiceDescription} market in ${locationStr} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.`,
+    gapSectionHeadline: "Where you're losing cases right now",
+    gapSectionIntro: `We looked at how people find and contact ${attorneyPhrasePlural} in ${locationStr}. Three specific gaps came up — places where ${clientLabel}s are looking for help and ending up with someone else.`,
+    gap1Headline: runningGoogleAds
+      ? `You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're ${isUK ? 'optimised' : 'optimized'}.`
+      : `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month. The ${lawFirmWord}s running ads got those clicks.`,
+    gap1Para1: runningGoogleAds
+      ? `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month in ${locationStr}. You're already competing for these clicks — the question is how efficiently.`
+      : `When someone types "${searchTerms[0]}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The ${lawFirmWord}s dominating these spots are the ones investing in ads and actively building their review count.`,
+    gap1Para2: runningGoogleAds
+      ? `Most ${lawFirmWord} ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. Small ${isUK ? 'optimisations' : 'optimizations'} compound: better keywords, tighter targeting, conversion-focused landing pages.`
+      : `This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. Search ads consistently deliver the fastest results for ${lawFirmWord}s because the intent is already there.`,
+    gap1MathIntro: runningGoogleAds
+      ? `Why this matters: You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.`
+      : `How we estimated this: ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets — your actual numbers will vary based on your intake process and close rate.`,
+    gap2Headline: runningMetaAds
+      ? `You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''} — are they reaching the right people?`
+      : `Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.`,
+    gap2Para1: runningMetaAds
+      ? `You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${practiceDescription} ${lawFirmWord} Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.`
+      : `Think about it from a ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.`,
+    gap2Para2: runningMetaAds
+      ? `The best-performing Meta campaigns for legal services combine precise audience targeting with compelling creative and dedicated landing pages. Small improvements in any of these areas typically yield 15-30% performance gains.`
+      : `A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing ${lawFirmWord}s we've seen use both channels because they capture completely different people at different stages.`,
+    gap2MathIntro: runningMetaAds
+      ? `Why this matters: Meta's algorithm rewards well-${isUK ? 'optimised' : 'optimized'} campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can transform a break-even campaign into a profitable one.`
+      : `How we estimated this: ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting — but well-run campaigns for legal services consistently outperform these baselines.`,
+    gap3Headline: `When a ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?`,
+    gap3Para1: `A ${clientLabel} has an emergency. It's Tuesday evening. They call three ${attorneyPhrasePlural}. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which ${lawFirmWord} gets that case?`,
+    gap3Para2: `Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.`,
+    gap3MathIntro: `How we estimated this: ${gap3.formula}.`,
+    totalStripContext: `That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is ${isUK ? 'optimised' : 'optimized'}. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other ${lawFirmWord}s instead of you.`,
+    competitorHeadline: `And those other ${lawFirmWord}s? Here's who's getting your cases.`,
+    competitorIntro: `We pulled the ${lawFirmWord}s showing up for ${practiceDescription} searches in ${locationStr}. Google uses reviews as a major trust signal — more reviews and higher ratings push ${lawFirmWord}s into the Map Pack at the top of results, where most clicks happen. Here's where you stand.`,
+    competitorTakeaway: `This doesn't mean they're better ${attorneyWordPlural}. In every market we've ${isUK ? 'analysed' : 'analyzed'}, the ${lawFirmWord}s that dominate search results aren't always the best — they're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.`,
+    buildHeadline: `Here's how we'd close these gaps`,
+    buildIntro: `It's not one thing — it's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on ${isUK ? 'practising' : 'practicing'} law.`,
+    buildItem1Title: runningGoogleAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your existing Google Ads` : `Google Ads targeting ${practiceDescription} searches in your area`,
+    buildItem1Detail: runningGoogleAds
+      ? `We'll ${isUK ? 'analyse' : 'analyze'} what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.`
+      : `You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded.`,
+    buildItem1Timeline: runningGoogleAds ? `Audit in 1 week, ${isUK ? 'optimisations' : 'optimizations'} ongoing` : 'Typically live in 1-2 weeks',
+    buildItem2Title: runningMetaAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your Meta Ads campaigns` : `Meta Ads reaching people before they search`,
+    buildItem2Detail: runningMetaAds
+      ? `We'll review your audiences, creative, and conversion tracking to ${isUK ? 'maximise' : 'maximize'} return on your existing spend.`
+      : `Targeted campaigns on Facebook and Instagram — putting your ${lawFirmWord} in front of people who need help but haven't started looking.`,
+    buildItem2Timeline: runningMetaAds ? `Audit in 1 week, ${isUK ? 'optimisations' : 'optimizations'} ongoing` : 'Typically live in 2-3 weeks',
+    buildItem3Title: `AI-powered intake that answers every call, 24/7`,
+    buildItem3Detail: `No more voicemail. Every call answered, qualified, and booked — even at 2am. Your team gets notified instantly.`,
+    buildItem3Timeline: 'Typically live in 1-2 weeks',
+    buildItem4Title: `CRM + reporting so you know what's working`,
+    buildItem4Detail: `Every lead tracked from first click to signed retainer. You see exactly which ${currency === '£' ? 'pounds are' : 'dollars are'} producing cases.`,
+    buildItem4Timeline: 'Set up alongside launch',
+    ctaHeadline: `Want to walk through these numbers together?`,
+    ctaSubtext: `15 minutes. We'll go through what's realistic for your ${lawFirmWord} specifically and you can decide if it's worth pursuing.`
+  };
+}
+
+// ============================================================================
+// MAIN GENERATION
+// ============================================================================
 
 async function generateReport(researchData, prospectName) {
   console.log(`\n📝 Generating V3 Report for ${prospectName}...\n`);
-  
+
   // Validation
   const validation = validateData(researchData);
   if (!validation.passed) {
@@ -122,14 +404,14 @@ async function generateReport(researchData, prospectName) {
     validation.errors.forEach(err => console.error(`   - ${err}`));
     throw new Error(`GENERATION_BLOCKED: ${validation.errors.join(', ')}`);
   }
-  
+
   if (validation.warnings.length > 0) {
     console.log('⚠️  Warnings:');
     validation.warnings.forEach(warn => console.log(`   - ${warn}`));
   }
-  
+
   console.log('✅ Data validation passed\n');
-  
+
   // Extract data
   const {
     firmName: rawFirmName,
@@ -152,84 +434,24 @@ async function generateReport(researchData, prospectName) {
     console.log(`📢 Google Ads: ${runningGoogleAds ? `Running (${googleAdCount} ads)` : 'Not detected'}`);
     console.log(`📢 Meta Ads: ${runningMetaAds ? `Running (${metaAdCount} ads)` : 'Not detected'}`);
   }
-  
+
   const firmName = normalizeFirmName(rawFirmName);
   const city = location.city || '';
   const state = location.state || '';
   const country = location.country || 'US';
   const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
-  
+
   // Determine practice area - try multiple sources
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
-
-  // AI content generation - let AI handle nuance, but use OUR detected practice area
-  // This ensures consistency between practice label and content
-  let clientLabel, clientLabelPlural, emergencyScenario, articleForClient, articleForAttorney;
-  try {
-    // Pass the detected practiceArea so AI generates content for the SAME practice area
-    // that we're showing in the report header
-    const aiContent = await getContentWithFallback([practiceArea], firmName, city, state);
-    clientLabel = aiContent.clientLabel;
-    clientLabelPlural = aiContent.clientLabelPlural;
-    emergencyScenario = aiContent.emergencyScenario;
-    articleForClient = aiContent.articleForClient || getArticle(clientLabel);
-    // Always compute articleForAttorney from the actual attorney type we'll use in the template
-    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
-    console.log(`📝 Content source: ${aiContent.source} for "${practiceArea}"`);
-
-    // Validate clientLabel — reject verbose or generic labels that create awkward prose
-    // e.g., "individual going through a divorce", "individual planning ahead", "person with a problem"
-    const genericPrefixes = /^(individual|person|someone|people|anybody|anyone)\b/i;
-    if (clientLabel && (clientLabel.split(' ').length > 3 || genericPrefixes.test(clientLabel))) {
-      console.log(`⚠️  Client label rejected: "${clientLabel}", using fallback`);
-      const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-      clientLabel = fallback.singular;
-      clientLabelPlural = fallback.plural;
-      articleForClient = getArticle(clientLabel);
-    }
-  } catch (e) {
-    // Fallback to hardcoded if AI module fails entirely
-    console.log(`⚠️  AI content module failed: ${e.message}`);
-    clientLabel = 'potential client';
-    clientLabelPlural = 'potential clients';
-    emergencyScenario = 'a legal situation';
-    articleForClient = 'a';
-    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
-  }
-
-  // Guaranteed fallbacks — ensure nothing is empty regardless of AI output
-  if (!clientLabel) {
-    const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-    clientLabel = fallback.singular;
-    clientLabelPlural = fallback.plural;
-    articleForClient = getArticle(clientLabel);
-  }
-  if (!clientLabelPlural) {
-    clientLabelPlural = (CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default']).plural;
-  }
-  if (!emergencyScenario) {
-    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
-  }
-  if (!articleForClient) {
-    articleForClient = getArticle(clientLabel);
-  }
-  if (!articleForAttorney) {
-    articleForAttorney = getArticle(getAttorneyPhrase(practiceArea));
-  }
-
-  // Validate emergencyScenario length — verbose AI-generated scenarios create awkward Gap 3 headings
-  if (emergencyScenario && emergencyScenario.split(' ').length > 8) {
-    console.log(`⚠️  Emergency scenario too verbose: "${emergencyScenario}", using fallback`);
-    emergencyScenario = EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
-  }
+  const practiceDescription = getPracticeDescription(practiceArea);
 
   console.log(`📍 Location: ${city}, ${state}`);
   console.log(`⚖️  Practice: ${practiceLabel}`);
-  
+
   // Get competitors
   let competitors = rawCompetitors.filter(c => c.name && !isFakeCompetitor(c.name));
-  
+
   if (competitors.length === 0 && city) {
     console.log('🔍 Fetching competitors via Google Places API...');
     try {
@@ -242,13 +464,13 @@ async function generateReport(researchData, prospectName) {
       console.log(`⚠️  Could not fetch competitors: ${e.message}`);
     }
   }
-  
+
   // Get search terms for typing animation
   let searchTerms = getSearchTerms(practiceArea, city, state, country);
   if (!searchTerms || searchTerms.length === 0 || !searchTerms[0]) {
-    searchTerms = [`${getPracticeDescription(practiceArea)} near me`];
+    searchTerms = [`${practiceDescription} near me`];
   }
-  
+
   // Calculate gaps with RANGES
   const isUK = (country === 'GB' || country === 'UK');
   const marketMultiplier = getMarketMultiplier(city, country);
@@ -260,13 +482,13 @@ async function generateReport(researchData, prospectName) {
   const gap1 = calculateGap1(marketMultiplier, caseValues, countryBaseline, currency);
   const gap2 = calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency);
   const gap3 = calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency);
-  
+
   const totalLow = gap1.low + gap2.low + gap3.low;
   const totalHigh = gap1.high + gap2.high + gap3.high;
-  
+
   console.log(`💰 Gap ranges: ${currency}${formatRange(gap1.low, gap1.high)} + ${currency}${formatRange(gap2.low, gap2.high)} + ${currency}${formatRange(gap3.low, gap3.high)}`);
   console.log(`   Total: ${currency}${formatRange(totalLow, totalHigh)}/month\n`);
-  
+
   // Get firm's own data for competitor comparison
   let firmReviews = researchData.googleReviews || researchData.googleBusiness?.reviews || 0;
   let firmRating = researchData.googleRating || researchData.googleBusiness?.rating || 0;
@@ -284,22 +506,38 @@ async function generateReport(researchData, prospectName) {
       console.log(`⚠️  Could not fetch firm Google data: ${e.message}`);
     }
   }
-  
-  // Generate HTML
-  let html = generateHTML({
+
+  // Build prose context (shared between AI and fallback)
+  const proseContext = {
+    firmName, city, state, country, currency,
+    practiceArea, practiceDescription,
+    searchTerms,
+    gap1, gap2, gap3, totalLow, totalHigh,
+    runningGoogleAds, runningMetaAds,
+    googleAdCount, metaAdCount,
+    competitors
+  };
+
+  // Try AI prose generation, fall back to templates
+  let prose;
+  let proseSource = 'fallback';
+  try {
+    prose = await generateProseContent(proseContext);
+    proseSource = 'ai';
+    console.log('📝 Prose source: AI-generated');
+  } catch (e) {
+    console.log(`⚠️  AI prose generation failed: ${e.message}`);
+    console.log('📝 Prose source: fallback templates');
+    prose = generateFallbackProse(proseContext);
+  }
+
+  // Generate HTML with prose
+  const html = generateHTML({
     firmName,
     prospectName,
-    city,
-    state,
     practiceArea,
     practiceLabel,
-    clientLabel,
-    clientLabelPlural,
-    emergencyScenario,
-    articleForClient,
-    articleForAttorney,
     searchTerms,
-    caseValues,
     currency,
     gap1,
     gap2,
@@ -312,14 +550,12 @@ async function generateReport(researchData, prospectName) {
     runningGoogleAds,
     runningMetaAds,
     googleAdCount,
-    metaAdCount
+    metaAdCount,
+    city,
+    state,
+    prose,
+    proseSource
   });
-  
-  // Localize for UK if needed
-  if (isUK) {
-    html = localizeForUK(html);
-    console.log('🇬🇧 Applied UK localization (attorney→solicitor)');
-  }
 
   // Save report
   const firmSlug = firmName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
@@ -330,451 +566,25 @@ async function generateReport(researchData, prospectName) {
 
   const outputPath = path.resolve(reportsDir, `${firmSlug}-report-v3.html`);
   fs.writeFileSync(outputPath, html);
-  
+
   console.log(`💾 Saved: ${outputPath}`);
-  console.log(`✅ Report generated successfully`);
+  console.log(`✅ Report generated successfully (prose: ${proseSource})`);
   console.log(`   Lines: ${html.split('\n').length}\n`);
-  
+
   return { html, outputPath };
 }
 
-function validateData(data) {
-  const errors = [];
-  const warnings = [];
-  
-  if (!data.firmName || data.firmName === 'Unknown' || data.firmName === 'Unknown Firm') {
-    errors.push('Firm name is invalid or missing');
-  }
-  
-  if (!data.location?.city || !data.location?.state) {
-    warnings.push('Location missing - will use generic copy');
-  }
-  
-  // Check multiple paths for practice areas
-  const hasPracticeAreas = (data.practiceAreas?.length > 0) ||
-                           (data.practice?.practiceAreas?.length > 0) ||
-                           (data.practice?.primaryFocus);
-  if (!hasPracticeAreas) {
-    warnings.push('Practice area missing');
-  }
-  
-  return { passed: errors.length === 0, errors, warnings };
-}
-
-function normalizeFirmName(name) {
-  if (!name) return 'Unknown Firm';
-  return name
-    .replace(/\bLlp\b/g, 'LLP')
-    .replace(/\bLlc\b/g, 'LLC')
-    .replace(/\bPllc\b/g, 'PLLC')
-    .replace(/\bPc\b/g, 'PC')
-    .replace(/\bPa\b/g, 'PA');
-}
-
-function isFakeCompetitor(name) {
-  const patterns = [/acme/i, /placeholder/i, /test\s+firm/i, /sample\s+law/i, /generic/i];
-  return patterns.some(p => p.test(name));
-}
-
-// Sanitize competitor names - strip suffixes, truncate long names, clean up garbage
-function sanitizeCompetitorName(name) {
-  if (!name) return 'Competitor';
-
-  // If name has multiple commas, it's likely concatenated garbage - take first part
-  if ((name.match(/,/g) || []).length >= 2) {
-    name = name.split(',')[0].trim();
-  }
-
-  // Strip common suffixes before checking length
-  name = name
-    .replace(/\s*-\s*(Tax|Family|Criminal|Immigration|Estate|Property|Customs|VAT)(\s*-\s*\w+)*/i, '')
-    .replace(/,?\s*(Solicitors?|Barristers?|Lawyers?|Attorneys?( at Law)?|Law (Firm|Office|Practice|Group)|LLP|LLC|Ltd\.?|Limited|P\.?C\.?|P\.?L\.?L\.?C\.?)$/i, '')
-    .trim();
-
-  // Truncate if still too long (>50 chars)
-  if (name.length > 50) {
-    const truncated = name.substring(0, 47);
-    const lastSpace = truncated.lastIndexOf(' ');
-    if (lastSpace > 30) {
-      return truncated.substring(0, lastSpace) + '...';
-    }
-    return truncated + '...';
-  }
-
-  return name || 'Competitor';
-}
-
-// Try to detect practice area from multiple sources
-function detectPracticeArea(practiceAreas, researchData) {
-  // Try each practice area in order until we find a specific one
-  for (const pa of (practiceAreas || [])) {
-    const category = getPracticeAreaCategory(pa);
-    if (category !== 'default') {
-      return category;
-    }
-  }
-
-  // Try practice.practiceAreas (where research engine stores them)
-  for (const pa of (researchData.practice?.practiceAreas || [])) {
-    const category = getPracticeAreaCategory(pa);
-    if (category !== 'default') {
-      return category;
-    }
-  }
-
-  // Try practice.primaryFocus (often populated when practiceAreas is empty)
-  if (researchData.practice?.primaryFocus) {
-    const category = getPracticeAreaCategory(researchData.practice.primaryFocus);
-    if (category !== 'default') {
-      return category;
-    }
-  }
-
-  // Try practice.nicheSpecializations
-  for (const spec of (researchData.practice?.nicheSpecializations || [])) {
-    const category = getPracticeAreaCategory(spec);
-    if (category !== 'default') {
-      return category;
-    }
-  }
-
-  // Try to infer from services
-  const services = researchData.services || researchData.intelligence?.services || [];
-  for (const service of services) {
-    const category = getPracticeAreaCategory(service);
-    if (category !== 'default') {
-      return category;
-    }
-  }
-
-  // Try to infer from firm name
-  const firmNameLower = (researchData.firmName || '').toLowerCase();
-  if (firmNameLower.includes('family') || firmNameLower.includes('divorce')) return 'divorce';
-  if (firmNameLower.includes('injury') || firmNameLower.includes('accident')) return 'personal injury';
-  if (firmNameLower.includes('immigration')) return 'immigration';
-  if (firmNameLower.includes('criminal') || firmNameLower.includes('defense')) return 'criminal';
-  if (firmNameLower.includes('estate') || firmNameLower.includes('trust') || firmNameLower.includes('probate')) return 'estate';
-  if (firmNameLower.includes('tax')) return 'tax';
-  if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
-  if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
-  if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
-
-  // Try to infer from website URL/domain
-  const websiteLower = (researchData.website || '').toLowerCase();
-  if (websiteLower.includes('family') || websiteLower.includes('divorce')) return 'divorce';
-  if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
-  if (websiteLower.includes('immigration')) return 'immigration';
-  if (websiteLower.includes('criminal') || websiteLower.includes('defense') || websiteLower.includes('dui')) return 'criminal';
-  if (websiteLower.includes('estate') || websiteLower.includes('probate') || websiteLower.includes('trust')) return 'estate';
-  if (websiteLower.includes('tax')) return 'tax';
-  if (websiteLower.includes('landlord') || websiteLower.includes('eviction') || websiteLower.includes('tenant')) return 'landlord';
-  if (websiteLower.includes('employment') || websiteLower.includes('labor') || websiteLower.includes('worker')) return 'employment';
-  if (websiteLower.includes('bankruptcy')) return 'bankruptcy';
-  if (websiteLower.includes('business') || websiteLower.includes('corporate')) return 'business';
-
-  // Default to 'default' which will show "LEGAL SERVICES"
-  return 'default';
-}
-
-function getPracticeAreaCategory(raw) {
-  if (!raw) return 'default';
-  const lower = raw.toLowerCase();
-  if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
-  if (lower.includes('divorce') || lower.includes('family')) return 'divorce';
-  if (lower.includes('tax')) return 'tax';
-  if (lower.includes('injury') || lower.includes('accident')) return 'personal injury';
-  if (lower.includes('immigration')) return 'immigration';
-  if (lower.includes('criminal') || lower.includes('dui')) return 'criminal';
-  if (lower.includes('estate') || lower.includes('probate') || lower.includes('trust')) return 'estate';
-  if (lower.includes('business') || lower.includes('corporate')) return 'business';
-  if (lower.includes('bankruptcy')) return 'bankruptcy';
-  if (lower.includes('employment') || lower.includes('labor')) return 'employment';
-  if (lower.includes('real estate') || lower.includes('property')) return 'real estate';
-  if (lower.includes('ip') || lower.includes('patent') || lower.includes('trademark')) return 'ip';
-  if (lower.includes('malpractice') || lower.includes('medical')) return 'medical malpractice';
-  if (lower.includes('worker') || lower.includes('comp')) return 'workers comp';
-  return 'default';
-}
-
-function getPracticeLabel(category) {
-  const labels = {
-    'divorce': 'FAMILY LAW',
-    'family': 'FAMILY LAW',
-    'tax': 'TAX LAW',
-    'personal injury': 'PERSONAL INJURY',
-    'immigration': 'IMMIGRATION LAW',
-    'criminal': 'CRIMINAL DEFENSE',
-    'estate': 'ESTATE PLANNING',
-    'business': 'BUSINESS LAW',
-    'bankruptcy': 'BANKRUPTCY LAW',
-    'employment': 'EMPLOYMENT LAW',
-    'real estate': 'REAL ESTATE LAW',
-    'ip': 'INTELLECTUAL PROPERTY',
-    'landlord': 'LANDLORD LAW',
-    'medical malpractice': 'MEDICAL MALPRACTICE',
-    'workers comp': 'WORKERS COMPENSATION',
-    'default': 'LEGAL SERVICES'
-  };
-  return labels[category] || 'LEGAL SERVICES';
-}
-
-// Get practice area description for prose (lowercase, readable)
-function getPracticeDescription(category) {
-  const descriptions = {
-    'divorce': 'family law',
-    'family': 'family law',
-    'tax': 'tax law',
-    'personal injury': 'personal injury',
-    'immigration': 'immigration',
-    'criminal': 'criminal defense',
-    'estate': 'estate planning',
-    'business': 'business law',
-    'bankruptcy': 'bankruptcy',
-    'employment': 'employment law',
-    'real estate': 'real estate',
-    'ip': 'intellectual property',
-    'landlord': 'landlord law',
-    'medical malpractice': 'medical malpractice',
-    'workers comp': 'workers compensation',
-    'default': 'legal services'
-  };
-  return descriptions[category] || 'legal services';
-}
-
-// Get attorney type for "X attorney" phrasing
-function getAttorneyType(category) {
-  const types = {
-    'divorce': 'family',
-    'family': 'family',
-    'tax': 'tax',
-    'personal injury': 'personal injury',
-    'immigration': 'immigration',
-    'criminal': 'criminal defense',
-    'estate': 'estate planning',
-    'business': 'business',
-    'bankruptcy': 'bankruptcy',
-    'employment': 'employment',
-    'real estate': 'real estate',
-    'ip': 'IP',
-    'landlord': 'landlord',
-    'medical malpractice': 'medical malpractice',
-    'workers comp': 'workers comp',
-    'default': ''
-  };
-  return types[category] || '';
-}
-
-// Get "X attorney" or just "attorney" for default practice area (avoids "legal attorney" redundancy)
-function getAttorneyPhrase(category, plural = false) {
-  const type = getAttorneyType(category);
-  const noun = plural ? 'attorneys' : 'attorney';
-  return type ? `${type} ${noun}` : noun;
-}
-
-// Detect if a word starts with a vowel sound (for a/an grammar)
-function startsWithVowelSound(word) {
-  const lower = (word || '').toLowerCase();
-  // Words that start with vowel letters but have consonant sounds
-  if (/^(uni|use|eu|one|once)/.test(lower)) return false;
-  // Words that start with silent h or vowel sounds
-  if (/^(honest|hour|heir|honor)/.test(lower)) return true;
-  // Standard vowel check
-  if (/^[aeiou]/.test(lower)) return true;
-  return false;
-}
-
-// Get the correct article (a/an) for a word
-function getArticle(word) {
-  return startsWithVowelSound(word) ? 'an' : 'a';
-}
-
-function getMarketMultiplier(city, country) {
-  const c = (city || '').toLowerCase();
-  const ctry = (country || 'US').toUpperCase();
-
-  // UK cities
-  if (ctry === 'GB' || ctry === 'UK') {
-    if (c.includes('london')) return 1.8;
-    const midUK = ['manchester', 'birmingham', 'leeds', 'glasgow', 'liverpool',
-      'edinburgh', 'bristol', 'cardiff', 'belfast', 'nottingham', 'sheffield',
-      'leicester', 'newcastle', 'brighton', 'reading', 'swindon'];
-    if (midUK.some(m => c.includes(m))) return 1.2;
-    return 0.8;
-  }
-
-  // US/default cities
-  const major = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
-    'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'san francisco',
-    'seattle', 'denver', 'boston', 'nashville', 'portland', 'las vegas', 'toronto'];
-  if (major.some(m => c.includes(m))) return 1.8;
-
-  const mid = ['memphis', 'louisville', 'richmond', 'new orleans', 'raleigh', 'salt lake city',
-    'atlanta', 'miami', 'minneapolis', 'cleveland', 'tampa', 'orlando', 'pittsburgh'];
-  if (mid.some(m => c.includes(m))) return 1.2;
-
-  return 0.8;
-}
-
-// Country-based baseline adjustment — UK/AU/etc. have smaller legal ad markets
-function getCountryBaseline(country) {
-  const c = (country || 'US').toUpperCase();
-  switch (c) {
-    case 'GB': case 'UK': return 0.3;
-    case 'AU': return 0.25;
-    case 'CA': return 0.35;
-    case 'NZ': return 0.15;
-    case 'IE': return 0.1;
-    default: return 1.0;
-  }
-}
-
-// Replace US legal terminology with UK equivalents in final HTML
-function localizeForUK(html) {
-  return html
-    // Attorney → Solicitor (case-preserving)
-    .replace(/\battorneys\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors')
-    .replace(/\battorney\b/gi, (m) => m[0] === 'A' ? 'Solicitor' : 'solicitor')
-    // Lawyer → Solicitor (case-preserving) — BEFORE specific "lawyer near me" rule
-    .replace(/\blawyers\b/gi, (m) => m[0] === 'L' ? 'Solicitors' : 'solicitors')
-    .replace(/\blawyer\b/gi, (m) => m[0] === 'L' ? 'Solicitor' : 'solicitor')
-    // Law firm → Law practice (case-preserving)
-    .replace(/\blaw firms\b/gi, (m) => m[0] === 'L' ? 'Law practices' : 'law practices')
-    .replace(/\blaw firm\b/gi, (m) => m[0] === 'L' ? 'Law practice' : 'law practice')
-    // US-specific terms
-    .replace(/\bIRS\b/g, 'HMRC')
-    .replace(/\bchild custody\b/gi, 'child arrangements')
-    .replace(/\bgreen card\b/gi, 'visa')
-    .replace(/\b401\(k\)/gi, 'pension')
-    // Currency terms
-    .replace(/\bdollars\b/gi, 'pounds')
-    .replace(/\bdollar\b/gi, 'pound')
-    // Fix a/an articles broken by attorney→solicitor replacement
-    // "an attorney" → "an solicitor" (wrong) → "a solicitor" (correct)
-    .replace(/\ban solicitor\b/gi, (m) => m[0] === 'A' ? 'A solicitor' : 'a solicitor')
-    .replace(/\ban solicitors\b/gi, (m) => m[0] === 'A' ? 'Solicitors' : 'solicitors')
-    // Strip US corporate suffixes that look wrong in UK context
-    .replace(/\bInc\.?\b/g, '').replace(/\bCorp\.?\b/g, '').replace(/\s{2,}/g, ' ');
-}
-
-function getFirmSizeMultiplier(data) {
-  // Check multiple paths where firm size might be stored
-  let firmSize = data.firmSize ||
-                 data.firmDetails?.firmSize ||
-                 data.team?.totalCount ||
-                 data.intelligence?.firmSize || 0;
-
-  // If firmSize is a string like "5 attorneys" or "10+", extract the number
-  if (typeof firmSize === 'string') {
-    const match = firmSize.match(/(\d+)/);
-    firmSize = match ? parseInt(match[1]) : 0;
-  }
-
-  if (firmSize > 20) return 2.0;
-  if (firmSize > 10) return 1.5;
-  if (firmSize > 5) return 1.2;
-  return 1.0;
-}
-
-// Gap calculations returning RANGES
-function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) {
-  const sym = currency || '$';
-  const searches = Math.round(400 * marketMultiplier * countryBaseline);
-  const ctr = 0.035;
-  const conv = 0.12;
-  const close = 0.25;
-
-  const casesPerMonth = searches * ctr * conv * close;
-  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
-  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-
-  const minLow = Math.round(1500 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(3000 * countryBaseline / 500) * 500 || 1000;
-
-  return {
-    low: Math.max(minLow, low),
-    high: Math.max(minHigh, high),
-    searches,
-    formula: `~${searches} monthly searches × 3.5% CTR × 12% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
-  };
-}
-
-function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency) {
-  const sym = currency || '$';
-  const audience = Math.round(32000 * marketMultiplier * countryBaseline);
-  const reach = 0.015;
-  const conv = 0.008;
-  const close = 0.25;
-
-  const casesPerMonth = audience * reach * conv * close;
-  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
-  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-
-  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(4000 * countryBaseline / 500) * 500 || 1000;
-
-  return {
-    low: Math.max(minLow, low),
-    high: Math.max(minHigh, high),
-    audience,
-    city: city || 'your area',
-    formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 1.5% monthly ad reach × 0.8% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
-  };
-}
-
-function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency) {
-  const sym = currency || '$';
-  const calls = Math.round(40 * firmSizeMultiplier * countryBaseline);
-  const afterHours = 0.35;
-  const missRate = 0.60;
-  const recovery = 0.70;
-  const close = 0.20;
-
-  const casesPerMonth = calls * afterHours * missRate * recovery * close;
-  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
-  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-
-  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(3500 * countryBaseline / 500) * 500 || 1000;
-
-  return {
-    low: Math.max(minLow, low),
-    high: Math.max(minHigh, high),
-    calls,
-    formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
-  };
-}
-
-function formatMoney(num) {
-  if (num >= 1000) {
-    const k = num / 1000;
-    // Show .5 for half thousands, otherwise whole number
-    if (k % 1 === 0.5) {
-      return k.toFixed(1) + 'K';
-    }
-    return Math.round(k).toLocaleString() + 'K';
-  }
-  return num.toLocaleString();
-}
-
-function formatRange(low, high) {
-  return `${formatMoney(low)}-${formatMoney(high)}`;
-}
+// ============================================================================
+// HTML GENERATION — Fixed structure, AI prose
+// ============================================================================
 
 function generateHTML(data) {
   const {
     firmName,
     prospectName,
-    city,
-    state,
     practiceArea,
     practiceLabel,
-    clientLabel,
-    clientLabelPlural,
-    emergencyScenario,
-    articleForClient,
-    articleForAttorney,
     searchTerms,
-    caseValues,
     currency,
     gap1,
     gap2,
@@ -787,16 +597,29 @@ function generateHTML(data) {
     runningGoogleAds,
     runningMetaAds,
     googleAdCount,
-    metaAdCount
+    metaAdCount,
+    city,
+    state,
+    prose
   } = data;
-  
+
   const today = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
   const locationLabel = city && state ? `${city.toUpperCase()}, ${state.toUpperCase()}` : '';
-  
+
   const cssModule = require('./report-v3-css.js');
   const css = cssModule();
-  
+
+  // Gap 1 cost line
+  const gap1CostLine = runningGoogleAds
+    ? `Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value`
+    : `Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo`;
+
+  // Gap 2 cost line
+  const gap2CostLine = runningMetaAds
+    ? `Potential optimization: ~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}/mo in additional value`
+    : `Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -840,7 +663,7 @@ ${css}
       </h1>
 
       <p class="hero-sub">
-        We analyzed the ${getPracticeDescription(practiceArea)} market in ${escapeHtml(locationStr)} — who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.
+        ${escapeHtml(prose.heroSubheading)}
       </p>
 
       <div class="scroll-hint">
@@ -854,79 +677,53 @@ ${css}
     <div class="divider"></div>
 
     <div class="narrative">
-      <h2>Where you're losing cases right now</h2>
+      <h2>${escapeHtml(prose.gapSectionHeadline)}</h2>
 
-      <p>We looked at how people find and contact ${getAttorneyPhrase(practiceArea, true)} in ${escapeHtml(locationStr)}. Three specific gaps came up — places where potential clients are looking for help and ending up with someone else. These are patterns we see consistently across legal markets where firms haven't built out their marketing infrastructure.</p>
+      <p>${escapeHtml(prose.gapSectionIntro)}</p>
     </div>
 
 
     <!-- GAP 1 - Google Ads -->
     <div class="gap-card">
       <div class="badge badge-search">Google Ads</div>
-      ${runningGoogleAds ? `
-      <h3>You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''} — the question is whether they're optimized.</h3>
-      <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}/mo in additional value</div>
+      <h3>${escapeHtml(prose.gap1Headline)}</h3>
+      <div class="gap-card-cost">${gap1CostLine}</div>
 
-      <p>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyPhrase(practiceArea)} last month in ${escapeHtml(locationStr)}. You're already competing for these clicks — the question is how efficiently.</p>
+      <p>${escapeHtml(prose.gap1Para1)}</p>
 
-      <p>Most law firm ad accounts we audit have 20-40% wasted spend on irrelevant keywords, poor landing pages, or weak ad copy. That's not a criticism — it's just the reality of how complex Google Ads has become. Small optimizations compound: better keywords, tighter targeting, conversion-focused landing pages.</p>
-
-      <div class="math-box">
-        <strong>Why this matters:</strong> You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.
-      </div>
-      ` : `
-      <h3>~${gap1.searches} people searched for ${articleForAttorney} ${getAttorneyPhrase(practiceArea)} last month. The firms running ads got those clicks.</h3>
-      <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/mo</div>
-
-      <p>When someone types "${escapeHtml(searchTerms[0])}", the first thing they see is paid ads. Below that, the Map Pack — which ranks heavily on reviews. Below that, organic results. The firms dominating these spots are the ones investing in ads and actively building their review count.</p>
-
-      <p>This is the highest-intent channel in legal marketing — these people are actively looking for exactly what you do, right now. In our experience, search ads consistently deliver the fastest results for law firms because the intent is already there.</p>
+      <p>${escapeHtml(prose.gap1Para2)}</p>
 
       <div class="math-box">
-        <strong>How we estimated this:</strong> ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets — your actual numbers will vary based on your intake process and close rate.
+        <strong>${escapeHtml(prose.gap1MathIntro)}</strong>
       </div>
-      `}
     </div>
 
 
     <!-- GAP 2 - Meta Ads -->
     <div class="gap-card">
       <div class="badge badge-social">Meta Ads · Facebook + Instagram</div>
-      ${runningMetaAds ? `
-      <h3>You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''} — are they reaching the right people?</h3>
-      <div class="gap-card-cost">Potential optimization: ~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}/mo in additional value</div>
+      <h3>${escapeHtml(prose.gap2Headline)}</h3>
+      <div class="gap-card-cost">${gap2CostLine}</div>
 
-      <p>You're already investing in social — the question is whether your targeting, creative, and landing pages are working together. Most ${getPracticeDescription(practiceArea)} firm Meta accounts we audit have audience overlap issues, creative fatigue, or conversion tracking gaps.</p>
+      <p>${escapeHtml(prose.gap2Para1)}</p>
 
-      <p>The best-performing Meta campaigns for legal services combine precise audience targeting with compelling creative and dedicated landing pages. Small improvements in any of these areas typically yield 15-30% performance gains.</p>
-
-      <div class="math-box">
-        <strong>Why this matters:</strong> Meta's algorithm rewards well-optimized campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can transform a break-even campaign into a profitable one.
-      </div>
-      ` : `
-      <h3>Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.</h3>
-      <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/mo</div>
-
-      <p>Think about it from ${articleForClient} ${clientLabel}'s perspective. They have a legal problem. They're stressed. They're not Googling yet — they're venting in groups, scrolling at night, reading posts from others in similar situations.</p>
-
-      <p>A targeted ad reaches them before they ever search. That's a client your competitors can't touch with search ads alone. The best-performing firms we've seen use both channels because they capture completely different people at different stages.</p>
+      <p>${escapeHtml(prose.gap2Para2)}</p>
 
       <div class="math-box">
-        <strong>How we estimated this:</strong> ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting — but well-run campaigns for legal services consistently outperform these baselines.
+        <strong>${escapeHtml(prose.gap2MathIntro)}</strong>
       </div>
-      `}
     </div>
 
 
     <!-- GAP 3 - Voice AI -->
     <div class="gap-card">
       <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
-      <h3>When ${articleForClient} ${clientLabel} calls at 7pm about ${emergencyScenario} — what happens?</h3>
+      <h3>${escapeHtml(prose.gap3Headline)}</h3>
       <div class="gap-card-cost">Estimated opportunity: ~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/mo</div>
 
-      <p>${articleForClient.charAt(0).toUpperCase() + articleForClient.slice(1)} ${clientLabel} has an emergency. It's Tuesday evening. They call three attorneys. Two go to voicemail. One picks up, qualifies them in 90 seconds, and books a consultation for tomorrow morning. Which firm gets that case?</p>
+      <p>${escapeHtml(prose.gap3Para1)}</p>
 
-      <p>Once you're running ads and driving calls, this becomes the difference between paying for leads and actually converting them. The 60% voicemail drop-off is well-documented in legal intake studies — it's the most common leak in the funnel we see.</p>
+      <p>${escapeHtml(prose.gap3Para2)}</p>
 
       <div class="before-after">
         <div class="ba-side ba-before">
@@ -940,7 +737,7 @@ ${css}
       </div>
 
       <div class="math-box">
-        <strong>How we estimated this:</strong> ${gap3.formula}.
+        <strong>${escapeHtml(prose.gap3MathIntro)}</strong>
       </div>
     </div>
 
@@ -952,7 +749,7 @@ ${css}
     </div>
 
     <div class="narrative">
-      <p>That's the range — not a guarantee. It depends on your case values, close rate, and how well the system is optimized. The point isn't the exact number. It's that real people in ${escapeHtml(locationStr)} are searching for the exact service you provide, and right now they're finding other firms instead of you.</p>
+      <p>${escapeHtml(prose.totalStripContext)}</p>
     </div>
 
 
@@ -960,69 +757,57 @@ ${css}
     <div class="divider"></div>
 
     <div class="narrative">
-      <h2>And those other firms? Here's who's getting your cases.</h2>
+      <h2>${escapeHtml(prose.competitorHeadline)}</h2>
 
-      <p>We pulled the firms showing up for ${getPracticeDescription(practiceArea)} searches in ${escapeHtml(locationStr)}. Google uses reviews as a major trust signal — more reviews and higher ratings push firms into the Map Pack at the top of results, where most clicks happen. Here's where you stand.</p>
+      <p>${escapeHtml(prose.competitorIntro)}</p>
     </div>
 
-${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
+${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.competitorTakeaway)}
 
 
     <!-- BUILD LIST -->
     <div class="divider"></div>
 
     <div class="narrative">
-      <h2>Here's how we'd close these gaps</h2>
+      <h2>${escapeHtml(prose.buildHeadline)}</h2>
 
-      <p>It's not one thing — it's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on practicing law.</p>
+      <p>${escapeHtml(prose.buildIntro)}</p>
     </div>
 
     <div class="build-list">
       <div class="build-item">
         <div class="build-number">1</div>
         <div class="build-content">
-          ${runningGoogleAds ? `
-          <strong>Audit + optimize your existing Google Ads</strong>
-          <p>You're already investing in search ads — we'll analyze what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.</p>
-          <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
-          ` : `
-          <strong>Google Ads targeting ${getPracticeDescription(practiceArea)} searches in your area</strong>
-          <p>You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded, every dollar accounted for.</p>
-          <span class="build-timeline">Typically live in 1-2 weeks</span>
-          `}
+          <strong>${escapeHtml(prose.buildItem1Title)}</strong>
+          <p>${escapeHtml(prose.buildItem1Detail)}</p>
+          <span class="build-timeline">${escapeHtml(prose.buildItem1Timeline)}</span>
         </div>
       </div>
 
       <div class="build-item">
         <div class="build-number">2</div>
         <div class="build-content">
-          ${runningMetaAds ? `
-          <strong>Audit + optimize your Meta Ads campaigns</strong>
-          <p>You're already on Facebook/Instagram — we'll review your audiences, creative, and conversion tracking to maximize return on your existing spend.</p>
-          <span class="build-timeline">Audit in 1 week, optimizations ongoing</span>
-          ` : `
-          <strong>Meta Ads reaching ${clientLabelPlural} before they search</strong>
-          <p>Targeted campaigns on Facebook and Instagram — putting your firm in front of ${clientLabelPlural} who need help but haven't started looking.</p>
-          <span class="build-timeline">Typically live in 2-3 weeks</span>
-          `}
+          <strong>${escapeHtml(prose.buildItem2Title)}</strong>
+          <p>${escapeHtml(prose.buildItem2Detail)}</p>
+          <span class="build-timeline">${escapeHtml(prose.buildItem2Timeline)}</span>
         </div>
       </div>
 
       <div class="build-item">
         <div class="build-number">3</div>
         <div class="build-content">
-          <strong>AI-powered intake that answers every call, 24/7</strong>
-          <p>No more voicemail. Every call answered, qualified, and booked — even at 2am. Your team gets notified instantly.</p>
-          <span class="build-timeline">Typically live in 1-2 weeks</span>
+          <strong>${escapeHtml(prose.buildItem3Title)}</strong>
+          <p>${escapeHtml(prose.buildItem3Detail)}</p>
+          <span class="build-timeline">${escapeHtml(prose.buildItem3Timeline)}</span>
         </div>
       </div>
 
       <div class="build-item">
         <div class="build-number">4</div>
         <div class="build-content">
-          <strong>CRM + reporting so you know what's working</strong>
-          <p>Every lead tracked from first click to signed retainer. You see exactly which dollars are producing cases.</p>
-          <span class="build-timeline">Set up alongside launch</span>
+          <strong>${escapeHtml(prose.buildItem4Title)}</strong>
+          <p>${escapeHtml(prose.buildItem4Detail)}</p>
+          <span class="build-timeline">${escapeHtml(prose.buildItem4Timeline)}</span>
         </div>
       </div>
     </div>
@@ -1032,15 +817,15 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating)}
     <div class="divider"></div>
 
     <div id="booking" class="cta">
-      <h2>Want to walk through these numbers together?</h2>
-      <p>15 minutes. We'll go through what's realistic for your firm specifically and you can decide if it's worth pursuing.</p>
+      <h2>${escapeHtml(prose.ctaHeadline)}</h2>
+      <p>${escapeHtml(prose.ctaSubtext)}</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
 
 
     <div class="footer">
-      Mortar Metrics · Legal Growth Agency · ${escapeHtml(locationStr)}<br>
+      Mortar Metrics · Legal Growth Agency · ${escapeHtml(city && state ? `${city}, ${state}` : city || state || '')}<br>
       <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a>
     </div>
 
@@ -1051,7 +836,11 @@ ${generateTypingScript(searchTerms)}
 </html>`;
 }
 
-function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) {
+// ============================================================================
+// COMPETITOR BARS — Data-driven, not prose
+// ============================================================================
+
+function generateCompetitorBars(competitors, firmName, firmReviews, firmRating, takeawayText) {
   if (!competitors || competitors.length === 0) {
     return `
     <div class="competitor-section">
@@ -1067,7 +856,7 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
   const maxReviews = Math.max(...allReviews, 1);
 
   let bars = '<div class="competitor-section">\n';
-  
+
   // Competitor bars
   competitors.slice(0, 3).forEach(comp => {
     const reviews = comp.reviews || comp.reviewCount || 0;
@@ -1101,13 +890,17 @@ function generateCompetitorBars(competitors, firmName, firmReviews, firmRating) 
       </div>
 
       <div class="competitor-takeaway">
-        <strong>This doesn't mean they're better attorneys.</strong> In every market we've analyzed, the firms that dominate search results aren't always the best lawyers — they're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.
+        <strong>${escapeHtml(takeawayText)}</strong>
       </div>
     </div>
 `;
 
   return bars;
 }
+
+// ============================================================================
+// TYPING ANIMATION SCRIPT
+// ============================================================================
 
 function generateTypingScript(searchTerms) {
   return `
@@ -1146,24 +939,287 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
 }
 
+// ============================================================================
+// HELPER FUNCTIONS (kept from original)
+// ============================================================================
+
+function validateData(data) {
+  const errors = [];
+  const warnings = [];
+
+  if (!data.firmName || data.firmName === 'Unknown' || data.firmName === 'Unknown Firm') {
+    errors.push('Firm name is invalid or missing');
+  }
+
+  if (!data.location?.city || !data.location?.state) {
+    warnings.push('Location missing - will use generic copy');
+  }
+
+  const hasPracticeAreas = (data.practiceAreas?.length > 0) ||
+                           (data.practice?.practiceAreas?.length > 0) ||
+                           (data.practice?.primaryFocus);
+  if (!hasPracticeAreas) {
+    warnings.push('Practice area missing');
+  }
+
+  return { passed: errors.length === 0, errors, warnings };
+}
+
+function normalizeFirmName(name) {
+  if (!name) return 'Unknown Firm';
+  return name
+    .replace(/\bLlp\b/g, 'LLP')
+    .replace(/\bLlc\b/g, 'LLC')
+    .replace(/\bPllc\b/g, 'PLLC')
+    .replace(/\bPc\b/g, 'PC')
+    .replace(/\bPa\b/g, 'PA');
+}
+
+function isFakeCompetitor(name) {
+  const patterns = [/acme/i, /placeholder/i, /test\s+firm/i, /sample\s+law/i, /generic/i];
+  return patterns.some(p => p.test(name));
+}
+
+function sanitizeCompetitorName(name) {
+  if (!name) return 'Competitor';
+  if ((name.match(/,/g) || []).length >= 2) {
+    name = name.split(',')[0].trim();
+  }
+  name = name
+    .replace(/\s*-\s*(Tax|Family|Criminal|Immigration|Estate|Property|Customs|VAT)(\s*-\s*\w+)*/i, '')
+    .replace(/,?\s*(Solicitors?|Barristers?|Lawyers?|Attorneys?( at Law)?|Law (Firm|Office|Practice|Group)|LLP|LLC|Ltd\.?|Limited|P\.?C\.?|P\.?L\.?L\.?C\.?)$/i, '')
+    .trim();
+  if (name.length > 50) {
+    const truncated = name.substring(0, 47);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 30) return truncated.substring(0, lastSpace) + '...';
+    return truncated + '...';
+  }
+  return name || 'Competitor';
+}
+
+function detectPracticeArea(practiceAreas, researchData) {
+  for (const pa of (practiceAreas || [])) {
+    const category = getPracticeAreaCategory(pa);
+    if (category !== 'default') return category;
+  }
+  for (const pa of (researchData.practice?.practiceAreas || [])) {
+    const category = getPracticeAreaCategory(pa);
+    if (category !== 'default') return category;
+  }
+  if (researchData.practice?.primaryFocus) {
+    const category = getPracticeAreaCategory(researchData.practice.primaryFocus);
+    if (category !== 'default') return category;
+  }
+  for (const spec of (researchData.practice?.nicheSpecializations || [])) {
+    const category = getPracticeAreaCategory(spec);
+    if (category !== 'default') return category;
+  }
+  const services = researchData.services || researchData.intelligence?.services || [];
+  for (const service of services) {
+    const category = getPracticeAreaCategory(service);
+    if (category !== 'default') return category;
+  }
+  const firmNameLower = (researchData.firmName || '').toLowerCase();
+  if (firmNameLower.includes('family') || firmNameLower.includes('divorce')) return 'divorce';
+  if (firmNameLower.includes('injury') || firmNameLower.includes('accident')) return 'personal injury';
+  if (firmNameLower.includes('immigration')) return 'immigration';
+  if (firmNameLower.includes('criminal') || firmNameLower.includes('defense')) return 'criminal';
+  if (firmNameLower.includes('estate') || firmNameLower.includes('trust') || firmNameLower.includes('probate')) return 'estate';
+  if (firmNameLower.includes('tax')) return 'tax';
+  if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
+  if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
+  if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
+  const websiteLower = (researchData.website || '').toLowerCase();
+  if (websiteLower.includes('family') || websiteLower.includes('divorce')) return 'divorce';
+  if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
+  if (websiteLower.includes('immigration')) return 'immigration';
+  if (websiteLower.includes('criminal') || websiteLower.includes('defense') || websiteLower.includes('dui')) return 'criminal';
+  if (websiteLower.includes('estate') || websiteLower.includes('probate') || websiteLower.includes('trust')) return 'estate';
+  if (websiteLower.includes('tax')) return 'tax';
+  if (websiteLower.includes('landlord') || websiteLower.includes('eviction') || websiteLower.includes('tenant')) return 'landlord';
+  if (websiteLower.includes('employment') || websiteLower.includes('labor') || websiteLower.includes('worker')) return 'employment';
+  if (websiteLower.includes('bankruptcy')) return 'bankruptcy';
+  if (websiteLower.includes('business') || websiteLower.includes('corporate')) return 'business';
+  return 'default';
+}
+
+function getPracticeAreaCategory(raw) {
+  if (!raw) return 'default';
+  const lower = raw.toLowerCase();
+  if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
+  if (lower.includes('divorce') || lower.includes('family')) return 'divorce';
+  if (lower.includes('tax')) return 'tax';
+  if (lower.includes('injury') || lower.includes('accident')) return 'personal injury';
+  if (lower.includes('immigration')) return 'immigration';
+  if (lower.includes('criminal') || lower.includes('dui')) return 'criminal';
+  if (lower.includes('estate') || lower.includes('probate') || lower.includes('trust')) return 'estate';
+  if (lower.includes('business') || lower.includes('corporate')) return 'business';
+  if (lower.includes('bankruptcy')) return 'bankruptcy';
+  if (lower.includes('employment') || lower.includes('labor')) return 'employment';
+  if (lower.includes('real estate') || lower.includes('property')) return 'real estate';
+  if (lower.includes('ip') || lower.includes('patent') || lower.includes('trademark')) return 'ip';
+  if (lower.includes('malpractice') || lower.includes('medical')) return 'medical malpractice';
+  if (lower.includes('worker') || lower.includes('comp')) return 'workers comp';
+  return 'default';
+}
+
+function getPracticeLabel(category) {
+  const labels = {
+    'divorce': 'FAMILY LAW', 'family': 'FAMILY LAW', 'tax': 'TAX LAW',
+    'personal injury': 'PERSONAL INJURY', 'immigration': 'IMMIGRATION LAW',
+    'criminal': 'CRIMINAL DEFENSE', 'estate': 'ESTATE PLANNING',
+    'business': 'BUSINESS LAW', 'bankruptcy': 'BANKRUPTCY LAW',
+    'employment': 'EMPLOYMENT LAW', 'real estate': 'REAL ESTATE LAW',
+    'ip': 'INTELLECTUAL PROPERTY', 'landlord': 'LANDLORD LAW',
+    'medical malpractice': 'MEDICAL MALPRACTICE', 'workers comp': 'WORKERS COMPENSATION',
+    'default': 'LEGAL SERVICES'
+  };
+  return labels[category] || 'LEGAL SERVICES';
+}
+
+function getPracticeDescription(category) {
+  const descriptions = {
+    'divorce': 'family law', 'family': 'family law', 'tax': 'tax law',
+    'personal injury': 'personal injury', 'immigration': 'immigration',
+    'criminal': 'criminal defense', 'estate': 'estate planning',
+    'business': 'business law', 'bankruptcy': 'bankruptcy',
+    'employment': 'employment law', 'real estate': 'real estate',
+    'ip': 'intellectual property', 'landlord': 'landlord law',
+    'medical malpractice': 'medical malpractice', 'workers comp': 'workers compensation',
+    'default': 'legal services'
+  };
+  return descriptions[category] || 'legal services';
+}
+
+function startsWithVowelSound(word) {
+  const lower = (word || '').toLowerCase();
+  if (/^(uni|use|eu|one|once)/.test(lower)) return false;
+  if (/^(honest|hour|heir|honor)/.test(lower)) return true;
+  if (/^[aeiou]/.test(lower)) return true;
+  return false;
+}
+
+function getMarketMultiplier(city, country) {
+  const c = (city || '').toLowerCase();
+  const ctry = (country || 'US').toUpperCase();
+  if (ctry === 'GB' || ctry === 'UK') {
+    if (c.includes('london')) return 1.8;
+    const midUK = ['manchester', 'birmingham', 'leeds', 'glasgow', 'liverpool',
+      'edinburgh', 'bristol', 'cardiff', 'belfast', 'nottingham', 'sheffield',
+      'leicester', 'newcastle', 'brighton', 'reading', 'swindon'];
+    if (midUK.some(m => c.includes(m))) return 1.2;
+    return 0.8;
+  }
+  const major = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
+    'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'san francisco',
+    'seattle', 'denver', 'boston', 'nashville', 'portland', 'las vegas', 'toronto'];
+  if (major.some(m => c.includes(m))) return 1.8;
+  const mid = ['memphis', 'louisville', 'richmond', 'new orleans', 'raleigh', 'salt lake city',
+    'atlanta', 'miami', 'minneapolis', 'cleveland', 'tampa', 'orlando', 'pittsburgh'];
+  if (mid.some(m => c.includes(m))) return 1.2;
+  return 0.8;
+}
+
+function getCountryBaseline(country) {
+  const c = (country || 'US').toUpperCase();
+  switch (c) {
+    case 'GB': case 'UK': return 0.3;
+    case 'AU': return 0.25;
+    case 'CA': return 0.35;
+    case 'NZ': return 0.15;
+    case 'IE': return 0.1;
+    default: return 1.0;
+  }
+}
+
+function getFirmSizeMultiplier(data) {
+  let firmSize = data.firmSize || data.firmDetails?.firmSize || data.team?.totalCount || data.intelligence?.firmSize || 0;
+  if (typeof firmSize === 'string') {
+    const match = firmSize.match(/(\d+)/);
+    firmSize = match ? parseInt(match[1]) : 0;
+  }
+  if (firmSize > 20) return 2.0;
+  if (firmSize > 10) return 1.5;
+  if (firmSize > 5) return 1.2;
+  return 1.0;
+}
+
+function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) {
+  const sym = currency || '$';
+  const searches = Math.round(400 * marketMultiplier * countryBaseline);
+  const ctr = 0.035; const conv = 0.12; const close = 0.25;
+  const casesPerMonth = searches * ctr * conv * close;
+  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
+  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
+  const minLow = Math.round(1500 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(3000 * countryBaseline / 500) * 500 || 1000;
+  return {
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), searches,
+    formula: `~${searches} monthly searches × 3.5% CTR × 12% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+  };
+}
+
+function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency) {
+  const sym = currency || '$';
+  const audience = Math.round(32000 * marketMultiplier * countryBaseline);
+  const reach = 0.015; const conv = 0.008; const close = 0.25;
+  const casesPerMonth = audience * reach * conv * close;
+  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
+  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
+  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(4000 * countryBaseline / 500) * 500 || 1000;
+  return {
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area',
+    formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 1.5% monthly ad reach × 0.8% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+  };
+}
+
+function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency) {
+  const sym = currency || '$';
+  const calls = Math.round(40 * firmSizeMultiplier * countryBaseline);
+  const afterHours = 0.35; const missRate = 0.60; const recovery = 0.70; const close = 0.20;
+  const casesPerMonth = calls * afterHours * missRate * recovery * close;
+  const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
+  const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
+  const minLow = Math.round(2000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(3500 * countryBaseline / 500) * 500 || 1000;
+  return {
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), calls,
+    formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
+  };
+}
+
+function formatMoney(num) {
+  if (num >= 1000) {
+    const k = num / 1000;
+    if (k % 1 === 0.5) return k.toFixed(1) + 'K';
+    return Math.round(k).toLocaleString() + 'K';
+  }
+  return num.toLocaleString();
+}
+
+function formatRange(low, high) {
+  return `${formatMoney(low)}-${formatMoney(high)}`;
+}
+
+// ============================================================================
 // CLI Handler
+// ============================================================================
+
 if (require.main === module) {
   (async () => {
     const args = process.argv.slice(2);
-
     if (args.length < 2) {
       console.log('Usage: node report-generator-v3.js <research-json> <contact-name>');
       process.exit(1);
     }
-
     const researchFile = args[0];
     const contactName = args[1];
-
     if (!fs.existsSync(researchFile)) {
       console.error(`❌ Research file not found: ${researchFile}`);
       process.exit(1);
     }
-
     try {
       const researchData = JSON.parse(fs.readFileSync(researchFile, 'utf8'));
       await generateReport(researchData, contactName);

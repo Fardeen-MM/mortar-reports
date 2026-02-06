@@ -560,24 +560,33 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     const { extractEverything } = require('./extract-firm-info');
     const extractedData = await extractEverything(research.websitePages, firmWebsite, anthropic);
     
-    // Merge extracted data into research (this is now the source of truth)
-    // If company name was passed AND extracted name looks like a domain slug (no spaces,
-    // or matches the domain), prefer the webhook-provided company name
-    let bestFirmName = extractedData.firmName || company || '';
-    if (company && bestFirmName) {
-      const extractedLower = bestFirmName.toLowerCase().replace(/\s+/g, '');
-      const domainSlug = new URL(firmWebsite).hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
-      // If extracted name looks like domain slug (no spaces, or domain+law), it's garbled
-      if ((extractedLower.includes(domainSlug) && !bestFirmName.includes(' ')) || extractedLower === domainSlug + 'law') {
-        console.log(`⚠️  Extracted firm name "${bestFirmName}" looks like domain slug, using webhook company: "${company}"`);
-        bestFirmName = company;
+    // Merge extracted data into research
+    // WEBHOOK DATA TAKES PRIORITY for core fields — the lead database is more reliable
+    // than AI extraction from website scraping. AI extraction supplements with details.
+    let bestFirmName;
+    if (company && company.trim()) {
+      // Webhook provided a company name — always use it
+      bestFirmName = company.trim();
+      if (extractedData.firmName && extractedData.firmName !== bestFirmName) {
+        console.log(`ℹ️  Using webhook company name "${bestFirmName}" (AI extracted: "${extractedData.firmName}")`);
+      }
+    } else {
+      // No webhook company name — fall back to AI extraction
+      bestFirmName = extractedData.firmName || '';
+      if (bestFirmName) {
+        // Still check for domain slug garbling
+        const extractedLower = bestFirmName.toLowerCase().replace(/\s+/g, '');
+        const domainSlug = new URL(firmWebsite).hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
+        if ((extractedLower.includes(domainSlug) && !bestFirmName.includes(' ')) || extractedLower === domainSlug + 'law') {
+          console.log(`⚠️  Extracted firm name "${bestFirmName}" looks like domain slug, no webhook fallback available`);
+        }
       }
     }
     research.firmName = bestFirmName;
     research.location = {
-      city: extractedData.city || city,
-      state: extractedData.state || state,
-      country: country,
+      city: city || extractedData.city,         // Webhook city takes priority
+      state: state || extractedData.state,       // Webhook state takes priority
+      country: country,                          // Webhook country always used
       fullAddress: extractedData.fullAddress,
       otherLocations: extractedData.otherLocations || []
     };

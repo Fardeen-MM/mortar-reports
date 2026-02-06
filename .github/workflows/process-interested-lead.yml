@@ -352,9 +352,9 @@ jobs:
           echo "  Report: $REPORT_FILE"
           echo ""
           echo "This will:"
-          echo "  1. Run brutal AI QC"
-          echo "  2. Auto-fix any issues found"
-          echo "  3. Iterate until perfect (max 5 rounds)"
+          echo "  1. Run deterministic QC checks"
+          echo "  2. Apply pre-fix common issues"
+          echo "  3. Score and report results"
           echo ""
 
           # Run AI Perfector - it modifies the report in place
@@ -424,7 +424,7 @@ jobs:
             echo "lead_source=" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
-        timeout-minutes: 10
+        timeout-minutes: 5
 
       - name: Send failure notification
         if: steps.check_existing.outputs.skip != 'true' && (steps.validate.outputs.valid != 'true' || steps.report.outputs.blocked == 'true')
