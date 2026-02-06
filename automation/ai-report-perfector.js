@@ -643,15 +643,16 @@ CONTEXT:
 - Expected currency: ${expectedCurrency}
 - Expected terminology: ${expectedTerminology}
 
-IMPORTANT — DO NOT FLAG THESE AS ISSUES:
-1. SEARCH VOLUMES: Numbers are already adjusted for market size. Small towns (50-200 searches) and UK markets (~30% of US) will have low numbers. This is CORRECT. Do NOT flag low search volumes or audience sizes.
-2. COMPETITOR NAMES: These are REAL businesses from Google Places API. Their names may look unusual — do NOT flag real competitor names as fabricated or US-centric. Only flag if a competitor is clearly from the wrong city/country.
-3. OPPORTUNITY ESTIMATES: Ranges like £500-1K or £1K-1.5K for small markets are reasonable and already adjusted. Do NOT flag these as unrealistic.
+IMPORTANT — DO NOT FLAG THESE AS ISSUES (violating these wastes iterations):
+1. SEARCH VOLUMES: Numbers are already adjusted for market size. Small towns (50-200 searches) and UK markets (~30% of US) will have low numbers. This is CORRECT and mathematically accurate. Do NOT flag.
+2. COMPETITOR NAMES: These are REAL businesses from Google Places API. The word "Solicitors" in firm names IS correct UK terminology — it is NOT evidence of US terms. Do NOT flag competitor names that contain "Solicitors", "Ltd", or any legitimate UK business suffix. Only flag if a firm is clearly from a different country.
+3. OPPORTUNITY ESTIMATES: Ranges like £500-1K or £1K-1.5K for small markets are reasonable. Do NOT flag.
+4. TERMINOLOGY: If the report uses "solicitor", "solicitors", "law practice" — these ARE correct UK terms. Do NOT flag them as US terminology. The word "Solicitors" in a business name is a common UK practice suffix.
 
 REPORT TEXT:
 ${reportText}
 
-BE BRUTAL. Check for:
+BE THOROUGH but ACCURATE. Only flag REAL issues you can quote verbatim from the report text above. Do NOT hallucinate or infer issues that aren't in the actual text. Check for:
 
 1. **GEOGRAPHIC MISMATCH** (CRITICAL)
    - US firms (LLC, PLLC, P.C., US cities) showing for UK lead = FAIL
