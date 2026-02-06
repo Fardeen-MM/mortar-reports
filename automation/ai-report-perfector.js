@@ -455,26 +455,30 @@ function deterministicQC(html, research) {
   }
 
   // 4. FIRM NAME PRESENT — the report should mention the firm
+  // Check both raw name and HTML-escaped version (& → &amp;)
   if (firmName && firmName !== 'Unknown' && firmName !== 'Unknown Firm') {
-    if (!html.includes(firmName)) {
+    const htmlEscapedName = firmName.replace(/&/g, '&amp;');
+    if (!html.includes(firmName) && !html.includes(htmlEscapedName)) {
       issues.push({
         severity: 'IMPORTANT', category: 'BROKEN',
-        issue: `Firm name "${firmName}" not found in report`
+        issue: `Firm name not found in report`
       });
       score -= 1;
     }
   }
 
   // 5. A/AN ARTICLE ERRORS
-  const anConsonant = text.match(/\ban\s+(solicitor|family|tax|criminal|business|bankruptcy|employment|landlord|personal|real|medical|worker)\b/gi);
+  // Words that start with consonant SOUNDS (so "an X" is wrong): solicitor, family, tax, etc.
+  // Note: "employment" starts with vowel sound "em-", so "an employment" is CORRECT — not included here
+  const anConsonant = text.match(/\ban\s+(solicitor|family|tax|criminal|business|bankruptcy|landlord|personal|real|medical|worker)\b/gi);
   if (anConsonant && anConsonant.length > 0) {
     issues.push({
       severity: 'MINOR', category: 'PHRASING',
-      issue: `Article error: "${anConsonant[0]}" — "an" before consonant sound`
+      issue: `Article error: ${anConsonant[0]} - an before consonant sound`
     });
     score -= 0.5;
   }
-  const aVowel = text.match(/\ba\s+(attorney|attorney's|estate|immigration|accident|eviction|employment|individual|hour|honest)\b/gi);
+  const aVowel = text.match(/\ba\s+(attorney|attorney's|estate|immigration|accident|eviction|individual|hour|honest)\b/gi);
   if (aVowel && aVowel.length > 0) {
     // Check if it's actually wrong (a estate, a attorney — but "a estate planning" is fine)
     const actualErrors = aVowel.filter(m => {

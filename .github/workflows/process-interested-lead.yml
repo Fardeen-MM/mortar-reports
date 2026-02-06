@@ -482,37 +482,37 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FIRM_FOLDER: ${{ steps.deploy.outputs.firm_folder }}
+          FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
+          CONTACT_NAME: ${{ steps.extract.outputs.contact_name }}
+          LEAD_EMAIL_ADDR: ${{ steps.lead_data.outputs.lead_email }}
+          EMAIL_ID: ${{ steps.lead_data.outputs.email_id }}
+          FROM_EMAIL: ${{ steps.lead_data.outputs.from_email }}
+          QC_PASSED: ${{ steps.qc.outputs.qc_passed }}
+          QC_ISSUES: ${{ steps.qc.outputs.qc_issues }}
+          QC_WOULD_BOOK: ${{ steps.qc.outputs.qc_would_book }}
+          QC_BIGGEST: ${{ steps.qc.outputs.qc_biggest_issue }}
+          QC_SCORE: ${{ steps.qc.outputs.qc_score }}
+          LEAD_NAME: ${{ steps.qc.outputs.lead_name }}
+          LEAD_TITLE: ${{ steps.qc.outputs.lead_title }}
+          LEAD_SENIORITY: ${{ steps.qc.outputs.lead_seniority }}
+          LEAD_IS_DM: ${{ steps.qc.outputs.lead_is_dm }}
+          LEAD_SOURCE: ${{ steps.qc.outputs.lead_source }}
         run: |
           # Report URL is PREVIEW only until approved
-          REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${{ steps.deploy.outputs.firm_folder }}/"
-          FIRM_NAME="${{ steps.deploy.outputs.firm_name }}"
-          CONTACT_NAME="${{ steps.extract.outputs.contact_name }}"
+          REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
           mkdir -p pending-approvals
 
-          # Get QC results (including AI Perfector analysis)
-          QC_PASSED="${{ steps.qc.outputs.qc_passed }}"
-          QC_ISSUES="${{ steps.qc.outputs.qc_issues }}"
-          QC_WOULD_BOOK="${{ steps.qc.outputs.qc_would_book }}"
-          QC_BIGGEST="${{ steps.qc.outputs.qc_biggest_issue }}"
-          QC_SCORE="${{ steps.qc.outputs.qc_score }}"
-
-          # Get lead intelligence
-          LEAD_NAME="${{ steps.qc.outputs.lead_name }}"
-          LEAD_TITLE="${{ steps.qc.outputs.lead_title }}"
-          LEAD_SENIORITY="${{ steps.qc.outputs.lead_seniority }}"
-          LEAD_IS_DM="${{ steps.qc.outputs.lead_is_dm }}"
-          LEAD_SOURCE="${{ steps.qc.outputs.lead_source }}"
-
-          cat > "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json" << EOF
+          cat > "pending-approvals/${FIRM_FOLDER}.json" << EOF
           {
             "firm_name": "$FIRM_NAME",
-            "firm_folder": "${{ steps.deploy.outputs.firm_folder }}",
-            "lead_email": "${{ steps.lead_data.outputs.lead_email }}",
+            "firm_folder": "$FIRM_FOLDER",
+            "lead_email": "$LEAD_EMAIL_ADDR",
             "contact_name": "$CONTACT_NAME",
             "report_url": "$REPORT_URL",
-            "email_id": "${{ steps.lead_data.outputs.email_id }}",
-            "from_email": "${{ steps.lead_data.outputs.from_email }}",
+            "email_id": "$EMAIL_ID",
+            "from_email": "$FROM_EMAIL",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
             "report_version": "V3",
@@ -532,7 +532,7 @@ jobs:
           EOF
 
           echo "Sending Telegram approval for $FIRM_NAME (contact: $CONTACT_NAME)"
-          node telegram-approval-bot.js "pending-approvals/${{ steps.deploy.outputs.firm_folder }}.json"
+          node telegram-approval-bot.js "pending-approvals/${FIRM_FOLDER}.json"
         working-directory: ./automation
 
       - name: Commit pending report (NOT LIVE until approved)
