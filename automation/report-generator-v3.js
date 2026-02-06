@@ -456,10 +456,20 @@ async function generateReport(researchData, prospectName) {
 
   // Extract ads status (check multiple paths for old + new JSON formats)
   const adsDetectionFailed = adsData?.detectionSucceeded === false;
-  const runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || researchData.googleAdsData?.running || false;
-  const runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || researchData.metaAdsData?.running || false;
+  let runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || researchData.googleAdsData?.running || false;
+  let runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || researchData.metaAdsData?.running || false;
   const googleAdCount = adsData?.googleAds?.adCount || researchData.googleAdsData?.adCount || 0;
   const metaAdCount = adsData?.metaAds?.activeCount || researchData.metaAdsData?.activeCount || researchData.metaAdsData?.inactiveAdCount || 0;
+
+  // Safety net: if detector says "running" but found 0 ads, it's a false positive
+  if (runningGoogleAds && googleAdCount === 0) {
+    console.log('⚠️  Google Ads false positive: "running" but 0 ads detected — treating as not running');
+    runningGoogleAds = false;
+  }
+  if (runningMetaAds && metaAdCount === 0) {
+    console.log('⚠️  Meta Ads false positive: "running" but 0 ads detected — treating as not running');
+    runningMetaAds = false;
+  }
 
   if (adsDetectionFailed) {
     console.log(`📢 Ads detection: FAILED (${adsData?.detectionError || 'unknown error'}) - treating as unknown`);

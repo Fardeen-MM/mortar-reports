@@ -186,10 +186,9 @@ async function handleTelegramCallback(env, update) {
 
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
 // One has lead data (website, company, city), the other has email data (email_id, from_email).
-// We use Cloudflare KV to persist the first webhook across isolates, then merge when
-// the second arrives. A 10s timer forwards as-is if only one webhook ever comes.
-
-const WAIT_FOR_SECOND_WEBHOOK_MS = 10_000; // 10 seconds
+// Each webhook stores to a unique slot key (wh:<email>|<random>), then does KV.list()
+// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise, a 15s
+// fallback timer does the same list+merge in case the second webhook never arrives.
 
 // Helper: dig into nested objects (payload.lead, payload.contact, etc.)
 function dig(payload, ...keys) {
@@ -266,65 +265,79 @@ function mergePayloads(a, b) {
   return merged;
 }
 
+// Helper: list all webhook slots for an email, merge them, dispatch, and clean up.
+// Returns true if dispatched, false if nothing to dispatch.
+async function listMergeDispatch(env, email, minSlots) {
+  const keys = await env.WEBHOOK_KV.list({ prefix: `wh:${email}|` });
+  console.log(`listMergeDispatch(${email}): found ${keys.keys.length} slot(s) (need ${minSlots})`);
+
+  if (keys.keys.length < minSlots) return false;
+
+  // Read and merge all slots
+  let merged = null;
+  for (const key of keys.keys) {
+    const p = await env.WEBHOOK_KV.get(key.name, { type: 'json' });
+    if (p) {
+      merged = merged ? mergePayloads(merged, p) : p;
+    }
+  }
+
+  if (!merged) return false;
+
+  // Set done flag BEFORE dispatching to prevent other timers from also dispatching
+  await env.WEBHOOK_KV.put(`done:${email}`, 'true', { expirationTtl: 300 });
+
+  console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
+  await forwardToGitHub(env, merged);
+
+  // Clean up slot keys
+  for (const key of keys.keys) {
+    await env.WEBHOOK_KV.delete(key.name);
+  }
+
+  return true;
+}
+
 async function handleInstantlyWebhook(env, payload, ctx) {
   const email = payload.lead_email || payload.email || 'unknown';
   const githubPayload = buildGithubPayload(payload);
 
-  // Log raw payload for debugging in Cloudflare dashboard
   console.log('RAW INSTANTLY PAYLOAD:', JSON.stringify(payload));
   console.log('BUILT GITHUB PAYLOAD:', JSON.stringify(githubPayload));
 
-  // Check if this email was already dispatched (from a previous batch)
+  // Already dispatched for this email? (from a previous webhook pair)
   const dispatched = await env.WEBHOOK_KV.get(`done:${email}`);
   if (dispatched) {
     console.log(`Already dispatched for ${email}, ignoring`);
     return { success: true, message: 'Already dispatched' };
   }
 
-  // Store this webhook's payload under a UNIQUE key (random suffix).
-  // This avoids write conflicts — both webhooks write to different keys,
-  // so neither overwrites the other. KV.list() finds them all later.
+  // Store this webhook under a unique slot key (no overwrites between webhooks)
   const slot = crypto.randomUUID().slice(0, 8);
   await env.WEBHOOK_KV.put(`wh:${email}|${slot}`, JSON.stringify(githubPayload), { expirationTtl: 120 });
   console.log(`Stored webhook for ${email} in slot ${slot}`);
 
-  // Schedule a delayed merge + dispatch.
-  // Both webhooks schedule this, but the dispatched flag prevents double-send.
-  // The 5s delay gives KV time to propagate within the same PoP.
+  // Try to merge immediately — if 2+ slots exist, the other webhook already stored
+  const didDispatch = await listMergeDispatch(env, email, 2);
+  if (didDispatch) {
+    return { success: true, message: 'Merged and dispatched immediately' };
+  }
+
+  // Only one slot found — schedule fallback timer for when second webhook never comes
   ctx.waitUntil(
-    new Promise(resolve => setTimeout(resolve, WAIT_FOR_SECOND_WEBHOOK_MS)).then(async () => {
-      // Check dispatched flag again (another timer may have fired first)
+    new Promise(resolve => setTimeout(resolve, 15_000)).then(async () => {
       const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
       if (alreadyDone) {
-        console.log(`Timer: ${email} already dispatched by other timer`);
+        console.log(`Fallback timer: ${email} already dispatched`);
         return;
       }
 
-      // Set dispatched flag FIRST to prevent the other timer from also dispatching
-      await env.WEBHOOK_KV.put(`done:${email}`, 'true', { expirationTtl: 300 });
-
-      // Find ALL stored payloads for this email using KV.list()
-      const keys = await env.WEBHOOK_KV.list({ prefix: `wh:${email}|` });
-      console.log(`Timer: found ${keys.keys.length} webhook(s) for ${email}`);
-
-      let merged = null;
-      for (const key of keys.keys) {
-        const p = await env.WEBHOOK_KV.get(key.name, { type: 'json' });
-        if (p) {
-          merged = merged ? mergePayloads(merged, p) : p;
-        }
-      }
-
-      if (merged) {
-        console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
-        await forwardToGitHub(env, merged);
-      } else {
-        console.log(`Timer: no payloads found for ${email} — nothing to dispatch`);
-      }
+      console.log(`Fallback timer: dispatching whatever we have for ${email}`);
+      await listMergeDispatch(env, email, 1);
     })
   );
 
-  return { success: true, message: 'Stored, merge timer running' };
+  return { success: true, message: 'Stored, waiting for second webhook' };
 }
 
 // ============ MAIN HANDLER ============

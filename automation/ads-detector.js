@@ -67,7 +67,7 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
       const advertiserCount = await page.locator('[class*="advertiser"], [data-advertiser]').count();
 
       // Final determination
-      result.running = !hasNoResults && (adCount > 0 || advertiserCount > 0);
+      result.running = !hasNoResults && adCount > 0;
       result.adCount = adCount;
 
       if (result.running) {
