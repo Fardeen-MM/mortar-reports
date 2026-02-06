@@ -58,17 +58,12 @@ jobs:
       - name: Debug - Show ALL webhook data
         env:
           PAYLOAD_JSON: ${{ toJSON(github.event.client_payload) }}
-          RAW_KEYS: ${{ github.event.client_payload._raw_keys }}
         run: |
           echo "========================================="
           echo "ALL FIELDS FROM INSTANTLY WEBHOOK:"
           echo "========================================="
           echo "$PAYLOAD_JSON" | jq '.'
           echo "========================================="
-          if [ -n "$RAW_KEYS" ]; then
-            echo "RAW INSTANTLY PAYLOAD KEYS: $RAW_KEYS"
-            echo "========================================="
-          fi
           
       - name: Parse website from lead data
         id: parse

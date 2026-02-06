@@ -221,9 +221,7 @@ function buildGithubPayload(payload) {
         'Organization', 'lead_company', 'lead_company_name'),
       email_id: dig(payload, 'email_id', 'emailId', 'message_id', 'messageId', 'id'),
       from_email: dig(payload, 'from_email', 'fromEmail', 'from', 'sender', 'from_email_account',
-        'fromEmailAccount', 'from_address', 'reply_to_email'),
-      // Pass through all raw top-level keys for debugging
-      _raw_keys: Object.keys(payload).join(',')
+        'fromEmailAccount', 'from_address', 'reply_to_email')
     }
   };
 }
@@ -253,14 +251,7 @@ function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
   for (const field of allFields) {
-    if (field === '_raw_keys') {
-      // Combine raw keys from both
-      const keysA = (a.client_payload._raw_keys || '').split(',').filter(Boolean);
-      const keysB = (b.client_payload._raw_keys || '').split(',').filter(Boolean);
-      merged.client_payload._raw_keys = [...new Set([...keysA, ...keysB])].join(',');
-    } else {
-      merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
-    }
+    merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
   }
   return merged;
 }
