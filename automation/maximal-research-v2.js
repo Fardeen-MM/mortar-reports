@@ -583,10 +583,17 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
       }
     }
     research.firmName = bestFirmName;
+    // Update local city/state so ALL subsequent phases use the best available data.
+    // Without this, competitor search and Google Business use empty webhook values.
+    city = city || extractedData.city || '';
+    state = state || extractedData.state || '';
+    if (extractedData.city && !city) {
+      console.log(`📍 Extracted city from website: ${extractedData.city}`);
+    }
     research.location = {
-      city: city || extractedData.city,         // Webhook city takes priority
-      state: state || extractedData.state,       // Webhook state takes priority
-      country: country,                          // Webhook country always used
+      city,
+      state,
+      country: country,
       fullAddress: extractedData.fullAddress,
       otherLocations: extractedData.otherLocations || []
     };

@@ -191,20 +191,40 @@ async function handleTelegramCallback(env, update) {
 
 const WAIT_FOR_SECOND_WEBHOOK_MS = 10_000; // 10 seconds
 
+// Helper: dig into nested objects (payload.lead, payload.contact, etc.)
+function dig(payload, ...keys) {
+  for (const key of keys) {
+    const val = payload[key];
+    if (val && typeof val === 'string' && val.trim()) return val.trim();
+  }
+  // Check nested objects
+  const nested = payload.lead || payload.contact || payload.lead_data || payload.data || {};
+  for (const key of keys) {
+    const val = nested[key];
+    if (val && typeof val === 'string' && val.trim()) return val.trim();
+  }
+  return '';
+}
+
 function buildGithubPayload(payload) {
   return {
     event_type: 'interested_lead',
     client_payload: {
-      email: payload.lead_email || payload.email || '',
-      first_name: payload.first_name || payload.firstName || '',
-      last_name: payload.last_name || payload.lastName || '',
-      website: payload.website || payload.companyUrl || '',
-      city: payload.city || payload.City || '',
-      state: payload.state || payload.State || '',
-      country: payload.country || payload.Country || '',
-      company: payload.company || payload.companyName || '',
-      email_id: payload.email_id || payload.emailId || '',
-      from_email: payload.from_email || payload.fromEmail || ''
+      email: dig(payload, 'lead_email', 'email', 'Email', 'email_address', 'emailAddress', 'to_email'),
+      first_name: dig(payload, 'first_name', 'firstName', 'First Name', 'first', 'lead_first_name'),
+      last_name: dig(payload, 'last_name', 'lastName', 'Last Name', 'last', 'lead_last_name'),
+      website: dig(payload, 'website', 'companyUrl', 'company_url', 'Website', 'company_website',
+        'lead_website', 'url', 'domain', 'companyDomain', 'company_domain'),
+      city: dig(payload, 'city', 'City', 'lead_city', 'location_city'),
+      state: dig(payload, 'state', 'State', 'lead_state', 'location_state', 'province', 'Province', 'region'),
+      country: dig(payload, 'country', 'Country', 'lead_country', 'location_country', 'country_code'),
+      company: dig(payload, 'company', 'companyName', 'company_name', 'Company', 'organization',
+        'Organization', 'lead_company', 'lead_company_name'),
+      email_id: dig(payload, 'email_id', 'emailId', 'message_id', 'messageId', 'id'),
+      from_email: dig(payload, 'from_email', 'fromEmail', 'from', 'sender', 'from_email_account',
+        'fromEmailAccount', 'from_address', 'reply_to_email'),
+      // Pass through all raw top-level keys for debugging
+      _raw_keys: Object.keys(payload).join(',')
     }
   };
 }
@@ -232,9 +252,16 @@ async function forwardToGitHub(env, githubPayload) {
 // with email threading data (email_id, from_email) from the other.
 function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
-  const fields = Object.keys(a.client_payload);
-  for (const field of fields) {
-    merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
+  const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
+  for (const field of allFields) {
+    if (field === '_raw_keys') {
+      // Combine raw keys from both
+      const keysA = (a.client_payload._raw_keys || '').split(',').filter(Boolean);
+      const keysB = (b.client_payload._raw_keys || '').split(',').filter(Boolean);
+      merged.client_payload._raw_keys = [...new Set([...keysA, ...keysB])].join(',');
+    } else {
+      merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
+    }
   }
   return merged;
 }

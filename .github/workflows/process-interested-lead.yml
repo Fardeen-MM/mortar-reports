@@ -58,12 +58,17 @@ jobs:
       - name: Debug - Show ALL webhook data
         env:
           PAYLOAD_JSON: ${{ toJSON(github.event.client_payload) }}
+          RAW_KEYS: ${{ github.event.client_payload._raw_keys }}
         run: |
           echo "========================================="
           echo "ALL FIELDS FROM INSTANTLY WEBHOOK:"
           echo "========================================="
           echo "$PAYLOAD_JSON" | jq '.'
           echo "========================================="
+          if [ -n "$RAW_KEYS" ]; then
+            echo "RAW INSTANTLY PAYLOAD KEYS: $RAW_KEYS"
+            echo "========================================="
+          fi
           
       - name: Parse website from lead data
         id: parse
@@ -196,6 +201,9 @@ jobs:
       - name: Extract firm info from research
         id: extract
         if: steps.check_existing.outputs.skip != 'true'
+        env:
+          LEAD_EMAIL: ${{ steps.lead_data.outputs.lead_email }}
+          WEBHOOK_CONTACT: ${{ steps.parse.outputs.contact_name }}
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
           
@@ -210,48 +218,69 @@ jobs:
             console.log(data.firmName || 'Unknown Firm');
           ")
           
-          # Extract contact name from research or email (NEW: check extracted team data first)
-          CONTACT_NAME="${{ steps.parse.outputs.contact_name }}"
+          # Extract contact name from research or email
+          CONTACT_NAME="$WEBHOOK_CONTACT"
           if [ -z "$CONTACT_NAME" ] || [ "$CONTACT_NAME" = " " ]; then
-            # Try multiple sources in order of preference
             CONTACT_NAME=$(node -e "
               const data = JSON.parse(require('fs').readFileSync('$RESEARCH_FILE', 'utf8'));
-              
-              // 1. Founding partners (most likely decision maker)
-              if (data.team?.foundingPartners?.[0]?.name) {
-                console.log(data.team.foundingPartners[0].name);
+
+              // Collect ALL known team members from research
+              const teamMembers = [];
+              (data.team?.foundingPartners || []).forEach(p => p?.name && teamMembers.push(p.name));
+              if (data.team?.leadership?.name) teamMembers.push(data.team.leadership.name);
+              (data.team?.keyAttorneys || []).forEach(a => a?.name && teamMembers.push(a.name));
+              (data.intelligence?.keyDecisionMakers || []).forEach(d => d?.name && teamMembers.push(d.name));
+
+              // 1. Try to match email local part against team members
+              const email = process.env.LEAD_EMAIL || '';
+              const localPart = email.includes('@') ? email.split('@')[0].toLowerCase() : '';
+
+              if (localPart && teamMembers.length > 0) {
+                // Try initials match: 'cmec' matches 'Christopher M. Eddison-Cogan'
+                for (const name of teamMembers) {
+                  const parts = name.replace(/[.-]/g, ' ').split(/\\s+/).filter(Boolean);
+                  const initials = parts.map(p => p[0].toLowerCase()).join('');
+                  if (initials === localPart) {
+                    console.log(name);
+                    process.exit(0);
+                  }
+                  // Also try first initial + last name: 'jsmith' matches 'John Smith'
+                  if (parts.length >= 2) {
+                    const firstInitialLast = (parts[0][0] + parts[parts.length - 1]).toLowerCase();
+                    if (firstInitialLast === localPart) {
+                      console.log(name);
+                      process.exit(0);
+                    }
+                  }
+                }
+                // Try substring match: 'christopher' contains in localPart or vice versa
+                for (const name of teamMembers) {
+                  const firstNameLower = name.split(/\\s+/)[0].toLowerCase();
+                  if (localPart.includes(firstNameLower) || firstNameLower.includes(localPart)) {
+                    console.log(name);
+                    process.exit(0);
+                  }
+                }
+              }
+
+              // 2. Use first team member found (most likely decision maker)
+              if (teamMembers.length > 0) {
+                console.log(teamMembers[0]);
                 process.exit(0);
               }
-              
-              // 2. Leadership
-              if (data.team?.leadership?.name) {
-                console.log(data.team.leadership.name);
-                process.exit(0);
-              }
-              
-              // 3. Key attorneys
-              if (data.team?.keyAttorneys?.[0]?.name) {
-                console.log(data.team.keyAttorneys[0].name);
-                process.exit(0);
-              }
-              
-              // 4. Old intelligence structure
-              if (data.intelligence?.keyDecisionMakers?.[0]?.name) {
-                console.log(data.intelligence.keyDecisionMakers[0].name);
-                process.exit(0);
-              }
-              
-              // 5. Extract from email (smart - avoid generic addresses)
-              const email = '${{ steps.lead_data.outputs.lead_email }}';
-              if (email && email.includes('@')) {
-                const localPart = email.split('@')[0].toLowerCase();
-                
-                // Skip generic addresses
-                if (['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail'].includes(localPart)) {
+
+              // 3. Extract from email (smart - avoid generic and initials-only addresses)
+              if (localPart) {
+                const generic = ['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail', 'enquiries', 'reception'];
+                if (generic.includes(localPart)) {
                   console.log('Partner');
                   process.exit(0);
                 }
-                
+                // If it looks like initials only (2-5 chars, no separators), skip it
+                if (localPart.length <= 5 && !localPart.includes('.') && !localPart.includes('_') && !localPart.includes('-')) {
+                  console.log('Partner');
+                  process.exit(0);
+                }
                 const name = localPart
                   .replace(/[._-]/g, ' ')
                   .split(' ')
