@@ -1,37 +1,12 @@
 {
-  "status": "FAILED",
-  "checksCompleted": 56,
-  "failures": 8,
-  "issues": [
-    "[DATA_EXISTENCE] Insufficient competitors (0, need 3+)",
-    "[MATH] Gap sum ($165) doesn't match hero ($51,000)",
-    "[LOGIC] Report mentions reviews but no review data",
-    "[LOGIC] Report mentions competitors but no competitor data",
-    "[STRUCTURE] Missing flow diagrams (found 7 arrows, need 12+)",
-    "[CONTENT] Firm name appears only 1 times (need 2+)",
-    "[CONTENT] Insufficient pull quotes (3 found, need 4+)",
-    "[LANGUAGE] Found 15 em dashes (—) - use regular dashes instead"
-  ],
-  "byPhase": {
-    "DATA_EXISTENCE": [
-      "Insufficient competitors (0, need 3+)"
-    ],
-    "MATH": [
-      "Gap sum ($165) doesn't match hero ($51,000)"
-    ],
-    "LOGIC": [
-      "Report mentions reviews but no review data",
-      "Report mentions competitors but no competitor data"
-    ],
-    "STRUCTURE": [
-      "Missing flow diagrams (found 7 arrows, need 12+)"
-    ],
-    "CONTENT": [
-      "Firm name appears only 1 times (need 2+)",
-      "Insufficient pull quotes (3 found, need 4+)"
-    ],
-    "LANGUAGE": [
-      "Found 15 em dashes (—) - use regular dashes instead"
-    ]
-  }
+  "status": "PASSED",
+  "firmName": "Doss Law",
+  "iterations": 1,
+  "score": 10,
+  "wouldBook": true,
+  "biggestIssue": null,
+  "qualityIssues": 0,
+  "recommendation": "Report passed deterministic QC and is ready to send.",
+  "leadIntelligence": null,
+  "leadFit": null
 }
