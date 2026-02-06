@@ -186,7 +186,7 @@ module.exports = function getV3CSS() {
   .divider {
     height: 1px;
     background: linear-gradient(to right, transparent, var(--border), transparent);
-    margin: 48px 0;
+    margin: 56px 0;
   }
 
   /* ========== NARRATIVE TEXT ========== */
@@ -368,6 +368,124 @@ module.exports = function getV3CSS() {
   .ba-label.good { color: var(--success); }
 
   .ba-side p { margin: 0; color: var(--slate); }
+
+  .ba-social {
+    background: linear-gradient(135deg, rgba(59, 89, 152, 0.05), rgba(59, 89, 152, 0.02));
+    border: 1px solid rgba(59, 89, 152, 0.2);
+  }
+
+  /* ========== SERP MOCKUP ========== */
+  .serp-mockup {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .serp-query {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--slate-light);
+  }
+
+  .serp-query span {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+
+  .serp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 6px;
+  }
+
+  .serp-row + .serp-row {
+    margin-top: 2px;
+  }
+
+  .serp-tag {
+    display: inline-block;
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    min-width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .serp-tag-ad {
+    background: rgba(66, 133, 244, 0.12);
+    color: #4285F4;
+  }
+
+  .serp-tag-map {
+    background: rgba(52, 168, 83, 0.12);
+    color: #34A853;
+  }
+
+  .serp-tag-you {
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--danger);
+  }
+
+  .serp-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+
+  .serp-note {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .serp-you {
+    background: rgba(220, 38, 38, 0.04);
+    border: 1px dashed rgba(220, 38, 38, 0.25);
+  }
+
+  .serp-you .serp-name {
+    color: var(--danger);
+  }
+
+  .serp-you .serp-note {
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  .serp-you-running {
+    background: rgba(66, 133, 244, 0.04);
+    border: 1px solid rgba(66, 133, 244, 0.15);
+  }
+
+  .serp-you-running .serp-note {
+    color: #4285F4;
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  .serp-ellipsis {
+    padding: 2px 8px;
+  }
 
   /* ========== TOTAL STRIP ========== */
   .total-strip {
@@ -686,6 +804,8 @@ module.exports = function getV3CSS() {
     .journey-flow { gap: 0; }
     .journey-line { width: 24px; }
     .journey-icon { width: 40px; height: 40px; }
+    .serp-name { max-width: 180px; }
+    .serp-mockup { padding: 14px 16px; }
   }
 
   @media (max-width: 480px) {
