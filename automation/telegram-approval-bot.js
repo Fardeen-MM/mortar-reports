@@ -9,7 +9,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { buildPersonalizedEmail, buildSimpleEmail } = require('./email-templates');
+const { buildEmail } = require('./email-templates');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -63,12 +63,14 @@ if (approvalData.firm_name) {
 }
 
 // Generate email preview using the same template
-let emailPreview;
-if (researchData) {
-  emailPreview = buildPersonalizedEmail(researchData, approvalData.contact_name, approvalData.report_url);
-} else {
-  emailPreview = buildSimpleEmail(approvalData.contact_name, approvalData.report_url);
-}
+const emailPreview = buildEmail(
+  approvalData.contact_name,
+  approvalData.firm_name,
+  approvalData.report_url,
+  approvalData.total_range || '',
+  approvalData.total_cases || '',
+  approvalData.practice_label || ''
+);
 
 // Build approval message with website, LinkedIn, and email preview
 let contextSection = '';

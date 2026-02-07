@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { buildPersonalizedEmail, buildSimpleEmail } = require('./email-templates');
+const { buildEmail } = require('./email-templates');
 
 const firmName = process.argv[2];
 const contactName = process.argv[3];
@@ -44,14 +44,8 @@ for (const filename of possibleFiles) {
 }
 
 // Build email
-let emailContent;
-if (researchData) {
-  emailContent = buildPersonalizedEmail(researchData, contactName, reportUrl);
-  console.log('📧 EMAIL PREVIEW (AI-Personalized)\n');
-} else {
-  emailContent = buildSimpleEmail(contactName, reportUrl);
-  console.log('📧 EMAIL PREVIEW (Standard Template)\n');
-}
+const emailContent = buildEmail(contactName, firmName, reportUrl);
+console.log('📧 EMAIL PREVIEW\n');
 
 console.log('═'.repeat(60));
 console.log(`Subject: ${emailContent.subject}`);
