@@ -63,6 +63,9 @@ jobs:
           RD_REPORT_URL: ${{ github.event.client_payload.report_url }}
           RD_EMAIL_ID: ${{ github.event.client_payload.email_id }}
           RD_FROM_EMAIL: ${{ github.event.client_payload.from_email }}
+          RD_TOTAL_RANGE: ${{ github.event.client_payload.total_range }}
+          RD_TOTAL_CASES: ${{ github.event.client_payload.total_cases }}
+          RD_PRACTICE_LABEL: ${{ github.event.client_payload.practice_label }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -73,6 +76,9 @@ jobs:
             echo "email_id=$WD_EMAIL_ID" >> $GITHUB_OUTPUT
             echo "from_email=$WD_FROM_EMAIL" >> $GITHUB_OUTPUT
             echo "firm_folder=" >> $GITHUB_OUTPUT
+            echo "total_range=" >> $GITHUB_OUTPUT
+            echo "total_cases=" >> $GITHUB_OUTPUT
+            echo "practice_label=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -82,6 +88,9 @@ jobs:
             echo "report_url=$RD_REPORT_URL" >> $GITHUB_OUTPUT
             echo "email_id=$RD_EMAIL_ID" >> $GITHUB_OUTPUT
             echo "from_email=$RD_FROM_EMAIL" >> $GITHUB_OUTPUT
+            echo "total_range=$RD_TOTAL_RANGE" >> $GITHUB_OUTPUT
+            echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
+            echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -181,18 +190,30 @@ jobs:
       - name: Send approved email
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+          LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
+          CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
+          EMAIL_ID: ${{ steps.inputs.outputs.email_id }}
+          FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
+          FROM_EMAIL: ${{ steps.inputs.outputs.from_email }}
+          TOTAL_RANGE: ${{ steps.inputs.outputs.total_range }}
+          TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
+          PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
-          echo "📧 Sending approved email to ${{ steps.inputs.outputs.lead_email }}"
-          echo "🏢 Firm: ${{ steps.inputs.outputs.firm_name }}"
-          echo "📨 From: ${{ steps.inputs.outputs.from_email }}"
+          echo "📧 Sending approved email to $LEAD_EMAIL"
+          echo "🏢 Firm: $FIRM_NAME"
+          echo "📨 From: $FROM_EMAIL"
           echo "🔗 Report: $LIVE_URL"
+          echo "📊 Range: $TOTAL_RANGE | Cases: $TOTAL_CASES | Practice: $PRACTICE_LABEL"
 
           node send-email.js \
-            "${{ steps.inputs.outputs.lead_email }}" \
-            "${{ steps.inputs.outputs.contact_name }}" \
+            "$LEAD_EMAIL" \
+            "$CONTACT_NAME" \
             "$LIVE_URL" \
-            "${{ steps.inputs.outputs.email_id }}" \
-            "${{ steps.inputs.outputs.firm_name }}" \
-            "${{ steps.inputs.outputs.from_email }}"
+            "$EMAIL_ID" \
+            "$FIRM_NAME" \
+            "$FROM_EMAIL" \
+            "$TOTAL_RANGE" \
+            "$TOTAL_CASES" \
+            "$PRACTICE_LABEL"
         working-directory: ./automation

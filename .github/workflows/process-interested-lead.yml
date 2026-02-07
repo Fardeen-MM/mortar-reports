@@ -347,6 +347,23 @@ jobs:
 
           if [ $EXIT_CODE -eq 0 ]; then
             echo "blocked=false" >> $GITHUB_OUTPUT
+
+            # Read email data for personalized email
+            EMAIL_DATA_FILE=$(find reports -name "*-email-data.json" -type f | head -1)
+            if [ -n "$EMAIL_DATA_FILE" ]; then
+              TOTAL_RANGE=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$EMAIL_DATA_FILE','utf8')).totalRange)")
+              TOTAL_CASES=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$EMAIL_DATA_FILE','utf8')).totalCases)")
+              PRACTICE_LABEL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$EMAIL_DATA_FILE','utf8')).practiceLabel)")
+              echo "total_range=$TOTAL_RANGE" >> $GITHUB_OUTPUT
+              echo "total_cases=$TOTAL_CASES" >> $GITHUB_OUTPUT
+              echo "practice_label=$PRACTICE_LABEL" >> $GITHUB_OUTPUT
+              echo "📧 Email data: range=$TOTAL_RANGE cases=$TOTAL_CASES practice=$PRACTICE_LABEL"
+            else
+              echo "⚠️  No email-data.json found"
+              echo "total_range=" >> $GITHUB_OUTPUT
+              echo "total_cases=" >> $GITHUB_OUTPUT
+              echo "practice_label=" >> $GITHUB_OUTPUT
+            fi
           else
             echo "Report generation failed with exit code $EXIT_CODE"
             echo "blocked=true" >> $GITHUB_OUTPUT
@@ -528,6 +545,9 @@ jobs:
           LEAD_SENIORITY: ${{ steps.qc.outputs.lead_seniority }}
           LEAD_IS_DM: ${{ steps.qc.outputs.lead_is_dm }}
           LEAD_SOURCE: ${{ steps.qc.outputs.lead_source }}
+          TOTAL_RANGE: ${{ steps.report.outputs.total_range }}
+          TOTAL_CASES: ${{ steps.report.outputs.total_cases }}
+          PRACTICE_LABEL: ${{ steps.report.outputs.practice_label }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -550,6 +570,9 @@ jobs:
             "qc_would_book": "$QC_WOULD_BOOK",
             "qc_biggest_issue": "$QC_BIGGEST",
             "qc_score": "$QC_SCORE",
+            "total_range": "$TOTAL_RANGE",
+            "total_cases": "$TOTAL_CASES",
+            "practice_label": "$PRACTICE_LABEL",
             "lead_intelligence": {
               "name": "$LEAD_NAME",
               "title": "$LEAD_TITLE",

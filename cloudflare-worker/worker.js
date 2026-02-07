@@ -49,7 +49,10 @@ async function triggerGitHubWorkflow(githubToken, approvalData) {
       contact_name: approvalData.contact_name,
       report_url: approvalData.report_url,
       email_id: approvalData.email_id || '',
-      from_email: approvalData.from_email || 'fardeen@mortarmetrics.com'
+      from_email: approvalData.from_email || 'fardeen@mortarmetrics.com',
+      total_range: approvalData.total_range || '',
+      total_cases: approvalData.total_cases || '',
+      practice_label: approvalData.practice_label || ''
     }
   };
 
@@ -123,8 +126,8 @@ async function handleTelegramCallback(env, update) {
   // Parse approval data from message
   let approvalData = parseMessageForApprovalData(callback_query.message);
 
-  // If parsing failed, try to fetch from GitHub
-  if (!approvalData && approvalId) {
+  // Try to fetch full approval JSON from GitHub (has email personalization data)
+  if (approvalId) {
     try {
       const firmName = atob(approvalId);
       const firmFolder = firmName
@@ -133,9 +136,17 @@ async function handleTelegramCallback(env, update) {
         .filter(w => w.length > 0)
         .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
         .join('');
-      approvalData = await fetchApprovalData(env.GITHUB_TOKEN, firmFolder);
+      const fetchedData = await fetchApprovalData(env.GITHUB_TOKEN, firmFolder);
+      if (fetchedData) {
+        if (approvalData) {
+          // Merge: fetched JSON has email data fields that message parsing doesn't
+          approvalData = { ...approvalData, ...fetchedData };
+        } else {
+          approvalData = fetchedData;
+        }
+      }
     } catch (e) {
-      console.log('Could not decode approvalId:', e.message);
+      console.log('Could not fetch approval data:', e.message);
     }
   }
 
@@ -335,12 +346,34 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 
 export default {
   async fetch(request, env, ctx) {
+    // Debug endpoint: GET /debug — shows last raw Instantly payloads stored in KV
+    if (request.method === 'GET') {
+      const url = new URL(request.url);
+      if (url.pathname === '/debug') {
+        const keys = await env.WEBHOOK_KV.list({ prefix: 'raw:' });
+        const entries = [];
+        for (const key of keys.keys.slice(-10)) {
+          const val = await env.WEBHOOK_KV.get(key.name);
+          entries.push({ key: key.name, payload: val });
+        }
+        return new Response(JSON.stringify(entries, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      return new Response('OK', { status: 200 });
+    }
+
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
     }
 
     try {
       const payload = await request.json();
+
+      // Store raw payload for debugging (expires in 10 min)
+      const ts = Date.now();
+      const email = payload.lead_email || payload.email || payload?.lead?.email || 'unknown';
+      await env.WEBHOOK_KV.put(`raw:${email}:${ts}`, JSON.stringify(payload), { expirationTtl: 600 });
 
       // Detect Telegram callback vs Instantly webhook
       if (payload.callback_query) {

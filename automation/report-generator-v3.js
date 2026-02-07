@@ -622,6 +622,18 @@ async function generateReport(researchData, prospectName) {
   const outputPath = path.resolve(reportsDir, `${firmSlug}-report-v3.html`);
   fs.writeFileSync(outputPath, html);
 
+  // Write email data file for personalized emails
+  const totalCases = gap1.cases + gap2.cases + gap3.cases;
+  const emailData = {
+    totalRange: `${currency}${formatRange(totalLow, totalHigh)}`,
+    totalCases: `${Math.round(totalCases * 0.7)}-${Math.round(totalCases * 1.3)}`,
+    practiceLabel: getPracticeDescription(practiceArea),
+    currency
+  };
+  const emailDataPath = path.resolve(reportsDir, `${firmSlug}-email-data.json`);
+  fs.writeFileSync(emailDataPath, JSON.stringify(emailData));
+  console.log(`📧 Email data: ${JSON.stringify(emailData)}`);
+
   console.log(`💾 Saved: ${outputPath}`);
   console.log(`✅ Report generated successfully (prose: ${proseSource})`);
   console.log(`   Lines: ${html.split('\n').length}\n`);
@@ -1414,7 +1426,7 @@ function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) 
   const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
   const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), searches,
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), searches, cases: casesPerMonth,
     formula: `~${searches} monthly searches × 4.5% CTR × 15% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
@@ -1429,7 +1441,7 @@ function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, curr
   const minLow = Math.round(4000 * countryBaseline / 500) * 500 || 500;
   const minHigh = Math.round(8000 * countryBaseline / 500) * 500 || 1000;
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area',
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area', cases: casesPerMonth,
     formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 2.0% monthly ad reach × 1.2% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
@@ -1444,7 +1456,7 @@ function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency
   const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
   const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), calls,
+    low: Math.max(minLow, low), high: Math.max(minHigh, high), calls, cases: casesPerMonth,
     formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
