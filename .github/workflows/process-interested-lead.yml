@@ -591,6 +591,7 @@ jobs:
           TOTAL_RANGE: ${{ steps.report.outputs.total_range }}
           TOTAL_CASES: ${{ steps.report.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.report.outputs.practice_label }}
+          COUNTRY: ${{ steps.parse.outputs.country }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -605,6 +606,7 @@ jobs:
             "report_url": "$REPORT_URL",
             "job_title": "$JOB_TITLE",
             "linkedin": "$LINKEDIN",
+            "country": "$COUNTRY",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
             "report_version": "V3",

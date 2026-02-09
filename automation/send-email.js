@@ -2,13 +2,14 @@
 /**
  * Send follow-up email via Instantly API
  * Automatically threads replies by looking up the lead's most recent email UUID.
- * Usage: node send-email.js <email> <contact_name> <report_url> <email_id> <firm_name> <from_email> [total_range] [total_cases] [practice_label]
+ * Usage: node send-email.js <email> <contact_name> <report_url> <email_id> <firm_name> <from_email> [total_range] [total_cases] [practice_label] [country]
  */
 
 const https = require('https');
 const { buildEmail } = require('./email-templates');
 
 const INSTANTLY_API_KEY = process.env.INSTANTLY_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const recipientEmail = process.argv[2];
 const contactName = process.argv[3];
 const reportUrl = process.argv[4];
@@ -18,6 +19,7 @@ const fromEmail = process.argv[7] || process.env.FROM_EMAIL || 'fardeen@mortarme
 const totalRange = process.argv[8] || '';
 const totalCases = process.argv[9] || '';
 const practiceLabel = process.argv[10] || '';
+const country = process.argv[11] || '';
 
 if (!INSTANTLY_API_KEY) {
   console.error('❌ INSTANTLY_API_KEY environment variable not set');
@@ -63,7 +65,19 @@ function fetchLatestEmail(leadEmail) {
           if (emails.length > 0 && emails[0].id) {
             console.log(`🔍 Found ${emails.length} email(s) for ${leadEmail}, using latest: ${emails[0].id}`);
             console.log(`📨 Thread eaccount: ${emails[0].eaccount}`);
-            return resolve({ id: emails[0].id, eaccount: emails[0].eaccount });
+
+            // Find the lead's reply (email FROM the lead, not from us)
+            let leadReply = '';
+            for (const em of emails) {
+              const fromAddr = (em.from_address_email || em.from_address || em.from || '').toLowerCase();
+              if (fromAddr === leadEmail.toLowerCase()) {
+                leadReply = em.content_preview || em.body_preview || em.snippet || '';
+                console.log(`💬 Lead reply found: "${leadReply.substring(0, 80)}${leadReply.length > 80 ? '...' : ''}"`);
+                break;
+              }
+            }
+
+            return resolve({ id: emails[0].id, eaccount: emails[0].eaccount, leadReply });
           }
           console.warn(`⚠️  No emails found for ${leadEmail} - cannot thread reply`);
           resolve(null);
@@ -138,10 +152,105 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
   });
 }
 
+/**
+ * Generate a warm opener using Claude Haiku based on the lead's reply and country.
+ * Falls back to "Glad you replied." on error or missing API key.
+ */
+function generateOpener(leadReply, leadCountry) {
+  const fallback = 'Glad you replied.';
+  if (!ANTHROPIC_API_KEY) {
+    console.log('⚠️  No ANTHROPIC_API_KEY - using fallback opener');
+    return Promise.resolve(fallback);
+  }
+  if (!leadReply && leadCountry !== 'CA') return Promise.resolve(fallback);
+
+  let prompt = `A law firm lead replied to our cold email with: "${leadReply || 'interested'}"
+
+Write a single warm sentence (max 20 words) that naturally acknowledges what they said and transitions to us sharing a report.`;
+
+  if (leadCountry === 'CA') {
+    prompt += `\nThe lead is Canadian. We (Mortar Metrics, a marketing agency) are also Canadian. Naturally mention that we're Canadian too and would love to help a fellow Canadian practice.`;
+  }
+
+  prompt += `\nBe conversational and professional. Do NOT use em dashes. Return ONLY the sentence, nothing else.`;
+
+  return new Promise((resolve) => {
+    const payload = JSON.stringify({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 60,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(payload),
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const text = parsed.content?.[0]?.text?.trim();
+          if (text) {
+            console.log(`🤖 AI opener: "${text}"`);
+            resolve(text);
+          } else {
+            console.warn('⚠️  Empty AI response, using fallback opener');
+            resolve(fallback);
+          }
+        } catch (e) {
+          console.warn(`⚠️  Failed to parse AI response: ${e.message}`);
+          resolve(fallback);
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.warn(`⚠️  AI opener request failed: ${error.message}`);
+      resolve(fallback);
+    });
+
+    req.setTimeout(10000, () => {
+      console.warn('⚠️  AI opener timed out, using fallback');
+      req.destroy();
+      resolve(fallback);
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
 // --- Main ---
 (async () => {
-  // Build email with personalization data
-  const emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+  console.log(`📧 Using ${totalRange ? 'personalized' : 'standard'} email template`);
+  console.log(`📨 From: ${fromEmail}`);
+  console.log(`📊 Report URL: ${reportUrl}`);
+  if (country) console.log(`🌍 Country: ${country}`);
+
+  // Look up the latest email for this lead to get UUID + eaccount for threading
+  const latestEmail = await fetchLatestEmail(recipientEmail);
+
+  if (!latestEmail) {
+    console.error('❌ Could not find an email thread for this lead - cannot send');
+    console.error('   The lead must have an existing email thread in Instantly');
+    process.exit(1);
+  }
+
+  // Generate AI opener from the lead's reply
+  const opener = await generateOpener(latestEmail.leadReply, country);
+
+  // Build email with personalization data + AI opener
+  const emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
 
   // Run email QC checks (warnings only, does not block send)
   const { validateEmail } = require('./email-qc');
@@ -151,19 +260,6 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
     emailQC.warnings.forEach(w => console.warn(`   - ${w}`));
   } else {
     console.log('✅ Email QC passed');
-  }
-
-  console.log(`📧 Using ${totalRange ? 'personalized' : 'standard'} email template`);
-  console.log(`📨 From: ${fromEmail}`);
-  console.log(`📊 Report URL: ${reportUrl}`);
-
-  // Look up the latest email for this lead to get UUID + eaccount for threading
-  const latestEmail = await fetchLatestEmail(recipientEmail);
-
-  if (!latestEmail) {
-    console.error('❌ Could not find an email thread for this lead - cannot send');
-    console.error('   The lead must have an existing email thread in Instantly');
-    process.exit(1);
   }
 
   try {

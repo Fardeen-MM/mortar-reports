@@ -55,6 +55,7 @@ jobs:
           RD_TOTAL_RANGE: ${{ github.event.client_payload.total_range }}
           RD_TOTAL_CASES: ${{ github.event.client_payload.total_cases }}
           RD_PRACTICE_LABEL: ${{ github.event.client_payload.practice_label }}
+          RD_COUNTRY: ${{ github.event.client_payload.country }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -66,6 +67,7 @@ jobs:
             echo "total_range=" >> $GITHUB_OUTPUT
             echo "total_cases=" >> $GITHUB_OUTPUT
             echo "practice_label=" >> $GITHUB_OUTPUT
+            echo "country=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -76,6 +78,7 @@ jobs:
             echo "total_range=$RD_TOTAL_RANGE" >> $GITHUB_OUTPUT
             echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
             echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
+            echo "country=$RD_COUNTRY" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -175,18 +178,21 @@ jobs:
       - name: Send approved email
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
           LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
           CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
           FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
           TOTAL_RANGE: ${{ steps.inputs.outputs.total_range }}
           TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
+          COUNTRY: ${{ steps.inputs.outputs.country }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📧 Sending approved email to $LEAD_EMAIL"
           echo "🏢 Firm: $FIRM_NAME"
           echo "🔗 Report: $LIVE_URL"
           echo "📊 Range: $TOTAL_RANGE | Cases: $TOTAL_CASES | Practice: $PRACTICE_LABEL"
+          echo "🌍 Country: $COUNTRY"
 
           node send-email.js \
             "$LEAD_EMAIL" \
@@ -197,5 +203,6 @@ jobs:
             "" \
             "$TOTAL_RANGE" \
             "$TOTAL_CASES" \
-            "$PRACTICE_LABEL"
+            "$PRACTICE_LABEL" \
+            "$COUNTRY"
         working-directory: ./automation
