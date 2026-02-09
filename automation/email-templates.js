@@ -30,30 +30,26 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
     // Personalized email with case count + revenue
     body = `Hey {{firstName}},
 
-Really glad you replied \u2014 we just finished putting this together for ${firm}.
+Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
 
-Short version: we found ~${totalCases} ${practiceLabel} cases per month in your area that aren't reaching you right now. That's around ${totalRange}/mo.
+There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${totalRange}/mo. You're not far off from capturing those, it's just about closing the gap.
 
-Here's the full breakdown \u2014 takes about 2 min to read:
+Here's the full report:
 ${reportUrl}
 
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?
-
-{{accountSignature}}`;
+Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
   } else {
     // Fallback when no numbers available
     body = `Hey {{firstName}},
 
-Really glad you replied \u2014 we just finished putting this together for ${firm}.
+Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
 
-We looked at your market and found cases that should be going to you but aren't. Broke down the numbers and where they're ending up instead.
+There are cases in your area going to other firms right now that should be going to you \u2014 and you're not far off from getting them.
 
-Here's the full breakdown \u2014 takes about 2 min to read:
+Here's the full report:
 ${reportUrl}
 
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?
-
-{{accountSignature}}`;
+Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
   }
 
   return {
