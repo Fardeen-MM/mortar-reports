@@ -157,7 +157,7 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
  * Falls back to "Glad you replied." on error or missing API key.
  */
 function generateOpener(leadReply, leadCountry) {
-  const fallback = 'Glad you replied.';
+  const fallback = 'Thanks for getting back to us. Our team dug into your market and found some real money being left on the table.';
   if (!ANTHROPIC_API_KEY) {
     console.log('⚠️  No ANTHROPIC_API_KEY - using fallback opener');
     return Promise.resolve(fallback);
@@ -166,13 +166,13 @@ function generateOpener(leadReply, leadCountry) {
 
   let prompt = `A law firm lead replied to our cold email with: "${leadReply || 'interested'}"
 
-Write a single warm sentence (max 20 words) that naturally acknowledges what they said and transitions to us sharing a report.`;
+Write 1-2 warm sentences (max 30 words total). Thank them for getting back to us, mention our team loved digging into their market and found serious revenue they're leaving on the table.`;
 
   if (leadCountry === 'CA') {
-    prompt += `\nThe lead is Canadian. We (Mortar Metrics, a marketing agency) are also Canadian. Naturally mention that we're Canadian too and would love to help a fellow Canadian practice.`;
+    prompt += `\nThe lead is Canadian. We (Mortar Metrics) are also Canadian. Naturally mention we're fellow Canadians.`;
   }
 
-  prompt += `\nBe conversational and professional. Do NOT use em dashes. Return ONLY the sentence, nothing else.`;
+  prompt += `\nTone: friendly, excited, like a colleague who's genuinely pumped about what they found. Do NOT use em dashes. Do NOT use exclamation marks more than once. Return ONLY the sentences, nothing else.`;
 
   return new Promise((resolve) => {
     const payload = JSON.stringify({

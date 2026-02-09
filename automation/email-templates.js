@@ -32,7 +32,7 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
   const firm = firmName || 'your firm';
   const firstName = (contactName || '').split(' ')[0] || 'there';
   const cleanRange = cleanEncoding(totalRange);
-  const openingLine = opener || 'Glad you replied.';
+  const openingLine = opener || 'Thanks for getting back to us. Our team dug into your market and found some real money being left on the table.';
 
   let textBody, htmlBody;
 
