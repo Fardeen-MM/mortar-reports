@@ -549,7 +549,7 @@ jobs:
           TOTAL_CASES: ${{ steps.report.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.report.outputs.practice_label }}
         run: |
-          REPORT_URL="https://reports.mortarmetrics.com/${FIRM_FOLDER}/"
+          REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
           mkdir -p pending-approvals
 
