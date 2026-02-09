@@ -23,16 +23,20 @@ function getMeetingDays() {
 function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel) {
   const { day1, day2 } = getMeetingDays();
   const firm = firmName || 'your firm';
+  const firstName = (contactName || '').split(' ')[0] || 'there';
+
+  // Fix UTF-8 encoding issues from GitHub Actions env vars (e.g. Â£ → £)
+  const cleanRange = totalRange ? totalRange.replace(/Â£/g, '£').replace(/Â/g, '') : '';
 
   let body;
 
-  if (totalRange && totalCases && practiceLabel) {
+  if (cleanRange && totalCases && practiceLabel) {
     // Personalized email with case count + revenue
-    body = `Hey {{firstName}},
+    body = `Hey ${firstName},
 
 Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
 
-There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${totalRange}/mo. You're not far off from capturing those, it's just about closing the gap.
+There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${cleanRange}/mo. You're not far off from capturing those, it's just about closing the gap.
 
 Here's the full report:
 ${reportUrl}
@@ -40,7 +44,7 @@ ${reportUrl}
 Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
   } else {
     // Fallback when no numbers available
-    body = `Hey {{firstName}},
+    body = `Hey ${firstName},
 
 Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
 
