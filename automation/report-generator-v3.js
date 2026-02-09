@@ -1270,6 +1270,18 @@ function sanitizeCompetitorName(name) {
 }
 
 function detectPracticeArea(practiceAreas, researchData) {
+  // 1. Trust AI classification if available (most reliable)
+  const aiCategory = researchData.practiceAreaCategory
+    || researchData.practice?.practiceAreaCategory;
+  if (aiCategory && aiCategory !== 'default') {
+    const validCategories = Object.keys(CASE_VALUES);
+    if (validCategories.includes(aiCategory)) {
+      console.log(`   Practice area (AI classified): ${aiCategory}`);
+      return aiCategory;
+    }
+  }
+
+  // 2. Keyword matching fallback
   for (const pa of (practiceAreas || [])) {
     const category = getPracticeAreaCategory(pa);
     if (category !== 'default') return category;
@@ -1292,7 +1304,7 @@ function detectPracticeArea(practiceAreas, researchData) {
     if (category !== 'default') return category;
   }
   const firmNameLower = (researchData.firmName || '').toLowerCase();
-  if (firmNameLower.includes('family') || firmNameLower.includes('divorce')) return 'divorce';
+  if (firmNameLower.includes('family') || firmNameLower.includes('divorce') || firmNameLower.includes('prenup') || firmNameLower.includes('matrimonial')) return 'divorce';
   if (firmNameLower.includes('injury') || firmNameLower.includes('accident')) return 'personal injury';
   if (firmNameLower.includes('immigration')) return 'immigration';
   if (firmNameLower.includes('criminal') || firmNameLower.includes('defense')) return 'criminal';
@@ -1302,7 +1314,7 @@ function detectPracticeArea(practiceAreas, researchData) {
   if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
   if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
   const websiteLower = (researchData.website || '').toLowerCase();
-  if (websiteLower.includes('family') || websiteLower.includes('divorce')) return 'divorce';
+  if (websiteLower.includes('family') || websiteLower.includes('divorce') || websiteLower.includes('prenup') || websiteLower.includes('matrimonial')) return 'divorce';
   if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
   if (websiteLower.includes('immigration')) return 'immigration';
   if (websiteLower.includes('criminal') || websiteLower.includes('defense') || websiteLower.includes('dui')) return 'criminal';
@@ -1319,7 +1331,7 @@ function getPracticeAreaCategory(raw) {
   if (!raw) return 'default';
   const lower = raw.toLowerCase();
   if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
-  if (lower.includes('divorce') || lower.includes('family')) return 'divorce';
+  if (lower.includes('divorce') || lower.includes('family') || lower.includes('prenup') || lower.includes('postnup') || lower.includes('matrimonial') || lower.includes('cohabitation')) return 'divorce';
   if (lower.includes('tax')) return 'tax';
   if (lower.includes('injury') || lower.includes('accident')) return 'personal injury';
   if (lower.includes('immigration')) return 'immigration';

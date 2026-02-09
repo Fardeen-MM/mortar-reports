@@ -47,6 +47,17 @@ REQUIRED FIELDS (extract these with 100% certainty or return null):
    - NEVER return empty array if the site clearly serves legal clients
    - Examples: ["divorce", "child custody", "spousal support"] NOT ["family law"]
 
+6b. **practiceAreaCategory** - Pick the ONE best-fitting category from this EXACT list:
+   "divorce", "personal injury", "immigration", "criminal", "estate", "business",
+   "bankruptcy", "employment", "tax", "landlord", "real estate", "ip",
+   "medical malpractice", "workers comp", "default"
+   Rules:
+   - "divorce" covers ALL family law: divorce, custody, prenups, postnups, matrimonial, separation, cohabitation agreements, family mediation
+   - "estate" covers wills, trusts, probate, elder law
+   - "default" ONLY if the firm genuinely doesn't fit any category
+   - Pick based on the firm's PRIMARY focus, not every area they mention
+   - Return the EXACT string from the list above, nothing else
+
 LEADERSHIP & TEAM:
 7. **foundingPartners** - Array of founding partners with {name, title, background, photo_url}
 8. **keyAttorneys** - Array of all attorneys mentioned with {name, title, specialization, years_experience, bar_admissions, photo_url}
@@ -141,6 +152,7 @@ Return ONLY valid JSON (no markdown, no explanation):`;
     console.log(`      Firm: ${extracted.firmName || 'MISSING'}`);
     console.log(`      Location: ${extracted.city || '?'}, ${extracted.state || '?'}`);
     console.log(`      Practice Areas: ${(extracted.practiceAreas || []).length} found`);
+    console.log(`      Practice Category: ${extracted.practiceAreaCategory || 'not classified'}`);
     console.log(`      Attorneys: ${(extracted.keyAttorneys || []).length} found`);
     console.log(`      Founding Partners: ${(extracted.foundingPartners || []).length} found`);
     console.log(`      Founded: ${extracted.foundedYear || 'unknown'}`);

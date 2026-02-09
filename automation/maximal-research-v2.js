@@ -617,11 +617,14 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     };
     research.practice = {
       practiceAreas: extractedData.practiceAreas || [],
+      practiceAreaCategory: extractedData.practiceAreaCategory || null,
       primaryFocus: extractedData.primaryFocus,
       nicheSpecializations: extractedData.nicheSpecializations || [],
       targetMarket: extractedData.targetMarket,
       serviceArea: extractedData.serviceArea
     };
+    // Also store at top level for easy access in report generator
+    research.practiceAreaCategory = extractedData.practiceAreaCategory || null;
     research.credibility = {
       awards: extractedData.awards || [],
       barAssociations: extractedData.barAssociations || [],
