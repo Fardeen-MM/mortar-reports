@@ -236,14 +236,22 @@ function buildGithubPayload(payload) {
   };
 
   // Guard: if first_name is just the email local part, Instantly has no real name - clear it
+  // But don't clear if the name appears in company or domain (e.g., chad@chadgrahamlaw.com - "Chad" is real)
   let clearedByGuard = false;
   if (built.client_payload.first_name && built.client_payload.email) {
     const local = built.client_payload.email.split('@')[0].toLowerCase();
     if (built.client_payload.first_name.toLowerCase() === local) {
-      console.log(`first_name "${built.client_payload.first_name}" matches email local part - clearing`);
-      built.client_payload.first_name = '';
-      built.client_payload.last_name = '';
-      clearedByGuard = true;
+      const domain = built.client_payload.email.split('@')[1]?.toLowerCase() || '';
+      const company = (built.client_payload.company || '').toLowerCase().replace(/\s+/g, '');
+      const nameInContext = domain.includes(local) || company.includes(local);
+      if (nameInContext) {
+        console.log(`first_name "${built.client_payload.first_name}" matches email but found in company/domain - keeping`);
+      } else {
+        console.log(`first_name "${built.client_payload.first_name}" matches email local part - clearing`);
+        built.client_payload.first_name = '';
+        built.client_payload.last_name = '';
+        clearedByGuard = true;
+      }
     }
   }
 
