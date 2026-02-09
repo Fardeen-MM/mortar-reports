@@ -1,0 +1,27 @@
+{
+  "firm_name": "Chad Graham Law",
+  "firm_folder": "ChadGrahamLaw",
+  "lead_email": "chad@chadgrahamlaw.com",
+  "contact_name": "Chad Graham",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/ChadGrahamLaw/",
+  "job_title": "Lawyer And Owner",
+  "linkedin": "https://www.linkedin.com/in/chad-graham-48a04381",
+  "created_at": "2026-02-09T23:06:29Z",
+  "status": "pending_approval",
+  "report_version": "V3",
+  "qc_passed": "true",
+  "qc_issues": "0",
+  "qc_would_book": "true",
+  "qc_biggest_issue": "",
+  "qc_score": "10",
+  "total_range": "$25.5K-42.5K",
+  "total_cases": "6-11",
+  "practice_label": "estate planning",
+  "lead_intelligence": {
+    "name": "Chad Graham",
+    "title": "Lawyer And Owner",
+    "seniority": "senior",
+    "is_decision_maker": true,
+    "source": "instantly_webhook"
+  }
+}
