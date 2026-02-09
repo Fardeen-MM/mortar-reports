@@ -86,17 +86,20 @@ const emailQC = validateEmail(emailPreview, {
   practiceLabel: approvalData.practice_label || ''
 });
 
+// Escape underscores for Telegram Markdown (URLs contain _ which breaks italic parsing)
+function escMd(str) { return (str || '').replace(/_/g, '\\_'); }
+
 // Build approval message with website, LinkedIn, job title, and email preview
 let contextSection = '';
 if (website) {
-  contextSection += `🌐 *Website:* ${website}\n`;
+  contextSection += `🌐 *Website:* ${escMd(website)}\n`;
 }
 const bestLinkedIn = approvalData.linkedin || linkedIn;
 if (bestLinkedIn) {
-  contextSection += `👔 *LinkedIn:* ${bestLinkedIn}\n`;
+  contextSection += `👔 *LinkedIn:* ${escMd(bestLinkedIn)}\n`;
 }
 if (approvalData.job_title) {
-  contextSection += `💼 *Title:* ${approvalData.job_title}\n`;
+  contextSection += `💼 *Title:* ${escMd(approvalData.job_title)}\n`;
 }
 
 // Use firm_folder for display if available (prettier), fallback to firm_name
