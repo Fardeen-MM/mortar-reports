@@ -33,12 +33,12 @@ if (!recipientEmail || !contactName || !reportUrl) {
 const apiKey = INSTANTLY_API_KEY;
 
 /**
- * Look up the most recent email UUID for a lead via Instantly's List Emails API.
- * Returns the UUID string, or null if not found / on error.
+ * Look up the most recent email for a lead via Instantly's List Emails API.
+ * Returns { id, eaccount } or null if not found / on error.
  */
-function fetchLatestEmailId(leadEmail) {
+function fetchLatestEmail(leadEmail) {
   return new Promise((resolve) => {
-    const params = new URLSearchParams({ lead_email: leadEmail });
+    const params = new URLSearchParams({ lead: leadEmail });
     const options = {
       hostname: 'api.instantly.ai',
       path: `/api/v2/emails?${params.toString()}`,
@@ -58,13 +58,14 @@ function fetchLatestEmailId(leadEmail) {
             return resolve(null);
           }
           const parsed = JSON.parse(data);
-          // API returns { data: [...] } or just [...] — handle both
-          const emails = Array.isArray(parsed) ? parsed : (parsed.data || []);
+          // API v2 returns { items: [...] }
+          const emails = parsed.items || parsed.data || (Array.isArray(parsed) ? parsed : []);
           if (emails.length > 0 && emails[0].id) {
             console.log(`🔍 Found ${emails.length} email(s) for ${leadEmail}, using latest: ${emails[0].id}`);
-            return resolve(emails[0].id);
+            console.log(`📨 Thread eaccount: ${emails[0].eaccount}`);
+            return resolve({ id: emails[0].id, eaccount: emails[0].eaccount });
           }
-          console.warn(`⚠️  No emails found for ${leadEmail} — will start new thread`);
+          console.warn(`⚠️  No emails found for ${leadEmail} — cannot thread reply`);
           resolve(null);
         } catch (e) {
           console.warn(`⚠️  Failed to parse email lookup response: ${e.message}`);
@@ -83,32 +84,21 @@ function fetchLatestEmailId(leadEmail) {
 }
 
 /**
- * Send email via Instantly — either as a reply (threaded) or new thread.
+ * Send reply email via Instantly v2.
  */
-function sendEmail(replyToUuid, emailContent) {
+function sendEmail(replyToUuid, eaccount, emailContent) {
   return new Promise((resolve, reject) => {
     const emailBody = emailContent.body;
-    let path, payloadData;
-
-    if (replyToUuid) {
-      // Reply endpoint — threads under the existing conversation
-      path = '/api/v2/emails/reply';
-      payloadData = {
-        eaccount: fromEmail,
-        reply_to_uuid: replyToUuid,
-        subject: `Re: ${emailContent.subject || 'Your marketing analysis'}`,
-        body: { text: emailBody },
-      };
-      console.log(`📧 Replying in thread to: ${recipientEmail}`);
-      console.log(`🔗 Thread UUID: ${replyToUuid}`);
-    } else {
-      // No existing thread found — Instantly v2 has no send-new-email endpoint,
-      // only reply. Use reply endpoint with a fresh subject (no "Re:").
-      // This requires at least one prior email in the system for the lead.
-      console.error('❌ No email thread found for this lead — cannot send without a reply_to_uuid');
-      console.error('   Instantly API v2 only supports replying to existing threads');
-      return reject(new Error('No email thread found — Instantly v2 requires reply_to_uuid'));
-    }
+    const path = '/api/v2/emails/reply';
+    const payloadData = {
+      eaccount: eaccount,
+      reply_to_uuid: replyToUuid,
+      subject: `Re: ${emailContent.subject || 'Your marketing analysis'}`,
+      body: { text: emailBody },
+    };
+    console.log(`📧 Replying in thread to: ${recipientEmail}`);
+    console.log(`🔗 Thread UUID: ${replyToUuid}`);
+    console.log(`📨 Sending from: ${eaccount}`);
 
     const payload = JSON.stringify(payloadData);
 
@@ -157,17 +147,17 @@ function sendEmail(replyToUuid, emailContent) {
   console.log(`📨 From: ${fromEmail}`);
   console.log(`📊 Report URL: ${reportUrl}`);
 
-  // Look up the latest email UUID for this lead to thread the reply
-  const replyToUuid = await fetchLatestEmailId(recipientEmail);
+  // Look up the latest email for this lead to get UUID + eaccount for threading
+  const latestEmail = await fetchLatestEmail(recipientEmail);
 
-  if (!replyToUuid) {
+  if (!latestEmail) {
     console.error('❌ Could not find an email thread for this lead — cannot send');
     console.error('   The lead must have an existing email thread in Instantly');
     process.exit(1);
   }
 
   try {
-    await sendEmail(replyToUuid, emailContent);
+    await sendEmail(latestEmail.id, latestEmail.eaccount, emailContent);
   } catch (err) {
     console.error('❌ Failed to send reply:', err.message);
     process.exit(1);
