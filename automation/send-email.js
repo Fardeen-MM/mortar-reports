@@ -88,13 +88,12 @@ function fetchLatestEmail(leadEmail) {
  */
 function sendEmail(replyToUuid, eaccount, emailContent) {
   return new Promise((resolve, reject) => {
-    const emailBody = emailContent.body;
     const path = '/api/v2/emails/reply';
     const payloadData = {
       eaccount: eaccount,
       reply_to_uuid: replyToUuid,
       subject: `Re: ${emailContent.subject || 'Your marketing analysis'}`,
-      body: { text: emailBody },
+      body: { html: emailContent.html, text: emailContent.body },
     };
     console.log(`📧 Replying in thread to: ${recipientEmail}`);
     console.log(`🔗 Thread UUID: ${replyToUuid}`);
