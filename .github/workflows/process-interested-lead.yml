@@ -88,11 +88,19 @@ jobs:
 
           # Build contact name from available parts
           # First, check if first_name is just the email local part (Instantly does this when it has no real name)
+          # But don't clear if the name appears in the company/domain - that means it's a real name (e.g., chad@chadgrahamlaw.com)
           EMAIL_LOCAL=$(echo "$LEAD_EMAIL" | cut -d'@' -f1 | tr '[:upper:]' '[:lower:]')
+          EMAIL_DOMAIN=$(echo "$LEAD_EMAIL" | cut -d'@' -f2 | tr '[:upper:]' '[:lower:]')
           FIRST_LOWER=$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]')
+          COMPANY_LOWER=$(echo "$COMPANY" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
           if [ "$FIRST_LOWER" = "$EMAIL_LOCAL" ]; then
-            echo "  ⚠️  first_name '$FIRST_NAME' matches email local part - treating as no name"
-            FIRST_NAME=""
+            # Check if name appears in company or domain - if so, it's a real name
+            if echo "$COMPANY_LOWER" | grep -qi "$FIRST_LOWER" 2>/dev/null || echo "$EMAIL_DOMAIN" | grep -qi "$FIRST_LOWER" 2>/dev/null; then
+              echo "  ✅ first_name '$FIRST_NAME' matches email but also in company/domain - keeping as real name"
+            else
+              echo "  ⚠️  first_name '$FIRST_NAME' matches email local part and not in company/domain - treating as no name"
+              FIRST_NAME=""
+            fi
           fi
 
           CONTACT_NAME=""
