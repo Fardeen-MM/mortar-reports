@@ -157,7 +157,7 @@ ${approvalData.report_url}
 
 📧 *EMAIL PREVIEW:*
 \`\`\`
-${emailPreview.body.replace(/{{accountSignature}}/g, '[Signature]')}
+${emailPreview.body}
 \`\`\`
 
 *Please review the report and email, then choose an action below:*`;
