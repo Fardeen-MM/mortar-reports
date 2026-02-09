@@ -124,7 +124,7 @@ if (approvalData.qc_passed === 'true') {
   } else if (approvalData.qc_would_book === 'false') {
     aiVerdict = '\n🤖 *AI Verdict:* Might not book';
     if (approvalData.qc_biggest_issue) {
-      aiVerdict += `\n📌 *Note:* ${approvalData.qc_biggest_issue}`;
+      aiVerdict += `\n📌 *Note:* ${escMd(approvalData.qc_biggest_issue)}`;
     }
     qcWarning = '\n\n⚠️ *AI flagged potential issues - please review*';
     headerEmoji = '🟠';
@@ -133,7 +133,7 @@ if (approvalData.qc_passed === 'true') {
   const issues = approvalData.qc_issues || '?';
   qcStatus = `\n🔴 *QC:* Needs Review${scoreDisplay}`;
   if (approvalData.qc_biggest_issue) {
-    qcStatus += `\n📌 *Issue:* ${approvalData.qc_biggest_issue}`;
+    qcStatus += `\n📌 *Issue:* ${escMd(approvalData.qc_biggest_issue)}`;
   }
   qcWarning = '\n\n⚠️ *WARNING: AI couldn\'t fully perfect this report - manual review needed*';
   headerEmoji = '🔴';
@@ -147,13 +147,13 @@ const leadIntel = approvalData.lead_intelligence;
 if (leadIntel && (leadIntel.name || leadIntel.title)) {
   leadIntelSection = '\n\n👤 *LEAD INTELLIGENCE*';
   if (leadIntel.name) {
-    leadIntelSection += `\n   Name: ${leadIntel.name}`;
+    leadIntelSection += `\n   Name: ${escMd(leadIntel.name)}`;
   }
   if (leadIntel.title) {
-    leadIntelSection += `\n   Title: ${leadIntel.title}`;
+    leadIntelSection += `\n   Title: ${escMd(leadIntel.title)}`;
   }
   if (leadIntel.seniority && leadIntel.seniority !== 'unknown') {
-    leadIntelSection += `\n   Seniority: ${leadIntel.seniority}`;
+    leadIntelSection += `\n   Seniority: ${escMd(leadIntel.seniority)}`;
   }
   if (leadIntel.is_decision_maker === true) {
     leadIntelSection += '\n   ✅ Decision-maker';
@@ -161,18 +161,18 @@ if (leadIntel && (leadIntel.name || leadIntel.title)) {
     leadIntelSection += '\n   ⚠️ May not be decision-maker';
   }
   if (leadIntel.source) {
-    leadIntelSection += `\n   Source: ${leadIntel.source}`;
+    leadIntelSection += `\n   Source: ${escMd(leadIntel.source)}`;
   }
 }
 
 const message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
-📊 *Firm:* ${displayName}
-👤 *Contact:* ${approvalData.contact_name}
-📧 *Email:* ${approvalData.lead_email}${qcStatus}${aiVerdict}${leadIntelSection}
+📊 *Firm:* ${escMd(displayName)}
+👤 *Contact:* ${escMd(approvalData.contact_name)}
+📧 *Email:* ${escMd(approvalData.lead_email)}${qcStatus}${aiVerdict}${leadIntelSection}
 ${contextSection}
 🔗 *Review Report:*
-${approvalData.report_url}
+${escMd(approvalData.report_url)}
 
 ⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
@@ -180,7 +180,7 @@ ${approvalData.report_url}
 \`\`\`
 ${emailPreview.body}
 \`\`\`
-${!emailQC.passed ? `\n⚠️ *EMAIL QC ISSUES:*\n${emailQC.warnings.map(w => `  - ${w}`).join('\n')}\n` : '✅ Email QC passed'}
+${!emailQC.passed ? `\n⚠️ *EMAIL QC ISSUES:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : '✅ Email QC passed'}
 
 *Please review the report and email, then choose an action below:*`;
 
