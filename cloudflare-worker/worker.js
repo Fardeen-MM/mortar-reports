@@ -283,13 +283,19 @@ async function forwardToGitHub(env, githubPayload) {
 }
 
 // Merge two GitHub payloads - for each field, keep whichever is non-empty.
-// This combines lead data (website, company, city) from one webhook
-// with email threading data (email_id, from_email) from the other.
+// For name fields, prefer the longer value (real name beats email-prefix garbage).
 function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
+  const preferLonger = new Set(['first_name', 'last_name', 'company']);
   for (const field of allFields) {
-    merged.client_payload[field] = a.client_payload[field] || b.client_payload[field] || '';
+    const valA = a.client_payload[field] || '';
+    const valB = b.client_payload[field] || '';
+    if (preferLonger.has(field) && valA && valB) {
+      merged.client_payload[field] = valA.length >= valB.length ? valA : valB;
+    } else {
+      merged.client_payload[field] = valA || valB || '';
+    }
   }
   return merged;
 }
