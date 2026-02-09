@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * AI REPORT PERFECTOR — Deterministic QC
+ * AI REPORT PERFECTOR - Deterministic QC
  *
  * Replaces the old AI QC loop with fast, reliable regex checks.
  * No more hallucinated issues. No more iteration loops. No more AI API calls for QC.
@@ -46,7 +46,7 @@ try {
 }
 
 // ============================================================================
-// LEAD INTELLIGENCE (kept from original — LinkedIn + firm website match)
+// LEAD INTELLIGENCE (kept from original - LinkedIn + firm website match)
 // ============================================================================
 
 async function askAI(prompt, maxTokens = 4000) {
@@ -348,7 +348,7 @@ function preFixCommonIssues(html) {
 }
 
 // ============================================================================
-// DETERMINISTIC QC — No AI, no hallucinations
+// DETERMINISTIC QC - No AI, no hallucinations
 // ============================================================================
 
 function extractText(html) {
@@ -373,7 +373,7 @@ function deterministicQC(html, research) {
   const issues = [];
   let score = 10;
 
-  // 1. BROKEN CONTENT — undefined, null, NaN, [object Object]
+  // 1. BROKEN CONTENT - undefined, null, NaN, [object Object]
   const brokenPatterns = [
     { regex: /\bundefined\b/gi, label: 'undefined' },
     { regex: /\bnull\b/gi, label: 'null' },
@@ -388,7 +388,7 @@ function deterministicQC(html, research) {
     }
   }
 
-  // 2. CURRENCY MISMATCH — check prose text (not HTML/CSS/JS)
+  // 2. CURRENCY MISMATCH - check prose text (not HTML/CSS/JS)
   // Look for wrong currency symbol in the visible text
   // Exclude URLs, code blocks, and style attributes
   const proseText = html
@@ -404,12 +404,12 @@ function deterministicQC(html, research) {
   if (wrongCurrencyMatches && wrongCurrencyMatches.length > 0) {
     issues.push({
       severity: 'CRITICAL', category: 'CURRENCY',
-      issue: `Found ${wrongCurrencyMatches.length} ${wrongCurrency} amount(s) in a ${isUK ? 'UK' : 'US'} report — should use ${expectedCurrency}`
+      issue: `Found ${wrongCurrencyMatches.length} ${wrongCurrency} amount(s) in a ${isUK ? 'UK' : 'US'} report - should use ${expectedCurrency}`
     });
     score -= 3;
   }
 
-  // 3. TERMINOLOGY MISMATCH — check for wrong attorney/solicitor usage
+  // 3. TERMINOLOGY MISMATCH - check for wrong attorney/solicitor usage
   // Only in prose, not in competitor business names or meta tags
   const proseOnly = text
     .replace(new RegExp(firmName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '') // Remove firm name
@@ -426,7 +426,7 @@ function deterministicQC(html, research) {
     if (attorneyMatches && attorneyMatches.length > 0) {
       issues.push({
         severity: 'IMPORTANT', category: 'TERMINOLOGY',
-        issue: `Found "attorney" ${attorneyMatches.length} time(s) in UK report — should use "solicitor"`
+        issue: `Found "attorney" ${attorneyMatches.length} time(s) in UK report - should use "solicitor"`
       });
       score -= 1;
     }
@@ -434,9 +434,9 @@ function deterministicQC(html, research) {
     if (lawFirmMatches && lawFirmMatches.length > 0) {
       issues.push({
         severity: 'MINOR', category: 'TERMINOLOGY',
-        issue: `Found "law firm" ${lawFirmMatches.length} time(s) in UK report — prefer "law practice"`
+        issue: `Found "law firm" ${lawFirmMatches.length} time(s) in UK report - prefer "law practice"`
       });
-      // Don't deduct for this — it's minor
+      // Don't deduct for this - it's minor
     }
   } else {
     // US report should not use "solicitor" in prose
@@ -448,13 +448,13 @@ function deterministicQC(html, research) {
     if (solicitorMatches && solicitorMatches.length > 0) {
       issues.push({
         severity: 'IMPORTANT', category: 'TERMINOLOGY',
-        issue: `Found "solicitor" ${solicitorMatches.length} time(s) in US report — should use "attorney"`
+        issue: `Found "solicitor" ${solicitorMatches.length} time(s) in US report - should use "attorney"`
       });
       score -= 1;
     }
   }
 
-  // 4. FIRM NAME PRESENT — the report should mention the firm
+  // 4. FIRM NAME PRESENT - the report should mention the firm
   // Check both raw name and HTML-escaped version (& → &amp;)
   if (firmName && firmName !== 'Unknown' && firmName !== 'Unknown Firm') {
     const htmlEscapedName = firmName.replace(/&/g, '&amp;');
@@ -469,7 +469,7 @@ function deterministicQC(html, research) {
 
   // 5. A/AN ARTICLE ERRORS
   // Words that start with consonant SOUNDS (so "an X" is wrong): solicitor, family, tax, etc.
-  // Note: "employment" starts with vowel sound "em-", so "an employment" is CORRECT — not included here
+  // Note: "employment" starts with vowel sound "em-", so "an employment" is CORRECT - not included here
   const anConsonant = text.match(/\ban\s+(solicitor|family|tax|criminal|business|bankruptcy|landlord|personal|real|medical|worker)\b/gi);
   if (anConsonant && anConsonant.length > 0) {
     issues.push({
@@ -480,7 +480,7 @@ function deterministicQC(html, research) {
   }
   const aVowel = text.match(/\ba\s+(attorney|attorney's|estate|immigration|accident|eviction|individual|hour|honest)\b/gi);
   if (aVowel && aVowel.length > 0) {
-    // Check if it's actually wrong (a estate, a attorney — but "a estate planning" is fine)
+    // Check if it's actually wrong (a estate, a attorney - but "a estate planning" is fine)
     const actualErrors = aVowel.filter(m => {
       const word = m.split(/\s+/)[1].toLowerCase();
       return ['attorney', 'estate', 'accident', 'eviction', 'hour', 'honest'].includes(word);
@@ -488,7 +488,7 @@ function deterministicQC(html, research) {
     if (actualErrors.length > 0) {
       issues.push({
         severity: 'MINOR', category: 'PHRASING',
-        issue: `Article error: "${actualErrors[0]}" — should use "an" before vowel sound`
+        issue: `Article error: "${actualErrors[0]}" - should use "an" before vowel sound`
       });
       score -= 0.5;
     }
@@ -506,7 +506,7 @@ function deterministicQC(html, research) {
     }
   }
 
-  // 7. EMPTY PROSE SECTIONS — check for empty paragraphs or missing content
+  // 7. EMPTY PROSE SECTIONS - check for empty paragraphs or missing content
   const emptyParagraphs = html.match(/<p>\s*<\/p>/gi);
   if (emptyParagraphs && emptyParagraphs.length > 0) {
     issues.push({
@@ -536,7 +536,7 @@ function deterministicQC(html, research) {
 }
 
 // ============================================================================
-// MAIN — Run QC, save results
+// MAIN - Run QC, save results
 // ============================================================================
 
 async function perfectReport() {

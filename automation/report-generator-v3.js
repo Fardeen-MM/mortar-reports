@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * REPORT GENERATOR V3 — AI Prose + Fixed Structure
+ * REPORT GENERATOR V3 - AI Prose + Fixed Structure
  *
  * Architecture: Three layers
- *   STRUCTURE (fixed) — HTML, CSS, JS animations, competitor bars
- *   MATH (fixed) — Gap formulas, market multipliers, case values
- *   PROSE (AI) — Claude writes ALL copy, in the correct locale, natively
+ *   STRUCTURE (fixed) - HTML, CSS, JS animations, competitor bars
+ *   MATH (fixed) - Gap formulas, market multipliers, case values
+ *   PROSE (AI) - Claude writes ALL copy, in the correct locale, natively
  *
  * AI writes every prose paragraph in one call. If the AI call fails,
  * falls back to the old hardcoded templates (kept as safety net).
@@ -39,7 +39,7 @@ function formatGapProse(text) {
   return s;
 }
 
-// Case value ranges by practice area (low-high for ranges) — USD
+// Case value ranges by practice area (low-high for ranges) - USD
 const CASE_VALUES = {
   'tax': { low: 4500, high: 7000 },
   'family': { low: 5000, high: 7500 },
@@ -61,7 +61,7 @@ const CASE_VALUES = {
   'default': { low: 4500, high: 7000 }
 };
 
-// Case value ranges for UK market — GBP
+// Case value ranges for UK market - GBP
 const CASE_VALUES_GBP = {
   'tax': { low: 3000, high: 5500 },
   'family': { low: 3500, high: 6000 },
@@ -137,7 +137,7 @@ function getLocalizedEmergency(practiceArea, country) {
 }
 
 // ============================================================================
-// AI PROSE GENERATION — One Claude call writes ALL prose
+// AI PROSE GENERATION - One Claude call writes ALL prose
 // ============================================================================
 
 /**
@@ -351,7 +351,7 @@ Return ONLY valid JSON with these exact fields:
 }
 
 // ============================================================================
-// FALLBACK PROSE — Old hardcoded templates (safety net)
+// FALLBACK PROSE - Old hardcoded templates (safety net)
 // ============================================================================
 
 function generateFallbackProse(context) {
@@ -463,11 +463,11 @@ async function generateReport(researchData, prospectName) {
 
   // Safety net: if detector says "running" but found 0 ads, it's a false positive
   if (runningGoogleAds && googleAdCount === 0) {
-    console.log('⚠️  Google Ads false positive: "running" but 0 ads detected — treating as not running');
+    console.log('⚠️  Google Ads false positive: "running" but 0 ads detected - treating as not running');
     runningGoogleAds = false;
   }
   if (runningMetaAds && metaAdCount === 0) {
-    console.log('⚠️  Meta Ads false positive: "running" but 0 ads detected — treating as not running');
+    console.log('⚠️  Meta Ads false positive: "running" but 0 ads detected - treating as not running');
     runningMetaAds = false;
   }
 
@@ -642,7 +642,7 @@ async function generateReport(researchData, prospectName) {
 }
 
 // ============================================================================
-// VISUAL HELPERS — SERP mockup, two-client comparison
+// VISUAL HELPERS - SERP mockup, two-client comparison
 // ============================================================================
 
 /**
@@ -656,7 +656,7 @@ function generateSerpMockup(competitors, firmName, searchTerms, runningGoogleAds
   let rows = '';
 
   if (runningGoogleAds) {
-    // Firm IS running ads — show them in the first ad slot
+    // Firm IS running ads - show them in the first ad slot
     rows += `        <div class="serp-row serp-you-running">
           <span class="serp-tag serp-tag-ad">Ad</span>
           <span class="serp-name">${escapeHtml(firmName)}</span>
@@ -687,7 +687,7 @@ function generateSerpMockup(competitors, firmName, searchTerms, runningGoogleAds
         </div>\n`;
     }
   } else {
-    // Firm NOT running ads — show competitors filling the space
+    // Firm NOT running ads - show competitors filling the space
     if (topComps.length >= 1) {
       rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-ad">Ad</span>
@@ -734,7 +734,7 @@ function generateSerpMockup(competitors, firmName, searchTerms, runningGoogleAds
           <span class="serp-name" style="color: var(--muted);">···</span>
           <span class="serp-note"></span>
         </div>\n`;
-    // "You" row — not showing up
+    // "You" row - not showing up
     rows += `        <div class="serp-row serp-you">
           <span class="serp-tag serp-tag-you">You</span>
           <span class="serp-name">${escapeHtml(firmName)}</span>
@@ -783,7 +783,7 @@ function generateTwoClientVisual(clientLabel, runningMetaAds, metaAdCount, count
 }
 
 // ============================================================================
-// HTML GENERATION — Fixed structure, AI prose
+// HTML GENERATION - Fixed structure, AI prose
 // ============================================================================
 
 function generateHTML(data) {
@@ -1098,7 +1098,7 @@ ${generateTypingScript(searchTerms)}
 }
 
 // ============================================================================
-// COMPETITOR BARS — Data-driven, not prose
+// COMPETITOR BARS - Data-driven, not prose
 // ============================================================================
 
 function generateCompetitorBars(competitors, firmName, firmReviews, firmRating, takeawayText) {

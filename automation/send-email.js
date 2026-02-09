@@ -12,7 +12,7 @@ const INSTANTLY_API_KEY = process.env.INSTANTLY_API_KEY;
 const recipientEmail = process.argv[2];
 const contactName = process.argv[3];
 const reportUrl = process.argv[4];
-// argv[5] was email_id from webhook — always empty, kept for positional compat
+// argv[5] was email_id from webhook - always empty, kept for positional compat
 const firmName = process.argv[6];
 const fromEmail = process.argv[7] || process.env.FROM_EMAIL || 'fardeen@mortarmetrics.com';
 const totalRange = process.argv[8] || '';
@@ -65,7 +65,7 @@ function fetchLatestEmail(leadEmail) {
             console.log(`📨 Thread eaccount: ${emails[0].eaccount}`);
             return resolve({ id: emails[0].id, eaccount: emails[0].eaccount });
           }
-          console.warn(`⚠️  No emails found for ${leadEmail} — cannot thread reply`);
+          console.warn(`⚠️  No emails found for ${leadEmail} - cannot thread reply`);
           resolve(null);
         } catch (e) {
           console.warn(`⚠️  Failed to parse email lookup response: ${e.message}`);
@@ -142,6 +142,17 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
 (async () => {
   // Build email with personalization data
   const emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+
+  // Run email QC checks (warnings only, does not block send)
+  const { validateEmail } = require('./email-qc');
+  const emailQC = validateEmail(emailContent, { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel });
+  if (!emailQC.passed) {
+    console.warn('⚠️  EMAIL QC WARNINGS:');
+    emailQC.warnings.forEach(w => console.warn(`   - ${w}`));
+  } else {
+    console.log('✅ Email QC passed');
+  }
+
   console.log(`📧 Using ${totalRange ? 'personalized' : 'standard'} email template`);
   console.log(`📨 From: ${fromEmail}`);
   console.log(`📊 Report URL: ${reportUrl}`);
@@ -150,7 +161,7 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
   const latestEmail = await fetchLatestEmail(recipientEmail);
 
   if (!latestEmail) {
-    console.error('❌ Could not find an email thread for this lead — cannot send');
+    console.error('❌ Could not find an email thread for this lead - cannot send');
     console.error('   The lead must have an existing email thread in Instantly');
     process.exit(1);
   }

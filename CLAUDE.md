@@ -1,4 +1,4 @@
-# CLAUDE.md — Mortar Reports System Context
+# CLAUDE.md  -  Mortar Reports System Context
 
 ## What This Project Is
 
@@ -14,7 +14,7 @@ Mortar Reports is an automated marketing report system for Mortar Metrics, a leg
 
 ## The Owner
 
-Fardeen — runs Mortar Metrics. Not a developer. Wants reports that sell outcomes to law firm partners. Principle: lawyers want to stop losing cases to competitors, not hear about marketing products.
+Fardeen  -  runs Mortar Metrics. Not a developer. Wants reports that sell outcomes to law firm partners. Principle: lawyers want to stop losing cases to competitors, not hear about marketing products.
 
 ## Design System
 
@@ -175,18 +175,18 @@ mortar-reports/
 
 ## Known Limitations
 
-- **LinkedIn scraping fails** — blocked by LinkedIn, accept limitation
-- **Cloudflare Worker dedup** — uses in-memory Map, resets on cold start
-- **Cloudflare Worker auth** — no authentication (relies on obscurity)
-- **Google Places API** — may fail from certain IPs, returns empty array gracefully
+- **LinkedIn scraping fails**  -  blocked by LinkedIn, accept limitation
+- **Cloudflare Worker dedup**  -  uses in-memory Map, resets on cold start
+- **Cloudflare Worker auth**  -  no authentication (relies on obscurity)
+- **Google Places API**  -  may fail from certain IPs, returns empty array gracefully
 
 ---
 
 ## Working With Fardeen
 
-- Not a developer — explain in plain English
+- Not a developer  -  explain in plain English
 - Wants reports that sell outcomes
-- Gives brutal honest feedback — iterate on it
+- Gives brutal honest feedback  -  iterate on it
 - Always test against real research JSON before pushing
 - Research JSONs are in `speed-to-lead/reports/`
 
@@ -196,17 +196,17 @@ mortar-reports/
 
 All issues from previous sessions have been resolved:
 
-1. ✅ Competitor data — now uses Google Places API (real firms)
-2. ✅ "You" column — shows firm's actual capabilities
-3. ✅ Case studies — removed all fabricated claims
-4. ✅ Gap math — honest calculations with ranges, no rigging
-5. ✅ Hero total — calculated from gaps, no $19K default
-6. ✅ Gap assumptions — checks firm's actual capabilities
-7. ✅ Pipeline order — pending folder until approved
-8. ✅ Validation — rejects "Unknown Firm" and garbage names
-9. ✅ Statistics — removed unsourced percentage claims
-10. ✅ Attack-style titles — reframed as opportunities
-11. ✅ Normalizer fallbacks — no fake competitors
+1. ✅ Competitor data  -  now uses Google Places API (real firms)
+2. ✅ "You" column  -  shows firm's actual capabilities
+3. ✅ Case studies  -  removed all fabricated claims
+4. ✅ Gap math  -  honest calculations with ranges, no rigging
+5. ✅ Hero total  -  calculated from gaps, no $19K default
+6. ✅ Gap assumptions  -  checks firm's actual capabilities
+7. ✅ Pipeline order  -  pending folder until approved
+8. ✅ Validation  -  rejects "Unknown Firm" and garbage names
+9. ✅ Statistics  -  removed unsourced percentage claims
+10. ✅ Attack-style titles  -  reframed as opportunities
+11. ✅ Normalizer fallbacks  -  no fake competitors
 
 ---
 
@@ -235,7 +235,7 @@ if (clientLabel && clientLabel.split(' ').length > 3) {
 
 ### Part 2: `ai-report-perfector.js`
 1. **Increased MAX_ITERATIONS** from 3 to 5 (line 21)
-2. **Added `preFixCommonIssues()` function** (lines 504-569) — direct string replacement for known verbose phrases before AI QC runs
+2. **Added `preFixCommonIssues()` function** (lines 504-569)  -  direct string replacement for known verbose phrases before AI QC runs
 3. **Integrated pre-pass** into perfection loop (lines 846-849)
 
 **Verbose phrases now auto-fixed:**

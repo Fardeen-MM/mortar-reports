@@ -21,7 +21,7 @@ function getMeetingDays() {
   return { day1: 'tomorrow', day2: getDayName((dayOfWeek + 2) % 7) };
 }
 
-// Fix UTF-8 encoding issues from GitHub Actions env vars (e.g. Â£ → £)
+// Fix UTF-8 encoding issues from GitHub Actions env vars (e.g. Â£ -> £)
 function cleanEncoding(str) {
   if (!str) return '';
   return str.replace(/Â£/g, '£').replace(/Â/g, '');
@@ -39,48 +39,44 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
     // Personalized email with case count + revenue
     textBody = `Hey ${firstName},
 
-Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
+Glad you replied. Our team put together a breakdown of the ${practiceLabel} market around ${firm}.
 
-There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${cleanRange}/mo. You're not far off from capturing those, it's just about closing the gap.
+Right now there are about ${totalCases} ${practiceLabel} cases per month in your area going to other firms. That's roughly ${cleanRange}/mo in revenue you could be capturing.
 
-Here's the full report:
+Here's the full breakdown:
 ${reportUrl}
 
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
+We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.</div>
+<div>Glad you replied. Our team put together a breakdown of the ${practiceLabel} market around ${firm}.</div>
 <div><br /></div>
-<div>There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${cleanRange}/mo. You're not far off from capturing those, it's just about closing the gap.</div>
+<div>Right now there are about ${totalCases} ${practiceLabel} cases per month in your area going to other firms. That's roughly ${cleanRange}/mo in revenue you could be capturing.</div>
 <div><br /></div>
-<div>Here's the full report:</div>
+<div>Here's the full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?</div>`;
+<div>We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?</div>`;
   } else {
     // Fallback when no numbers available
     textBody = `Hey ${firstName},
 
-Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
+Glad you replied. Our team put together a breakdown of the market around ${firm} and found some gaps worth looking at.
 
-There are cases in your area going to other firms right now that should be going to you \u2014 and you're not far off from getting them.
-
-Here's the full report:
+Here's the full breakdown:
 ${reportUrl}
 
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
+We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.</div>
+<div>Glad you replied. Our team put together a breakdown of the market around ${firm} and found some gaps worth looking at.</div>
 <div><br /></div>
-<div>There are cases in your area going to other firms right now that should be going to you \u2014 and you're not far off from getting them.</div>
-<div><br /></div>
-<div>Here's the full report:</div>
+<div>Here's the full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?</div>`;
+<div>We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?</div>`;
   }
 
   return {

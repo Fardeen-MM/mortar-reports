@@ -75,6 +75,17 @@ const emailPreview = buildEmail(
   approvalData.practice_label || ''
 );
 
+// Run email QC checks
+const { validateEmail } = require('./email-qc');
+const emailQC = validateEmail(emailPreview, {
+  contactName: approvalData.contact_name,
+  firmName: approvalData.firm_name,
+  reportUrl: liveReportUrl,
+  totalRange: approvalData.total_range || '',
+  totalCases: approvalData.total_cases || '',
+  practiceLabel: approvalData.practice_label || ''
+});
+
 // Build approval message with website, LinkedIn, and email preview
 let contextSection = '';
 if (website) {
@@ -162,6 +173,7 @@ ${approvalData.report_url}
 \`\`\`
 ${emailPreview.body}
 \`\`\`
+${!emailQC.passed ? `\n⚠️ *EMAIL QC ISSUES:*\n${emailQC.warnings.map(w => `  - ${w}`).join('\n')}\n` : '✅ Email QC passed'}
 
 *Please review the report and email, then choose an action below:*`;
 

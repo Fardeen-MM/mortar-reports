@@ -561,17 +561,17 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     const extractedData = await extractEverything(research.websitePages, firmWebsite, anthropic);
     
     // Merge extracted data into research
-    // WEBHOOK DATA TAKES PRIORITY for core fields — the lead database is more reliable
+    // WEBHOOK DATA TAKES PRIORITY for core fields - the lead database is more reliable
     // than AI extraction from website scraping. AI extraction supplements with details.
     let bestFirmName;
     if (company && company.trim()) {
-      // Webhook provided a company name — always use it
+      // Webhook provided a company name - always use it
       bestFirmName = company.trim();
       if (extractedData.firmName && extractedData.firmName !== bestFirmName) {
         console.log(`ℹ️  Using webhook company name "${bestFirmName}" (AI extracted: "${extractedData.firmName}")`);
       }
     } else {
-      // No webhook company name — fall back to AI extraction
+      // No webhook company name - fall back to AI extraction
       bestFirmName = extractedData.firmName || '';
       if (bestFirmName) {
         // Still check for domain slug garbling

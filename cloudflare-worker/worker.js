@@ -272,7 +272,7 @@ async function forwardToGitHub(env, githubPayload) {
   }
 }
 
-// Merge two GitHub payloads — for each field, keep whichever is non-empty.
+// Merge two GitHub payloads - for each field, keep whichever is non-empty.
 // This combines lead data (website, company, city) from one webhook
 // with email threading data (email_id, from_email) from the other.
 function mergePayloads(a, b) {
@@ -336,13 +336,13 @@ async function handleInstantlyWebhook(env, payload, ctx) {
   await env.WEBHOOK_KV.put(`wh:${email}|${slot}`, JSON.stringify(githubPayload), { expirationTtl: 120 });
   console.log(`Stored webhook for ${email} in slot ${slot}`);
 
-  // Try to merge immediately — if 2+ slots exist, the other webhook already stored
+  // Try to merge immediately - if 2+ slots exist, the other webhook already stored
   const didDispatch = await listMergeDispatch(env, email, 2);
   if (didDispatch) {
     return { success: true, message: 'Merged and dispatched immediately' };
   }
 
-  // Only one slot found — schedule fallback timer for when second webhook never comes
+  // Only one slot found - schedule fallback timer for when second webhook never comes
   ctx.waitUntil(
     new Promise(resolve => setTimeout(resolve, 30_000)).then(async () => {
       const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
@@ -363,7 +363,7 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 
 export default {
   async fetch(request, env, ctx) {
-    // Debug endpoint: GET /debug — shows last raw Instantly payloads stored in KV
+    // Debug endpoint: GET /debug - shows last raw Instantly payloads stored in KV
     if (request.method === 'GET') {
       const url = new URL(request.url);
       if (url.pathname === '/debug') {
