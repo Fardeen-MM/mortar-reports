@@ -86,13 +86,17 @@ const emailQC = validateEmail(emailPreview, {
   practiceLabel: approvalData.practice_label || ''
 });
 
-// Build approval message with website, LinkedIn, and email preview
+// Build approval message with website, LinkedIn, job title, and email preview
 let contextSection = '';
 if (website) {
   contextSection += `🌐 *Website:* ${website}\n`;
 }
-if (linkedIn) {
-  contextSection += `👔 *LinkedIn:* ${linkedIn}\n`;
+const bestLinkedIn = approvalData.linkedin || linkedIn;
+if (bestLinkedIn) {
+  contextSection += `👔 *LinkedIn:* ${bestLinkedIn}\n`;
+}
+if (approvalData.job_title) {
+  contextSection += `💼 *Title:* ${approvalData.job_title}\n`;
 }
 
 // Use firm_folder for display if available (prettier), fallback to firm_name

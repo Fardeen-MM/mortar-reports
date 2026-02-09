@@ -48,12 +48,12 @@ jobs:
         id: lead_data
         env:
           LEAD_EMAIL: ${{ github.event.client_payload.email }}
-          EMAIL_ID: ${{ github.event.client_payload.email_id }}
-          FROM_EMAIL: ${{ github.event.client_payload.from_email }}
+          JOB_TITLE: ${{ github.event.client_payload.job_title }}
+          LINKEDIN: ${{ github.event.client_payload.linkedin }}
         run: |
           echo "lead_email=$LEAD_EMAIL" >> $GITHUB_OUTPUT
-          echo "email_id=$EMAIL_ID" >> $GITHUB_OUTPUT
-          echo "from_email=$FROM_EMAIL" >> $GITHUB_OUTPUT
+          echo "job_title=$JOB_TITLE" >> $GITHUB_OUTPUT
+          echo "linkedin=$LINKEDIN" >> $GITHUB_OUTPUT
           
       - name: Debug - Show ALL webhook data
         env:
@@ -436,12 +436,33 @@ jobs:
             QC_SCORE=$(cat qc-result.json | jq -r '.score // 0')
             QC_ITERATIONS=$(cat qc-result.json | jq -r '.iterations // 1')
 
-            # Extract lead intelligence
-            LEAD_NAME=$(cat qc-result.json | jq -r '.leadIntelligence.name // ""')
-            LEAD_TITLE=$(cat qc-result.json | jq -r '.leadIntelligence.title // ""')
-            LEAD_SENIORITY=$(cat qc-result.json | jq -r '.leadIntelligence.seniority // "unknown"')
-            LEAD_IS_DM=$(cat qc-result.json | jq -r '.leadIntelligence.isDecisionMaker // false')
-            LEAD_SOURCE=$(cat qc-result.json | jq -r '.leadIntelligence.source // ""')
+            # Extract lead intelligence - prefer webhook data over perfector lookup
+            WEBHOOK_JOB_TITLE="${{ steps.lead_data.outputs.job_title }}"
+            WEBHOOK_LINKEDIN="${{ steps.lead_data.outputs.linkedin }}"
+            WEBHOOK_CONTACT="${{ steps.extract.outputs.contact_name }}"
+
+            if [ -n "$WEBHOOK_JOB_TITLE" ]; then
+              echo "✅ Using webhook lead intelligence (skipping perfector lookup)"
+              LEAD_NAME="$WEBHOOK_CONTACT"
+              LEAD_TITLE="$WEBHOOK_JOB_TITLE"
+              # Determine seniority from job title
+              LEAD_SENIORITY=$(node -e "
+                const t = '$WEBHOOK_JOB_TITLE'.toLowerCase();
+                const senior = ['partner','director','founder','owner','principal','ceo','president','managing','of counsel','shareholder'];
+                const mid = ['associate','attorney','solicitor','counsel','lawyer','manager'];
+                if (senior.some(s => t.includes(s))) { console.log('senior'); }
+                else if (mid.some(s => t.includes(s))) { console.log('mid'); }
+                else { console.log('unknown'); }
+              ")
+              LEAD_IS_DM=$([[ "$LEAD_SENIORITY" == "senior" ]] && echo true || echo false)
+              LEAD_SOURCE="instantly_webhook"
+            else
+              LEAD_NAME=$(cat qc-result.json | jq -r '.leadIntelligence.name // ""')
+              LEAD_TITLE=$(cat qc-result.json | jq -r '.leadIntelligence.title // ""')
+              LEAD_SENIORITY=$(cat qc-result.json | jq -r '.leadIntelligence.seniority // "unknown"')
+              LEAD_IS_DM=$(cat qc-result.json | jq -r '.leadIntelligence.isDecisionMaker // false')
+              LEAD_SOURCE=$(cat qc-result.json | jq -r '.leadIntelligence.source // ""')
+            fi
 
             echo "qc_passed=$([[ $QC_STATUS == 'PASSED' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "qc_issues=$QC_ISSUES" >> $GITHUB_OUTPUT
@@ -547,8 +568,8 @@ jobs:
           FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
           CONTACT_NAME: ${{ steps.extract.outputs.contact_name }}
           LEAD_EMAIL_ADDR: ${{ steps.lead_data.outputs.lead_email }}
-          EMAIL_ID: ${{ steps.lead_data.outputs.email_id }}
-          FROM_EMAIL: ${{ steps.lead_data.outputs.from_email }}
+          JOB_TITLE: ${{ steps.lead_data.outputs.job_title }}
+          LINKEDIN: ${{ steps.lead_data.outputs.linkedin }}
           QC_PASSED: ${{ steps.qc.outputs.qc_passed }}
           QC_ISSUES: ${{ steps.qc.outputs.qc_issues }}
           QC_WOULD_BOOK: ${{ steps.qc.outputs.qc_would_book }}
@@ -574,8 +595,8 @@ jobs:
             "lead_email": "$LEAD_EMAIL_ADDR",
             "contact_name": "$CONTACT_NAME",
             "report_url": "$REPORT_URL",
-            "email_id": "$EMAIL_ID",
-            "from_email": "$FROM_EMAIL",
+            "job_title": "$JOB_TITLE",
+            "linkedin": "$LINKEDIN",
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "status": "pending_approval",
             "report_version": "V3",

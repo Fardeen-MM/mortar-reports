@@ -12,16 +12,9 @@ on:
       report_url:
         description: 'Report URL'
         required: true
-      email_id:
-        description: 'Instantly Email ID (for threading)'
-        required: false
       contact_name:
         description: 'Contact Name'
         required: true
-      from_email:
-        description: 'From Email (sending account)'
-        required: false
-        default: 'fardeen@mortarmetrics.com'
   repository_dispatch:
     types: [send_approved_email]
 
@@ -53,16 +46,12 @@ jobs:
           WD_LEAD_EMAIL: ${{ github.event.inputs.lead_email }}
           WD_CONTACT_NAME: ${{ github.event.inputs.contact_name }}
           WD_REPORT_URL: ${{ github.event.inputs.report_url }}
-          WD_EMAIL_ID: ${{ github.event.inputs.email_id }}
-          WD_FROM_EMAIL: ${{ github.event.inputs.from_email }}
           # repository_dispatch payload
           RD_FIRM_NAME: ${{ github.event.client_payload.firm_name }}
           RD_FIRM_FOLDER: ${{ github.event.client_payload.firm_folder }}
           RD_LEAD_EMAIL: ${{ github.event.client_payload.lead_email }}
           RD_CONTACT_NAME: ${{ github.event.client_payload.contact_name }}
           RD_REPORT_URL: ${{ github.event.client_payload.report_url }}
-          RD_EMAIL_ID: ${{ github.event.client_payload.email_id }}
-          RD_FROM_EMAIL: ${{ github.event.client_payload.from_email }}
           RD_TOTAL_RANGE: ${{ github.event.client_payload.total_range }}
           RD_TOTAL_CASES: ${{ github.event.client_payload.total_cases }}
           RD_PRACTICE_LABEL: ${{ github.event.client_payload.practice_label }}
@@ -73,8 +62,6 @@ jobs:
             echo "lead_email=$WD_LEAD_EMAIL" >> $GITHUB_OUTPUT
             echo "contact_name=$WD_CONTACT_NAME" >> $GITHUB_OUTPUT
             echo "report_url=$WD_REPORT_URL" >> $GITHUB_OUTPUT
-            echo "email_id=$WD_EMAIL_ID" >> $GITHUB_OUTPUT
-            echo "from_email=$WD_FROM_EMAIL" >> $GITHUB_OUTPUT
             echo "firm_folder=" >> $GITHUB_OUTPUT
             echo "total_range=" >> $GITHUB_OUTPUT
             echo "total_cases=" >> $GITHUB_OUTPUT
@@ -86,8 +73,6 @@ jobs:
             echo "lead_email=$RD_LEAD_EMAIL" >> $GITHUB_OUTPUT
             echo "contact_name=$RD_CONTACT_NAME" >> $GITHUB_OUTPUT
             echo "report_url=$RD_REPORT_URL" >> $GITHUB_OUTPUT
-            echo "email_id=$RD_EMAIL_ID" >> $GITHUB_OUTPUT
-            echo "from_email=$RD_FROM_EMAIL" >> $GITHUB_OUTPUT
             echo "total_range=$RD_TOTAL_RANGE" >> $GITHUB_OUTPUT
             echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
             echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
@@ -192,9 +177,7 @@ jobs:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
           LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
           CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
-          EMAIL_ID: ${{ steps.inputs.outputs.email_id }}
           FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
-          FROM_EMAIL: ${{ steps.inputs.outputs.from_email }}
           TOTAL_RANGE: ${{ steps.inputs.outputs.total_range }}
           TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
@@ -202,7 +185,6 @@ jobs:
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📧 Sending approved email to $LEAD_EMAIL"
           echo "🏢 Firm: $FIRM_NAME"
-          echo "📨 From: $FROM_EMAIL"
           echo "🔗 Report: $LIVE_URL"
           echo "📊 Range: $TOTAL_RANGE | Cases: $TOTAL_CASES | Practice: $PRACTICE_LABEL"
 
@@ -210,9 +192,9 @@ jobs:
             "$LEAD_EMAIL" \
             "$CONTACT_NAME" \
             "$LIVE_URL" \
-            "$EMAIL_ID" \
+            "" \
             "$FIRM_NAME" \
-            "$FROM_EMAIL" \
+            "" \
             "$TOTAL_RANGE" \
             "$TOTAL_CASES" \
             "$PRACTICE_LABEL"

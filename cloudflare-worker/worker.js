@@ -230,9 +230,8 @@ function buildGithubPayload(payload) {
       country: dig(payload, 'country', 'Country', 'lead_country', 'location_country', 'country_code'),
       company: dig(payload, 'company', 'companyName', 'company_name', 'Company', 'organization',
         'Organization', 'lead_company', 'lead_company_name'),
-      email_id: dig(payload, 'email_id', 'emailId', 'message_id', 'messageId', 'id'),
-      from_email: dig(payload, 'from_email', 'fromEmail', 'from', 'sender', 'from_email_account',
-        'fromEmailAccount', 'from_address', 'reply_to_email')
+      job_title: dig(payload, 'jobTitle', 'job_title', 'title', 'Title', 'lead_title'),
+      linkedin: dig(payload, 'linkedIn', 'linkedin', 'LinkedIn', 'linkedin_url', 'lead_linkedin')
     }
   };
 
@@ -287,7 +286,7 @@ async function forwardToGitHub(env, githubPayload) {
 function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
-  const preferLonger = new Set(['first_name', 'last_name', 'company']);
+  const preferLonger = new Set(['first_name', 'last_name', 'company', 'job_title', 'linkedin']);
   for (const field of allFields) {
     const valA = a.client_payload[field] || '';
     const valB = b.client_payload[field] || '';
