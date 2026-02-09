@@ -28,24 +28,30 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
 
   if (totalRange && totalCases && practiceLabel) {
     // Personalized email with case count + revenue
-    body = `Perfect \u2014 here's what we found for ${firm}.
+    body = `Hey {{firstName}},
 
-We identified around ${totalCases} ${practiceLabel} cases every month that aren't reaching your firm right now. That's roughly ${totalRange}/month you're leaving on the table.
+Really glad you replied \u2014 we just finished putting this together for ${firm}.
 
-We broke down where they're going instead and what to do about it:
+Short version: we found ~${totalCases} ${practiceLabel} cases per month in your area that aren't reaching you right now. That's around ${totalRange}/mo.
+
+Here's the full breakdown \u2014 takes about 2 min to read:
 ${reportUrl}
 
-Are you free ${day1} or ${day2} for 15 minutes? We can walk you through exactly how we'd get you those cases.
+Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?
 
 {{accountSignature}}`;
   } else {
     // Fallback when no numbers available
-    body = `Perfect \u2014 here's what we found for ${firm}.
+    body = `Hey {{firstName}},
 
-We looked at who's showing up in your market and found cases that should be going to your firm but aren't. We broke down the numbers:
+Really glad you replied \u2014 we just finished putting this together for ${firm}.
+
+We looked at your market and found cases that should be going to you but aren't. Broke down the numbers and where they're ending up instead.
+
+Here's the full breakdown \u2014 takes about 2 min to read:
 ${reportUrl}
 
-Are you free ${day1} or ${day2} for 15 minutes? We can walk you through exactly how we'd close those gaps.
+Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?
 
 {{accountSignature}}`;
   }
