@@ -236,17 +236,20 @@ function buildGithubPayload(payload) {
   };
 
   // Guard: if first_name is just the email local part, Instantly has no real name - clear it
+  let clearedByGuard = false;
   if (built.client_payload.first_name && built.client_payload.email) {
     const local = built.client_payload.email.split('@')[0].toLowerCase();
     if (built.client_payload.first_name.toLowerCase() === local) {
       console.log(`first_name "${built.client_payload.first_name}" matches email local part - clearing`);
       built.client_payload.first_name = '';
       built.client_payload.last_name = '';
+      clearedByGuard = true;
     }
   }
 
-  // Fallback: extract first name from email if missing
-  if (!built.client_payload.first_name && built.client_payload.email) {
+  // Fallback: extract first name from email if missing (but NOT if guard just cleared it -
+  // the guard cleared it because it was email garbage, re-extracting would give the same garbage)
+  if (!clearedByGuard && !built.client_payload.first_name && built.client_payload.email) {
     const local = built.client_payload.email.split('@')[0].toLowerCase();
     const hasVowel = /[aeiou]/i.test(local);
     const generic = ['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail', 'enquiries', 'reception'];
