@@ -87,6 +87,14 @@ jobs:
           echo "  company: $COMPANY"
 
           # Build contact name from available parts
+          # First, check if first_name is just the email local part (Instantly does this when it has no real name)
+          EMAIL_LOCAL=$(echo "$LEAD_EMAIL" | cut -d'@' -f1 | tr '[:upper:]' '[:lower:]')
+          FIRST_LOWER=$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]')
+          if [ "$FIRST_LOWER" = "$EMAIL_LOCAL" ]; then
+            echo "  ⚠️  first_name '$FIRST_NAME' matches email local part - treating as no name"
+            FIRST_NAME=""
+          fi
+
           CONTACT_NAME=""
           if [ -n "$FIRST_NAME" ] && [ -n "$LAST_NAME" ]; then
             CONTACT_NAME="$FIRST_NAME $LAST_NAME"
