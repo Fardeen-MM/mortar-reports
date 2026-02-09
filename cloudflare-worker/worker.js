@@ -198,7 +198,7 @@ async function handleTelegramCallback(env, update) {
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
 // One has lead data (website, company, city), the other has email data (email_id, from_email).
 // Each webhook stores to a unique slot key (wh:<email>|<random>), then does KV.list()
-// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise, a 15s
+// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise, a 30s
 // fallback timer does the same list+merge in case the second webhook never arrives.
 
 // Helper: dig into nested objects (payload.lead, payload.contact, etc.)
@@ -217,7 +217,7 @@ function dig(payload, ...keys) {
 }
 
 function buildGithubPayload(payload) {
-  return {
+  const built = {
     event_type: 'interested_lead',
     client_payload: {
       email: dig(payload, 'lead_email', 'email', 'Email', 'email_address', 'emailAddress', 'to_email'),
@@ -235,6 +235,23 @@ function buildGithubPayload(payload) {
         'fromEmailAccount', 'from_address', 'reply_to_email')
     }
   };
+
+  // Fallback: extract first name from email if missing
+  if (!built.client_payload.first_name && built.client_payload.email) {
+    const local = built.client_payload.email.split('@')[0].toLowerCase();
+    const hasVowel = /[aeiou]/i.test(local);
+    const generic = ['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail', 'enquiries', 'reception'];
+    if (local.length > 2 && hasVowel && !generic.includes(local)) {
+      const parts = local.replace(/[._-]/g, ' ').split(' ');
+      built.client_payload.first_name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      if (parts.length > 1) {
+        built.client_payload.last_name = parts.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+      console.log(`Extracted name from email: ${built.client_payload.first_name} ${built.client_payload.last_name || ''}`);
+    }
+  }
+
+  return built;
 }
 
 async function forwardToGitHub(env, githubPayload) {
@@ -327,7 +344,7 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 
   // Only one slot found — schedule fallback timer for when second webhook never comes
   ctx.waitUntil(
-    new Promise(resolve => setTimeout(resolve, 15_000)).then(async () => {
+    new Promise(resolve => setTimeout(resolve, 30_000)).then(async () => {
       const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
       if (alreadyDone) {
         console.log(`Fallback timer: ${email} already dispatched`);

@@ -271,8 +271,14 @@ jobs:
                   console.log('Partner');
                   process.exit(0);
                 }
-                // If it looks like initials only (2-5 chars, no separators), skip it
-                if (localPart.length <= 5 && !localPart.includes('.') && !localPart.includes('_') && !localPart.includes('-')) {
+                // If it looks like initials only, skip it
+                // But short names with vowels (toby, alex, emma) are real names, not initials
+                const hasVowel = /[aeiou]/i.test(localPart);
+                if (localPart.length <= 2) {
+                  console.log('Partner');
+                  process.exit(0);
+                }
+                if (localPart.length <= 5 && !hasVowel && !localPart.includes('.') && !localPart.includes('_') && !localPart.includes('-')) {
                   console.log('Partner');
                   process.exit(0);
                 }
