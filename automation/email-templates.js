@@ -28,60 +28,30 @@ function cleanEncoding(str) {
 }
 
 function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel) {
-  const { day1, day2 } = getMeetingDays();
-  const firm = firmName || 'your firm';
-  const firstName = (contactName || '').split(' ')[0] || 'there';
-  const cleanRange = cleanEncoding(totalRange);
+  // TEMPORARY: Correction email for Wenup (Toby) — revert after sending
+  const liveReportUrl = 'https://reports.mortarmetrics.com/Wenup/';
 
-  let textBody, htmlBody;
+  const textBody = `Hey Toby,
 
-  if (cleanRange && totalCases && practiceLabel) {
-    // Personalized email with case count + revenue
-    textBody = `Hey ${firstName},
+Apologies \u2014 a glitch in our competitor analysis system pulled the wrong data into your report earlier. Here's the corrected version:
 
-Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
+There's about 4-8 family law cases per month in your area going to other firms right now \u2014 that's roughly \u00a320.5K-35.5K/mo. You're not far off from capturing those, it's just about closing the gap.
 
-There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${cleanRange}/mo. You're not far off from capturing those, it's just about closing the gap.
+Here's the updated report:
+${liveReportUrl}
 
-Here's the full report:
-${reportUrl}
+Happy to walk you through it if helpful. Tomorrow or Wednesday work for a quick call?`;
 
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
-
-    htmlBody = `<div>Hey ${firstName},</div>
+  const htmlBody = `<div>Hey Toby,</div>
 <div><br /></div>
-<div>Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.</div>
+<div>Apologies \u2014 a glitch in our competitor analysis system pulled the wrong data into your report earlier. Here's the corrected version:</div>
 <div><br /></div>
-<div>There's about ${totalCases} ${practiceLabel} cases per month in your area going to other firms right now \u2014 that's roughly ${cleanRange}/mo. You're not far off from capturing those, it's just about closing the gap.</div>
+<div>There's about 4-8 family law cases per month in your area going to other firms right now \u2014 that's roughly \u00a320.5K-35.5K/mo. You're not far off from capturing those, it's just about closing the gap.</div>
 <div><br /></div>
-<div>Here's the full report:</div>
-<div><a href="${reportUrl}">${reportUrl}</a></div>
+<div>Here's the updated report:</div>
+<div><a href="${liveReportUrl}">${liveReportUrl}</a></div>
 <div><br /></div>
-<div>Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?</div>`;
-  } else {
-    // Fallback when no numbers available
-    textBody = `Hey ${firstName},
-
-Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.
-
-There are cases in your area going to other firms right now that should be going to you \u2014 and you're not far off from getting them.
-
-Here's the full report:
-${reportUrl}
-
-Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?`;
-
-    htmlBody = `<div>Hey ${firstName},</div>
-<div><br /></div>
-<div>Glad you replied \u2014 our team saw a ton of potential when we looked at ${firm}.</div>
-<div><br /></div>
-<div>There are cases in your area going to other firms right now that should be going to you \u2014 and you're not far off from getting them.</div>
-<div><br /></div>
-<div>Here's the full report:</div>
-<div><a href="${reportUrl}">${reportUrl}</a></div>
-<div><br /></div>
-<div>Happy to walk you through it if helpful. ${day1} or ${day2} work for a quick call?</div>`;
-  }
+<div>Happy to walk you through it if helpful. Tomorrow or Wednesday work for a quick call?</div>`;
 
   return {
     subject: 'Your marketing analysis',
