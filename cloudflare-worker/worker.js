@@ -236,6 +236,16 @@ function buildGithubPayload(payload) {
     }
   };
 
+  // Guard: if first_name is just the email local part, Instantly has no real name - clear it
+  if (built.client_payload.first_name && built.client_payload.email) {
+    const local = built.client_payload.email.split('@')[0].toLowerCase();
+    if (built.client_payload.first_name.toLowerCase() === local) {
+      console.log(`first_name "${built.client_payload.first_name}" matches email local part - clearing`);
+      built.client_payload.first_name = '';
+      built.client_payload.last_name = '';
+    }
+  }
+
   // Fallback: extract first name from email if missing
   if (!built.client_payload.first_name && built.client_payload.email) {
     const local = built.client_payload.email.split('@')[0].toLowerCase();
