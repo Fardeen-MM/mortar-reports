@@ -62,11 +62,14 @@ if (approvalData.firm_name) {
   }
 }
 
-// Generate email preview using the same template
+// Generate email preview using the LIVE URL (what the lead will actually receive)
+const liveReportUrl = approvalData.firm_folder
+  ? `https://reports.mortarmetrics.com/${approvalData.firm_folder}/`
+  : approvalData.report_url;
 const emailPreview = buildEmail(
   approvalData.contact_name,
   approvalData.firm_name,
-  approvalData.report_url,
+  liveReportUrl,
   approvalData.total_range || '',
   approvalData.total_cases || '',
   approvalData.practice_label || ''
