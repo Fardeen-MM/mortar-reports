@@ -29,8 +29,8 @@ if (!recipientEmail || !contactName || !reportUrl) {
   process.exit(1);
 }
 
-// Decode the base64 API key
-const apiKey = Buffer.from(INSTANTLY_API_KEY, 'base64').toString('utf-8');
+// Use the API key as-is (Instantly v2 expects the raw key as Bearer token)
+const apiKey = INSTANTLY_API_KEY;
 
 /**
  * Look up the most recent email UUID for a lead via Instantly's List Emails API.
@@ -102,15 +102,12 @@ function sendEmail(replyToUuid, emailContent) {
       console.log(`📧 Replying in thread to: ${recipientEmail}`);
       console.log(`🔗 Thread UUID: ${replyToUuid}`);
     } else {
-      // New thread — current behavior
-      path = '/api/v2/email';
-      payloadData = {
-        email: recipientEmail,
-        body: emailBody,
-        from_email: fromEmail,
-        subject: emailContent.subject || 'Your marketing analysis',
-      };
-      console.log(`📧 Starting new thread to: ${recipientEmail}`);
+      // No existing thread found — Instantly v2 has no send-new-email endpoint,
+      // only reply. Use reply endpoint with a fresh subject (no "Re:").
+      // This requires at least one prior email in the system for the lead.
+      console.error('❌ No email thread found for this lead — cannot send without a reply_to_uuid');
+      console.error('   Instantly API v2 only supports replying to existing threads');
+      return reject(new Error('No email thread found — Instantly v2 requires reply_to_uuid'));
     }
 
     const payload = JSON.stringify(payloadData);
@@ -163,19 +160,16 @@ function sendEmail(replyToUuid, emailContent) {
   // Look up the latest email UUID for this lead to thread the reply
   const replyToUuid = await fetchLatestEmailId(recipientEmail);
 
+  if (!replyToUuid) {
+    console.error('❌ Could not find an email thread for this lead — cannot send');
+    console.error('   The lead must have an existing email thread in Instantly');
+    process.exit(1);
+  }
+
   try {
     await sendEmail(replyToUuid, emailContent);
   } catch (err) {
-    // If reply failed, try once more as a new thread
-    if (replyToUuid) {
-      console.warn('⚠️  Reply failed — retrying as new thread...');
-      try {
-        await sendEmail(null, emailContent);
-      } catch (retryErr) {
-        process.exit(1);
-      }
-    } else {
-      process.exit(1);
-    }
+    console.error('❌ Failed to send reply:', err.message);
+    process.exit(1);
   }
 })();
