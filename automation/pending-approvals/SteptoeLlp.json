@@ -1,0 +1,28 @@
+{
+  "firm_name": "Steptoe LLP",
+  "firm_folder": "SteptoeLlp",
+  "lead_email": "gkast@steptoe.com",
+  "contact_name": "Galen Kast",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/SteptoeLlp/",
+  "job_title": "",
+  "linkedin": "linkedin.com/in/galen-kast-62974813",
+  "country": "US",
+  "created_at": "2026-02-10T20:05:45Z",
+  "status": "pending_approval",
+  "report_version": "V3",
+  "qc_passed": "true",
+  "qc_issues": "0",
+  "qc_would_book": "true",
+  "qc_biggest_issue": "",
+  "qc_score": "10",
+  "total_range": "$75.5K-116.5K",
+  "total_cases": "8-15",
+  "practice_label": "business law",
+  "lead_intelligence": {
+    "name": "",
+    "title": "",
+    "seniority": "unknown",
+    "is_decision_maker": false,
+    "source": "email_inference"
+  }
+}
