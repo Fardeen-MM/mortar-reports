@@ -639,7 +639,7 @@ ${css}
 
     <div class="header">
       <div class="logo">Mortar Metrics</div>
-      <div class="meta">Prepared for ${escapeHtml(prospectName || 'Your Firm')} · ${today}</div>
+      <div class="meta">Prepared for ${escapeHtml(prospectName || 'Your Firm')} at ${escapeHtml(firmName)} · ${today}</div>
     </div>
 
     <!-- HERO -->
@@ -933,7 +933,7 @@ ${deliverableItem('Dedicated account manager', 'One point of contact. Not a tick
 
     <div id="booking" class="cta fade-in">
       <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
-      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to your firm every month. The firms we work with typically see $5\u2013$10 back for every $1 they invest.</p>
+      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to ${escapeHtml(firmName)} every month. The firms we work with typically see $5\u2013$10 back for every $1 they invest.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
