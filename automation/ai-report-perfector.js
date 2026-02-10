@@ -466,10 +466,12 @@ function deterministicQC(html, research) {
   }
 
   // 4. FIRM NAME PRESENT - the report should mention the firm
-  // Check both raw name and HTML-escaped version (& → &amp;)
+  // Check both raw name and HTML-escaped version (& → &amp;), case-insensitive
   if (firmName && firmName !== 'Unknown' && firmName !== 'Unknown Firm') {
-    const htmlEscapedName = firmName.replace(/&/g, '&amp;');
-    if (!html.includes(firmName) && !html.includes(htmlEscapedName)) {
+    const htmlLower = html.toLowerCase();
+    const firmLower = firmName.toLowerCase();
+    const htmlEscapedLower = firmLower.replace(/&/g, '&amp;');
+    if (!htmlLower.includes(firmLower) && !htmlLower.includes(htmlEscapedLower)) {
       issues.push({
         severity: 'IMPORTANT', category: 'BROKEN',
         issue: `Firm name not found in report`
