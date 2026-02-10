@@ -1166,13 +1166,13 @@ function deterministicQC(html, research) {
     if (isGenericName) {
       issues.push({
         severity: 'IMPORTANT', category: 'PERSONALIZATION',
-        issue: `Contact name is generic: "${prospectName}" — report feels impersonal`
+        issue: `Contact name is generic: '${prospectName}' — report feels impersonal`
       });
       score -= 1;
     } else if (isSingleWord) {
       issues.push({
         severity: 'IMPORTANT', category: 'PERSONALIZATION',
-        issue: `Contact name is only one word: "${prospectName}" — should be a full name`
+        issue: `Contact name is only one word: '${prospectName}' — should be a full name`
       });
       score -= 1;
     }

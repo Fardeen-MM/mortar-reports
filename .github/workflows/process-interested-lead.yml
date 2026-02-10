@@ -620,6 +620,17 @@ jobs:
 
           mkdir -p pending-approvals
 
+          # Escape double quotes in values to produce valid JSON
+          esc() { echo "$1" | sed 's/"/\\"/g'; }
+          FIRM_NAME=$(esc "$FIRM_NAME")
+          CONTACT_NAME=$(esc "$CONTACT_NAME")
+          JOB_TITLE=$(esc "$JOB_TITLE")
+          LINKEDIN=$(esc "$LINKEDIN")
+          QC_BIGGEST=$(esc "$QC_BIGGEST")
+          LEAD_NAME=$(esc "$LEAD_NAME")
+          LEAD_TITLE=$(esc "$LEAD_TITLE")
+          LEAD_SOURCE=$(esc "$LEAD_SOURCE")
+
           cat > "pending-approvals/${FIRM_FOLDER}.json" << EOF
           {
             "firm_name": "$FIRM_NAME",
