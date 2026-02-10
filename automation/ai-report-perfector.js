@@ -20,6 +20,12 @@
  * 12. All sections have real content (V7 sections: roi-box, revenue-cards, guarantee, deliverables, only-job)
  * 13. Math adds up (card sum ≈ ROI total)
  * 14. Overall "would you book?" flag
+ * 15. Contact name quality (single word, generic names)
+ *
+ * AI-powered:
+ * - Contact name fix: matches email to team members, fixes incomplete/wrong names
+ * - AI sanity check: Claude reviews for wrong name/city/practice/firm, broken sentences
+ * - AI fixes: safely applies WRONG_NAME and BROKEN_SENTENCE fixes
  *
  * Keeps: preFixCommonIssues(), getLeadIntelligence() (LinkedIn lookup)
  *
@@ -294,6 +300,228 @@ async function getLeadIntelligence(email, firmName, research) {
   const inference = inferFromEmail(email);
   console.log(`   Inferred: seniority=${inference.seniority}, decision-maker=${inference.isDecisionMaker ? 'YES' : 'NO'}`);
   return inference;
+}
+
+// ============================================================================
+// CONTACT NAME VALIDATION & FIX
+// ============================================================================
+
+function getTeamMembers(research) {
+  const members = [];
+  (research.team?.foundingPartners || []).forEach(p => p?.name && members.push(p.name));
+  if (research.team?.leadership?.name) members.push(research.team.leadership.name);
+  (research.team?.keyAttorneys || []).forEach(a => a?.name && members.push(a.name));
+  (research.intelligence?.keyDecisionMakers || []).forEach(d => d?.name && members.push(d.name));
+  return members;
+}
+
+function matchEmailToTeamMember(email, teamMembers) {
+  if (!email || !teamMembers.length) return null;
+  const localPart = email.split('@')[0].toLowerCase();
+
+  for (const name of teamMembers) {
+    const parts = name.replace(/[.-]/g, ' ').split(/\s+/).filter(Boolean);
+    // Initials match: 'cmec' matches 'Christopher M. Eddison-Cogan'
+    const initials = parts.map(p => p[0].toLowerCase()).join('');
+    if (initials === localPart) return name;
+    // First initial + last name: 'dcorrigan' matches 'David Corrigan'
+    if (parts.length >= 2) {
+      const firstInitialLast = (parts[0][0] + parts[parts.length - 1]).toLowerCase();
+      if (firstInitialLast === localPart) return name;
+    }
+    // First name match: 'david' matches 'David Corrigan'
+    if (parts.length >= 1 && parts[0].toLowerCase() === localPart) return name;
+    // Last name match in local part: 'corrigan' in 'dcorrigan'
+    if (parts.length >= 2) {
+      const lastName = parts[parts.length - 1].toLowerCase();
+      if (localPart.includes(lastName) && lastName.length >= 4) return name;
+    }
+  }
+  return null;
+}
+
+function fixContactName(html, research, leadEmail) {
+  // Extract current prospect name from "Prepared for X at Y"
+  const preparedMatch = html.match(/Prepared for ([^·]+?) at /);
+  if (!preparedMatch) return { html, fixed: false };
+
+  const currentName = preparedMatch[1].trim();
+  const teamMembers = getTeamMembers(research);
+
+  console.log(`\n👤 CONTACT NAME CHECK`);
+  console.log(`   Current: "${currentName}"`);
+  console.log(`   Team members found: ${teamMembers.length}`);
+  if (teamMembers.length > 0) console.log(`   Team: ${teamMembers.join(', ')}`);
+
+  // Check if current name is problematic
+  const isSingleWord = !currentName.includes(' ');
+  const isGeneric = ['Partner', 'there', 'Your Firm', 'Hiring Partner', 'Unknown'].includes(currentName);
+  const isIncomplete = isSingleWord && !isGeneric;
+
+  if (!isSingleWord && !isGeneric) {
+    // Check if current full name matches a team member (case-insensitive)
+    const currentLower = currentName.toLowerCase();
+    const exactMatch = teamMembers.find(m => m.toLowerCase() === currentLower);
+    if (exactMatch) {
+      console.log(`   ✅ Name matches team member: "${exactMatch}"`);
+      return { html, fixed: false };
+    }
+    // Check if current name's last name matches any team member's last name
+    const currentParts = currentName.split(/\s+/);
+    const currentLast = currentParts[currentParts.length - 1].toLowerCase();
+    const lastNameMatch = teamMembers.find(m => {
+      const mParts = m.split(/\s+/);
+      return mParts[mParts.length - 1].toLowerCase() === currentLast;
+    });
+    if (lastNameMatch) {
+      console.log(`   ✅ Last name matches team member: "${lastNameMatch}"`);
+      return { html, fixed: false };
+    }
+    // Full name that doesn't match team — could be from LinkedIn or other source, keep it
+    console.log(`   ⚠️  Name doesn't match team but is a full name — keeping`);
+    return { html, fixed: false };
+  }
+
+  // Name is problematic (single word, generic, or incomplete) — try to fix
+  let bestName = null;
+
+  // 1. Try email-to-team matching
+  if (leadEmail) {
+    const emailMatch = matchEmailToTeamMember(leadEmail, teamMembers);
+    if (emailMatch) {
+      bestName = emailMatch;
+      console.log(`   🔍 Email matched team member: "${bestName}"`);
+    }
+  }
+
+  // 2. If single-word name, check if it's someone's last name
+  if (!bestName && isIncomplete) {
+    const lastNameMatch = teamMembers.find(m => {
+      const parts = m.split(/\s+/);
+      return parts[parts.length - 1].toLowerCase() === currentName.toLowerCase();
+    });
+    if (lastNameMatch) {
+      bestName = lastNameMatch;
+      console.log(`   🔍 Last name matched team member: "${bestName}"`);
+    }
+  }
+
+  // 3. Fallback to first team member
+  if (!bestName && teamMembers.length > 0 && isGeneric) {
+    bestName = teamMembers[0];
+    console.log(`   🔍 Using first team member: "${bestName}"`);
+  }
+
+  if (bestName && bestName !== currentName) {
+    console.log(`   ✅ FIXING: "${currentName}" → "${bestName}"`);
+    // Replace in all occurrences: "Prepared for X at", CTA mentions, etc.
+    let fixedHtml = html;
+    // Escape for regex
+    const escaped = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    fixedHtml = fixedHtml.replace(new RegExp(`Prepared for ${escaped}`, 'g'), `Prepared for ${bestName}`);
+    // Also fix the CTA if it mentions the old name
+    fixedHtml = fixedHtml.replace(new RegExp(`cases to ${escaped}`, 'g'), `cases to ${bestName}`);
+    return { html: fixedHtml, fixed: true, oldName: currentName, newName: bestName };
+  }
+
+  if (isGeneric || isIncomplete) {
+    console.log(`   ⚠️  Could not find a better name — keeping "${currentName}"`);
+  }
+  return { html, fixed: false };
+}
+
+// ============================================================================
+// AI SANITY CHECK — Uses Claude to catch semantic issues
+// ============================================================================
+
+async function aiSanityCheck(html, research, leadEmail, leadIntel) {
+  if (!ANTHROPIC_API_KEY) {
+    console.log('   ⚠️  No ANTHROPIC_API_KEY — skipping AI sanity check');
+    return { issues: [], fixes: [] };
+  }
+
+  const text = extractText(html);
+  const firmName = research.firmName || 'Unknown';
+  const city = research.location?.city || '';
+  const practiceArea = research.practiceArea || research.practice_area || '';
+  const teamMembers = getTeamMembers(research);
+
+  // Extract key report data for the prompt
+  const preparedMatch = html.match(/Prepared for ([^·]+?) at /);
+  const prospectName = preparedMatch ? preparedMatch[1].trim() : 'Unknown';
+  const roiMatch = html.match(/class="roi-hero-number"[^>]*>([^<]+)/);
+  const roiNumber = roiMatch ? roiMatch[1].trim() : 'Unknown';
+
+  const prompt = `You are a QC reviewer for a personalized marketing report sent to a law firm lead.
+
+REPORT CONTEXT:
+- Firm: ${firmName}
+- City: ${city}
+- Practice area: ${practiceArea}
+- Report addressed to: "${prospectName}"
+- Lead email: ${leadEmail || 'Unknown'}
+- Team members from firm website: ${teamMembers.length > 0 ? teamMembers.join(', ') : 'None found'}
+- Lead intelligence: ${leadIntel ? `Name: ${leadIntel.name || 'Unknown'}, Title: ${leadIntel.title || 'Unknown'}, Source: ${leadIntel.source}` : 'None'}
+- ROI headline number: ${roiNumber}
+
+REPORT TEXT (first 3000 chars):
+${text.substring(0, 3000)}
+
+CHECK FOR THESE ISSUES ONLY (be precise, no false positives):
+1. WRONG_NAME: Is "${prospectName}" clearly the wrong person? (e.g., doesn't match the email, or team members show a different name for this email address)
+2. WRONG_CITY: Does the report mention a city that contradicts the firm's actual location?
+3. WRONG_PRACTICE: Does the report describe a completely wrong practice area for this firm?
+4. BROKEN_SENTENCE: Any obviously broken or nonsensical sentences?
+5. WRONG_FIRM: Does the report mention the wrong firm name?
+
+Return ONLY valid JSON. If no issues, return empty arrays:
+{
+  "issues": [
+    {"type": "WRONG_NAME", "detail": "Report says 'Corrigan' but email dcorrigan@ matches 'David Corrigan' from team", "severity": "CRITICAL"}
+  ],
+  "suggestedFixes": [
+    {"type": "WRONG_NAME", "find": "Corrigan", "replace": "David Corrigan"}
+  ]
+}`;
+
+  try {
+    const response = await askAI(prompt, 1000);
+    let jsonStr = response;
+    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonStr = jsonMatch[1];
+    const result = JSON.parse(jsonStr.trim());
+    return {
+      issues: result.issues || [],
+      fixes: result.suggestedFixes || []
+    };
+  } catch (e) {
+    console.log(`   ⚠️  AI sanity check failed: ${e.message}`);
+    return { issues: [], fixes: [] };
+  }
+}
+
+function applyAiFixes(html, fixes) {
+  let fixedHtml = html;
+  let fixCount = 0;
+
+  for (const fix of fixes) {
+    if (!fix.find || !fix.replace || fix.find === fix.replace) continue;
+    // Safety: only apply name fixes and simple text replacements
+    if (!['WRONG_NAME', 'BROKEN_SENTENCE'].includes(fix.type)) continue;
+    // Don't replace very short strings (risk of false matches)
+    if (fix.find.length < 3) continue;
+
+    const escaped = fix.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'g');
+    const matches = fixedHtml.match(regex);
+    if (matches) {
+      fixedHtml = fixedHtml.replace(regex, fix.replace);
+      fixCount += matches.length;
+      console.log(`   ✅ AI fix: "${fix.find}" → "${fix.replace}" (${matches.length}x)`);
+    }
+  }
+
+  return { html: fixedHtml, fixCount };
 }
 
 // ============================================================================
@@ -736,6 +964,27 @@ function deterministicQC(html, research) {
     }
   }
 
+  // 15. CONTACT NAME QUALITY - check if the prospect name is a real full name
+  const preparedForMatch = html.match(/Prepared for ([^·]+?) at /);
+  if (preparedForMatch) {
+    const prospectName = preparedForMatch[1].trim();
+    const isSingleWord = !prospectName.includes(' ');
+    const isGenericName = ['Partner', 'there', 'Your Firm', 'Hiring Partner', 'Unknown'].includes(prospectName);
+    if (isGenericName) {
+      issues.push({
+        severity: 'IMPORTANT', category: 'PERSONALIZATION',
+        issue: `Contact name is generic: "${prospectName}" — report feels impersonal`
+      });
+      score -= 1;
+    } else if (isSingleWord) {
+      issues.push({
+        severity: 'IMPORTANT', category: 'PERSONALIZATION',
+        issue: `Contact name is only one word: "${prospectName}" — should be a full name`
+      });
+      score -= 1;
+    }
+  }
+
   // Clamp score
   score = Math.max(0, Math.min(10, Math.round(score * 2) / 2));
 
@@ -802,19 +1051,28 @@ async function perfectReport() {
   }
 
   let currentHtml = reportHtml;
+  let fixesApplied = [];
 
-  // Pre-pass: Fix common verbose phrasing issues
-  console.log('\n🔧 PRE-PASS: Fixing common phrasing issues...');
+  // Step 1: Fix contact name using research data (deterministic, no AI)
+  console.log('\n👤 STEP 1: Contact name validation...');
+  const nameResult = fixContactName(currentHtml, research, leadEmail);
+  if (nameResult.fixed) {
+    currentHtml = nameResult.html;
+    fixesApplied.push(`Contact name: "${nameResult.oldName}" → "${nameResult.newName}"`);
+  }
+
+  // Step 2: Pre-pass verbose phrasing fixes
+  console.log('\n🔧 STEP 2: Fixing common phrasing issues...');
   currentHtml = preFixCommonIssues(currentHtml);
 
-  // Save pre-fixed HTML
+  // Save if any fixes so far
   if (currentHtml !== reportHtml) {
     fs.writeFileSync(reportFile, currentHtml);
     console.log('💾 Saved pre-fixed report');
   }
 
-  // Run deterministic QC
-  console.log('\n🔍 DETERMINISTIC QC');
+  // Step 3: Run deterministic QC
+  console.log('\n🔍 STEP 3: Deterministic QC...');
   const qcResult = deterministicQC(currentHtml, research);
 
   console.log(`   Score: ${qcResult.score}/10`);
@@ -823,6 +1081,46 @@ async function perfectReport() {
   if (qcResult.issues.length > 0) {
     for (const issue of qcResult.issues) {
       console.log(`   [${issue.severity}] ${issue.category}: ${issue.issue}`);
+    }
+  }
+
+  // Step 4: AI sanity check (catches semantic issues deterministic checks miss)
+  console.log('\n🤖 STEP 4: AI sanity check...');
+  const aiResult = await aiSanityCheck(currentHtml, research, leadEmail, leadIntel);
+  if (aiResult.issues.length > 0) {
+    console.log(`   Found ${aiResult.issues.length} semantic issue(s):`);
+    for (const issue of aiResult.issues) {
+      console.log(`   [${issue.severity}] ${issue.type}: ${issue.detail}`);
+      // Add AI issues to QC result
+      qcResult.issues.push({
+        severity: issue.severity || 'IMPORTANT',
+        category: 'AI_REVIEW',
+        issue: `${issue.type}: ${issue.detail}`
+      });
+    }
+  } else {
+    console.log(`   ✅ No semantic issues found`);
+  }
+
+  // Step 5: Apply AI-suggested fixes (only safe ones: WRONG_NAME, BROKEN_SENTENCE)
+  if (aiResult.fixes.length > 0) {
+    console.log('\n🔧 STEP 5: Applying AI fixes...');
+    const aiFixResult = applyAiFixes(currentHtml, aiResult.fixes);
+    if (aiFixResult.fixCount > 0) {
+      currentHtml = aiFixResult.html;
+      fixesApplied.push(`AI fixes: ${aiFixResult.fixCount} replacement(s)`);
+      fs.writeFileSync(reportFile, currentHtml);
+      console.log('💾 Saved AI-fixed report');
+
+      // Re-run deterministic QC after AI fixes to get updated score
+      console.log('\n🔍 Re-running deterministic QC after fixes...');
+      const recheck = deterministicQC(currentHtml, research);
+      qcResult.score = recheck.score;
+      qcResult.wouldBook = recheck.wouldBook;
+      qcResult.verdict = recheck.verdict;
+      qcResult.biggestProblem = recheck.biggestProblem;
+      qcResult.issues = recheck.issues;
+      console.log(`   Updated score: ${recheck.score}/10`);
     }
   }
 
@@ -835,6 +1133,7 @@ async function perfectReport() {
     verdict: qcResult.verdict,
     biggestProblem: qcResult.biggestProblem,
     remainingIssues: qcResult.issues.length,
+    fixesApplied,
     leadIntelligence: leadIntel ? {
       name: leadIntel.name, title: leadIntel.title,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
@@ -849,6 +1148,9 @@ async function perfectReport() {
   console.log(`Score: ${qcResult.score}/10`);
   console.log(`Would book: ${qcResult.wouldBook ? '✅ YES' : '❌ NO'}`);
   console.log(`Verdict: ${qcResult.verdict}`);
+  if (fixesApplied.length > 0) {
+    console.log(`Fixes applied: ${fixesApplied.join('; ')}`);
+  }
   if (qcResult.biggestProblem) {
     console.log(`Biggest issue: ${qcResult.biggestProblem}`);
   }
@@ -860,6 +1162,10 @@ async function perfectReport() {
   console.log('═'.repeat(60) + '\n');
 
   const passed = qcResult.score >= 8 && qcResult.wouldBook;
+
+  // Extract final contact name from the fixed HTML (may differ from original)
+  const finalNameMatch = currentHtml.match(/Prepared for ([^·]+?) at /);
+  const finalContactName = finalNameMatch ? finalNameMatch[1].trim() : null;
 
   // Write result for workflow (same format as before for compatibility)
   fs.writeFileSync('qc-result.json', JSON.stringify({
@@ -873,6 +1179,8 @@ async function perfectReport() {
     recommendation: passed
       ? 'Report passed deterministic QC and is ready to send.'
       : `Report has issues: ${qcResult.verdict}`,
+    fixesApplied,
+    correctedContactName: nameResult.fixed ? finalContactName : null,
     leadIntelligence: leadIntel ? {
       name: leadIntel.name, title: leadIntel.title, company: leadIntel.company,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
