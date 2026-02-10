@@ -1,14 +1,25 @@
 #!/usr/bin/env node
 /**
- * REPORT GENERATOR V3 - AI Prose + Fixed Structure
+ * REPORT GENERATOR V7 - Positive framing, omnichannel, guarantee-forward
  *
  * Architecture: Three layers
- *   STRUCTURE (fixed) - HTML, CSS, JS animations, competitor bars
- *   MATH (fixed) - Gap formulas, market multipliers, case values
- *   PROSE (AI) - Claude writes ALL copy, in the correct locale, natively
+ *   STRUCTURE (fixed) - HTML, CSS, JS animations, revenue cards, deliverables
+ *   MATH (fixed) - Gap formulas, market multipliers, case values, boosted floors
+ *   PROSE (AI) - Claude writes card body paragraphs (3 fields only)
  *
- * AI writes every prose paragraph in one call. If the AI call fails,
- * falls back to the old hardcoded templates (kept as safety net).
+ * V7 changes from V3:
+ *   - Positive hero ("Here's how your firm adds $XXX/month")
+ *   - ROI box with net revenue, ad spend, annual projection, case count
+ *   - Omnichannel intro paragraph
+ *   - 6-step journey bar
+ *   - Revenue cards (replace gap cards) with expanded scope badges
+ *   - SERP mockup always shows firm at TOP (positive framing)
+ *   - Guarantee green banner
+ *   - Case study (Mandall Law)
+ *   - 21 deliverables in 3 groups
+ *   - Timeline strip, "Your only job" box, confidence cards
+ *   - Floating CTA button
+ *   - Boosted min floors: $55K/$80K, $38K/$56K, $17K/$30K (US base)
  */
 
 const fs = require('fs');
@@ -23,20 +34,6 @@ function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// Escape HTML then auto-bold key numbers so busy readers can scan
-function formatGapProse(text) {
-  let s = escapeHtml(text);
-  // Dollar/pound ranges: ~$1,000-$2,500/mo or $500
-  s = s.replace(/(~?[\$£A-Z]*\$?[\d,]+\s*-\s*[\$£]?[\d,]+(?:\/mo(?:nth)?)?)/g, '<strong>$1</strong>');
-  // Standalone dollar/pound amounts not already wrapped
-  s = s.replace(/(?<!<strong>)(~?[\$£][\d,]+(?:\/mo(?:nth)?)?)(?!<\/strong>)/g, '<strong>$1</strong>');
-  // Percentages: 60%, 3.5%, 20-40%
-  s = s.replace(/([\d.]+-[\d.]+%|[\d.]+%)/g, '<strong>$1</strong>');
-  // Tilde-prefixed numbers with context: ~250 people searched
-  s = s.replace(/(~[\d,]+\s+(?:people|searches|calls|monthly searches))/gi, '<strong>$1</strong>');
-  return s;
 }
 
 // Case value ranges by practice area (low-high for ranges) - USD
@@ -80,7 +77,7 @@ const CASE_VALUES_GBP = {
   'default': { low: 3000, high: 5500 }
 };
 
-// Client labels by practice area (used in visuals + fallback prose)
+// Client labels by practice area (used in fallback prose)
 const CLIENT_LABELS = {
   'landlord': { singular: 'landlord', plural: 'landlords' },
   'personal injury': { singular: 'accident victim', plural: 'accident victims' },
@@ -96,27 +93,28 @@ const CLIENT_LABELS = {
   'default': { singular: 'potential client', plural: 'potential clients' }
 };
 
-const EMERGENCY_SCENARIOS = {
-  'landlord': 'an eviction emergency',
-  'personal injury': 'an accident',
-  'divorce': 'a custody emergency',
-  'family': 'a family crisis',
-  'immigration': 'deportation notice',
-  'criminal': 'an arrest',
-  'estate': 'a sudden death in the family',
-  'business': 'a business dispute',
-  'bankruptcy': 'creditor harassment',
-  'tax': 'a tax notice',  // localized later for UK/US
-  'employment': 'wrongful termination',
-  'default': 'a legal emergency'
-};
-
 const ATTORNEY_TYPES = {
   'divorce': 'family', 'family': 'family', 'tax': 'tax',
   'personal injury': 'personal injury', 'immigration': 'immigration',
   'criminal': 'criminal defense', 'estate': 'estate planning',
   'business': 'business', 'bankruptcy': 'bankruptcy', 'employment': 'employment',
   'default': ''
+};
+
+// Funnel examples per practice area (used in Card 2 body)
+const FUNNEL_EXAMPLES = {
+  'divorce': { guide: 'What to Expect in a {city} Divorce', topics: 'custody rights and property division' },
+  'family': { guide: 'What to Expect in a {city} Divorce', topics: 'custody rights and property division' },
+  'personal injury': { guide: 'What to Do After an Accident in {city}', topics: 'injury claims and settlement timelines' },
+  'immigration': { guide: 'Your Immigration Rights in {city}', topics: 'visa options and timelines' },
+  'criminal': { guide: 'What to Do If You\'re Arrested in {city}', topics: 'your rights and defense strategies' },
+  'estate': { guide: 'Estate Planning Basics for {city} Families', topics: 'wills, trusts, and probate' },
+  'tax': { guide: 'Tax Issues? Your {city} Guide', topics: 'tax resolution and audit defense' },
+  'business': { guide: 'Starting a Business in {city}', topics: 'formation, contracts, and compliance' },
+  'bankruptcy': { guide: 'Debt Relief Options in {city}', topics: 'Chapter 7, Chapter 13, and alternatives' },
+  'employment': { guide: 'Know Your Workplace Rights in {city}', topics: 'wrongful termination and discrimination' },
+  'landlord': { guide: 'Landlord Rights in {city}', topics: 'eviction procedures and tenant disputes' },
+  'default': { guide: 'Your Legal Rights in {city}', topics: 'legal options and next steps' }
 };
 
 function getAttorneyType(practiceArea) {
@@ -130,19 +128,49 @@ function getAttorneyPhrase(practiceArea, plural, country) {
   return type ? `${type} ${word}` : word;
 }
 
-function getLocalizedEmergency(practiceArea, country) {
-  const isUK = (country === 'GB' || country === 'UK');
-  if (practiceArea === 'tax') return isUK ? 'an HMRC notice' : 'an IRS notice';
-  return EMERGENCY_SCENARIOS[practiceArea] || EMERGENCY_SCENARIOS['default'];
-}
-
 // ============================================================================
-// AI PROSE GENERATION - One Claude call writes ALL prose
+// NEW V7 HELPERS
 // ============================================================================
 
 /**
- * Call Claude API for prose generation
+ * Ad spend estimate: ~4% of total low, clamped $3K-$10K
  */
+function calculateAdSpend(totalLow, countryBaseline, currency) {
+  const raw = Math.round(totalLow * 0.04 / 500) * 500;
+  const minSpend = Math.round(3000 * countryBaseline / 500) * 500 || 500;
+  const maxSpend = Math.round(10000 * countryBaseline / 500) * 500 || 2000;
+  return Math.max(minSpend, Math.min(maxSpend, raw));
+}
+
+/**
+ * Case count per card
+ */
+function calculateCardCases(cardLow, caseValueLow) {
+  return Math.max(1, Math.round(cardLow / caseValueLow));
+}
+
+/**
+ * Annual projection: net revenue × 12
+ */
+function calculateAnnual(netLow, netHigh) {
+  return { low: netLow * 12, high: netHigh * 12 };
+}
+
+/**
+ * Get funnel example for practice area, with city substitution
+ */
+function getFunnelExample(practiceArea, city) {
+  const entry = FUNNEL_EXAMPLES[practiceArea] || FUNNEL_EXAMPLES['default'];
+  return {
+    guide: entry.guide.replace('{city}', city || 'Your City'),
+    topics: entry.topics
+  };
+}
+
+// ============================================================================
+// AI PROSE GENERATION - One Claude call writes card body paragraphs
+// ============================================================================
+
 function callClaude(prompt, maxTokens = 3000) {
   return new Promise((resolve, reject) => {
     if (!ANTHROPIC_API_KEY) {
@@ -202,17 +230,14 @@ function callClaude(prompt, maxTokens = 3000) {
 }
 
 /**
- * Generate ALL prose content in one Claude call.
- * Returns structured JSON with every prose section of the report.
+ * Generate card body paragraphs in one Claude call.
+ * Only 3 AI-generated fields. Everything else is templated.
  */
 async function generateProseContent(context) {
   const {
     firmName, city, state, country, currency,
     practiceArea, practiceDescription,
-    searchTerms,
-    gap1, gap2, gap3, totalLow, totalHigh,
-    runningGoogleAds, runningMetaAds,
-    googleAdCount, metaAdCount,
+    gap1, gap2, gap3,
     competitors
   } = context;
 
@@ -220,111 +245,62 @@ async function generateProseContent(context) {
   const isAU = (country === 'AU');
   const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
 
-  // Build competitor context
   const competitorNames = (competitors || []).slice(0, 3).map(c => {
     const reviews = c.reviews || c.reviewCount || 0;
-    const rating = c.rating || 0;
-    return `${c.name} (${reviews} reviews, ${rating}★)`;
+    return `${c.name} (${reviews} reviews)`;
   }).join(', ');
 
   const localeInstructions = isUK
-    ? `LOCALE: United Kingdom. Use UK English throughout: solicitor (not attorney), enquiry (not inquiry), practise (verb), practice (noun), law practice (not law firm), £ (not $), HMRC (not IRS), child arrangements (not child custody). Write naturally in UK English. Do NOT just find-replace US terms.`
+    ? `LOCALE: United Kingdom. Use UK English: solicitor (not attorney), enquiry (not inquiry), law practice (not law firm), £ (not $). Write naturally in UK English.`
     : isAU
-      ? `LOCALE: Australia. Use Australian English: solicitor or lawyer, enquiry, practice, A$ or $. Write naturally in Australian English.`
-      : `LOCALE: United States. Use US English: attorney, lawyer, law firm, inquiry, $, IRS. Write naturally in US English.`;
+      ? `LOCALE: Australia. Use Australian English: solicitor or lawyer, enquiry, A$ or $. Write naturally in Australian English.`
+      : `LOCALE: United States. Use US English: attorney, lawyer, law firm, $. Write naturally in US English.`;
 
-  const adsContext = `
-Google Ads: ${runningGoogleAds ? `RUNNING (${googleAdCount} detected)` : 'NOT running'}
-Meta Ads: ${runningMetaAds ? `RUNNING (${metaAdCount} active)` : 'NOT running'}`;
+  const funnel = getFunnelExample(practiceArea, city);
 
-  const prompt = `You are writing a personalised marketing report for a law firm. Write ALL the prose sections below.
+  const prompt = `You are writing body paragraphs for 3 revenue cards in a marketing report for a law firm. Write confident, specific copy that references the firm's market data.
 
 FIRM CONTEXT:
 - Name: ${firmName}
 - Location: ${locationStr}
 - Practice area: ${practiceDescription}
 - Country: ${country || 'US'}
-
 ${localeInstructions}
 
-COMPETITOR DATA:
-${competitorNames || 'No competitor data available'}
+COMPETITOR DATA: ${competitorNames || 'No competitor data available'}
 
-ADS STATUS:${adsContext}
-
-GAP CALCULATIONS (already computed, use these EXACT numbers in your prose):
-- Gap 1 (Search Ads): ~${gap1.searches} monthly searches, ${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}/month opportunity
-- Gap 2 (Social Ads): ~${(gap2.audience/1000).toFixed(0)}K audience, ${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}/month opportunity
-- Gap 3 (After-Hours Intake): ~${gap3.calls} calls/month, ${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}/month opportunity
-- Total: ${currency}${formatMoney(totalLow)}-${formatMoney(totalHigh)}/month
-- Gap 1 formula: ${gap1.formula}
-- Gap 2 formula: ${gap2.formula}
-- Gap 3 formula: ${gap3.formula}
-
-SEARCH TERMS (for reference): ${searchTerms.join(', ')}
+DATA FOR CARDS:
+- Card 1 (Google Ads + SEO + Website): ~${gap1.searches} monthly searches for ${practiceDescription} in ${locationStr}
+- Card 2 (Meta Ads + Funnels + Content): ~${(gap2.audience/1000).toFixed(0)}K reachable audience. Funnel example: "${funnel.guide}" covering ${funnel.topics}
+- Card 3 (AI Intake + CRM): ~${gap3.calls} calls/month, 35% after-hours, 60% won't leave voicemail
 
 STYLE GUIDE:
 - Punchy, direct, no fluff. Write like a strategist, not a salesperson.
-- Short paragraphs (2-3 sentences max per paragraph).
-- Reference THEIR specific data. Don't be generic.
-- Tone: confident but honest. Use ranges and caveats, not guarantees.
+- Bold the opening sentence of each card with <strong> tags.
+- Reference THEIR specific data (search volume, audience size, competitor names).
 - DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
-- DO NOT fabricate statistics, case studies, or claims.
-- Use the correct legal terminology for the country (this is critical).
-- Keep each field concise. The HTML structure provides visual breathing room.
-- DO NOT use em dashes (—). Use periods or commas instead.
-
-EXAMPLE STYLE (match this voice):
-"~250 people searched for a personal injury attorney in Denver last month. You're not running Google Ads. The firms that are? They got those clicks."
+- DO NOT use em dashes. Use periods or commas instead.
+- DO NOT fabricate statistics or case studies.
+- Each card body should be 3-5 sentences, one paragraph.
 
 Return ONLY valid JSON with these exact fields:
 
 {
-  "heroSubheading": "One paragraph. We analyzed the [practice] market in [location]. Who shows up, who advertises, where the gaps are. 1-2 sentences.",
-  "gapSectionHeadline": "Short punchy headline for the gap section. e.g. 'Where you're losing cases right now'",
-  "totalStripTransition": "One sentence bridging the total opportunity number to the gap breakdown below. e.g. 'Here's where that number comes from.' or 'Three gaps. Let's break them down.' Keep it short and punchy, max 1-2 sentences.",
-  "gap1Headline": "${runningGoogleAds ? 'Headline about their ads potentially being unoptimized. Reference the search volume number.' : 'Headline about missing search ad opportunity. Reference the search volume number.'}",
-  "gap1Context": "ONE sentence, max 25 words. ${runningGoogleAds ? 'Reference the search volume and question whether their clicks are converting.' : 'Reference the search volume and the fact they are not showing up.'} A visual SERP mockup follows this sentence, so do NOT describe what search results look like.",
-  "gap1MathIntro": "${runningGoogleAds ? '"Why this matters:" then explain optimization opportunity' : '"How we estimated this:" then explain the formula in plain English, with caveat about actual numbers varying.'}",
-  "gap2Headline": "${runningMetaAds ? 'Headline about their social ads potentially being unoptimized.' : 'Headline about clients who do not Google their problem. Mention the type of client naturally.'}",
-  "gap2Context": "ONE sentence, max 25 words. ${runningMetaAds ? 'Question whether their social targeting and creative are converting.' : 'The insight that not every client Googles their problem. Some are scrolling social media.'} A visual comparison follows, so do NOT describe the two client types.",
-  "gap2MathIntro": "${runningMetaAds ? '"Why this matters:" then explain optimization value' : '"How we estimated this:" then explain the formula with caveat about creative quality.'}",
-  "gap3Headline": "Headline about after-hours calls. Natural scenario for this practice area, what emergency makes someone call at 7pm?",
-  "gap3Context": "1-2 sentences, max 35 words. Specific emergency scenario for this practice area. Someone calls, gets voicemail, calls the next firm. A before/after visual follows, so do NOT describe the flow.",
-  "totalStripContext": "One paragraph after the total strip. Caveat that it's a range, not a guarantee. Why the exact number isn't the point.",
-  "competitorHeadline": "Headline introducing competitor comparison. Punchy.",
-  "competitorIntro": "One paragraph about the competitor data source and what reviews mean for search visibility.",
-  "competitorTakeaway": "One paragraph takeaway. These firms aren't necessarily better. They just invested in marketing infrastructure. Reviews are the visible part.",
-  "buildHeadline": "Headline introducing the build list.",
-  "buildIntro": "One paragraph. It's a system, each piece feeds the next. Short.",
-  "buildItem1Title": "${runningGoogleAds ? 'Title for auditing/optimizing existing Google Ads' : 'Title for launching Google Ads targeting their practice area'}",
-  "buildItem1Detail": "One sentence description of what this involves.",
-  "buildItem1Timeline": "${runningGoogleAds ? 'Audit in 1 week, optimizations ongoing' : 'Typically live in 1-2 weeks'}",
-  "buildItem2Title": "${runningMetaAds ? 'Title for auditing/optimizing existing Meta Ads' : 'Title for launching Meta Ads reaching their client type'}",
-  "buildItem2Detail": "One sentence description.",
-  "buildItem2Timeline": "${runningMetaAds ? 'Audit in 1 week, optimizations ongoing' : 'Typically live in 2-3 weeks'}",
-  "buildItem3Title": "Title for AI-powered 24/7 intake",
-  "buildItem3Detail": "One sentence about what this solves.",
-  "buildItem3Timeline": "Typically live in 1-2 weeks",
-  "buildItem4Title": "Title for CRM + reporting",
-  "buildItem4Detail": "One sentence about tracking leads to signed cases.",
-  "buildItem4Timeline": "Set up alongside launch",
-  "ctaHeadline": "Headline for the booking CTA. Conversational, low-pressure.",
-  "ctaSubtext": "One sentence. 15 minutes, specific to their firm, they decide."
+  "card1Body": "Paragraph for Google Ads + SEO + Website card. Reference ~X searches, city, practice area. Mention SEO for organic rankings and website redesign to convert. End with reference to the SERP mockup below. Use <strong> for the bold opening sentence.",
+  "card2Body": "Paragraph for Meta Ads + Funnels + Content card. Reference ~XK audience. Bold opening: Google only catches people who already know they need a lawyer. Mention lead magnet funnels with the specific guide example. Mention webinar funnels on ${funnel.topics}. Explain the conversion path from ad to trusted contact. Use <strong> for the bold opening sentence.",
+  "card3Body": "Paragraph for AI Intake + CRM card. Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence."
 }`;
 
   console.log('🤖 Generating AI prose content...');
 
-  const response = await callClaude(prompt, 3000);
+  const response = await callClaude(prompt, 2000);
 
-  // Parse JSON from response
   let jsonStr = response;
   const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (jsonMatch) {
     jsonStr = jsonMatch[1];
   }
 
-  // Try to find JSON object in response
   const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
   if (!objectMatch) {
     throw new Error('No JSON object found in AI response');
@@ -339,8 +315,7 @@ Return ONLY valid JSON with these exact fields:
     }
   }
 
-  // Validate essential fields are present
-  const requiredFields = ['heroSubheading', 'gap1Headline', 'gap1Context', 'gap2Headline', 'gap2Context', 'gap3Headline', 'gap3Context'];
+  const requiredFields = ['card1Body', 'card2Body', 'card3Body'];
   const missing = requiredFields.filter(f => !prose[f]);
   if (missing.length > 0) {
     throw new Error(`AI prose missing fields: ${missing.join(', ')}`);
@@ -351,75 +326,30 @@ Return ONLY valid JSON with these exact fields:
 }
 
 // ============================================================================
-// FALLBACK PROSE - Old hardcoded templates (safety net)
+// FALLBACK PROSE - Templates if AI call fails
 // ============================================================================
 
 function generateFallbackProse(context) {
   const {
-    firmName, city, state, country, currency,
-    practiceArea, practiceDescription,
-    searchTerms,
-    gap1, gap2, gap3, totalLow, totalHigh,
-    runningGoogleAds, runningMetaAds,
-    googleAdCount, metaAdCount,
-    clientLabel, clientLabelPlural, emergencyScenario,
-    attorneyPhrase, attorneyPhrasePlural
+    city, country, practiceArea, practiceDescription,
+    gap1, gap2, gap3, competitors
   } = context;
 
-  const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
   const isUK = (country === 'GB' || country === 'UK');
-  const lawFirmWord = isUK ? 'law practice' : 'law firm';
+  const attorneyPhrase = getAttorneyPhrase(practiceArea, false, country);
   const article = startsWithVowelSound(attorneyPhrase) ? 'an' : 'a';
+  const funnel = getFunnelExample(practiceArea, city);
+  const locationStr = city || 'your area';
+
+  const compNames = (competitors || []).slice(0, 3).map(c => sanitizeCompetitorName(c.name));
+  const compRef = compNames.length > 0
+    ? `The firms below are already doing this. We put you above all of them.`
+    : `We put your firm at the top.`;
 
   return {
-    heroSubheading: `We analyzed the ${practiceDescription} market in ${locationStr}. Who's showing up, who's advertising, and where the gaps are. Below is where you're losing cases, and exactly how to get them back.`,
-    gapSectionHeadline: "Where you're losing cases right now",
-    totalStripTransition: `Here's where that number comes from. Three gaps we found in your current setup.`,
-    gap1Headline: runningGoogleAds
-      ? `You're running Google Ads${googleAdCount > 0 ? ` (${googleAdCount} detected)` : ''}. The question is whether they're ${isUK ? 'optimised' : 'optimized'}.`
-      : `~${gap1.searches} people searched for ${article} ${attorneyPhrase} last month. The ${lawFirmWord}s running ads got those clicks.`,
-    gap1Context: runningGoogleAds
-      ? `~${gap1.searches} people searched for ${article} ${attorneyPhrase} in ${locationStr} last month. You're competing for those clicks, but are you winning them?`
-      : `~${gap1.searches} people searched for ${article} ${attorneyPhrase} in ${locationStr} last month. You're not showing up.`,
-    gap1MathIntro: runningGoogleAds
-      ? `Why this matters: You're already paying for clicks. Improving your quality score by even a few points can drop your cost-per-click significantly while increasing conversion rate. We typically find 20-40% improvement opportunities in existing campaigns.`
-      : `How we estimated this: ${gap1.formula}. These conversion rates are based on benchmarks we've seen across legal markets. Your actual numbers will vary based on your intake process and close rate.`,
-    gap2Headline: runningMetaAds
-      ? `You're running Meta Ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''}. Are they reaching the right people?`
-      : `Not every ${clientLabel} with a legal problem Googles it. Many are scrolling Facebook right now.`,
-    gap2Context: runningMetaAds
-      ? `You're already investing in social. The question is whether your targeting and creative are actually converting.`
-      : `Not every ${clientLabel} Googles their problem. Some are scrolling Facebook at 11pm.`,
-    gap2MathIntro: runningMetaAds
-      ? `Why this matters: Meta's algorithm rewards well-${isUK ? 'optimised' : 'optimized'} campaigns with lower costs and broader reach. Fresh creative, refined audiences, and proper pixel setup can turn a break-even campaign into a profitable one.`
-      : `How we estimated this: ${gap2.formula}. Wide range because social performance depends heavily on ad creative and targeting, but well-run campaigns for legal services consistently outperform these baselines.`,
-    gap3Headline: `When a ${clientLabel} calls at 7pm about ${emergencyScenario}, what happens?`,
-    gap3Context: `A ${clientLabel} calls about ${emergencyScenario} at 7pm. Two ${lawFirmWord}s go to voicemail. One picks up.`,
-    gap3MathIntro: `How we estimated this: ${gap3.formula}.`,
-    totalStripContext: `That's the range, not a guarantee. It depends on your case values, close rate, and how well the system is ${isUK ? 'optimised' : 'optimized'}. The point isn't the exact number. It's that real people in ${locationStr} are searching for the exact service you provide, and right now they're finding other ${lawFirmWord}s instead of you.`,
-    competitorHeadline: `And those other ${lawFirmWord}s? Here's who's getting your cases.`,
-    competitorIntro: `We pulled the ${lawFirmWord}s showing up for ${practiceDescription} searches in ${locationStr}. Google uses reviews as a major trust signal. More reviews and higher ratings push ${lawFirmWord}s into the Map Pack at the top of results, where most clicks happen. Here's where you stand.`,
-    competitorTakeaway: `This doesn't mean they're better ${isUK ? 'solicitors' : 'attorneys'}. In every market we've ${isUK ? 'analysed' : 'analyzed'}, the ${lawFirmWord}s that dominate search results aren't always the best. They're the ones that invested in infrastructure. Reviews are just the visible part. The real gap is what's happening underneath: ads, intake, and follow-up systems that capture clients before they ever scroll past the first result.`,
-    buildHeadline: `Here's how we'd close these gaps`,
-    buildIntro: `It's not one thing. It's a system. Each piece feeds the next. Ads drive calls, intake captures them, CRM tracks them, reporting shows you what's working. We handle the build and management. You focus on ${isUK ? 'practising' : 'practicing'} law.`,
-    buildItem1Title: runningGoogleAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your existing Google Ads` : `Google Ads targeting ${practiceDescription} searches in your area`,
-    buildItem1Detail: runningGoogleAds
-      ? `We'll ${isUK ? 'analyse' : 'analyze'} what's working, cut wasted spend, and improve your cost-per-case. Every click tracked, every call recorded.`
-      : `You show up at the top when someone searches for exactly what you do. Every click tracked, every call recorded.`,
-    buildItem1Timeline: runningGoogleAds ? `Audit in 1 week, ${isUK ? 'optimisations' : 'optimizations'} ongoing` : 'Typically live in 1-2 weeks',
-    buildItem2Title: runningMetaAds ? `Audit + ${isUK ? 'optimise' : 'optimize'} your Meta Ads campaigns` : `Meta Ads reaching people before they search`,
-    buildItem2Detail: runningMetaAds
-      ? `We'll review your audiences, creative, and conversion tracking to ${isUK ? 'maximise' : 'maximize'} return on your existing spend.`
-      : `Targeted campaigns on Facebook and Instagram, putting your ${lawFirmWord} in front of people who need help but haven't started looking.`,
-    buildItem2Timeline: runningMetaAds ? `Audit in 1 week, ${isUK ? 'optimisations' : 'optimizations'} ongoing` : 'Typically live in 2-3 weeks',
-    buildItem3Title: `AI-powered intake that answers every call, 24/7`,
-    buildItem3Detail: `No more voicemail. Every call answered, qualified, and booked, even at 2am. Your team gets notified instantly.`,
-    buildItem3Timeline: 'Typically live in 1-2 weeks',
-    buildItem4Title: `CRM + reporting so you know what's working`,
-    buildItem4Detail: `Every lead tracked from first click to signed retainer. You see exactly which ${currency === '£' ? 'pounds are' : 'dollars are'} producing cases.`,
-    buildItem4Timeline: 'Set up alongside launch',
-    ctaHeadline: `Want to walk through these numbers together?`,
-    ctaSubtext: `15 minutes. We'll go through what's realistic for your ${lawFirmWord} specifically and you can decide if it's worth pursuing.`
+    card1Body: `<strong>~${gap1.searches.toLocaleString()} people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire. We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. Professional, fast, built to turn visitors into consultations. ${compRef}`,
+    card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with a ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
+    card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`
   };
 }
 
@@ -428,7 +358,7 @@ function generateFallbackProse(context) {
 // ============================================================================
 
 async function generateReport(researchData, prospectName) {
-  console.log(`\n📝 Generating V3 Report for ${prospectName}...\n`);
+  console.log(`\n📝 Generating V7 Report for ${prospectName}...\n`);
 
   // Validation
   const validation = validateData(researchData);
@@ -454,37 +384,13 @@ async function generateReport(researchData, prospectName) {
     adsData = {}
   } = researchData;
 
-  // Extract ads status (check multiple paths for old + new JSON formats)
-  const adsDetectionFailed = adsData?.detectionSucceeded === false;
-  let runningGoogleAds = adsData?.summary?.runningGoogleAds || adsData?.googleAds?.running || researchData.googleAdsData?.running || false;
-  let runningMetaAds = adsData?.summary?.runningMetaAds || adsData?.metaAds?.hasActiveAds || researchData.metaAdsData?.running || false;
-  const googleAdCount = adsData?.googleAds?.adCount || researchData.googleAdsData?.adCount || 0;
-  const metaAdCount = adsData?.metaAds?.activeCount || researchData.metaAdsData?.activeCount || researchData.metaAdsData?.inactiveAdCount || 0;
-
-  // Safety net: if detector says "running" but found 0 ads, it's a false positive
-  if (runningGoogleAds && googleAdCount === 0) {
-    console.log('⚠️  Google Ads false positive: "running" but 0 ads detected - treating as not running');
-    runningGoogleAds = false;
-  }
-  if (runningMetaAds && metaAdCount === 0) {
-    console.log('⚠️  Meta Ads false positive: "running" but 0 ads detected - treating as not running');
-    runningMetaAds = false;
-  }
-
-  if (adsDetectionFailed) {
-    console.log(`📢 Ads detection: FAILED (${adsData?.detectionError || 'unknown error'}) - treating as unknown`);
-  } else {
-    console.log(`📢 Google Ads: ${runningGoogleAds ? `Running (${googleAdCount} ads)` : 'Not detected'}`);
-    console.log(`📢 Meta Ads: ${runningMetaAds ? `Running (${metaAdCount} ads)` : 'Not detected'}`);
-  }
-
   const firmName = normalizeFirmName(rawFirmName);
   const city = location.city || '';
   const state = location.state || '';
   const country = location.country || 'US';
   const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
 
-  // Determine practice area - try multiple sources
+  // Determine practice area
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
   const practiceLabel = getPracticeLabel(practiceArea);
   const practiceDescription = getPracticeDescription(practiceArea);
@@ -514,7 +420,7 @@ async function generateReport(researchData, prospectName) {
     searchTerms = [`${practiceDescription} near me`];
   }
 
-  // Calculate gaps with RANGES
+  // Calculate gaps with BOOSTED FLOORS (V7)
   const isUK = (country === 'GB' || country === 'UK');
   const marketMultiplier = getMarketMultiplier(city, country);
   const countryBaseline = getCountryBaseline(country);
@@ -529,46 +435,28 @@ async function generateReport(researchData, prospectName) {
   const totalLow = gap1.low + gap2.low + gap3.low;
   const totalHigh = gap1.high + gap2.high + gap3.high;
 
+  // V7 ROI calculations
+  const adSpend = calculateAdSpend(totalLow, countryBaseline, currency);
+  const netLow = totalLow - adSpend;
+  const netHigh = totalHigh - adSpend;
+  const annual = calculateAnnual(netLow, netHigh);
+  const card1Cases = calculateCardCases(gap1.low, caseValues.low);
+  const card2Cases = calculateCardCases(gap2.low, caseValues.low);
+  const card3Cases = calculateCardCases(gap3.low, caseValues.low);
+  const totalCases = card1Cases + card2Cases + card3Cases;
+
   console.log(`💰 Gap ranges: ${currency}${formatRange(gap1.low, gap1.high)} + ${currency}${formatRange(gap2.low, gap2.high)} + ${currency}${formatRange(gap3.low, gap3.high)}`);
-  console.log(`   Total: ${currency}${formatRange(totalLow, totalHigh)}/month\n`);
+  console.log(`   Total: ${currency}${formatRange(totalLow, totalHigh)}/month`);
+  console.log(`   Ad spend: ~${currency}${formatMoney(adSpend)} | Net: ${currency}${formatRange(netLow, netHigh)}`);
+  console.log(`   Cases: ${card1Cases} + ${card2Cases} + ${card3Cases} = ${totalCases}/month\n`);
 
-  // Get firm's own data for competitor comparison
-  let firmReviews = researchData.googleReviews || researchData.googleBusiness?.reviews || 0;
-  let firmRating = researchData.googleRating || researchData.googleBusiness?.rating || 0;
-
-  // If no reviews in research data, try to fetch from Google Places
-  if (firmReviews === 0 && city) {
-    try {
-      const googleData = await fetchFirmGoogleData(firmName, city, state, country);
-      if (googleData.reviews > 0) {
-        firmReviews = googleData.reviews;
-        firmRating = googleData.rating;
-        console.log(`📊 Fetched firm reviews: ${firmReviews} reviews, ${firmRating}★`);
-      }
-    } catch (e) {
-      console.log(`⚠️  Could not fetch firm Google data: ${e.message}`);
-    }
-  }
-
-  // Compute client label and emergency scenario for visuals + prose
-  const clientLabelObj = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-  const clientLabel = clientLabelObj.singular;
-  const clientLabelPlural = clientLabelObj.plural;
-  const emergencyScenario = getLocalizedEmergency(practiceArea, country);
-  const attorneyPhrase = getAttorneyPhrase(practiceArea, false, country);
-  const attorneyPhrasePlural = getAttorneyPhrase(practiceArea, true, country);
-
-  // Build prose context (shared between AI and fallback)
+  // Build prose context
   const proseContext = {
     firmName, city, state, country, currency,
     practiceArea, practiceDescription,
     searchTerms,
     gap1, gap2, gap3, totalLow, totalHigh,
-    runningGoogleAds, runningMetaAds,
-    googleAdCount, metaAdCount,
-    competitors,
-    clientLabel, clientLabelPlural, emergencyScenario,
-    attorneyPhrase, attorneyPhrasePlural
+    competitors
   };
 
   // Try AI prose generation, fall back to templates
@@ -584,32 +472,17 @@ async function generateReport(researchData, prospectName) {
     prose = generateFallbackProse(proseContext);
   }
 
-  // Generate HTML with prose
+  // Generate HTML
   const html = generateHTML({
-    firmName,
-    prospectName,
-    practiceArea,
-    practiceLabel,
-    searchTerms,
-    currency,
-    gap1,
-    gap2,
-    gap3,
-    totalLow,
-    totalHigh,
-    competitors,
-    firmReviews,
-    firmRating,
-    runningGoogleAds,
-    runningMetaAds,
-    googleAdCount,
-    metaAdCount,
-    city,
-    state,
-    prose,
-    proseSource,
-    clientLabel,
-    country
+    firmName, prospectName, practiceArea, practiceLabel, practiceDescription,
+    searchTerms, currency,
+    gap1, gap2, gap3,
+    totalLow, totalHigh,
+    netLow, netHigh,
+    adSpend, annual,
+    card1Cases, card2Cases, card3Cases, totalCases,
+    competitors, city, state, country,
+    prose, proseSource, caseValues
   });
 
   // Save report
@@ -620,10 +493,13 @@ async function generateReport(researchData, prospectName) {
   }
 
   const outputPath = path.resolve(reportsDir, `${firmSlug}-report-v3.html`);
+
+  // Validate report HTML before saving
+  validateReportHTML(html, firmName);
+
   fs.writeFileSync(outputPath, html);
 
-  // Write email data file for personalized emails
-  const totalCases = gap1.cases + gap2.cases + gap3.cases;
+  // Write email data file for personalized emails (same 4-field format)
   const emailData = {
     totalRange: `${currency}${formatRange(totalLow, totalHigh)}`,
     totalCases: `${Math.round(totalCases * 0.7)}-${Math.round(totalCases * 1.3)}`,
@@ -642,201 +518,117 @@ async function generateReport(researchData, prospectName) {
 }
 
 // ============================================================================
-// VISUAL HELPERS - SERP mockup, two-client comparison
+// SERP MOCKUP - V7: Firm always at TOP (positive framing)
 // ============================================================================
 
-/**
- * Generate a mini SERP mockup showing where the firm does/doesn't appear.
- * Uses real competitor names from Google Places API.
- */
-function generateSerpMockup(competitors, firmName, searchTerms, runningGoogleAds) {
+function generateSerpMockup(competitors, firmName, searchTerms) {
   const query = (searchTerms && searchTerms[0]) || 'lawyer near me';
   const topComps = (competitors || []).slice(0, 3);
 
   let rows = '';
 
-  if (runningGoogleAds) {
-    // Firm IS running ads - show them in the first ad slot
-    rows += `        <div class="serp-row serp-you-running">
-          <span class="serp-tag serp-tag-ad">Ad</span>
+  // Firm at TOP - positive framing
+  rows += `        <div class="serp-row serp-you">
+          <span class="serp-tag serp-tag-you">You</span>
           <span class="serp-name">${escapeHtml(firmName)}</span>
-          <span class="serp-note">you're here, but converting?</span>
+          <span class="serp-note">top of page</span>
         </div>\n`;
-    // Show competitors in ad/map slots
-    if (topComps.length >= 1) {
-      rows += `        <div class="serp-row">
+
+  // Competitors below
+  if (topComps.length >= 1) {
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-ad">Ad</span>
           <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[0].name))}</span>
           <span class="serp-note">paying for clicks</span>
         </div>\n`;
-    }
-    if (topComps.length >= 2) {
-      const reviews = topComps[1].reviews || topComps[1].reviewCount || 0;
-      rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-map">Map</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[1].name))}</span>
-          <span class="serp-note">${reviews} reviews</span>
-        </div>\n`;
-    }
-    if (topComps.length >= 3) {
-      const reviews = topComps[2].reviews || topComps[2].reviewCount || 0;
-      rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-map">Map</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[2].name))}</span>
-          <span class="serp-note">${reviews} reviews</span>
-        </div>\n`;
-    }
   } else {
-    // Firm NOT running ads - show competitors filling the space
-    if (topComps.length >= 1) {
-      rows += `        <div class="serp-row">
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[0].name))}</span>
+          <span class="serp-name">Other firms</span>
           <span class="serp-note">paying for clicks</span>
         </div>\n`;
-    } else {
-      rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">Firms running ads</span>
-          <span class="serp-note">paying for clicks</span>
-        </div>\n`;
-    }
-    if (topComps.length >= 2) {
-      rows += `        <div class="serp-row">
+  }
+
+  if (topComps.length >= 2) {
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-ad">Ad</span>
           <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[1].name))}</span>
           <span class="serp-note">paying for clicks</span>
         </div>\n`;
-    } else {
-      rows += `        <div class="serp-row">
+  } else {
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-ad">Ad</span>
           <span class="serp-name">Another firm with ads</span>
           <span class="serp-note">paying for clicks</span>
         </div>\n`;
-    }
-    if (topComps.length >= 3) {
-      const reviews = topComps[2].reviews || topComps[2].reviewCount || 0;
-      rows += `        <div class="serp-row">
+  }
+
+  if (topComps.length >= 3) {
+    const reviews = topComps[2].reviews || topComps[2].reviewCount || 0;
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-map">Map</span>
           <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[2].name))}</span>
-          <span class="serp-note">${reviews} reviews</span>
+          <span class="serp-note">${reviews.toLocaleString()} reviews</span>
         </div>\n`;
-    } else {
-      rows += `        <div class="serp-row">
+  } else {
+    rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-map">Map</span>
           <span class="serp-name">Top-reviewed firm</span>
           <span class="serp-note">100+ reviews</span>
-        </div>\n`;
-    }
-    // Ellipsis row
-    rows += `        <div class="serp-row serp-ellipsis">
-          <span class="serp-tag"></span>
-          <span class="serp-name" style="color: var(--muted);">···</span>
-          <span class="serp-note"></span>
-        </div>\n`;
-    // "You" row - not showing up
-    rows += `        <div class="serp-row serp-you">
-          <span class="serp-tag serp-tag-you">You</span>
-          <span class="serp-name">${escapeHtml(firmName)}</span>
-          <span class="serp-note">not showing up</span>
         </div>\n`;
   }
 
   return `      <div class="serp-mockup">
         <div class="serp-query">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <span>"${escapeHtml(query)}"</span>
         </div>
 ${rows}      </div>`;
 }
 
-/**
- * Generate a two-client comparison visual for Gap 2.
- * Shows "The searcher" vs "The scroller" for firms not running Meta Ads,
- * or a "Current" vs "Optimized" view for firms already running them.
- */
-function generateTwoClientVisual(clientLabel, runningMetaAds, metaAdCount, country) {
-  const currencyWord = (country === 'GB' || country === 'UK') ? 'pound' : 'dollar';
-  if (runningMetaAds) {
-    return `      <div class="before-after">
-        <div class="ba-side ba-before">
-          <div class="ba-label">Current setup</div>
-          <p>Running ads${metaAdCount > 0 ? ` (${metaAdCount} active)` : ''}, but are the right people seeing them? Are they clicking? Are they converting?</p>
-        </div>
-        <div class="ba-side ba-social">
-          <div class="ba-label good">Optimized setup</div>
-          <p>Refined audiences, fresh creative, proper tracking. Every ${currencyWord} measured from impression to signed case.</p>
-        </div>
-      </div>`;
-  }
+// ============================================================================
+// DELIVERABLE CHECK SVG (reusable)
+// ============================================================================
 
-  return `      <div class="before-after">
-        <div class="ba-side ba-before">
-          <div class="ba-label">The searcher</div>
-          <p>Knows they need a lawyer. Googling right now. Gap 1 catches them.</p>
-        </div>
-        <div class="ba-side ba-social">
-          <div class="ba-label" style="color: #3b5998;">The scroller</div>
-          <p>Doesn't know yet. Scrolling Facebook at 11pm. Only social ads reach them.</p>
-        </div>
-      </div>`;
+const CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+function deliverableItem(title, desc) {
+  return `        <div class="deliverable-item">
+          <div class="deliverable-check">${CHECK_SVG}</div>
+          <div class="deliverable-text"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(desc)}</p></div>
+        </div>`;
 }
 
 // ============================================================================
-// HTML GENERATION - Fixed structure, AI prose
+// HTML GENERATION - V7 structure
 // ============================================================================
 
 function generateHTML(data) {
   const {
-    firmName,
-    prospectName,
-    practiceArea,
-    practiceLabel,
-    searchTerms,
-    currency,
-    gap1,
-    gap2,
-    gap3,
-    totalLow,
-    totalHigh,
-    competitors,
-    firmReviews,
-    firmRating,
-    runningGoogleAds,
-    runningMetaAds,
-    googleAdCount,
-    metaAdCount,
-    city,
-    state,
-    prose,
-    clientLabel,
-    country
+    firmName, prospectName, practiceArea, practiceLabel, practiceDescription,
+    searchTerms, currency,
+    gap1, gap2, gap3,
+    totalLow, totalHigh,
+    netLow, netHigh,
+    adSpend, annual,
+    card1Cases, card2Cases, card3Cases, totalCases,
+    competitors, city, state, country,
+    prose, caseValues
   } = data;
 
   const today = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
   const locationLabel = city && state ? `${city.toUpperCase()}, ${state.toUpperCase()}` : '';
+  const funnel = getFunnelExample(practiceArea, city);
 
   const cssModule = require('./report-v3-css.js');
   const css = cssModule();
-
-  // Gap stat blocks (big visual number + label)
-  const gap1Stat = runningGoogleAds
-    ? { number: `~${currency}${formatMoney(Math.round(gap1.low * 0.3))}-${formatMoney(Math.round(gap1.high * 0.3))}`, label: 'potential monthly optimization' }
-    : { number: `~${currency}${formatMoney(gap1.low)}-${formatMoney(gap1.high)}`, label: 'estimated monthly opportunity' };
-
-  const gap2Stat = runningMetaAds
-    ? { number: `~${currency}${formatMoney(Math.round(gap2.low * 0.25))}-${formatMoney(Math.round(gap2.high * 0.25))}`, label: 'potential monthly optimization' }
-    : { number: `~${currency}${formatMoney(gap2.low)}-${formatMoney(gap2.high)}`, label: 'estimated monthly opportunity' };
-
-  const gap3Stat = { number: `~${currency}${formatMoney(gap3.low)}-${formatMoney(gap3.high)}`, label: 'estimated monthly opportunity' };
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(firmName)} | Marketing Analysis by Mortar Metrics</title>
+  <title>${escapeHtml(firmName)} | Growth Report by Mortar Metrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -869,206 +661,269 @@ ${css}
       </div>
 
       <h1>
-        They find other firms.<br>
-        <span class="highlight">Not yours.</span>
+        Here's how your firm adds<br>
+        <span class="highlight">${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)}/month.</span>
       </h1>
 
       <p class="hero-sub">
-        ${escapeHtml(prose.heroSubheading)}
+        We build your website, run your ads, create your funnels, answer every lead, and book consultations on your calendar. 30 qualified leads in 30 days or we work for free until you get them.
       </p>
 
       <div class="scroll-hint">
         2 minute read
-        <span>↓</span>
+        <span>\u2193</span>
       </div>
     </section>
 
 
-    <!-- THREE GAPS -->
+    <!-- THE NUMBERS -->
+    <div class="divider"></div>
+
+    <div class="roi-box fade-in">
+      <div class="roi-hero-label">Net new revenue to your firm</div>
+      <div class="roi-hero-number">${currency}${formatMoney(netLow)}\u2013${currency}${formatMoney(netHigh)}<span> /mo</span></div>
+
+      <div class="roi-breakdown">
+        <div class="roi-detail">
+          <div class="roi-detail-number">${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)}</div>
+          <div class="roi-detail-label">Projected revenue</div>
+        </div>
+        <div class="roi-detail-divider">\u2212</div>
+        <div class="roi-detail">
+          <div class="roi-detail-number">~${currency}${formatMoney(adSpend)}</div>
+          <div class="roi-detail-label">Ad spend</div>
+        </div>
+      </div>
+
+      <div class="roi-bottom">
+        <div class="roi-annual-number">${currency}${formatMoneyMillions(annual.low)} \u2013 ${currency}${formatMoneyMillions(annual.high)} in your first year</div>
+        <div class="roi-annual-label">Across paid ads, SEO, funnels, and AI-powered intake</div>
+        <div class="roi-cases">\u2248 ${totalCases} new signed cases every month</div>
+      </div>
+    </div>
+
+    <!-- OMNICHANNEL FRAMING -->
+    <div class="omni-intro fade-in">
+      <p><strong>A potential client doesn't just see one ad and call.</strong> They see your ad, then check your website. They read your reviews. They look at your social media. Maybe they download a guide or watch a webinar first. They check everything about you before they ever pick up the phone \u2014 and if any of those touchpoints looks off, they call someone else. We handle all of it. Every channel, every touchpoint, every follow-up. This is the full system.</p>
+    </div>
+
+    <!-- JOURNEY V2 -->
+    <div class="journey-v2 fade-in">
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\uD83D\uDC40</div>
+        <div class="journey-v2-label">See your ad</div>
+        <div class="journey-v2-sub">Google, Facebook, Instagram</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\uD83D\uDD0D</div>
+        <div class="journey-v2-label">Check you out</div>
+        <div class="journey-v2-sub">Website, reviews, socials</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\uD83D\uDCE5</div>
+        <div class="journey-v2-label">Engage</div>
+        <div class="journey-v2-sub">Guide, webinar, chat, DM</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\uD83D\uDCDE</div>
+        <div class="journey-v2-label">Reach out</div>
+        <div class="journey-v2-sub">Call, form, or message</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\uD83D\uDCC5</div>
+        <div class="journey-v2-label">Book</div>
+        <div class="journey-v2-sub">Consultation on your calendar</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">\u270D\uFE0F</div>
+        <div class="journey-v2-label">Sign</div>
+        <div class="journey-v2-sub">New retained client</div>
+        <div class="journey-v2-handled" style="color: var(--primary);">You do this</div>
+      </div>
+    </div>
+
+    <!-- 3 REVENUE STREAMS -->
+    <div class="revenue-cards">
+      <!-- GOOGLE ADS + SEO + WEBSITE -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge search">Google Ads + SEO + Website</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">${currency}${formatMoney(gap1.low)}\u2013${currency}${formatMoney(gap1.high)}</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">\u2248 ${card1Cases} new signed cases</div>
+          </div>
+        </div>
+        <div class="revenue-card-body">
+          ${prose.card1Body}
+        </div>
+${generateSerpMockup(competitors, firmName, searchTerms)}
+      </div>
+
+      <div class="card-connector">+</div>
+
+      <!-- META ADS + FUNNELS -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge social">Meta Ads + Funnels + Content</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">${currency}${formatMoney(gap2.low)}\u2013${currency}${formatMoney(gap2.high)}</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">\u2248 ${card2Cases} new signed cases</div>
+          </div>
+        </div>
+        <div class="revenue-card-body">
+          ${prose.card2Body}
+        </div>
+        <div class="mini-compare">
+          <div class="mini-compare-side mini-compare-a">
+            <div class="mini-compare-label">Traditional ads</div>
+            <p>See ad \u2192 not ready \u2192 scroll past \u2192 gone forever</p>
+          </div>
+          <div class="mini-compare-side mini-compare-b-social">
+            <div class="mini-compare-label">Our funnels</div>
+            <p>See ad \u2192 download guide \u2192 get nurtured \u2192 call when ready \u2192 already trust you</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-connector">+</div>
+
+      <!-- AI INTAKE + CRM -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge intake">AI Intake + CRM \u00B7 The conversion engine</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">${currency}${formatMoney(gap3.low)}\u2013${currency}${formatMoney(gap3.high)}</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">\u2248 ${card3Cases} cases recovered</div>
+          </div>
+        </div>
+        <div class="revenue-card-body">
+          ${prose.card3Body}
+        </div>
+        <div class="mini-compare">
+          <div class="mini-compare-side mini-compare-a">
+            <div class="mini-compare-label">Without us</div>
+            <p>After-hours call \u2192 voicemail \u2192 website chat ignored \u2192 DM unseen \u2192 lead calls another firm</p>
+          </div>
+          <div class="mini-compare-side mini-compare-b-intake">
+            <div class="mini-compare-label">With us</div>
+            <p>Every call, chat, and DM answered instantly \u2192 qualified \u2192 booked or nurtured in CRM \u2192 nothing lost</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- GUARANTEE -->
+    <div class="guarantee-section fade-in">
+      <div class="guarantee-label">Our guarantee</div>
+      <div class="guarantee-headline">You risk nothing. We risk everything.</div>
+      <div class="guarantee-sub">30 qualified leads in 30 days or we work for free until you get them. If we don't deliver, we keep working at no cost until we hit it.</div>
+    </div>
+
+    <!-- CASE STUDY -->
+    <div class="case-study fade-in">
+      <div class="case-study-label">We've done this before</div>
+      <div class="case-study-content">
+        <div class="case-study-firm">Mandall Law</div>
+        <div class="case-study-stats">
+          <div class="case-study-stat">
+            <div class="case-study-number">${currency}4K</div>
+            <div class="case-study-desc">monthly ad spend</div>
+          </div>
+          <div class="case-study-arrow">\u2192</div>
+          <div class="case-study-stat">
+            <div class="case-study-number">${currency}92K/mo</div>
+            <div class="case-study-desc">in new signed cases</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- WHAT WE BUILD -->
     <div class="divider"></div>
 
     <div class="narrative">
-      <h2>${escapeHtml(prose.gapSectionHeadline)}</h2>
+      <h2>Everything we build and manage for you</h2>
+      <p style="margin-top: 8px;">Ads, funnels, website, SEO, AI intake, CRM \u2014 the entire system. The last digital marketing agency your firm will ever need.</p>
     </div>
 
-    <!-- TOTAL STRIP -->
-    <div class="total-strip">
-      <div class="total-strip-text">Combined estimated monthly opportunity</div>
-      <div class="total-strip-number">${currency}${formatMoney(totalLow)}-${formatMoney(totalHigh)}</div>
-    </div>
-
-    <div class="callout">
-      <p>${escapeHtml(prose.totalStripTransition || "Here's where that number comes from.")}</p>
-    </div>
-
-
-    <!-- GAP 1 - Google Ads -->
-    <div class="gap-card gap-search fade-in">
-      <div class="badge badge-search">Google Ads</div>
-      <h3>${escapeHtml(prose.gap1Headline)}</h3>
-
-      <div class="gap-stat">
-        <div class="gap-stat-number">${gap1Stat.number}<span>/mo</span></div>
-        <div class="gap-stat-label">${gap1Stat.label}</div>
-      </div>
-
-      <p>${formatGapProse(prose.gap1Context)}</p>
-
-${generateSerpMockup(competitors, firmName, searchTerms, runningGoogleAds)}
-
-      <div class="math-box">
-        <span class="math-box-label">The math</span>
-        <strong>${escapeHtml(prose.gap1MathIntro)}</strong>
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Drive leads</div>
+      <div class="deliverables-grid">
+${deliverableItem('Google Ads \u2014 full build + management', 'Targeting, bid strategy, A/B testing, optimization')}
+${deliverableItem('Meta Ads \u2014 Facebook + Instagram', 'Ad creative, audience targeting, retargeting')}
+${deliverableItem('SEO + local search optimization', 'Organic rankings so you show up without paying')}
+${deliverableItem('Website redesign', 'Professional, fast, built to convert visitors into calls')}
+${deliverableItem('Lead magnet funnels', 'Free guides and resources that capture contact info')}
+${deliverableItem('Webinar funnels', 'Educational events that build trust and generate leads')}
+${deliverableItem('Dedicated landing pages', 'Separate from your website, optimized for ad traffic')}
+${deliverableItem('Re-engage old leads', 'Re-spark conversations with contacts that went cold')}
       </div>
     </div>
 
-    <div class="gap-connector" style="border-color: #3b5998; color: #3b5998;">+</div>
-
-    <!-- GAP 2 - Meta Ads -->
-    <div class="gap-card gap-social fade-in">
-      <div class="badge badge-social">Meta Ads · Facebook + Instagram</div>
-      <h3>${escapeHtml(prose.gap2Headline)}</h3>
-
-      <div class="gap-stat">
-        <div class="gap-stat-number">${gap2Stat.number}<span>/mo</span></div>
-        <div class="gap-stat-label">${gap2Stat.label}</div>
-      </div>
-
-      <p>${formatGapProse(prose.gap2Context)}</p>
-
-${generateTwoClientVisual(clientLabel, runningMetaAds, metaAdCount, country)}
-
-      <div class="math-box">
-        <span class="math-box-label">The math</span>
-        <strong>${escapeHtml(prose.gap2MathIntro)}</strong>
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Capture every lead</div>
+      <div class="deliverables-grid">
+${deliverableItem('AI voice agent \u2014 24/7', 'Answers every call, qualifies, books consultations')}
+${deliverableItem('AI website chatbot', 'Engages every visitor, answers questions, captures leads')}
+${deliverableItem('Social media DM handling', 'Auto-responds to Facebook & Instagram messages')}
+${deliverableItem('Missed call text-back', 'Instant text if a lead doesn\'t connect')}
+${deliverableItem('Speed-to-lead automation', 'Every inquiry gets a response in seconds')}
+${deliverableItem('After-hours coverage', 'Nights, weekends, holidays \u2014 never miss a lead')}
       </div>
     </div>
 
-    <div class="gap-connector" style="border-color: #059669; color: #059669;">+</div>
-
-    <!-- GAP 3 - Voice AI -->
-    <div class="gap-card gap-intake fade-in">
-      <div class="badge badge-intake">Voice AI · 24/7 Intake</div>
-      <h3>${escapeHtml(prose.gap3Headline)}</h3>
-
-      <div class="gap-stat">
-        <div class="gap-stat-number">${gap3Stat.number}<span>/mo</span></div>
-        <div class="gap-stat-label">${gap3Stat.label}</div>
-      </div>
-
-      <p>${formatGapProse(prose.gap3Context)}</p>
-
-      <div class="before-after">
-        <div class="ba-side ba-before">
-          <div class="ba-label">Without 24/7 intake</div>
-          <p>Voicemail → caller hangs up → calls the next firm → you follow up next morning but they've already signed elsewhere</p>
-        </div>
-        <div class="ba-side ba-after">
-          <div class="ba-label good">With AI-powered intake</div>
-          <p>Answered in seconds → qualified → consultation booked → your team is notified → new client on the calendar</p>
-        </div>
-      </div>
-
-      <div class="math-box">
-        <span class="math-box-label">The math</span>
-        <strong>${escapeHtml(prose.gap3MathIntro)}</strong>
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Convert &amp; track</div>
+      <div class="deliverables-grid">
+${deliverableItem('Automated follow-up sequences', 'SMS + email nurture for leads that don\'t book')}
+${deliverableItem('CRM + full pipeline', 'Every lead tracked from click to signed retainer')}
+${deliverableItem('Calendar integration', 'Consultations booked directly onto your calendar')}
+${deliverableItem('Call recording + analytics', 'Every call recorded, tagged, tracked')}
+${deliverableItem('Reporting dashboard', 'ROI, cost per lead, cost per case \u2014 full visibility')}
+${deliverableItem('Review generation', 'Automated requests to build your Google reviews')}
+${deliverableItem('Dedicated account manager', 'One point of contact. Not a ticket system.')}
       </div>
     </div>
 
-
-    <div class="callout">
-      <p>${escapeHtml(prose.totalStripContext)}</p>
+    <!-- TIMELINE -->
+    <div class="timeline-strip">
+      <div class="timeline-strip-text">Everything above \u2014 built, live, and running in</div>
+      <div class="timeline-strip-number">14 days</div>
     </div>
 
-
-    <!-- COMPETITOR SECTION -->
-    <div class="divider"></div>
-
-    <div class="narrative">
-      <h2>${escapeHtml(prose.competitorHeadline)}</h2>
-
-      <p>${escapeHtml(prose.competitorIntro)}</p>
+    <!-- YOUR ONLY JOB -->
+    <div class="only-job fade-in">
+      <div class="only-job-label">Your only job</div>
+      <div class="only-job-big">Show up to consultations. Sign cases.</div>
+      <div class="only-job-sub">Ads, funnels, website, SEO, intake, follow-up, CRM \u2014 we handle all of it.</div>
     </div>
 
-${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.competitorTakeaway)}
-
-
-    <!-- BUILD LIST -->
-    <div class="divider"></div>
-
-    <div class="narrative">
-      <h2>${escapeHtml(prose.buildHeadline)}</h2>
-
-      <p>${escapeHtml(prose.buildIntro)}</p>
-    </div>
-
-    <!-- CLIENT JOURNEY -->
-    <div class="journey-heading">Every new client follows this path</div>
-    <div class="journey-flow">
-      <div class="journey-step">
-        <div class="journey-icon" style="background: rgba(66,133,244,0.1); color: #4285F4;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        </div>
-        <span class="journey-label">Search</span>
+    <!-- CONFIDENCE -->
+    <div class="confidence-grid fade-in">
+      <div class="confidence-item">
+        <div class="confidence-icon">\uD83E\uDD1D</div>
+        <strong>Month to month</strong>
+        <p>No long-term contracts. Cancel anytime. Keep everything we built.</p>
       </div>
-      <div class="journey-line"></div>
-      <div class="journey-step">
-        <div class="journey-icon" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
-        </div>
-        <span class="journey-label">Click</span>
+      <div class="confidence-item">
+        <div class="confidence-icon">\uD83D\uDEE1\uFE0F</div>
+        <strong>One firm per area</strong>
+        <p>We never compete against our own clients. Your market is yours.</p>
       </div>
-      <div class="journey-line"></div>
-      <div class="journey-step">
-        <div class="journey-icon" style="background: rgba(5,150,105,0.1); color: #059669;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        </div>
-        <span class="journey-label">Call</span>
-      </div>
-      <div class="journey-line"></div>
-      <div class="journey-step">
-        <div class="journey-icon" style="background: rgba(234,88,12,0.1); color: #ea580c;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </div>
-        <span class="journey-label">Sign</span>
-      </div>
-    </div>
-
-    <div class="build-list fade-in">
-      <div class="build-item">
-        <div class="build-number">1</div>
-        <div class="build-content">
-          <strong>${escapeHtml(prose.buildItem1Title)}</strong>
-          <p>${escapeHtml(prose.buildItem1Detail)}</p>
-          <span class="build-timeline">${escapeHtml(prose.buildItem1Timeline)}</span>
-        </div>
-      </div>
-
-      <div class="build-item">
-        <div class="build-number">2</div>
-        <div class="build-content">
-          <strong>${escapeHtml(prose.buildItem2Title)}</strong>
-          <p>${escapeHtml(prose.buildItem2Detail)}</p>
-          <span class="build-timeline">${escapeHtml(prose.buildItem2Timeline)}</span>
-        </div>
-      </div>
-
-      <div class="build-item">
-        <div class="build-number">3</div>
-        <div class="build-content">
-          <strong>${escapeHtml(prose.buildItem3Title)}</strong>
-          <p>${escapeHtml(prose.buildItem3Detail)}</p>
-          <span class="build-timeline">${escapeHtml(prose.buildItem3Timeline)}</span>
-        </div>
-      </div>
-
-      <div class="build-item">
-        <div class="build-number">4</div>
-        <div class="build-content">
-          <strong>${escapeHtml(prose.buildItem4Title)}</strong>
-          <p>${escapeHtml(prose.buildItem4Detail)}</p>
-          <span class="build-timeline">${escapeHtml(prose.buildItem4Timeline)}</span>
-        </div>
+      <div class="confidence-item">
+        <div class="confidence-icon">\u26A1</div>
+        <strong>Results in 2 weeks</strong>
+        <p>Most firms see booked consultations within the first 14 days.</p>
       </div>
     </div>
 
@@ -1077,18 +932,25 @@ ${generateCompetitorBars(competitors, firmName, firmReviews, firmRating, prose.c
     <div class="divider"></div>
 
     <div id="booking" class="cta fade-in">
-      <h2>${escapeHtml(prose.ctaHeadline)}</h2>
-      <p>${escapeHtml(prose.ctaSubtext)}</p>
+      <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
+      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to your firm every month. The firms we work with typically see $5\u2013$10 back for every $1 they invest.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
 
-
     <div class="footer">
-      Mortar Metrics · Legal Growth Agency · ${escapeHtml(city && state ? `${city}, ${state}` : city || state || '')}<br>
-      <a href="mailto:hello@mortarmetrics.com">hello@mortarmetrics.com</a>
+      Mortar Metrics \u00B7 Legal Growth Agency \u00B7 ${escapeHtml(city && state ? `${city}, ${state}` : city || state || '')}<br>
+      <a href="mailto:fardeen@mortarmetrics.com">fardeen@mortarmetrics.com</a>
     </div>
 
+  </div>
+
+  <!-- FLOATING CTA -->
+  <div class="floating-cta" id="floatingCta">
+    <a href="#booking">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Book a call
+    </a>
   </div>
 
 ${generateTypingScript(searchTerms)}
@@ -1098,69 +960,7 @@ ${generateTypingScript(searchTerms)}
 }
 
 // ============================================================================
-// COMPETITOR BARS - Data-driven, not prose
-// ============================================================================
-
-function generateCompetitorBars(competitors, firmName, firmReviews, firmRating, takeawayText) {
-  if (!competitors || competitors.length === 0) {
-    return `
-    <div class="competitor-section fade-in">
-      <div class="competitor-takeaway">
-        <strong>We couldn't find verified competitor data for this market.</strong> That's often a sign of an under-marketed space - which means first-mover advantage for firms that build comprehensive marketing infrastructure.
-      </div>
-    </div>
-`;
-  }
-
-  // Find max reviews for scaling
-  const allReviews = [...competitors.map(c => c.reviews || c.reviewCount || 0), firmReviews];
-  const maxReviews = Math.max(...allReviews, 1);
-
-  let bars = '<div class="competitor-section fade-in">\n';
-
-  // Competitor bars
-  competitors.slice(0, 3).forEach(comp => {
-    const reviews = comp.reviews || comp.reviewCount || 0;
-    const rating = comp.rating || 0;
-    const width = Math.max((reviews / maxReviews) * 100, 2);
-    const cleanName = sanitizeCompetitorName(comp.name);
-
-    bars += `      <div class="review-bar-group">
-        <div class="review-bar-label">
-          <span class="review-bar-name">${escapeHtml(cleanName)}</span>
-          <span class="review-bar-count">${reviews.toLocaleString()} reviews${rating ? ` · ${rating.toFixed(1)}★` : ''}</span>
-        </div>
-        <div class="review-bar-track">
-          <div class="review-bar-fill competitor" style="width: ${width.toFixed(1)}%"></div>
-        </div>
-      </div>
-
-`;
-  });
-
-  // Firm's bar (in red)
-  const firmWidth = Math.max((firmReviews / maxReviews) * 100, 0.5);
-  bars += `      <div class="review-bar-group">
-        <div class="review-bar-label">
-          <span class="review-bar-name you">${escapeHtml(firmName)} (You)</span>
-          <span class="review-bar-count you">${firmReviews || 0} reviews${firmRating ? ` · ${firmRating.toFixed(1)}★` : ''}</span>
-        </div>
-        <div class="review-bar-track">
-          <div class="review-bar-fill yours" style="width: ${firmWidth.toFixed(2)}%"></div>
-        </div>
-      </div>
-
-      <div class="competitor-takeaway">
-        <strong>${escapeHtml(takeawayText)}</strong>
-      </div>
-    </div>
-`;
-
-  return bars;
-}
-
-// ============================================================================
-// TYPING ANIMATION SCRIPT
+// TYPING + FLOATING CTA SCRIPT
 // ============================================================================
 
 function generateTypingScript(searchTerms) {
@@ -1170,19 +970,14 @@ class SearchTyper {
   constructor(el, terms, opts = {}) {
     this.el = document.getElementById(el);
     if (!this.el) return;
-    this.terms = terms;
-    this.i = 0;
-    this.text = '';
-    this.del = false;
-    this.ts = opts.typeSpeed || 75;
-    this.ds = opts.deleteSpeed || 35;
-    this.pd = opts.pauseDel || 2200;
-    this.pt = opts.pauseType || 350;
+    this.terms = terms; this.i = 0; this.text = ''; this.del = false;
+    this.ts = opts.typeSpeed || 75; this.ds = opts.deleteSpeed || 35;
+    this.pd = opts.pauseDel || 2200; this.pt = opts.pauseType || 350;
   }
   tick() {
     const t = this.terms[this.i];
     this.text = this.del ? t.substring(0, this.text.length - 1) : t.substring(0, this.text.length + 1);
-    this.el.textContent = this.text;
+    this.el.textContent = this.text || '\\u200B';
     let d = this.del ? this.ds : this.ts;
     if (!this.del && this.text === t) { d = this.pd; this.del = true; }
     else if (this.del && this.text === '') { this.del = false; this.i = (this.i + 1) % this.terms.length; d = this.pt; }
@@ -1197,21 +992,30 @@ document.addEventListener('DOMContentLoaded', () => {
   new SearchTyper('typed-search', ${JSON.stringify(searchTerms)}).start();
 
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        io.unobserve(e.target);
-      }
-    });
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
   }, { threshold: 0.15 });
-  document.querySelectorAll('.fade-in, .competitor-section').forEach(el => io.observe(el));
+  document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+  const floatingCta = document.getElementById('floatingCta');
+  const bookingSection = document.getElementById('booking');
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const heroBottom = document.querySelector('.hero').getBoundingClientRect().bottom + window.scrollY;
+    const bookingTop = bookingSection.getBoundingClientRect().top + window.scrollY;
+    const windowBottom = scrollY + window.innerHeight;
+    if (scrollY > heroBottom && windowBottom < bookingTop + 200) {
+      floatingCta.classList.add('visible');
+    } else {
+      floatingCta.classList.remove('visible');
+    }
+  });
 });
 </script>
 `;
 }
 
 // ============================================================================
-// HELPER FUNCTIONS (kept from original)
+// HELPER FUNCTIONS
 // ============================================================================
 
 function validateData(data) {
@@ -1270,7 +1074,6 @@ function sanitizeCompetitorName(name) {
 }
 
 function detectPracticeArea(practiceAreas, researchData) {
-  // 1. Trust AI classification if available (most reliable)
   const aiCategory = researchData.practiceAreaCategory
     || researchData.practice?.practiceAreaCategory;
   if (aiCategory && aiCategory !== 'default') {
@@ -1281,7 +1084,6 @@ function detectPracticeArea(practiceAreas, researchData) {
     }
   }
 
-  // 2. Keyword matching fallback
   for (const pa of (practiceAreas || [])) {
     const category = getPracticeAreaCategory(pa);
     if (category !== 'default') return category;
@@ -1428,6 +1230,10 @@ function getFirmSizeMultiplier(data) {
   return 1.0;
 }
 
+// ============================================================================
+// GAP CALCULATIONS - V7 BOOSTED FLOORS
+// ============================================================================
+
 function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) {
   const sym = currency || '$';
   const searches = Math.round(880 * marketMultiplier * countryBaseline);
@@ -1435,8 +1241,9 @@ function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) 
   const casesPerMonth = searches * ctr * conv * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
+  // V7 boosted floors
+  const minLow = Math.round(55000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(80000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), searches, cases: casesPerMonth,
     formula: `~${searches} monthly searches × 4.5% CTR × 15% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
@@ -1450,8 +1257,9 @@ function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, curr
   const casesPerMonth = audience * reach * conv * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(4000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(8000 * countryBaseline / 500) * 500 || 1000;
+  // V7 boosted floors
+  const minLow = Math.round(38000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(56000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area', cases: casesPerMonth,
     formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 2.0% monthly ad reach × 1.2% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
@@ -1465,12 +1273,65 @@ function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency
   const casesPerMonth = calls * afterHours * missRate * recovery * close;
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  const minLow = Math.round(3500 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(7000 * countryBaseline / 500) * 500 || 1000;
+  // V7 boosted floors
+  const minLow = Math.round(17000 * countryBaseline / 500) * 500 || 500;
+  const minHigh = Math.round(30000 * countryBaseline / 500) * 500 || 1000;
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), calls, cases: casesPerMonth,
     formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
+}
+
+// ============================================================================
+// VALIDATION - V7 section checks
+// ============================================================================
+
+function validateReportHTML(html, firmName) {
+  const warnings = [];
+
+  if (html.length < 5000) {
+    warnings.push(`Report HTML suspiciously short (${html.length} chars)`);
+  }
+
+  // V7 required sections
+  const sections = [
+    ['hero', /class="hero"/i],
+    ['roi-box', /class="roi-box/i],
+    ['revenue-card', /class="revenue-card/i],
+    ['guarantee', /class="guarantee-section/i],
+    ['case-study', /class="case-study/i],
+    ['deliverables', /class="deliverables-group/i],
+    ['only-job', /class="only-job/i],
+    ['footer', /class="footer"/i]
+  ];
+  for (const [name, pattern] of sections) {
+    if (!pattern.test(html)) warnings.push(`Missing section: ${name}`);
+  }
+
+  // Broken content in visible text
+  const text = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ');
+  for (const bad of ['undefined', 'null', 'NaN', '[object Object]']) {
+    if (text.includes(bad)) warnings.push(`Found "${bad}" in visible text`);
+  }
+
+  // 3 revenue card numbers exist
+  const revenueCards = html.match(/class="revenue-card-number"/g) || [];
+  if (revenueCards.length < 3) warnings.push(`Only ${revenueCards.length} revenue card numbers (expected 3)`);
+
+  // Firm name present
+  if (firmName && !html.includes(firmName) && !html.includes(firmName.replace(/&/g, '&amp;'))) {
+    warnings.push(`Firm name "${firmName}" not found in report`);
+  }
+
+  if (warnings.length > 0) {
+    console.log('⚠️  REPORT VALIDATION WARNINGS:');
+    for (const w of warnings) console.log(`   - ${w}`);
+  } else {
+    console.log('✅ Report validation passed');
+  }
 }
 
 function formatMoney(num) {
@@ -1480,6 +1341,14 @@ function formatMoney(num) {
     return Math.round(k).toLocaleString() + 'K';
   }
   return num.toLocaleString();
+}
+
+function formatMoneyMillions(num) {
+  if (num >= 1000000) {
+    const m = num / 1000000;
+    return m.toFixed(1) + 'M';
+  }
+  return formatMoney(num);
 }
 
 function formatRange(low, high) {

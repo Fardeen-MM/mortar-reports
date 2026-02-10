@@ -6,13 +6,20 @@
  * No more hallucinated issues. No more iteration loops. No more AI API calls for QC.
  *
  * Checks:
- * 1. Currency match (£ for UK, $ for US)
- * 2. Terminology match (solicitor vs attorney, excluding business names)
- * 3. Broken content (undefined, null, NaN, [object Object])
+ * 1. Broken content (undefined, null, NaN, [object Object])
+ * 2. Currency match (£ for UK, $ for US)
+ * 3. Terminology match (solicitor vs attorney, excluding business names)
  * 4. Firm name present
  * 5. A/an article errors
  * 6. US corporate suffixes in UK reports
  * 7. Empty prose sections
+ * 8. Total opportunity is compelling (>= $100K US / £70K UK)
+ * 9. No revenue card is embarrassingly small (>= $5K US / £3K UK)
+ * 10. (Removed - no competitor bars in V7)
+ * 11. Report is personalized (firm name 3x, city 2x, specific practice area)
+ * 12. All sections have real content (V7 sections: roi-box, revenue-cards, guarantee, deliverables, only-job)
+ * 13. Math adds up (card sum ≈ ROI total)
+ * 14. Overall "would you book?" flag
  *
  * Keeps: preFixCommonIssues(), getLeadIntelligence() (LinkedIn lookup)
  *
@@ -369,6 +376,10 @@ function deterministicQC(html, research) {
   const expectedCurrency = isUK ? '£' : '$';
   const wrongCurrency = isUK ? '$' : '£';
 
+  // Country baseline for threshold scaling (same baselines as report generator)
+  const countryUpper = country.toUpperCase();
+  const countryBaseline = isUK ? 0.7 : countryUpper === 'CA' ? 0.75 : countryUpper === 'AU' ? 0.6 : countryUpper === 'NZ' ? 0.4 : countryUpper === 'IE' ? 0.35 : 1.0;
+
   const text = extractText(html);
   const issues = [];
   let score = 10;
@@ -516,15 +527,239 @@ function deterministicQC(html, research) {
     score -= 1;
   }
 
+  // 8. TOTAL OPPORTUNITY IS COMPELLING (V7: ROI box hero number)
+  const roiHeroMatch = html.match(/class="roi-hero-number"[^>]*>([^<]+)/);
+  if (roiHeroMatch) {
+    const totalText = roiHeroMatch[1].trim();
+    // Parse the low end: extract first number like "$100K" or "£70K" or "$100,000"
+    const totalLowMatch = totalText.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+    if (totalLowMatch) {
+      let totalLow = parseFloat(totalLowMatch[1].replace(/,/g, ''));
+      if (totalText.includes('K') || totalText.includes('k')) totalLow *= 1000;
+      const baseThreshold = isUK ? 70000 : 100000;
+      const threshold = Math.round(baseThreshold * countryBaseline);
+      const thresholdLabel = `${expectedCurrency}${Math.round(threshold / 1000)}K`;
+      if (totalLow < threshold) {
+        issues.push({
+          severity: 'CRITICAL', category: 'SELLING_POWER',
+          issue: `Total opportunity too low to sell (${totalText}) - needs to be at least ${thresholdLabel}/mo`
+        });
+        score -= 3;
+      }
+      if (totalLow > 500000) {
+        issues.push({
+          severity: 'CRITICAL', category: 'SELLING_POWER',
+          issue: `Total opportunity absurdly high (${totalText}) - looks unbelievable`
+        });
+        score -= 3;
+      }
+    }
+    // Check for inverted range
+    const rangeMatch = totalText.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?\s*[-–]\s*[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+    if (rangeMatch) {
+      let lo = parseFloat(rangeMatch[1].replace(/,/g, ''));
+      let hi = parseFloat(rangeMatch[2].replace(/,/g, ''));
+      if (totalText.includes('K') || totalText.includes('k')) { lo *= 1000; hi *= 1000; }
+      if (hi < lo) {
+        issues.push({
+          severity: 'CRITICAL', category: 'SELLING_POWER',
+          issue: `Total range is inverted (high < low): ${totalText}`
+        });
+        score -= 3;
+      }
+    }
+  }
+
+  // 9. NO REVENUE CARD IS EMBARRASSINGLY SMALL (V7: revenue-card-number)
+  const revenueCardNumMatches = html.match(/class="revenue-card-number"[^>]*>[^<]+/g) || [];
+  for (const cardMatch of revenueCardNumMatches) {
+    const cardText = cardMatch.replace(/class="revenue-card-number"[^>]*>/, '').trim();
+    const cardNumMatch = cardText.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+    if (cardNumMatch) {
+      let cardLow = parseFloat(cardNumMatch[1].replace(/,/g, ''));
+      if (cardText.includes('K') || cardText.includes('k')) cardLow *= 1000;
+      const cardThreshold = isUK ? 3000 : 5000;
+      if (cardLow < cardThreshold) {
+        issues.push({
+          severity: 'IMPORTANT', category: 'SELLING_POWER',
+          issue: `Revenue card number too small to impress (${cardText}) - lawyer won't care about ${isUK ? '£' : '$'}${cardLow}/mo`
+        });
+        score -= 1;
+      }
+    }
+  }
+
+  // 10. SERP MOCKUP HAS COMPETITORS (V7: competitors in SERP, not bar chart)
+  const allSerpRows = html.match(/class="serp-row/g) || [];
+  const serpYouRows = html.match(/class="serp-row serp-you/g) || [];
+  const serpCompetitorCount = allSerpRows.length - serpYouRows.length;
+  if (serpCompetitorCount < 2) {
+    issues.push({
+      severity: 'MINOR', category: 'SELLING_POWER',
+      issue: `Only ${serpCompetitorCount} competitor(s) in SERP mockup - ideally show 2-3`
+    });
+    // Don't deduct score - SERP still works with fewer competitors
+  }
+
+  // 11. REPORT IS PERSONALIZED, NOT GENERIC
+  if (firmName && firmName !== 'Unknown' && firmName !== 'Unknown Firm') {
+    const htmlEscapedName = firmName.replace(/&/g, '&amp;');
+    const nameRegex = new RegExp(firmName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const escapedNameRegex = new RegExp(htmlEscapedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const nameCount = (text.match(nameRegex) || []).length + (text.match(escapedNameRegex) || []).length;
+    if (nameCount < 3) {
+      issues.push({
+        severity: 'CRITICAL', category: 'PERSONALIZATION',
+        issue: `Firm name only appears ${nameCount} time(s) - report feels generic`
+      });
+      score -= 3;
+    }
+  }
+  const cityName = research.location?.city;
+  if (cityName && cityName.length > 2) {
+    const cityRegex = new RegExp(cityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const cityCount = (text.match(cityRegex) || []).length;
+    if (cityCount < 2) {
+      issues.push({
+        severity: 'IMPORTANT', category: 'PERSONALIZATION',
+        issue: `City name "${cityName}" only appears ${cityCount} time(s) - should feel local`
+      });
+      score -= 1;
+    }
+  }
+  const practiceArea = research.practiceArea || research.practice_area || '';
+  if (practiceArea) {
+    const paLower = practiceArea.toLowerCase();
+    // Check that report uses specific practice area term, not just "legal services"
+    if (paLower === 'default' || paLower === 'legal services' || paLower === 'general') {
+      const hasSpecificPractice = text.match(/\b(personal injury|family law|divorce|criminal|immigration|estate|tax|bankruptcy|employment|landlord|medical malpractice|real estate|worker.?s?.comp)\b/i);
+      if (!hasSpecificPractice) {
+        issues.push({
+          severity: 'IMPORTANT', category: 'PERSONALIZATION',
+          issue: `Practice area too vague ("${practiceArea}") - report should target a specific practice`
+        });
+        score -= 1;
+      }
+    }
+  }
+
+  // 12. ALL SECTIONS HAVE REAL CONTENT (V7 structure)
+  const requiredSections = [
+    { name: 'hero', pattern: /class="hero"/i },
+    { name: 'ROI box', pattern: /class="roi-box/i },
+    { name: 'revenue card 1', pattern: /class="revenue-card/i },
+    { name: 'guarantee section', pattern: /class="guarantee-section/i },
+    { name: 'case study', pattern: /class="case-study/i },
+    { name: 'deliverables', pattern: /class="deliverables-group/i },
+    { name: 'only job', pattern: /class="only-job/i },
+    { name: 'footer', pattern: /class="footer"/i }
+  ];
+  for (const section of requiredSections) {
+    if (!section.pattern.test(html)) {
+      issues.push({
+        severity: 'CRITICAL', category: 'STRUCTURE',
+        issue: `Missing required section: ${section.name}`
+      });
+      score -= 3;
+    }
+  }
+  // Check revenue cards have prose > 30 chars
+  const revenueCardProse = html.match(/<div class="revenue-card"[\s\S]*?<\/div>\s*<\/div>/gi) || [];
+  for (let i = 0; i < revenueCardProse.length; i++) {
+    const cardText = revenueCardProse[i].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    if (cardText.length < 30) {
+      issues.push({
+        severity: 'CRITICAL', category: 'STRUCTURE',
+        issue: `Revenue card ${i + 1} has almost no content (${cardText.length} chars)`
+      });
+      score -= 3;
+    }
+  }
+  // Check we have 3 revenue cards (class may include "fade-in" etc.)
+  const revenueCards = html.match(/class="revenue-card[\s"]/g) || [];
+  if (revenueCards.length < 3) {
+    issues.push({
+      severity: 'IMPORTANT', category: 'STRUCTURE',
+      issue: `Only ${revenueCards.length} revenue card(s) instead of 3`
+    });
+    score -= 1;
+  }
+  // Check deliverables have items (should be ~21)
+  const deliverableItems = html.match(/class="deliverable-item"/g) || [];
+  if (deliverableItems.length < 15) {
+    issues.push({
+      severity: 'IMPORTANT', category: 'STRUCTURE',
+      issue: `Only ${deliverableItems.length} deliverable items (expected ~21)`
+    });
+    score -= 1;
+  }
+
+  // 13. MATH ADDS UP (V7: revenue card amounts should sum to ROI projected revenue)
+  if (roiHeroMatch) {
+    const totalText = roiHeroMatch[1].trim();
+    const totalRangeMatch = totalText.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?\s*[-–]\s*[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+    if (totalRangeMatch) {
+      let totalLo = parseFloat(totalRangeMatch[1].replace(/,/g, ''));
+      let totalHi = parseFloat(totalRangeMatch[2].replace(/,/g, ''));
+      if (totalText.includes('K') || totalText.includes('k')) { totalLo *= 1000; totalHi *= 1000; }
+      // Sum revenue card amounts
+      let cardSum = 0;
+      for (const cardMatch of revenueCardNumMatches) {
+        const ct = cardMatch.replace(/class="revenue-card-number"[^>]*>/, '').trim();
+        const cnm = ct.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+        if (cnm) {
+          let val = parseFloat(cnm[1].replace(/,/g, ''));
+          if (ct.includes('K') || ct.includes('k')) val *= 1000;
+          cardSum += val;
+        }
+      }
+      if (cardSum > 0 && totalLo > 0) {
+        // ROI hero shows net revenue (total - ad spend), so it should be <= card sum
+        // Allow generous tolerance since net = total - adSpend
+        if (totalLo > cardSum * 1.2) {
+          issues.push({
+            severity: 'CRITICAL', category: 'MATH',
+            issue: `Revenue card sum (~${isUK ? '£' : '$'}${Math.round(cardSum)}) is less than ROI hero number (~${isUK ? '£' : '$'}${Math.round(totalLo)}) - math looks wrong`
+          });
+          score -= 2;
+        }
+      }
+      if (totalLo <= 0) {
+        issues.push({
+          severity: 'CRITICAL', category: 'MATH',
+          issue: `ROI hero number is zero or negative`
+        });
+        score -= 2;
+      }
+    }
+  }
+
   // Clamp score
   score = Math.max(0, Math.min(10, Math.round(score * 2) / 2));
 
-  const wouldBook = score >= 8;
-  const verdict = score >= 9
-    ? 'Clean report, ready to send.'
-    : score >= 7
-      ? 'Minor issues but presentable.'
-      : 'Report has quality issues that need attention.';
+  // 14. OVERALL "WOULD YOU BOOK?" FLAG
+  const opportunityThreshold = Math.round((isUK ? 70000 : 100000) * countryBaseline);
+  let totalOppLow = 0;
+  if (roiHeroMatch) {
+    const tt = roiHeroMatch[1].trim();
+    const tlm = tt.match(/[\$£]?([\d,]+(?:\.\d+)?)\s*K?/i);
+    if (tlm) {
+      totalOppLow = parseFloat(tlm[1].replace(/,/g, ''));
+      if (tt.includes('K') || tt.includes('k')) totalOppLow *= 1000;
+    }
+  }
+
+  const wouldBook = score >= 8 && totalOppLow >= opportunityThreshold;
+  let verdict;
+  if (score >= 9 && wouldBook) {
+    verdict = 'Clean report, ready to send.';
+  } else if (score >= 8 && wouldBook) {
+    verdict = 'Minor issues but presentable.';
+  } else if (score >= 8 && !wouldBook) {
+    verdict = 'Numbers might not be compelling enough to close.';
+  } else {
+    verdict = 'Report has quality issues that need attention.';
+  }
 
   return {
     score,
@@ -602,8 +837,7 @@ async function perfectReport() {
       name: leadIntel.name, title: leadIntel.title,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
       source: leadIntel.source
-    } : null,
-    leadFit: null
+    } : null
   }, null, 2));
 
   // Final summary
@@ -641,8 +875,7 @@ async function perfectReport() {
       name: leadIntel.name, title: leadIntel.title, company: leadIntel.company,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
       source: leadIntel.source, linkedInUrl: leadIntel.linkedInUrl
-    } : null,
-    leadFit: null
+    } : null
   }, null, 2));
 
   process.exit(passed ? 0 : 1);
