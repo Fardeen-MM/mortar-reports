@@ -269,21 +269,8 @@ function buildGithubPayload(payload) {
     }
   }
 
-  // Fallback: extract first name from email if missing (but NOT if guard just cleared it -
-  // the guard cleared it because it was email garbage, re-extracting would give the same garbage)
-  if (!clearedByGuard && !built.client_payload.first_name && built.client_payload.email) {
-    const local = built.client_payload.email.split('@')[0].toLowerCase();
-    const hasVowel = /[aeiou]/i.test(local);
-    const generic = ['info', 'contact', 'admin', 'office', 'support', 'hello', 'mail', 'enquiries', 'reception'];
-    if (local.length > 2 && hasVowel && !generic.includes(local)) {
-      const parts = local.replace(/[._-]/g, ' ').split(' ');
-      built.client_payload.first_name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-      if (parts.length > 1) {
-        built.client_payload.last_name = parts.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      }
-      console.log(`Extracted name from email: ${built.client_payload.first_name} ${built.client_payload.last_name || ''}`);
-    }
-  }
+  // No email-based name extraction here — the workflow QC has better name recovery
+  // (team member matching, initials matching, etc.)
 
   return built;
 }
@@ -311,7 +298,7 @@ async function forwardToGitHub(env, githubPayload) {
 function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
-  const preferLonger = new Set(['first_name', 'last_name', 'company', 'job_title', 'linkedin']);
+  const preferLonger = new Set(['company', 'job_title', 'linkedin']);
   for (const field of allFields) {
     const valA = a.client_payload[field] || '';
     const valB = b.client_payload[field] || '';
