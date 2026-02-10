@@ -348,7 +348,7 @@ function generateFallbackProse(context) {
 
   return {
     card1Body: `<strong>~${gap1.searches.toLocaleString()} people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire. We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. Professional, fast, built to turn visitors into consultations. ${compRef}`,
-    card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with a ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
+    card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
     card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`
   };
 }
@@ -385,10 +385,25 @@ async function generateReport(researchData, prospectName) {
   } = researchData;
 
   const firmName = normalizeFirmName(rawFirmName);
-  const city = location.city || '';
+
+  // Normalize country code to ISO 2-letter
+  let country = (location.country || 'US').toUpperCase().trim();
+  const countryNormMap = {
+    'UK': 'GB', 'UNITED KINGDOM': 'GB', 'ENGLAND': 'GB', 'SCOTLAND': 'GB', 'WALES': 'GB',
+    'CANADA': 'CA', 'AUSTRALIA': 'AU', 'NEW ZEALAND': 'NZ', 'IRELAND': 'IE',
+    'UNITED STATES': 'US', 'USA': 'US', 'UNITED STATES OF AMERICA': 'US'
+  };
+  if (countryNormMap[country]) country = countryNormMap[country];
+
+  // City validation gate: reject garbage scraped as city
+  let city = location.city || '';
+  if (city && (/[\n\t<>]/.test(city) || city.length > 40)) {
+    console.log(`⚠️  City value looks like garbage: "${city.substring(0, 50)}", clearing`);
+    city = '';
+  }
+
   const state = location.state || '';
-  const country = location.country || 'US';
-  const currency = (country === 'GB' || country === 'UK') ? '£' : '$';
+  const currency = country === 'GB' ? '£' : '$';
 
   // Determine practice area
   const practiceArea = detectPracticeArea(practiceAreas, researchData);
@@ -933,7 +948,7 @@ ${deliverableItem('Dedicated account manager', 'One point of contact. Not a tick
 
     <div id="booking" class="cta fade-in">
       <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
-      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to ${escapeHtml(firmName)} every month. The firms we work with typically see $5\u2013$10 back for every $1 they invest.</p>
+      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to ${escapeHtml(firmName)} every month. The firms we work with typically see ${currency}5\u2013${currency}10 back for every ${currency}1 they invest.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
@@ -1060,8 +1075,9 @@ function sanitizeCompetitorName(name) {
   if ((name.match(/,/g) || []).length >= 2) {
     name = name.split(',')[0].trim();
   }
+  // Strip practice area chains: "- Tax - Customs and Excise - Shipping - ..."
   name = name
-    .replace(/\s*-\s*(Tax|Family|Criminal|Immigration|Estate|Property|Customs|VAT)(\s*-\s*\w+)*/i, '')
+    .replace(/\s*-\s*(Tax|Family|Criminal|Immigration|Estate|Property|Customs|VAT|Barrister|Solicitor|Litigation|Insolvency|Arbitration|Shipping)(\s*[-&]\s*[\w\s]+)*/i, '')
     .replace(/,?\s*(Solicitors?|Barristers?|Lawyers?|Attorneys?( at Law)?|Law (Firm|Office|Practice|Group)|LLP|LLC|Ltd\.?|Limited|P\.?C\.?|P\.?L\.?L\.?C\.?)$/i, '')
     .trim();
   if (name.length > 50) {
@@ -1186,23 +1202,27 @@ function startsWithVowelSound(word) {
 }
 
 function getMarketMultiplier(city, country) {
-  const c = (city || '').toLowerCase();
+  const c = (city || '').toLowerCase().trim();
   const ctry = (country || 'US').toUpperCase();
-  if (ctry === 'GB' || ctry === 'UK') {
-    if (c.includes('london')) return 1.8;
-    const midUK = ['manchester', 'birmingham', 'leeds', 'glasgow', 'liverpool',
-      'edinburgh', 'bristol', 'cardiff', 'belfast', 'nottingham', 'sheffield',
-      'leicester', 'newcastle', 'brighton', 'reading', 'swindon'];
-    if (midUK.some(m => c.includes(m))) return 1.3;
-    return 1.0;
-  }
-  const major = ['new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
-    'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'san francisco',
-    'seattle', 'denver', 'boston', 'nashville', 'portland', 'las vegas', 'toronto'];
-  if (major.some(m => c.includes(m))) return 1.8;
-  const mid = ['memphis', 'louisville', 'richmond', 'new orleans', 'raleigh', 'salt lake city',
-    'atlanta', 'miami', 'minneapolis', 'cleveland', 'tampa', 'orlando', 'pittsburgh'];
-  if (mid.some(m => c.includes(m))) return 1.3;
+
+  // Exact city matching via map — prevents "londonderry" matching "london"
+  const majorCities = {
+    'new york': 1.8, 'new york city': 1.8, 'nyc': 1.8, 'manhattan': 1.8, 'brooklyn': 1.8,
+    'los angeles': 1.8, 'chicago': 1.8, 'houston': 1.8, 'phoenix': 1.8, 'philadelphia': 1.8,
+    'san antonio': 1.8, 'san diego': 1.8, 'dallas': 1.8, 'san jose': 1.8, 'austin': 1.8,
+    'san francisco': 1.8, 'seattle': 1.8, 'denver': 1.8, 'boston': 1.8, 'nashville': 1.8,
+    'portland': 1.8, 'las vegas': 1.8, 'toronto': 1.8, 'vancouver': 1.8, 'montreal': 1.8,
+    'london': 1.8, 'sydney': 1.8, 'melbourne': 1.8,
+    'memphis': 1.3, 'louisville': 1.3, 'richmond': 1.3, 'new orleans': 1.3, 'raleigh': 1.3,
+    'salt lake city': 1.3, 'atlanta': 1.3, 'miami': 1.3, 'minneapolis': 1.3, 'cleveland': 1.3,
+    'tampa': 1.3, 'orlando': 1.3, 'pittsburgh': 1.3,
+    'manchester': 1.3, 'birmingham': 1.3, 'leeds': 1.3, 'glasgow': 1.3, 'liverpool': 1.3,
+    'edinburgh': 1.3, 'bristol': 1.3, 'cardiff': 1.3, 'belfast': 1.3, 'nottingham': 1.3,
+    'sheffield': 1.3, 'leicester': 1.3, 'newcastle': 1.3, 'brighton': 1.3, 'reading': 1.3,
+    'swindon': 1.3, 'calgary': 1.3, 'ottawa': 1.3, 'edmonton': 1.3, 'brisbane': 1.3, 'perth': 1.3
+  };
+
+  if (majorCities[c]) return majorCities[c];
   return 1.0;
 }
 
