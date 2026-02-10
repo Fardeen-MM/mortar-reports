@@ -76,7 +76,7 @@ async function triggerGitHubWorkflow(githubToken, approvalData) {
 }
 
 async function fetchApprovalData(githubToken, firmFolder) {
-  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/automation/pending-approvals/${firmFolder}.json`;
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/automation/pending-approvals/${encodeURIComponent(firmFolder + '.json')}`;
   const response = await fetch(url, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
@@ -95,10 +95,11 @@ async function fetchApprovalData(githubToken, firmFolder) {
 
 function parseMessageForApprovalData(message) {
   const text = message.text || '';
-  const firmMatch = text.match(/📊 \*Firm:\* (.+)/);
-  const contactMatch = text.match(/👤 \*Contact:\* (.+)/);
-  const emailMatch = text.match(/📧 \*Email:\* (.+)/);
-  const urlMatch = text.match(/🔗 \*Review Report:\*\n(.+)/);
+  // Telegram strips markdown * from text field — match without them
+  const firmMatch = text.match(/📊 (?:\*)?Firm:(?:\*)? (.+)/);
+  const contactMatch = text.match(/👤 (?:\*)?Contact:(?:\*)? (.+)/);
+  const emailMatch = text.match(/📧 (?:\*)?Email:(?:\*)? (.+)/);
+  const urlMatch = text.match(/🔗 (?:\*)?Review Report:(?:\*)?\n(.+)/);
 
   if (firmMatch && contactMatch && emailMatch && urlMatch) {
     const reportUrl = urlMatch[1].trim();
@@ -217,6 +218,8 @@ function dig(payload, ...keys) {
 }
 
 function buildGithubPayload(payload) {
+  console.log('Payload keys:', Object.keys(payload).join(', '));
+  console.log('Name fields:', JSON.stringify({ first_name: payload.first_name, firstName: payload.firstName, last_name: payload.last_name, lastName: payload.lastName, fullName: payload.fullName, full_name: payload.full_name, name: payload.name, 'Full Name': payload['Full Name'] }));
   const built = {
     event_type: 'interested_lead',
     client_payload: {
@@ -252,6 +255,17 @@ function buildGithubPayload(payload) {
         built.client_payload.last_name = '';
         clearedByGuard = true;
       }
+    }
+  }
+
+  // Recovery: if first_name was cleared or missing, try fullName/name field from payload
+  if (!built.client_payload.first_name) {
+    const fullName = dig(payload, 'fullName', 'full_name', 'Full Name', 'name', 'lead_name', 'contact_name');
+    if (fullName && fullName.trim().includes(' ')) {
+      const parts = fullName.trim().split(/\s+/);
+      built.client_payload.first_name = parts[0];
+      built.client_payload.last_name = parts.slice(1).join(' ');
+      console.log(`Recovered name from fullName field: "${fullName}" -> first="${built.client_payload.first_name}" last="${built.client_payload.last_name}"`);
     }
   }
 

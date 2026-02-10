@@ -230,8 +230,11 @@ jobs:
           ")
           
           # Extract contact name from research or email
+          # Run research matching if: no name, blank name, OR single-word name (just last name, no first)
           CONTACT_NAME="$WEBHOOK_CONTACT"
-          if [ -z "$CONTACT_NAME" ] || [ "$CONTACT_NAME" = " " ]; then
+          HAS_SPACE=$(echo "$CONTACT_NAME" | grep -c ' ' || true)
+          if [ -z "$CONTACT_NAME" ] || [ "$CONTACT_NAME" = " " ] || [ "$HAS_SPACE" = "0" ]; then
+            echo "Contact name incomplete ('$CONTACT_NAME'), trying research-based recovery..."
             CONTACT_NAME=$(node -e "
               const data = JSON.parse(require('fs').readFileSync('$RESEARCH_FILE', 'utf8'));
 
