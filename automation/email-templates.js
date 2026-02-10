@@ -32,7 +32,7 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
   const firm = firmName || 'your firm';
   const firstName = (contactName || '').split(' ')[0] || 'there';
   const cleanRange = cleanEncoding(totalRange);
-  const openingLine = opener || 'Thanks for getting back to us. Our team dug into your market and found some real money being left on the table.';
+  const openingLine = opener || 'Appreciate you getting back to me.';
 
   let textBody, htmlBody;
 
@@ -40,44 +40,44 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
     // Personalized email with case count + revenue
     textBody = `Hey ${firstName},
 
-${openingLine} Our team put together a breakdown of the ${practiceLabel} market around ${firm}.
+${openingLine} We dug into the ${practiceLabel} market around ${firm} and honestly there's a lot of money being left on the table.
 
-Right now there are about ${totalCases} ${practiceLabel} cases per month in your area going to other firms. That's roughly ${cleanRange}/mo in revenue you could be capturing.
+Right now about ${totalCases} ${practiceLabel} cases per month in your area are going to other firms. That's roughly ${cleanRange}/mo you could be pulling in.
 
 Here's the full breakdown:
 ${reportUrl}
 
-We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?`;
+Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} Our team put together a breakdown of the ${practiceLabel} market around ${firm}.</div>
+<div>${openingLine} We dug into the ${practiceLabel} market around ${firm} and honestly there's a lot of money being left on the table.</div>
 <div><br /></div>
-<div>Right now there are about ${totalCases} ${practiceLabel} cases per month in your area going to other firms. That's roughly ${cleanRange}/mo in revenue you could be capturing.</div>
+<div>Right now about ${totalCases} ${practiceLabel} cases per month in your area are going to other firms. That's roughly ${cleanRange}/mo you could be pulling in.</div>
 <div><br /></div>
 <div>Here's the full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?</div>`;
+<div>Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?</div>`;
   } else {
     // Fallback when no numbers available
     textBody = `Hey ${firstName},
 
-${openingLine} Our team put together a breakdown of the market around ${firm} and found some gaps worth looking at.
+${openingLine} We dug into the market around ${firm} and found some real gaps worth looking at.
 
 Here's the full breakdown:
 ${reportUrl}
 
-We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?`;
+Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} Our team put together a breakdown of the market around ${firm} and found some gaps worth looking at.</div>
+<div>${openingLine} We dug into the market around ${firm} and found some real gaps worth looking at.</div>
 <div><br /></div>
 <div>Here's the full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>We can get you these cases. 15 minutes and I'll show you exactly how. Does ${day1} or ${day2} work?</div>`;
+<div>Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?</div>`;
   }
 
   return {

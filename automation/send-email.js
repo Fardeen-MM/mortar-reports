@@ -157,22 +157,28 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
  * Falls back to "Glad you replied." on error or missing API key.
  */
 function generateOpener(leadReply, leadCountry) {
-  const fallback = 'Thanks for getting back to us. Our team dug into your market and found some real money being left on the table.';
+  const fallback = 'Appreciate you getting back to me.';
   if (!ANTHROPIC_API_KEY) {
     console.log('⚠️  No ANTHROPIC_API_KEY - using fallback opener');
     return Promise.resolve(fallback);
   }
   if (!leadReply && leadCountry !== 'CA') return Promise.resolve(fallback);
 
-  let prompt = `A law firm lead replied to our cold email with: "${leadReply || 'interested'}"
+  let prompt = `You're Fardeen, founder of a legal marketing agency. A law firm lead replied to your cold email with: "${leadReply || 'interested'}"
 
-Write 1-2 warm sentences (max 30 words total). Thank them for getting back to us, mention our team loved digging into their market and found serious revenue they're leaving on the table.`;
+Write ONE short sentence (max 15 words) that thanks them for replying. Just a quick genuine thank-you, nothing else.
+
+Examples of good openers:
+- "Appreciate you getting back to me."
+- "Thanks for the reply, glad this caught your eye."
+- "Good to hear from you."
+- "Glad this resonated."`;
 
   if (leadCountry === 'CA') {
-    prompt += `\nThe lead is Canadian. We (Mortar Metrics) are also Canadian. Naturally mention we're fellow Canadians.`;
+    prompt += `\nThe lead is Canadian and so are you. Work in something like "always great to work with fellow Canadians" but keep it natural, not forced.`;
   }
 
-  prompt += `\nTone: friendly, excited, like a colleague who's genuinely pumped about what they found. Do NOT use em dashes. Do NOT use exclamation marks more than once. Return ONLY the sentences, nothing else.`;
+  prompt += `\nSound like a real person texting a business contact, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the sentence.`;
 
   return new Promise((resolve) => {
     const payload = JSON.stringify({
