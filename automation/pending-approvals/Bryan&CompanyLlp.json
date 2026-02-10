@@ -1,0 +1,28 @@
+{
+  "firm_name": "Bryan & Company Llp",
+  "firm_folder": "Bryan&CompanyLlp",
+  "lead_email": "dcorrigan@bryanco.com",
+  "contact_name": "Corrigan",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/Bryan&CompanyLlp/",
+  "job_title": "Partner",
+  "linkedin": "https://www.linkedin.com/in/david-corrigan-6939145a",
+  "country": "Canada",
+  "created_at": "2026-02-10T21:36:19Z",
+  "status": "pending_approval",
+  "report_version": "V3",
+  "qc_passed": "true",
+  "qc_issues": "0",
+  "qc_would_book": "true",
+  "qc_biggest_issue": "",
+  "qc_score": "10",
+  "total_range": "$110K-166K",
+  "total_cases": "17-31",
+  "practice_label": "legal services",
+  "lead_intelligence": {
+    "name": "Corrigan",
+    "title": "Partner",
+    "seniority": "senior",
+    "is_decision_maker": true,
+    "source": "instantly_webhook"
+  }
+}
