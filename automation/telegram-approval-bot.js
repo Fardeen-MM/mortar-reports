@@ -130,7 +130,6 @@ if (approvalData.qc_passed === 'true') {
     headerEmoji = '🟠';
   }
 } else if (approvalData.qc_passed === 'false') {
-  const issues = approvalData.qc_issues || '?';
   qcStatus = `\n🔴 *QC:* Needs Review${scoreDisplay}`;
   if (approvalData.qc_biggest_issue) {
     qcStatus += `\n📌 *Issue:* ${escMd(approvalData.qc_biggest_issue)}`;
@@ -165,11 +164,29 @@ if (leadIntel && (leadIntel.name || leadIntel.title)) {
   }
 }
 
+// Build reply text section (highest-value addition — shows what the lead actually said)
+let replySection = '';
+if (approvalData.reply_text) {
+  const replyTruncated = approvalData.reply_text.length > 500
+    ? approvalData.reply_text.slice(0, 500) + '...'
+    : approvalData.reply_text;
+  replySection = `\n\n💬 *Lead's Reply:*\n\`\`\`\n${replyTruncated}\n\`\`\``;
+}
+
+// Build campaign/phone line
+let campaignPhoneLine = '';
+if (approvalData.campaign_name) {
+  campaignPhoneLine += `\n📋 *Campaign:* ${escMd(approvalData.campaign_name)}`;
+}
+if (approvalData.phone) {
+  campaignPhoneLine += `\n📞 *Phone:* ${escMd(approvalData.phone)}`;
+}
+
 const message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
 📊 *Firm:* ${escMd(displayName)}
 👤 *Contact:* ${escMd(approvalData.contact_name)}
-📧 *Email:* ${escMd(approvalData.lead_email)}${qcStatus}${aiVerdict}${leadIntelSection}
+📧 *Email:* ${escMd(approvalData.lead_email)}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
 ${contextSection}
 🔗 *Review Report:*
 ${escMd(approvalData.report_url)}
@@ -180,7 +197,7 @@ ${escMd(approvalData.report_url)}
 \`\`\`
 ${emailPreview.body}
 \`\`\`
-${!emailQC.passed ? `\n⚠️ *EMAIL QC ISSUES:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : '✅ Email QC passed'}
+${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${emailQC.errors.map(e => `  - ${escMd(e)}`).join('\n')}\n` : ''}${emailQC.warnings.length > 0 ? `\n🟡 *EMAIL QC WARNINGS:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : ''}${emailQC.errors.length === 0 && emailQC.warnings.length === 0 ? '✅ Email QC passed' : ''}
 
 *Please review the report and email, then choose an action below:*`;
 

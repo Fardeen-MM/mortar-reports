@@ -71,12 +71,38 @@ jobs:
           WEBSITE: ${{ github.event.client_payload.website }}
           FIRST_NAME: ${{ github.event.client_payload.first_name }}
           LAST_NAME: ${{ github.event.client_payload.last_name }}
-          CITY: ${{ github.event.client_payload.city }}
-          STATE: ${{ github.event.client_payload.state }}
+          LOCATION: ${{ github.event.client_payload.location }}
+          CITY_LEGACY: ${{ github.event.client_payload.city }}
+          STATE_LEGACY: ${{ github.event.client_payload.state }}
           COUNTRY: ${{ github.event.client_payload.country }}
           COMPANY: ${{ github.event.client_payload.company }}
           LEAD_EMAIL: ${{ github.event.client_payload.email }}
+          META_JSON: ${{ github.event.client_payload._meta }}
         run: |
+          # Unpack location (new format: "city|state") with backward compat
+          if [ -n "$LOCATION" ]; then
+            CITY=$(echo "$LOCATION" | cut -d'|' -f1)
+            STATE=$(echo "$LOCATION" | cut -d'|' -f2)
+          else
+            CITY="$CITY_LEGACY"
+            STATE="$STATE_LEGACY"
+          fi
+
+          # Unpack _meta JSON (reply_text, campaign_name, phone, timestamp)
+          REPLY_TEXT=""
+          FLAGGED="false"
+          FLAG_REASON=""
+          CAMPAIGN_NAME=""
+          PHONE=""
+          if [ -n "$META_JSON" ]; then
+            REPLY_TEXT=$(echo "$META_JSON" | jq -r '.reply_text // ""')
+            CAMPAIGN_NAME=$(echo "$META_JSON" | jq -r '.campaign_name // ""')
+            PHONE=$(echo "$META_JSON" | jq -r '.phone // ""')
+            echo "  📨 Reply text length: ${#REPLY_TEXT}"
+            echo "  📋 Campaign: $CAMPAIGN_NAME"
+            echo "  📞 Phone: $PHONE"
+          fi
+
           echo "Extracted values:"
           echo "  website: $WEBSITE"
           echo "  first_name: $FIRST_NAME"
@@ -156,6 +182,14 @@ jobs:
           echo "country=$COUNTRY" >> $GITHUB_OUTPUT
           echo "company=$COMPANY" >> $GITHUB_OUTPUT
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "campaign_name=$CAMPAIGN_NAME" >> $GITHUB_OUTPUT
+          echo "phone=$PHONE" >> $GITHUB_OUTPUT
+          # reply_text can be multiline — use delimiter syntax
+          {
+            echo "reply_text<<REPLY_EOF"
+            echo "$REPLY_TEXT"
+            echo "REPLY_EOF"
+          } >> $GITHUB_OUTPUT
       
       - name: Check for existing pending report
         id: check_existing
@@ -607,6 +641,9 @@ jobs:
           TOTAL_CASES: ${{ steps.report.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.report.outputs.practice_label }}
           COUNTRY: ${{ steps.parse.outputs.country }}
+          REPLY_TEXT: ${{ steps.parse.outputs.reply_text }}
+          CAMPAIGN_NAME: ${{ steps.parse.outputs.campaign_name }}
+          PHONE: ${{ steps.parse.outputs.phone }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -620,47 +657,50 @@ jobs:
 
           mkdir -p pending-approvals
 
-          # Escape double quotes in values to produce valid JSON
-          esc() { echo "$1" | sed 's/"/\\"/g'; }
-          FIRM_NAME=$(esc "$FIRM_NAME")
-          CONTACT_NAME=$(esc "$CONTACT_NAME")
-          JOB_TITLE=$(esc "$JOB_TITLE")
-          LINKEDIN=$(esc "$LINKEDIN")
-          QC_BIGGEST=$(esc "$QC_BIGGEST")
-          LEAD_NAME=$(esc "$LEAD_NAME")
-          LEAD_TITLE=$(esc "$LEAD_TITLE")
-          LEAD_SOURCE=$(esc "$LEAD_SOURCE")
+          # Export local vars so node can access them
+          export CONTACT_NAME
+          export REPORT_URL
 
-          cat > "pending-approvals/${FIRM_FOLDER}.json" << EOF
-          {
-            "firm_name": "$FIRM_NAME",
-            "firm_folder": "$FIRM_FOLDER",
-            "lead_email": "$LEAD_EMAIL_ADDR",
-            "contact_name": "$CONTACT_NAME",
-            "report_url": "$REPORT_URL",
-            "job_title": "$JOB_TITLE",
-            "linkedin": "$LINKEDIN",
-            "country": "$COUNTRY",
-            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "status": "pending_approval",
-            "report_version": "V3",
-            "qc_passed": "$QC_PASSED",
-            "qc_issues": "$QC_ISSUES",
-            "qc_would_book": "$QC_WOULD_BOOK",
-            "qc_biggest_issue": "$QC_BIGGEST",
-            "qc_score": "$QC_SCORE",
-            "total_range": "$TOTAL_RANGE",
-            "total_cases": "$TOTAL_CASES",
-            "practice_label": "$PRACTICE_LABEL",
-            "lead_intelligence": {
-              "name": "$LEAD_NAME",
-              "title": "$LEAD_TITLE",
-              "seniority": "$LEAD_SENIORITY",
-              "is_decision_maker": ${LEAD_IS_DM:-false},
-              "source": "$LEAD_SOURCE"
-            }
-          }
-          EOF
+          # Use node to write JSON safely (handles newlines in reply_text, special chars)
+          node -e "
+            const fs = require('fs');
+            const data = {
+              firm_name: process.env.FIRM_NAME,
+              firm_folder: process.env.FIRM_FOLDER,
+              lead_email: process.env.LEAD_EMAIL_ADDR,
+              contact_name: process.env.CONTACT_NAME,
+              report_url: process.env.REPORT_URL,
+              job_title: process.env.JOB_TITLE || '',
+              linkedin: process.env.LINKEDIN || '',
+              country: process.env.COUNTRY || '',
+              reply_text: process.env.REPLY_TEXT || '',
+              campaign_name: process.env.CAMPAIGN_NAME || '',
+              phone: process.env.PHONE || '',
+              created_at: new Date().toISOString(),
+              status: 'pending_approval',
+              report_version: 'V3',
+              qc_passed: process.env.QC_PASSED || '',
+              qc_issues: process.env.QC_ISSUES || '0',
+              qc_would_book: process.env.QC_WOULD_BOOK || '',
+              qc_biggest_issue: process.env.QC_BIGGEST || '',
+              qc_score: process.env.QC_SCORE || '0',
+              total_range: process.env.TOTAL_RANGE || '',
+              total_cases: process.env.TOTAL_CASES || '',
+              practice_label: process.env.PRACTICE_LABEL || '',
+              lead_intelligence: {
+                name: process.env.LEAD_NAME || '',
+                title: process.env.LEAD_TITLE || '',
+                seniority: process.env.LEAD_SENIORITY || 'unknown',
+                is_decision_maker: process.env.LEAD_IS_DM === 'true',
+                source: process.env.LEAD_SOURCE || ''
+              }
+            };
+            fs.writeFileSync(
+              'pending-approvals/' + process.env.FIRM_FOLDER + '.json',
+              JSON.stringify(data, null, 2)
+            );
+            console.log('Approval JSON written for ' + process.env.FIRM_FOLDER);
+          "
         working-directory: ./automation
 
       - name: Commit pending report (NOT LIVE until approved)

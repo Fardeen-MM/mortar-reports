@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 # Deploy with: wrangler deploy
 #
 # This worker handles Instantly webhooks and forwards them to GitHub Actions.
-# Required secrets: GITHUB_TOKEN
+# Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 #
 # For Telegram webhook handler, see wrangler-telegram.toml
 

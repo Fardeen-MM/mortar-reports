@@ -194,6 +194,65 @@ async function handleTelegramCallback(env, update) {
   return { ok: true };
 }
 
+// ============ REPLY CLASSIFICATION ============
+
+// Strip quoted text from reply to avoid false positives on forwarded content
+function stripQuotedText(text) {
+  if (!text) return '';
+  // Remove lines starting with > (email quote markers)
+  let lines = text.split('\n');
+  // Find "On ... wrote:" pattern and cut everything after it
+  const wroteIdx = lines.findIndex(l => /^On .+ wrote:$/i.test(l.trim()));
+  if (wroteIdx !== -1) lines = lines.slice(0, wroteIdx);
+  // Remove > quoted lines
+  lines = lines.filter(l => !l.trim().startsWith('>'));
+  return lines.join('\n').trim();
+}
+
+// Classify reply as proceed or skip. Only skips on the most unambiguous patterns.
+function classifyReply(replyText) {
+  if (!replyText) return { action: 'proceed', reason: '' };
+  const clean = stripQuotedText(replyText).toLowerCase();
+  if (!clean) return { action: 'proceed', reason: '' };
+
+  const skipPatterns = [
+    /\bunsubscribe\b/,
+    /\bremove me from\b/,
+    /\bstop email(ing|s)\b/,
+    /\bopt out\b/,
+    /\bopt-out\b/,
+    /\bdo not contact\b/,
+    /\btake me off\b/,
+  ];
+  for (const pat of skipPatterns) {
+    if (pat.test(clean)) {
+      return { action: 'skip', reason: `Matched: ${pat.source}` };
+    }
+  }
+  return { action: 'proceed', reason: '' };
+}
+
+// Send a simple Telegram notification (used for auto-skipped leads)
+async function sendTelegramNotification(env, text) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
+    console.log('Telegram secrets not configured — skipping notification');
+    return;
+  }
+  try {
+    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: env.TELEGRAM_CHAT_ID,
+        text,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (e) {
+    console.error('Failed to send Telegram notification:', e.message);
+  }
+}
+
 // ============ INSTANTLY HANDLER ============
 
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
@@ -220,6 +279,11 @@ function dig(payload, ...keys) {
 function buildGithubPayload(payload) {
   console.log('Payload keys:', Object.keys(payload).join(', '));
   console.log('Name fields:', JSON.stringify({ first_name: payload.first_name, firstName: payload.firstName, last_name: payload.last_name, lastName: payload.lastName, fullName: payload.fullName, full_name: payload.full_name, name: payload.name, 'Full Name': payload['Full Name'] }));
+  // Combine city + state into single `location` field (pipe-separated) to free a payload slot for _meta
+  const city = dig(payload, 'city', 'City', 'lead_city', 'location_city');
+  const state = dig(payload, 'state', 'State', 'lead_state', 'location_state', 'province', 'Province', 'region');
+  const location = city || state ? `${city}|${state}` : '';
+
   const built = {
     event_type: 'interested_lead',
     client_payload: {
@@ -228,13 +292,13 @@ function buildGithubPayload(payload) {
       last_name: dig(payload, 'last_name', 'lastName', 'Last Name', 'last', 'lead_last_name'),
       website: dig(payload, 'website', 'companyUrl', 'company_url', 'Website', 'company_website',
         'lead_website', 'url', 'domain', 'companyDomain', 'company_domain'),
-      city: dig(payload, 'city', 'City', 'lead_city', 'location_city'),
-      state: dig(payload, 'state', 'State', 'lead_state', 'location_state', 'province', 'Province', 'region'),
+      location: location,
       country: dig(payload, 'country', 'Country', 'lead_country', 'location_country', 'country_code'),
       company: dig(payload, 'company', 'companyName', 'company_name', 'Company', 'organization',
         'Organization', 'lead_company', 'lead_company_name'),
       job_title: dig(payload, 'jobTitle', 'job_title', 'title', 'Title', 'lead_title'),
-      linkedin: dig(payload, 'linkedIn', 'linkedin', 'LinkedIn', 'linkedin_url', 'lead_linkedin')
+      linkedin: dig(payload, 'linkedIn', 'linkedin', 'LinkedIn', 'linkedin_url', 'lead_linkedin'),
+      _meta: '' // placeholder — populated during merge/dispatch
     }
   };
 
@@ -299,7 +363,9 @@ function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
   const preferLonger = new Set(['company', 'job_title', 'linkedin']);
+  const skipFields = new Set(['_meta']); // _meta is built at dispatch time, not merged
   for (const field of allFields) {
+    if (skipFields.has(field)) { merged.client_payload[field] = ''; continue; }
     const valA = a.client_payload[field] || '';
     const valB = b.client_payload[field] || '';
     if (preferLonger.has(field) && valA && valB) {
@@ -319,22 +385,56 @@ async function listMergeDispatch(env, email, minSlots) {
 
   if (keys.keys.length < minSlots) return false;
 
-  // Read and merge all slots
+  // Read all slots — separate GitHub payload from extra fields
   let merged = null;
+  let collectedExtra = { _reply_text: '', _campaign_name: '', _phone: '', _timestamp: '' };
+
   for (const key of keys.keys) {
-    const p = await env.WEBHOOK_KV.get(key.name, { type: 'json' });
-    if (p) {
-      merged = merged ? mergePayloads(merged, p) : p;
+    const raw = await env.WEBHOOK_KV.get(key.name, { type: 'json' });
+    if (!raw) continue;
+
+    // Extract _extra before merging (not a GitHub payload field)
+    const extra = raw._extra || {};
+    delete raw._extra;
+
+    // Merge GitHub payload fields
+    merged = merged ? mergePayloads(merged, raw) : raw;
+
+    // Collect extra fields — prefer non-empty values
+    for (const k of Object.keys(collectedExtra)) {
+      if (extra[k] && !collectedExtra[k]) collectedExtra[k] = extra[k];
     }
   }
 
   if (!merged) return false;
 
+  // Run reply classification
+  const replyText = collectedExtra._reply_text;
+  const classification = classifyReply(replyText);
+  console.log(`Reply classification for ${email}: ${classification.action} (${classification.reason || 'no issue'})`);
+
   // Set done flag BEFORE dispatching to prevent other timers from also dispatching
   await env.WEBHOOK_KV.put(`done:${email}`, 'true', { expirationTtl: 300 });
 
-  console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
-  await forwardToGitHub(env, merged);
+  if (classification.action === 'skip') {
+    // Auto-skip: send Telegram notification, don't dispatch to GitHub
+    const preview = replyText.length > 200 ? replyText.slice(0, 200) + '...' : replyText;
+    const msg = `🚫 *AUTO-SKIPPED LEAD*\n\n📧 *Email:* ${email}\n💬 *Reply:*\n\`\`\`\n${preview}\n\`\`\`\n\n📌 *Reason:* ${classification.reason}`;
+    await sendTelegramNotification(env, msg);
+    console.log(`Auto-skipped ${email}: ${classification.reason}`);
+  } else {
+    // Build _meta JSON with extra data (truncate reply to 500 chars)
+    const meta = {
+      reply_text: replyText ? replyText.slice(0, 500) : '',
+      campaign_name: collectedExtra._campaign_name,
+      phone: collectedExtra._phone,
+      timestamp: collectedExtra._timestamp
+    };
+    merged.client_payload._meta = JSON.stringify(meta);
+
+    console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
+    await forwardToGitHub(env, merged);
+  }
 
   // Clean up slot keys
   for (const key of keys.keys) {
@@ -348,8 +448,17 @@ async function handleInstantlyWebhook(env, payload, ctx) {
   const email = payload.lead_email || payload.email || 'unknown';
   const githubPayload = buildGithubPayload(payload);
 
+  // Extract extra fields from raw payload (reply_text comes from workspace webhook)
+  const extraFields = {
+    _reply_text: dig(payload, 'reply_text', 'reply', 'message', 'body', 'text_body', 'email_body') || '',
+    _campaign_name: dig(payload, 'campaign_name', 'campaignName', 'campaign', 'Campaign') || '',
+    _phone: dig(payload, 'phone', 'Phone', 'phone_number', 'lead_phone') || '',
+    _timestamp: payload.timestamp || payload.created_at || new Date().toISOString()
+  };
+
   console.log('RAW INSTANTLY PAYLOAD:', JSON.stringify(payload));
   console.log('BUILT GITHUB PAYLOAD:', JSON.stringify(githubPayload));
+  console.log('EXTRA FIELDS:', JSON.stringify(extraFields));
 
   // Already dispatched for this email? (from a previous webhook pair)
   const dispatched = await env.WEBHOOK_KV.get(`done:${email}`);
@@ -358,9 +467,10 @@ async function handleInstantlyWebhook(env, payload, ctx) {
     return { success: true, message: 'Already dispatched' };
   }
 
-  // Store this webhook under a unique slot key (no overwrites between webhooks)
+  // Store this webhook + extra fields under a unique slot key
+  const slotData = { ...githubPayload, _extra: extraFields };
   const slot = crypto.randomUUID().slice(0, 8);
-  await env.WEBHOOK_KV.put(`wh:${email}|${slot}`, JSON.stringify(githubPayload), { expirationTtl: 120 });
+  await env.WEBHOOK_KV.put(`wh:${email}|${slot}`, JSON.stringify(slotData), { expirationTtl: 120 });
   console.log(`Stored webhook for ${email} in slot ${slot}`);
 
   // Try to merge immediately - if 2+ slots exist, the other webhook already stored
