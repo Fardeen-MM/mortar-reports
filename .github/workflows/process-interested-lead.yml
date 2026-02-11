@@ -577,8 +577,8 @@ jobs:
           RAW_FIRM_NAME="${{ steps.extract.outputs.firm_name }}"
 
           # Clean firm name for folder (PascalCase, no special chars except &)
-          FIRM_FOLDER=$(node -e "
-            const name = '$RAW_FIRM_NAME';
+          FIRM_FOLDER=$(FIRM_NAME_INPUT="$RAW_FIRM_NAME" node -e "
+            const name = process.env.FIRM_NAME_INPUT || '';
             const clean = name
               .replace(/[^a-zA-Z0-9\\s&]/g, '')
               .split(/\\s+/)

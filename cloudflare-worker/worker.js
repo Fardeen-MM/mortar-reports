@@ -319,7 +319,7 @@ async function forwardToGitHub(env, githubPayload) {
 function mergePayloads(a, b) {
   const merged = { event_type: 'interested_lead', client_payload: {} };
   const allFields = new Set([...Object.keys(a.client_payload), ...Object.keys(b.client_payload)]);
-  const preferLonger = new Set(['company', 'job_title', 'linkedin']);
+  const preferLonger = new Set(['first_name', 'last_name', 'company', 'job_title', 'linkedin']);
   const skipFields = new Set(['_meta']); // _meta is built at dispatch time, not merged
   for (const field of allFields) {
     if (skipFields.has(field)) { merged.client_payload[field] = ''; continue; }
@@ -332,6 +332,48 @@ function mergePayloads(a, b) {
     }
   }
   return merged;
+}
+
+// Classify reply text: returns 'negative' for opt-outs, 'positive' otherwise.
+// Strips quoted text before checking.
+function classifyReply(replyText) {
+  if (!replyText) return 'positive';
+  // Strip quoted reply chains (lines starting with > or "On ... wrote:")
+  const stripped = replyText
+    .split('\n')
+    .filter(line => !line.trim().startsWith('>') && !/^On .+ wrote:$/i.test(line.trim()))
+    .join('\n')
+    .trim();
+  if (!stripped) return 'positive';
+  const lower = stripped.toLowerCase();
+  const negativePatterns = [
+    'unsubscribe', 'remove me from', 'stop emailing', 'opt out', 'opt-out',
+    'do not contact', 'take me off', 'remove my email', 'stop contacting',
+    'not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
+    'remove from list', 'remove from your list', 'cease and desist'
+  ];
+  if (negativePatterns.some(p => lower.includes(p))) return 'negative';
+  return 'positive';
+}
+
+// Send a Telegram notification (used for negative replies instead of dispatching)
+async function sendTelegramNotification(env, email, replyText, classification) {
+  const botToken = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) {
+    console.log('No Telegram credentials, skipping notification');
+    return;
+  }
+  const msg = `🔴 *Auto-skipped lead*\n\n*Email:* ${email}\n*Classification:* ${classification}\n\n\`\`\`\n${(replyText || '').slice(0, 300)}\n\`\`\``;
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+    });
+  } catch (e) {
+    console.error('Telegram notification failed:', e.message);
+  }
 }
 
 // Helper: list all webhook slots for an email, merge them, dispatch, and clean up.
@@ -377,6 +419,14 @@ async function listMergeDispatch(env, email, minSlots) {
     timestamp: collectedExtra._timestamp
   };
   merged.client_payload._meta = JSON.stringify(meta);
+
+  // Classify reply — skip negative replies (unsubscribe, opt out, etc.)
+  const replyClass = classifyReply(replyText);
+  if (replyClass === 'negative') {
+    console.log(`NEGATIVE REPLY from ${email}, skipping dispatch`);
+    await sendTelegramNotification(env, email, replyText, replyClass);
+    return true; // Return true so slots get cleaned up
+  }
 
   console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
   await forwardToGitHub(env, merged);

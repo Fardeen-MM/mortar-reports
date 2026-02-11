@@ -1337,6 +1337,7 @@ function deterministicQC(html, research) {
   score = Math.max(0, Math.min(10, Math.round(score * 2) / 2));
 
   // 14. OVERALL "WOULD YOU BOOK?" FLAG
+  // Three criteria: QC score, compelling numbers, AND personalization quality
   const opportunityThreshold = Math.round((isUK ? 70000 : 100000) * countryBaseline);
   let totalOppLow = 0;
   if (roiHeroMatch) {
@@ -1348,14 +1349,42 @@ function deterministicQC(html, research) {
     }
   }
 
-  const wouldBook = score >= 8 && totalOppLow >= opportunityThreshold;
+  // Personalization check: report must show we actually researched this firm
+  const personalizationFlags = [];
+  const htmlEscFirm = (firmName || '').replace(/&/g, '&amp;');
+  const fNameRe = firmName ? new RegExp(firmName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
+  const fNameEscRe = htmlEscFirm ? new RegExp(htmlEscFirm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
+  const firmMentions = (fNameRe ? (text.match(fNameRe) || []).length : 0) + (fNameEscRe ? (text.match(fNameEscRe) || []).length : 0);
+  if (firmMentions < 3) personalizationFlags.push('firm name < 3 mentions');
+  if (cityName && cityName.length > 2) {
+    const cRe = new RegExp(cityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    if ((text.match(cRe) || []).length < 2) personalizationFlags.push('city < 2 mentions');
+  }
+  if (fallbackCount >= 2) personalizationFlags.push('using fallback template prose');
+  // Check for card insights (research-backed lines inside revenue cards)
+  const hasInsights = /class="revenue-card-insight"/.test(html);
+  if (!hasInsights) personalizationFlags.push('no card insights from research');
+  // Check competitor review data is real
+  const compReviewMatches = html.match(/(\d[\d,]*)\s*reviews/g) || [];
+  const allZeroReviews = compReviewMatches.length > 0 && compReviewMatches.every(m => /^0\s/.test(m));
+  if (allZeroReviews) personalizationFlags.push('all competitor reviews showing 0');
+
+  const isPersonalized = personalizationFlags.length === 0;
+  const wouldBook = score >= 8 && totalOppLow >= opportunityThreshold && isPersonalized;
+
+  if (personalizationFlags.length > 0) {
+    issues.push({ severity: 'IMPORTANT', category: 'PERSONALIZATION', issue: `Would-book check failed: ${personalizationFlags.join(', ')}` });
+  }
+
   let verdict;
   if (score >= 9 && wouldBook) {
     verdict = 'Clean report, ready to send.';
   } else if (score >= 8 && wouldBook) {
     verdict = 'Minor issues but presentable.';
-  } else if (score >= 8 && !wouldBook) {
+  } else if (score >= 8 && !wouldBook && isPersonalized) {
     verdict = 'Numbers might not be compelling enough to close.';
+  } else if (score >= 8 && !isPersonalized) {
+    verdict = `Report lacks personalization: ${personalizationFlags.join(', ')}`;
   } else {
     verdict = 'Report has quality issues that need attention.';
   }
