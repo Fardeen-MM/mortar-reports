@@ -199,8 +199,9 @@ async function handleTelegramCallback(env, update) {
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
 // One has lead data (website, company, city), the other has email data (email_id, from_email).
 // Each webhook stores to a unique slot key (wh:<email>|<random>), then does KV.list()
-// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise, a 30s
-// fallback timer does the same list+merge in case the second webhook never arrives.
+// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise:
+//   1. A 20s waitUntil fallback tries to dispatch (best-effort)
+//   2. A cron trigger runs every minute as a safety net for orphaned slots
 
 // Helper: dig into nested objects (payload.lead, payload.contact, etc.)
 function dig(payload, ...keys) {
@@ -409,16 +410,21 @@ async function handleInstantlyWebhook(env, payload, ctx) {
   }
 
   // Only one slot found - schedule fallback timer for when second webhook never comes
+  // 20s (not 30s) to leave headroom for KV reads + GitHub API within waitUntil limit
   ctx.waitUntil(
-    new Promise(resolve => setTimeout(resolve, 30_000)).then(async () => {
-      const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
-      if (alreadyDone) {
-        console.log(`Fallback timer: ${email} already dispatched`);
-        return;
-      }
+    new Promise(resolve => setTimeout(resolve, 20_000)).then(async () => {
+      try {
+        const alreadyDone = await env.WEBHOOK_KV.get(`done:${email}`);
+        if (alreadyDone) {
+          console.log(`Fallback timer: ${email} already dispatched`);
+          return;
+        }
 
-      console.log(`Fallback timer: dispatching whatever we have for ${email}`);
-      await listMergeDispatch(env, email, 1);
+        console.log(`Fallback timer: dispatching whatever we have for ${email}`);
+        await listMergeDispatch(env, email, 1);
+      } catch (e) {
+        console.error(`Fallback timer error for ${email}:`, e.message);
+      }
     })
   );
 
@@ -428,6 +434,41 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 // ============ MAIN HANDLER ============
 
 export default {
+  // Cron safety net: dispatch any orphaned webhook slots that the waitUntil fallback missed
+  async scheduled(event, env, ctx) {
+    try {
+      const allKeys = await env.WEBHOOK_KV.list({ prefix: 'wh:' });
+      if (allKeys.keys.length === 0) return;
+
+      // Group slot keys by email
+      const byEmail = {};
+      for (const key of allKeys.keys) {
+        const match = key.name.match(/^wh:([^|]+)\|/);
+        if (match) {
+          const email = match[1];
+          if (!byEmail[email]) byEmail[email] = [];
+          byEmail[email].push(key);
+        }
+      }
+
+      for (const email of Object.keys(byEmail)) {
+        const done = await env.WEBHOOK_KV.get(`done:${email}`);
+        if (done) {
+          // Already dispatched — clean up stale slots
+          for (const key of byEmail[email]) {
+            await env.WEBHOOK_KV.delete(key.name);
+          }
+          continue;
+        }
+
+        console.log(`Cron: dispatching orphaned slot(s) for ${email}`);
+        await listMergeDispatch(env, email, 1);
+      }
+    } catch (e) {
+      console.error('Cron sweep error:', e.message);
+    }
+  },
+
   async fetch(request, env, ctx) {
     // Debug endpoint: GET /debug - shows last raw Instantly payloads stored in KV
     if (request.method === 'GET') {
