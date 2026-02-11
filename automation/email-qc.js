@@ -1,9 +1,10 @@
 /**
  * Email QC - Deterministic quality checks for outgoing emails
- * No AI calls. Returns warnings only, never blocks sending.
+ * Returns { passed, errors, warnings } where errors block sending and warnings are info only.
  */
 
 function validateEmail(emailContent, context) {
+  const errors = [];
   const warnings = [];
   const { subject, body, html } = emailContent || {};
   const {
@@ -15,23 +16,49 @@ function validateEmail(emailContent, context) {
     practiceLabel = ''
   } = context || {};
 
-  // 1. Em dashes
   const allText = `${body || ''}${html || ''}`;
-  if (/\u2014|—|&mdash;/.test(allText)) {
-    warnings.push('Em dash found in email body or HTML');
+
+  // === ERRORS (block send) ===
+
+  // Empty/invalid report URL
+  if (!reportUrl || reportUrl.trim() === '') {
+    errors.push('Report URL is empty');
+  } else if (!reportUrl.startsWith('https://reports.mortarmetrics.com/')) {
+    errors.push(`Report URL invalid: "${reportUrl}"`);
+  } else if (/\s/.test(reportUrl)) {
+    errors.push('Report URL contains spaces');
   }
 
-  // 2. Placeholders
-  if (/\{\{|\}\}|\[TODO\]|undefined|(?<!\w)null(?!\w)|(?<!\w)NaN(?!\w)/.test(allText)) {
-    warnings.push('Placeholder or undefined/null/NaN found in email');
+  // Empty body
+  if (!body || body.trim().length === 0) {
+    errors.push('Email body is empty');
   }
 
-  // 3. Encoding issues (mojibake)
+  // Broken content
+  if (/\{\{|\}\}/.test(allText)) {
+    errors.push('Unresolved template placeholder ({{ }}) in email');
+  }
+  if (/\[TODO\]/i.test(allText)) {
+    errors.push('[TODO] placeholder found in email');
+  }
+  if (/(?<!\w)undefined(?!\w)/i.test(allText)) {
+    errors.push('"undefined" found in email content');
+  }
+  if (/(?<!\w)null(?!\w)/.test(allText)) {
+    errors.push('"null" found in email content');
+  }
+  if (/(?<!\w)NaN(?!\w)/.test(allText)) {
+    errors.push('"NaN" found in email content');
+  }
+
+  // Encoding corruption (mojibake)
   if (/Â£|Â|â€"|â€™|â€œ|â€/.test(allText)) {
-    warnings.push('Encoding issue (mojibake) detected in email');
+    errors.push('Encoding corruption (mojibake) detected');
   }
 
-  // 4. Contact name checks
+  // === WARNINGS (info only) ===
+
+  // Generic contact name
   if (!contactName || contactName.trim() === '') {
     warnings.push('Contact name is empty');
   } else {
@@ -42,29 +69,14 @@ function validateEmail(emailContent, context) {
     if (name === name.toUpperCase() && name.length > 2) {
       warnings.push(`Contact name is all-caps: "${name}"`);
     }
-    if (name.length < 2 || name.length > 50) {
-      warnings.push(`Contact name length out of range (${name.length} chars): "${name}"`);
-    }
   }
 
-  // 5. Report URL
-  if (!reportUrl || reportUrl.trim() === '') {
-    warnings.push('Report URL is empty');
-  } else {
-    if (!reportUrl.startsWith('https://reports.mortarmetrics.com/')) {
-      warnings.push(`Report URL doesn't start with https://reports.mortarmetrics.com/: "${reportUrl}"`);
-    }
-    if (/\s/.test(reportUrl)) {
-      warnings.push('Report URL contains spaces');
-    }
-  }
-
-  // 6. Personalization
+  // No personalization data
   if (!totalRange && !totalCases && !practiceLabel) {
     warnings.push('No personalization data (totalRange, totalCases, practiceLabel all missing)');
   }
 
-  // 7. Firm name
+  // Generic firm name
   if (!firmName || firmName.trim() === '') {
     warnings.push('Firm name is empty');
   } else {
@@ -74,21 +86,14 @@ function validateEmail(emailContent, context) {
     }
   }
 
-  // 8. Body length
-  if (body) {
-    const len = body.trim().length;
-    if (len < 100) {
-      warnings.push(`Email body too short (${len} chars, min 100)`);
-    }
-    if (len > 1000) {
-      warnings.push(`Email body too long (${len} chars, max 1000)`);
-    }
-  } else {
-    warnings.push('Email body is empty');
+  // Body too long
+  if (body && body.trim().length > 1000) {
+    warnings.push(`Email body long (${body.trim().length} chars)`);
   }
 
   return {
-    passed: warnings.length === 0,
+    passed: errors.length === 0,
+    errors,
     warnings
   };
 }
