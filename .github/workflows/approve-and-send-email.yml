@@ -56,6 +56,7 @@ jobs:
           RD_TOTAL_CASES: ${{ github.event.client_payload.total_cases }}
           RD_PRACTICE_LABEL: ${{ github.event.client_payload.practice_label }}
           RD_COUNTRY: ${{ github.event.client_payload.country }}
+          RD_SKIP_EMAIL: ${{ github.event.client_payload.skip_email }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -68,6 +69,7 @@ jobs:
             echo "total_cases=" >> $GITHUB_OUTPUT
             echo "practice_label=" >> $GITHUB_OUTPUT
             echo "country=" >> $GITHUB_OUTPUT
+            echo "skip_email=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -79,6 +81,7 @@ jobs:
             echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
             echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
             echo "country=$RD_COUNTRY" >> $GITHUB_OUTPUT
+            echo "skip_email=$RD_SKIP_EMAIL" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -176,6 +179,7 @@ jobs:
           }
 
       - name: Send approved email
+        if: steps.inputs.outputs.skip_email != 'true'
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}

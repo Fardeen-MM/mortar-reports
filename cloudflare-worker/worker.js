@@ -39,7 +39,7 @@ async function editMessage(botToken, chatId, messageId, newText) {
   return response.json();
 }
 
-async function triggerGitHubWorkflow(githubToken, approvalData) {
+async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = false) {
   const payload = {
     event_type: 'send_approved_email',
     client_payload: {
@@ -49,10 +49,10 @@ async function triggerGitHubWorkflow(githubToken, approvalData) {
       contact_name: approvalData.contact_name,
       report_url: approvalData.report_url,
       country: approvalData.country || '',
-      from_email: approvalData.from_email || 'fardeen@mortarmetrics.com',
       total_range: approvalData.total_range || '',
       total_cases: approvalData.total_cases || '',
-      practice_label: approvalData.practice_label || ''
+      practice_label: approvalData.practice_label || '',
+      skip_email: skipEmail ? 'true' : ''
     }
   };
 
@@ -159,12 +159,22 @@ async function handleTelegramCallback(env, update) {
   const chatId = callback_query.message.chat.id;
   const messageId = callback_query.message.message_id;
 
-  if (action === 'approve') {
+  if (action === 'approve' || action === 'approve_no_email') {
+    const skipEmail = action === 'approve_no_email';
     try {
-      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending email...', false);
-      await triggerGitHubWorkflow(env.GITHUB_TOKEN, approvalData);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id,
+        skipEmail ? 'Deploying report...' : 'Sending email...', false);
+      await triggerGitHubWorkflow(env.GITHUB_TOKEN, approvalData, skipEmail);
 
-      const successText = `✅ *APPROVED & SENT*
+      const successText = skipEmail
+        ? `✅ *APPROVED (No Email)*
+
+📊 *Firm:* ${approvalData.firm_name}
+👤 *Contact:* ${approvalData.contact_name}
+🔗 *Report:* ${approvalData.report_url}
+
+📄 *Report deployed — no email sent.*`
+        : `✅ *APPROVED & SENT*
 
 📊 *Firm:* ${approvalData.firm_name}
 👤 *Contact:* ${approvalData.contact_name}
@@ -174,11 +184,11 @@ async function handleTelegramCallback(env, update) {
 ✉️ *Email send triggered via GitHub Actions!*`;
 
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId, successText);
-      console.log('Approval processed successfully');
+      console.log(`Approval processed successfully (skipEmail=${skipEmail})`);
     } catch (err) {
-      console.error('Failed to trigger email:', err.message);
+      console.error('Failed to trigger workflow:', err.message);
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
-        `❌ *ERROR*\n\nFailed to trigger email: ${err.message}`);
+        `❌ *ERROR*\n\nFailed to trigger workflow: ${err.message}`);
     }
   } else if (action === 'reject') {
     await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Rejected', false);
