@@ -10,8 +10,8 @@
   "reply_text": "Hi Yeseer,  I would be interested in considering this, although it seems too good to be true.  Sincerely,  David J. Brennan, Jr.,* Esq., LLM (Tax), Partner Moffa, Sutton, & Donnini, P.A. *Licensed to Practice in Florida & Washington, D.C. Office:   (850) 250-3830 Fax:       (866) 388-3029 Email:   DavidBrennan@FloridaSalesTax.com<mailto:DavidBrennan@FloridaSalesTax.com> 3500 Financial Plaza, Suite 330 Tallahassee, FL 32312 http://www.FloridaSalesTax.com<http://www.floridasalestax.com/> http://ww",
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "15042324964",
-  "created_at": "2026-02-11T18:40:07.951Z",
-  "status": "approved",
+  "created_at": "2026-02-11T19:46:19.023Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "1",
@@ -27,6 +27,5 @@
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
-  },
-  "approved_at": "2026-02-11T18:49:38.536Z"
+  }
 }
