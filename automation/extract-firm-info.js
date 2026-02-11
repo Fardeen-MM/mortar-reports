@@ -50,10 +50,11 @@ REQUIRED FIELDS (extract these with 100% certainty or return null):
 6b. **practiceAreaCategory** - Pick the ONE best-fitting category from this EXACT list:
    "divorce", "personal injury", "immigration", "criminal", "estate", "business",
    "bankruptcy", "employment", "tax", "landlord", "real estate", "ip",
-   "medical malpractice", "workers comp", "default"
+   "medical malpractice", "workers comp", "agricultural", "default"
    Rules:
    - "divorce" covers ALL family law: divorce, custody, prenups, postnups, matrimonial, separation, cohabitation agreements, family mediation
    - "estate" covers wills, trusts, probate, elder law
+   - "agricultural" covers farm law, ranching, ag estate planning, water rights, USDA compliance
    - "default" ONLY if the firm genuinely doesn't fit any category
    - Pick based on the firm's PRIMARY focus, not every area they mention
    - Return the EXACT string from the list above, nothing else

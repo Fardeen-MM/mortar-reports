@@ -448,6 +448,54 @@ Return ONLY valid JSON:
 }
 
 /**
+ * Score competitor relevance to the target practice area.
+ * Higher score = more relevant competitor to show in the report.
+ */
+function scoreCompetitorRelevance(placeName, practiceArea, reviews) {
+  let score = 0;
+  const nameLower = (placeName || '').toLowerCase();
+  const pa = (practiceArea || '').toLowerCase();
+
+  // Practice area keyword maps
+  const practiceKeywords = {
+    'estate': ['estate', 'trust', 'probate', 'wills', 'elder'],
+    'agricultural': ['farm', 'ranch', 'ag ', 'agricultural', 'rural'],
+    'personal injury': ['injury', 'accident', 'negligence', 'tort'],
+    'divorce': ['family', 'divorce', 'custody', 'matrimonial'],
+    'criminal': ['criminal', 'defense', 'dui', 'felony'],
+    'immigration': ['immigration', 'visa', 'asylum', 'citizenship'],
+    'business': ['business', 'corporate', 'commercial', 'transactional'],
+    'bankruptcy': ['bankruptcy', 'debt', 'creditor'],
+    'tax': ['tax', 'irs', 'revenue'],
+    'employment': ['employment', 'labor', 'workplace', 'discrimination'],
+  };
+
+  // +3 if name contains keywords for THIS practice area
+  const myKeywords = practiceKeywords[pa] || [];
+  if (myKeywords.some(kw => nameLower.includes(kw))) score += 3;
+
+  // +1 if name contains "law/legal/attorney" (confirms it's a law firm)
+  if (/\b(law|legal|attorney|solicitor|lawyer)\b/i.test(nameLower)) score += 1;
+
+  // -2 if name contains keywords for a DIFFERENT practice area
+  for (const [area, keywords] of Object.entries(practiceKeywords)) {
+    if (area === pa) continue;
+    if (keywords.some(kw => nameLower.includes(kw))) {
+      score -= 2;
+      break;
+    }
+  }
+
+  // -1 if reviews > 500 (mega firm, probably different niche)
+  if (reviews > 500) score -= 1;
+
+  // +1 if reviews 10-200 (relatable competitor)
+  if (reviews >= 10 && reviews <= 200) score += 1;
+
+  return score;
+}
+
+/**
  * COMPETITOR SEARCH - Uses Google Places API for REAL competitor data
  *
  * Searches Google Maps for law firms matching the practice area and location.
@@ -477,7 +525,8 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
     'estate planning': 'wills trusts',
     'real estate': 'property transaction closing',
     'family': 'divorce custody child support',
-    'criminal': 'defense DUI felony'
+    'criminal': 'defense DUI felony',
+    'agricultural': 'farm ranch USDA'
   };
   const practiceAreaLower = practiceArea.toLowerCase();
   const modifier = disambiguationMap[practiceAreaLower] || '';
@@ -501,7 +550,7 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
       return [];
     }
 
-    // Filter out the target firm and wrong-category results, then get top 3 competitors
+    // Filter out the target firm and wrong-category results, score by relevance, take top 3
     const competitors = results.results
       .filter(place => {
         // Exclude the target firm itself (normalize punctuation for reliable matching)
@@ -511,6 +560,8 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
         if (placeNorm.includes(targetNorm) || targetNorm.includes(placeNorm)) {
           return false;
         }
+
+        const placeName = (place.name || '').toLowerCase();
 
         // Estate planning should NOT include real estate firms
         if (practiceAreaLower.includes('estate planning') || practiceAreaLower === 'estate') {
@@ -530,6 +581,11 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
 
         return true;
       })
+      .map(place => ({
+        ...place,
+        _relevanceScore: scoreCompetitorRelevance(place.name, practiceAreaLower, place.user_ratings_total || 0)
+      }))
+      .sort((a, b) => b._relevanceScore - a._relevanceScore)
       .slice(0, 3)
       .map(place => ({
         name: place.name,
@@ -856,6 +912,13 @@ function getSearchTerms(practiceArea, city, state, country) {
       'title lawyer',
       'real estate transaction attorney'
     ],
+    'agricultural': [
+      'agricultural lawyer near me',
+      `farm attorney ${location}`,
+      'ranch law attorney',
+      `agricultural estate planning ${location}`,
+      'USDA compliance lawyer'
+    ],
     'default': [
       'lawyer near me',
       `attorney ${location}`,
@@ -904,5 +967,6 @@ module.exports = {
   checkGoogleAds,
   checkMetaAds,
   enrichCompetitorWithAds,
-  getSearchTerms
+  getSearchTerms,
+  scoreCompetitorRelevance
 };

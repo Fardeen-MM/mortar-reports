@@ -1130,7 +1130,12 @@ function deterministicQC(html, research) {
     if (totalLowMatch) {
       let totalLow = parseFloat(totalLowMatch[1].replace(/,/g, ''));
       if (totalText.includes('K') || totalText.includes('k')) totalLow *= 1000;
-      const baseThreshold = isUK ? 70000 : 100000;
+      const lowValuePractices = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural'];
+      const practiceAreaVal = research.practiceArea || research.practice_area || research.practiceAreaCategory || '';
+      const isLowValue = lowValuePractices.includes(practiceAreaVal.toLowerCase());
+      const baseThreshold = isUK
+        ? (isLowValue ? 35000 : 70000)
+        : (isLowValue ? 50000 : 100000);
       const threshold = Math.round(baseThreshold * countryBaseline);
       const thresholdLabel = `${expectedCurrency}${Math.round(threshold / 1000)}K`;
       if (totalLow < threshold) {
@@ -1533,12 +1538,64 @@ function deterministicQC(html, research) {
     }
   }
 
+  // 29. CREDIBILITY_CASE_VOLUME — flag if total cases exceed practice-area max
+  const casesMatch = html.match(/≈\s*(\d+)\s*new signed cases every month/);
+  if (casesMatch) {
+    const totalCasesReported = parseInt(casesMatch[1]);
+    const practiceAreaCV = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
+    const maxCasesMap = {
+      'estate': 20, 'agricultural': 20, 'ip': 15, 'medical malpractice': 12,
+      'business': 25, 'personal injury': 35, 'divorce': 40, 'criminal': 40,
+      'immigration': 45, 'tax': 25, 'bankruptcy': 30, 'employment': 25,
+      'landlord': 30, 'default': 30
+    };
+    const maxCases = maxCasesMap[practiceAreaCV] || maxCasesMap['default'];
+    if (totalCasesReported > maxCases) {
+      issues.push({
+        severity: 'IMPORTANT', category: 'CREDIBILITY',
+        issue: `Total cases (${totalCasesReported}/mo) exceeds believable max for ${practiceAreaCV || 'this practice'} (${maxCases}/mo)`
+      });
+      score -= 1;
+    }
+  }
+
+  // 30. COMPETITOR_MISMATCH — competitor names suggest wrong practice area
+  const practiceAreaCM = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
+  const mismatchKeywords = {
+    'estate': ['injury', 'accident', 'criminal', 'dui', 'immigration'],
+    'agricultural': ['injury', 'accident', 'criminal', 'dui', 'immigration', 'divorce'],
+    'personal injury': ['estate planning', 'probate', 'trust', 'immigration', 'farm'],
+    'immigration': ['injury', 'accident', 'estate planning', 'probate'],
+    'divorce': ['injury', 'accident', 'immigration', 'bankruptcy'],
+    'criminal': ['injury', 'estate planning', 'immigration', 'divorce'],
+    'business': ['injury', 'criminal', 'dui', 'immigration', 'divorce'],
+  };
+  const badKeywords = mismatchKeywords[practiceAreaCM] || [];
+  if (badKeywords.length > 0) {
+    for (const comp of (research.competitors || [])) {
+      const compLower = (comp.name || '').toLowerCase();
+      const matchedBad = badKeywords.find(kw => compLower.includes(kw));
+      if (matchedBad) {
+        issues.push({
+          severity: 'MINOR', category: 'CREDIBILITY',
+          issue: `Competitor "${comp.name}" contains "${matchedBad}" — may not be a ${practiceAreaCM} firm`
+        });
+        break; // only flag once
+      }
+    }
+  }
+
   // Clamp score
   score = Math.max(0, Math.min(10, Math.round(score * 2) / 2));
 
   // 14. OVERALL "WOULD YOU BOOK?" FLAG
   // Three criteria: QC score, compelling numbers, AND personalization quality
-  const opportunityThreshold = Math.round((isUK ? 70000 : 100000) * countryBaseline);
+  const lowValuePracticesWB = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural'];
+  const practiceAreaWB = research.practiceArea || research.practice_area || research.practiceAreaCategory || '';
+  const isLowValueWB = lowValuePracticesWB.includes(practiceAreaWB.toLowerCase());
+  const opportunityThreshold = Math.round((isUK
+    ? (isLowValueWB ? 35000 : 70000)
+    : (isLowValueWB ? 50000 : 100000)) * countryBaseline);
   let totalOppLow = 0;
   if (roiHeroMatch) {
     const tt = roiHeroMatch[1].trim();

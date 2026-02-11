@@ -20,6 +20,13 @@
  *   - Timeline strip, "Your only job" box, confidence cards
  *   - Floating CTA button
  *   - Boosted min floors: $55K/$80K, $38K/$56K, $17K/$30K (US base)
+ *
+ * V8 changes (2026-02-11):
+ *   - Population-scaled base volumes (POPULATION_TIERS, not flat 880/65K/85)
+ *   - Practice-area-specific floors + case caps (PRACTICE_ECONOMICS)
+ *   - Agricultural law category with firm-name signal detection
+ *   - Strong firm-name signals checked BEFORE AI classification (Level 0)
+ *   - Feature flags: USE_POPULATION_SCALING, USE_PRACTICE_FLOORS
  */
 
 const fs = require('fs');
@@ -55,6 +62,7 @@ const CASE_VALUES = {
   'landlord': { low: 4000, high: 6500 },
   'medical malpractice': { low: 15000, high: 25000 },
   'workers comp': { low: 7500, high: 12500 },
+  'agricultural': { low: 6000, high: 10000 },
   'default': { low: 4500, high: 7000 }
 };
 
@@ -74,8 +82,71 @@ const CASE_VALUES_GBP = {
   'ip': { low: 5500, high: 10000 },
   'landlord': { low: 3000, high: 5000 },
   'medical malpractice': { low: 10000, high: 19000 },
+  'agricultural': { low: 4500, high: 8000 },
   'default': { low: 3000, high: 5500 }
 };
+
+// Feature flags (disable with env vars for A/B testing)
+const USE_POPULATION_SCALING = process.env.USE_POPULATION_SCALING !== 'false';
+const USE_PRACTICE_FLOORS = process.env.USE_PRACTICE_FLOORS !== 'false';
+
+// Population tiers - metro area sizes determine base search/audience/call volumes
+const POPULATION_TIERS = {
+  mega:  { searches: 1400, audience: 110000, calls: 130 },  // 5M+ (NYC, LA, Chicago)
+  major: { searches: 1000, audience: 80000,  calls: 100 },  // 1.5M-5M (Phoenix, Seattle, Miami)
+  mid:   { searches: 700,  audience: 50000,  calls: 75 },   // 500K-1.5M (Memphis, Raleigh)
+  small: { searches: 450,  audience: 30000,  calls: 55 },   // 150K-500K (Lincoln, Boise)
+  micro: { searches: 220,  audience: 15000,  calls: 30 },   // <150K
+};
+
+const CITY_POPULATION_TIER = {
+  // Mega (5M+)
+  'new york': 'mega', 'los angeles': 'mega', 'chicago': 'mega', 'dallas': 'mega',
+  'houston': 'mega', 'toronto': 'mega', 'london': 'mega', 'sydney': 'mega',
+  // Major (1.5M-5M)
+  'phoenix': 'major', 'philadelphia': 'major', 'san diego': 'major', 'san jose': 'major',
+  'austin': 'major', 'san francisco': 'major', 'seattle': 'major', 'denver': 'major',
+  'boston': 'major', 'nashville': 'major', 'portland': 'major', 'las vegas': 'major',
+  'vancouver': 'major', 'montreal': 'major', 'melbourne': 'major', 'atlanta': 'major',
+  'miami': 'major', 'minneapolis': 'major', 'tampa': 'major', 'orlando': 'major',
+  'irvine': 'major', 'san antonio': 'major',
+  // Mid (500K-1.5M)
+  'memphis': 'mid', 'louisville': 'mid', 'richmond': 'mid', 'new orleans': 'mid',
+  'raleigh': 'mid', 'salt lake city': 'mid', 'manchester': 'mid', 'birmingham': 'mid',
+  'leeds': 'mid', 'glasgow': 'mid', 'calgary': 'mid', 'ottawa': 'mid', 'brisbane': 'mid',
+  'cleveland': 'mid', 'pittsburgh': 'mid',
+  // Small (explicit)
+  'lincoln': 'small', 'boise': 'small', 'sioux falls': 'small', 'des moines': 'small',
+};
+
+function getPopulationTier(city) {
+  const c = (city || '').toLowerCase().trim();
+  return POPULATION_TIERS[CITY_POPULATION_TIER[c] || 'small'];
+}
+
+// Practice economics: max case caps + floor multipliers per practice area
+const PRACTICE_ECONOMICS = {
+  'personal injury':     { maxCasesPerGap: 12, floorMultiplier: 1.0 },
+  'medical malpractice': { maxCasesPerGap: 6,  floorMultiplier: 0.8 },
+  'divorce':             { maxCasesPerGap: 15, floorMultiplier: 1.0 },
+  'family':              { maxCasesPerGap: 15, floorMultiplier: 1.0 },
+  'immigration':         { maxCasesPerGap: 18, floorMultiplier: 1.0 },
+  'criminal':            { maxCasesPerGap: 15, floorMultiplier: 1.0 },
+  'estate':              { maxCasesPerGap: 8,  floorMultiplier: 0.7 },
+  'tax':                 { maxCasesPerGap: 10, floorMultiplier: 0.8 },
+  'business':            { maxCasesPerGap: 10, floorMultiplier: 0.9 },
+  'agricultural':        { maxCasesPerGap: 8,  floorMultiplier: 0.7 },
+  'bankruptcy':          { maxCasesPerGap: 12, floorMultiplier: 0.9 },
+  'employment':          { maxCasesPerGap: 10, floorMultiplier: 0.9 },
+  'landlord':            { maxCasesPerGap: 12, floorMultiplier: 0.9 },
+  'real estate':         { maxCasesPerGap: 10, floorMultiplier: 0.9 },
+  'ip':                  { maxCasesPerGap: 6,  floorMultiplier: 0.8 },
+  'workers comp':        { maxCasesPerGap: 10, floorMultiplier: 0.9 },
+  'default':             { maxCasesPerGap: 12, floorMultiplier: 1.0 },
+};
+
+// Floor base cases per gap channel (used with floorMultiplier)
+const GAP_FLOOR_BASE_CASES = { gap1: 10, gap2: 6, gap3: 4 };
 
 // Client labels by practice area (used in fallback prose)
 const CLIENT_LABELS = {
@@ -86,6 +157,7 @@ const CLIENT_LABELS = {
   'immigration': { singular: 'immigrant', plural: 'immigrants' },
   'criminal': { singular: 'defendant', plural: 'defendants' },
   'estate': { singular: 'family member', plural: 'family members' },
+  'agricultural': { singular: 'farmer', plural: 'farmers' },
   'business': { singular: 'business owner', plural: 'business owners' },
   'bankruptcy': { singular: 'debtor', plural: 'debtors' },
   'tax': { singular: 'taxpayer', plural: 'taxpayers' },
@@ -98,6 +170,7 @@ const ATTORNEY_TYPES = {
   'personal injury': 'personal injury', 'immigration': 'immigration',
   'criminal': 'criminal defense', 'estate': 'estate planning',
   'business': 'business', 'bankruptcy': 'bankruptcy', 'employment': 'employment',
+  'agricultural': 'agricultural',
   'default': ''
 };
 
@@ -114,6 +187,7 @@ const FUNNEL_EXAMPLES = {
   'bankruptcy': { guide: 'Debt Relief Options in {city}', topics: 'Chapter 7, Chapter 13, and alternatives' },
   'employment': { guide: 'Know Your Workplace Rights in {city}', topics: 'wrongful termination and discrimination' },
   'landlord': { guide: 'Landlord Rights in {city}', topics: 'eviction procedures and tenant disputes' },
+  'agricultural': { guide: 'Farm & Ranch Legal Planning in {city}', topics: 'agricultural estate planning, land transfers, and USDA compliance' },
   'default': { guide: 'Your Legal Rights in {city}', topics: 'legal options and next steps' }
 };
 
@@ -145,8 +219,10 @@ function calculateAdSpend(totalLow, countryBaseline, currency) {
 /**
  * Case count per card
  */
-function calculateCardCases(cardLow, caseValueLow) {
-  return Math.max(1, Math.round(cardLow / caseValueLow));
+function calculateCardCases(cardLow, caseValueLow, practiceArea) {
+  const econ = PRACTICE_ECONOMICS[practiceArea] || PRACTICE_ECONOMICS['default'];
+  const raw = Math.max(1, Math.round(cardLow / caseValueLow));
+  return USE_PRACTICE_FLOORS ? Math.min(raw, econ.maxCasesPerGap) : raw;
 }
 
 /**
@@ -552,9 +628,9 @@ async function generateReport(researchData, prospectName) {
   const caseValueTable = isUK ? CASE_VALUES_GBP : CASE_VALUES;
   const caseValues = caseValueTable[practiceArea] || caseValueTable['default'];
 
-  const gap1 = calculateGap1(marketMultiplier, caseValues, countryBaseline, currency);
-  const gap2 = calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency);
-  const gap3 = calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency);
+  const gap1 = calculateGap1(marketMultiplier, caseValues, countryBaseline, currency, city, practiceArea);
+  const gap2 = calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency, practiceArea);
+  const gap3 = calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency, city, practiceArea);
 
   const totalLow = gap1.low + gap2.low + gap3.low;
   const totalHigh = gap1.high + gap2.high + gap3.high;
@@ -564,9 +640,9 @@ async function generateReport(researchData, prospectName) {
   const netLow = totalLow - adSpend;
   const netHigh = totalHigh - adSpend;
   const annual = calculateAnnual(netLow, netHigh);
-  const card1Cases = calculateCardCases(gap1.low, caseValues.low);
-  const card2Cases = calculateCardCases(gap2.low, caseValues.low);
-  const card3Cases = calculateCardCases(gap3.low, caseValues.low);
+  const card1Cases = calculateCardCases(gap1.low, caseValues.low, practiceArea);
+  const card2Cases = calculateCardCases(gap2.low, caseValues.low, practiceArea);
+  const card3Cases = calculateCardCases(gap3.low, caseValues.low, practiceArea);
   const totalCases = card1Cases + card2Cases + card3Cases;
 
   console.log(`💰 Gap ranges: ${currency}${formatRange(gap1.low, gap1.high)} + ${currency}${formatRange(gap2.low, gap2.high)} + ${currency}${formatRange(gap3.low, gap3.high)}`);
@@ -1186,6 +1262,24 @@ function sanitizeCompetitorName(name) {
 }
 
 function detectPracticeArea(practiceAreas, researchData) {
+  // Level 0: Strong firm-name signals (unambiguous practice area in name)
+  const firmNameLower = (researchData.firmName || '').toLowerCase();
+  const strongSignals = [
+    { pattern: /\bag(ricult\w*)?\b/i, category: 'agricultural' },
+    { pattern: /\bfarm\b/i, category: 'agricultural' },
+    { pattern: /\branch\b/i, category: 'agricultural' },
+    { pattern: /\binjury\b/i, category: 'personal injury' },
+    { pattern: /\bimmigration\b/i, category: 'immigration' },
+    { pattern: /\bbankruptcy\b/i, category: 'bankruptcy' },
+    { pattern: /\bdui\b/i, category: 'criminal' },
+  ];
+  for (const { pattern, category } of strongSignals) {
+    if (pattern.test(firmNameLower)) {
+      console.log(`   Practice area (firm name signal): ${category}`);
+      return category;
+    }
+  }
+
   const aiCategory = researchData.practiceAreaCategory
     || researchData.practice?.practiceAreaCategory;
   if (aiCategory && aiCategory !== 'default') {
@@ -1217,16 +1311,12 @@ function detectPracticeArea(practiceAreas, researchData) {
     const category = getPracticeAreaCategory(service);
     if (category !== 'default') return category;
   }
-  const firmNameLower = (researchData.firmName || '').toLowerCase();
+  // Level 7: Firm name substring checks (Level 0 handles strong signals, these catch remaining)
   if (firmNameLower.includes('family') || firmNameLower.includes('divorce') || firmNameLower.includes('prenup') || firmNameLower.includes('matrimonial')) return 'divorce';
-  if (firmNameLower.includes('injury') || firmNameLower.includes('accident')) return 'personal injury';
-  if (firmNameLower.includes('immigration')) return 'immigration';
-  if (firmNameLower.includes('criminal') || firmNameLower.includes('defense')) return 'criminal';
   if (firmNameLower.includes('estate') || firmNameLower.includes('trust') || firmNameLower.includes('probate')) return 'estate';
   if (firmNameLower.includes('tax')) return 'tax';
   if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
   if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
-  if (firmNameLower.includes('bankruptcy')) return 'bankruptcy';
   const websiteLower = (researchData.website || '').toLowerCase();
   if (websiteLower.includes('family') || websiteLower.includes('divorce') || websiteLower.includes('prenup') || websiteLower.includes('matrimonial')) return 'divorce';
   if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
@@ -1244,6 +1334,7 @@ function detectPracticeArea(practiceAreas, researchData) {
 function getPracticeAreaCategory(raw) {
   if (!raw) return 'default';
   const lower = raw.toLowerCase();
+  if (lower.includes('agricult') || lower.includes('farm') || lower.includes('ranch') || lower.includes('ag law')) return 'agricultural';
   if (lower.includes('landlord') || lower.includes('eviction') || lower.includes('tenant')) return 'landlord';
   if (lower.includes('divorce') || lower.includes('family') || lower.includes('prenup') || lower.includes('postnup') || lower.includes('matrimonial') || lower.includes('cohabitation')) return 'divorce';
   if (lower.includes('tax')) return 'tax';
@@ -1270,6 +1361,7 @@ function getPracticeLabel(category) {
     'employment': 'EMPLOYMENT LAW', 'real estate': 'REAL ESTATE LAW',
     'ip': 'INTELLECTUAL PROPERTY', 'landlord': 'LANDLORD LAW',
     'medical malpractice': 'MEDICAL MALPRACTICE', 'workers comp': 'WORKERS COMPENSATION',
+    'agricultural': 'AGRICULTURAL LAW',
     'default': 'LEGAL SERVICES'
   };
   return labels[category] || 'LEGAL SERVICES';
@@ -1284,6 +1376,7 @@ function getPracticeDescription(category) {
     'employment': 'employment law', 'real estate': 'real estate',
     'ip': 'intellectual property', 'landlord': 'landlord law',
     'medical malpractice': 'medical malpractice', 'workers comp': 'workers compensation',
+    'agricultural': 'agricultural law',
     'default': 'legal services'
   };
   return descriptions[category] || 'legal services';
@@ -1350,48 +1443,78 @@ function getFirmSizeMultiplier(data) {
 // GAP CALCULATIONS - V7 BOOSTED FLOORS
 // ============================================================================
 
-function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency) {
+function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency, city, practiceArea) {
   const sym = currency || '$';
-  const searches = Math.round(880 * marketMultiplier * countryBaseline);
+  const tier = getPopulationTier(city);
+  const baseSearches = USE_POPULATION_SCALING ? tier.searches : 880;
+  const searches = Math.round(baseSearches * marketMultiplier * countryBaseline);
   const ctr = 0.045; const conv = 0.15; const close = 0.25;
-  const casesPerMonth = searches * ctr * conv * close;
+  let casesPerMonth = searches * ctr * conv * close;
+  const econ = PRACTICE_ECONOMICS[practiceArea] || PRACTICE_ECONOMICS['default'];
+  if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // V7 boosted floors
-  const minLow = Math.round(55000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(80000 * countryBaseline / 500) * 500 || 1000;
+  // Practice-area-aware floors (replace universal $55K/$80K)
+  let minLow, minHigh;
+  if (USE_PRACTICE_FLOORS) {
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap1 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap1 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+  } else {
+    minLow = Math.round(55000 * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(80000 * countryBaseline / 500) * 500 || 1000;
+  }
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), searches, cases: casesPerMonth,
     formula: `~${searches} monthly searches × 4.5% CTR × 15% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
 
-function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency) {
+function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency, practiceArea) {
   const sym = currency || '$';
-  const audience = Math.round(65000 * marketMultiplier * countryBaseline);
+  const tier = getPopulationTier(city);
+  const baseAudience = USE_POPULATION_SCALING ? tier.audience : 65000;
+  const audience = Math.round(baseAudience * marketMultiplier * countryBaseline);
   const reach = 0.020; const conv = 0.012; const close = 0.25;
-  const casesPerMonth = audience * reach * conv * close;
+  let casesPerMonth = audience * reach * conv * close;
+  const econ = PRACTICE_ECONOMICS[practiceArea] || PRACTICE_ECONOMICS['default'];
+  if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // V7 boosted floors
-  const minLow = Math.round(38000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(56000 * countryBaseline / 500) * 500 || 1000;
+  // Practice-area-aware floors (replace universal $38K/$56K)
+  let minLow, minHigh;
+  if (USE_PRACTICE_FLOORS) {
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap2 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap2 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+  } else {
+    minLow = Math.round(38000 * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(56000 * countryBaseline / 500) * 500 || 1000;
+  }
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area', cases: casesPerMonth,
     formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 2.0% monthly ad reach × 1.2% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
 
-function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency) {
+function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency, city, practiceArea) {
   const sym = currency || '$';
-  const calls = Math.round(85 * firmSizeMultiplier * countryBaseline);
+  const tier = getPopulationTier(city);
+  const baseCalls = USE_POPULATION_SCALING ? tier.calls : 85;
+  const calls = Math.round(baseCalls * firmSizeMultiplier * countryBaseline);
   const afterHours = 0.35; const missRate = 0.60; const recovery = 0.70; const close = 0.25;
-  const casesPerMonth = calls * afterHours * missRate * recovery * close;
+  let casesPerMonth = calls * afterHours * missRate * recovery * close;
+  const econ = PRACTICE_ECONOMICS[practiceArea] || PRACTICE_ECONOMICS['default'];
+  if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // V7 boosted floors
-  const minLow = Math.round(17000 * countryBaseline / 500) * 500 || 500;
-  const minHigh = Math.round(30000 * countryBaseline / 500) * 500 || 1000;
+  // Practice-area-aware floors (replace universal $17K/$30K)
+  let minLow, minHigh;
+  if (USE_PRACTICE_FLOORS) {
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap3 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap3 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+  } else {
+    minLow = Math.round(17000 * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(30000 * countryBaseline / 500) * 500 || 1000;
+  }
   return {
     low: Math.max(minLow, low), high: Math.max(minHigh, high), calls, cases: casesPerMonth,
     formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
