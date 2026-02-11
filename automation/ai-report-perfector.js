@@ -757,6 +757,14 @@ function validateResearchData(research) {
     }
   }
 
+  // Google Business review data: flag 0 reviews when competitors have reviews
+  const gmb = research.googleBusiness || {};
+  const competitors = research.competitors || [];
+  const maxCompReviews = Math.max(0, ...competitors.map(c => c.reviewCount || c.reviews || 0));
+  if ((!gmb.reviews || gmb.reviews === 0) && maxCompReviews >= 20) {
+    issues.push({ severity: 'IMPORTANT', category: 'DATA_QUALITY', issue: `Firm has 0 Google reviews but competitors have up to ${maxCompReviews} — review scraping may have failed` });
+  }
+
   // Attorney names that are scrape artifacts
   const allAttorneys = [
     ...(research.team?.foundingPartners || []),

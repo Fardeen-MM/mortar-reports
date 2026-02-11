@@ -208,53 +208,75 @@ async function scrapeAttorneyLinkedIns(page, firmName, attorneyNames) {
 // PHASE 3: GOOGLE MY BUSINESS & REVIEWS
 // ============================================================================
 
-async function scrapeGoogleBusiness(page, firmName, city, state) {
+async function scrapeGoogleBusiness(page, firmName, city, state, country) {
   console.log('\n⭐ PHASE 3: GOOGLE MY BUSINESS & REVIEWS');
   console.log('   Searching Google...\n');
-  
+
+  let businessData = { rating: 0, reviews: 0 };
+
   try {
     const searchQuery = `${firmName} ${city} ${state}`;
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-    
+
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForTimeout(2000); // Let knowledge panel load
-    
-    const businessData = await page.evaluate(() => {
+
+    businessData = await page.evaluate(() => {
       // Try to extract from knowledge panel
-      const ratingEl = document.querySelector('[aria-label*="stars"]') || 
+      const ratingEl = document.querySelector('[aria-label*="stars"]') ||
                        document.querySelector('span[role="img"][aria-label*="Star"]');
       const spans = Array.from(document.querySelectorAll('span'));
       const reviewEl = spans.find(s => /\d+\s*(Google\s*)?reviews?/i.test(s.innerText));
-      
+
       const rating = ratingEl ? parseFloat(ratingEl.getAttribute('aria-label') || '0') : 0;
       const reviews = reviewEl ? parseInt(reviewEl.innerText.replace(/\D/g, '') || '0') : 0;
-      
+
       // Extract address
       const addressEl = document.querySelector('[data-attrid="kc:/location/location:address"]');
       const address = addressEl ? addressEl.innerText : null;
-      
+
       // Extract phone
       const phoneEl = document.querySelector('[data-attrid="kc:/collection/knowledge_panels/has_phone:phone"]');
       const phone = phoneEl ? phoneEl.innerText : null;
-      
+
       // Extract hours
       const hoursEl = document.querySelector('[data-attrid="kc:/location/location:hours"]');
       const hours = hoursEl ? hoursEl.innerText : null;
-      
+
       return { rating, reviews, address, phone, hours };
     });
-    
-    console.log(`   ✅ Rating: ${businessData.rating}⭐ (${businessData.reviews} reviews)`);
-    if (businessData.address) console.log(`   ✅ Address: ${businessData.address}`);
-    if (businessData.phone) console.log(`   ✅ Phone: ${businessData.phone}`);
-    console.log('');
-    
-    return businessData;
-    
+
+    console.log(`   DOM scrape: ${businessData.rating}⭐ (${businessData.reviews} reviews)`);
+
   } catch (error) {
-    console.log(`   ⚠️  Google Business scrape failed: ${error.message}\n`);
-    return { rating: 0, reviews: 0 };
+    console.log(`   ⚠️  Google Business DOM scrape failed: ${error.message}`);
   }
+
+  // Fallback: if DOM scrape got 0 reviews, try Google Places API (more reliable)
+  if (!businessData.reviews || businessData.reviews === 0) {
+    console.log('   DOM scrape returned 0 reviews, trying Places API fallback...');
+    try {
+      const { fetchFirmGoogleData } = require('./ai-research-helper');
+      const placesData = await fetchFirmGoogleData(firmName, city, state, country);
+      if (placesData.reviews > 0) {
+        businessData.rating = placesData.rating;
+        businessData.reviews = placesData.reviews;
+        if (placesData.address && !businessData.address) businessData.address = placesData.address;
+        console.log(`   ✅ Places API: ${placesData.rating}⭐ (${placesData.reviews} reviews)`);
+      } else {
+        console.log('   Places API also returned 0 reviews');
+      }
+    } catch (apiErr) {
+      console.log(`   ⚠️  Places API fallback failed: ${apiErr.message}`);
+    }
+  }
+
+  console.log(`   ✅ Rating: ${businessData.rating}⭐ (${businessData.reviews} reviews)`);
+  if (businessData.address) console.log(`   ✅ Address: ${businessData.address}`);
+  if (businessData.phone) console.log(`   ✅ Phone: ${businessData.phone}`);
+  console.log('');
+
+  return businessData;
 }
 
 // ============================================================================
@@ -365,29 +387,34 @@ async function deepCompetitorResearch(page, competitors, city, state) {
         const spans = Array.from(document.querySelectorAll('span'));
         const reviewEl = spans.find(s => /\d+\s*reviews?/i.test(s.innerText));
         const websiteEl = document.querySelector('a[href*="http"]:not([href*="google"])');
-        
+
         return {
           rating: ratingEl ? parseFloat(ratingEl.getAttribute('aria-label') || '0') : 0,
           reviews: reviewEl ? parseInt(reviewEl.innerText.replace(/\D/g, '') || '0') : 0,
           website: websiteEl ? websiteEl.href : null
         };
       });
-      
+
       // Check for ads
       const hasGoogleAds = await page.evaluate(() => {
         return !!document.querySelector('[data-text-ad]');
       });
-      
+
+      // Preserve Places API data if DOM scrape returned 0 reviews
+      const finalRating = compData.rating || comp.rating || 0;
+      const finalReviews = compData.reviews || comp.reviewCount || comp.reviews || 0;
+
       detailedCompetitors.push({
         ...comp,
-        rating: compData.rating,
-        reviewCount: compData.reviews,
-        website: compData.website,
+        rating: finalRating,
+        reviewCount: finalReviews,
+        reviews: finalReviews,
+        website: compData.website || comp.website,
         hasGoogleAds,
-        hasMetaAds: false // Would need separate Meta Ads API
+        hasMetaAds: false
       });
-      
-      console.log(`      ✅ ${compData.rating}⭐ (${compData.reviews} reviews) ${hasGoogleAds ? '📢 Running ads' : '❌ No ads'}`);
+
+      console.log(`      ✅ ${finalRating}⭐ (${finalReviews} reviews) ${hasGoogleAds ? '📢 Running ads' : '❌ No ads'}`);
       
     } catch (error) {
       console.log(`      ⚠️  Research failed: ${error.message}`);
@@ -678,7 +705,7 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     research.attorneyLinkedIns = await scrapeAttorneyLinkedIns(page, effectiveFirmName, attorneyNames);
     
     // Phase 3: Google My Business
-    research.googleBusiness = await scrapeGoogleBusiness(page, effectiveFirmName, city, state);
+    research.googleBusiness = await scrapeGoogleBusiness(page, effectiveFirmName, city, state, country);
     
     // Phase 4: Social media
     research.socialMedia = await scrapeSocialMedia(page, effectiveFirmName, firmWebsite);
