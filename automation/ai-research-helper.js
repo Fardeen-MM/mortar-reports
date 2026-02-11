@@ -504,10 +504,11 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
     // Filter out the target firm and wrong-category results, then get top 3 competitors
     const competitors = results.results
       .filter(place => {
-        // Exclude the target firm itself
-        const placeName = (place.name || '').toLowerCase();
-        const targetName = (firmName || '').toLowerCase();
-        if (placeName.includes(targetName) || targetName.includes(placeName)) {
+        // Exclude the target firm itself (normalize punctuation for reliable matching)
+        const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+        const placeNorm = norm(place.name);
+        const targetNorm = norm(firmName);
+        if (placeNorm.includes(targetNorm) || targetNorm.includes(placeNorm)) {
           return false;
         }
 
@@ -583,10 +584,12 @@ async function fetchFirmGoogleData(firmName, city, state, country) {
     }
 
     // Find ALL matching locations for this firm and aggregate reviews
-    const firmNameLower = firmName.toLowerCase();
+    // Normalize: strip punctuation so "Moffa, Sutton & Donnini PA" matches "Law Offices of Moffa, Sutton, & Donnini, P.A."
+    const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    const firmNorm = norm(firmName);
     const matches = results.results.filter(place => {
-      const placeName = (place.name || '').toLowerCase();
-      return placeName.includes(firmNameLower) || firmNameLower.includes(placeName);
+      const placeNorm = norm(place.name);
+      return placeNorm.includes(firmNorm) || firmNorm.includes(placeNorm);
     });
 
     // Fall back to first result if no name match
