@@ -236,9 +236,32 @@ Examples of good openers:
   });
 }
 
+/**
+ * Convert plain text to simple HTML: split paragraphs, linkify URLs.
+ */
+function plainTextToHtml(text) {
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  // Linkify URLs
+  const linkified = escaped.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1">$1</a>'
+  );
+  // Split by double newlines into paragraphs, single newlines become <br>
+  return linkified
+    .split(/\n\n+/)
+    .map(p => `<div>${p.replace(/\n/g, '<br>')}</div>`)
+    .join('<div><br /></div>');
+}
+
 // --- Main ---
 (async () => {
-  console.log(`📧 Using ${totalRange ? 'personalized' : 'standard'} email template`);
+  const customBody = process.env.CUSTOM_EMAIL_BODY;
+  const isCustom = !!customBody;
+
+  console.log(`📧 Using ${isCustom ? 'CUSTOM' : totalRange ? 'personalized' : 'standard'} email template`);
   console.log(`📨 From: ${fromEmail}`);
   console.log(`📊 Report URL: ${reportUrl}`);
   if (country) console.log(`🌍 Country: ${country}`);
@@ -252,25 +275,46 @@ Examples of good openers:
     process.exit(1);
   }
 
-  // Generate AI opener from the lead's reply
-  const opener = await generateOpener(latestEmail.leadReply, country);
+  let emailContent;
 
-  // Build email with personalization data + AI opener
-  const emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
+  if (isCustom) {
+    // Custom email: skip AI opener and template, use user-provided text
+    console.log(`📝 Custom email body (${customBody.length} chars)`);
+    emailContent = {
+      subject: 'Your marketing analysis',
+      body: customBody,
+      html: plainTextToHtml(customBody)
+    };
+  } else {
+    // Generate AI opener from the lead's reply
+    const opener = await generateOpener(latestEmail.leadReply, country);
+    // Build email with personalization data + AI opener
+    emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
+  }
 
-  // Run email QC checks
+  // Run email QC checks (relaxed for custom emails — only check for broken content)
   const { validateEmail } = require('./email-qc');
-  const emailQC = validateEmail(emailContent, { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel });
-  if (emailQC.errors.length > 0) {
+  const qcContext = isCustom
+    ? { contactName, firmName, reportUrl: reportUrl || 'https://reports.mortarmetrics.com/custom' }
+    : { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel };
+  const emailQC = validateEmail(emailContent, qcContext);
+
+  // For custom emails, only block on critical errors (empty body, encoding corruption)
+  // Skip personalization-related warnings
+  const blockingErrors = isCustom
+    ? emailQC.errors.filter(e => !e.includes('Report URL'))
+    : emailQC.errors;
+
+  if (blockingErrors.length > 0) {
     console.error('❌ EMAIL QC ERRORS (blocking send):');
-    emailQC.errors.forEach(e => console.error(`   - ${e}`));
+    blockingErrors.forEach(e => console.error(`   - ${e}`));
     process.exit(1);
   }
   if (emailQC.warnings.length > 0) {
     console.warn('⚠️  EMAIL QC WARNINGS:');
     emailQC.warnings.forEach(w => console.warn(`   - ${w}`));
   }
-  if (emailQC.errors.length === 0 && emailQC.warnings.length === 0) {
+  if (blockingErrors.length === 0 && emailQC.warnings.length === 0) {
     console.log('✅ Email QC passed');
   }
 

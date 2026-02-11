@@ -26,16 +26,34 @@ async function answerCallback(botToken, callbackQueryId, text, showAlert = false
   return response.json();
 }
 
-async function editMessage(botToken, chatId, messageId, newText) {
+async function editMessage(botToken, chatId, messageId, newText, replyMarkup) {
+  const body = {
+    chat_id: chatId,
+    message_id: messageId,
+    text: newText,
+    parse_mode: 'Markdown'
+  };
+  if (replyMarkup) body.reply_markup = replyMarkup;
   const response = await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      message_id: messageId,
-      text: newText,
-      parse_mode: 'Markdown'
-    })
+    body: JSON.stringify(body)
+  });
+  return response.json();
+}
+
+async function sendTelegramMsg(botToken, chatId, text, options = {}) {
+  const body = {
+    chat_id: chatId,
+    text: text,
+    parse_mode: 'Markdown'
+  };
+  if (options.reply_markup) body.reply_markup = options.reply_markup;
+  if (options.reply_to_message_id) body.reply_to_message_id = options.reply_to_message_id;
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
   return response.json();
 }
@@ -205,6 +223,142 @@ async function handleTelegramCallback(env, update) {
 
 *No email was sent.*`;
     await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId, rejectedText);
+
+  } else if (action === 'edit_email') {
+    await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening email editor...', false);
+
+    // Extract email preview from the approval message (between last ``` blocks)
+    const msgText = callback_query.message.text || '';
+    const codeBlocks = msgText.match(/```[\s\S]*?```/g) || [];
+    const lastBlock = codeBlocks[codeBlocks.length - 1] || '';
+    const emailBody = lastBlock.replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
+
+    if (!emailBody) {
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        '⚠️ Could not extract email preview. Try Approve & Send instead.');
+      return { ok: true };
+    }
+
+    // Send the email body as a reply with force_reply so user can edit it
+    const editMsg = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+      `✏️ *Edit the email below*\nCopy this text, edit it, and reply with your version:\n\n\`\`\`\n${emailBody}\n\`\`\``,
+      { reply_markup: { force_reply: true, selective: true } }
+    );
+
+    if (editMsg.ok && editMsg.result) {
+      // Store edit session in KV (reverse lookup: bot message ID → approval data)
+      const sessionData = {
+        approvalId,
+        chatId,
+        originalMessageId: messageId,
+        firmName: approvalData.firm_name,
+        firmFolder: approvalData.firm_folder,
+        contactName: approvalData.contact_name,
+        leadEmail: approvalData.lead_email,
+        reportUrl: approvalData.report_url,
+        country: approvalData.country || '',
+        totalRange: approvalData.total_range || '',
+        totalCases: approvalData.total_cases || '',
+        practiceLabel: approvalData.practice_label || ''
+      };
+      await env.WEBHOOK_KV.put(
+        `edit_reply:${editMsg.result.message_id}`,
+        JSON.stringify(sessionData),
+        { expirationTtl: 1800 } // 30 min
+      );
+    }
+
+  } else if (action === 'send_custom') {
+    await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending custom email...', false);
+
+    // Read custom email body from KV
+    const customBody = await env.WEBHOOK_KV.get(`custom_email:${approvalId}`);
+    if (!customBody) {
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        '❌ Custom email expired. Please press Edit Email again.');
+      return { ok: true };
+    }
+
+    // The confirmation message won't have parseable approval fields,
+    // so load the session data we stored during the reply step
+    const sessionRaw = await env.WEBHOOK_KV.get(`custom_session:${approvalId}`);
+    if (sessionRaw) {
+      const session = JSON.parse(sessionRaw);
+      approvalData = {
+        firm_name: session.firmName,
+        firm_folder: session.firmFolder,
+        lead_email: session.leadEmail,
+        contact_name: session.contactName,
+        report_url: session.reportUrl,
+        country: session.country || '',
+        total_range: session.totalRange || '',
+        total_cases: session.totalCases || '',
+        practice_label: session.practiceLabel || '',
+        ...approvalData // overlay any data fetched from GitHub
+      };
+    }
+
+    try {
+      // Dispatch workflow with skip_email = "custom:{approvalId}" so it fetches custom body
+      const payload = {
+        event_type: 'send_approved_email',
+        client_payload: {
+          firm_name: approvalData.firm_name,
+          firm_folder: approvalData.firm_folder,
+          lead_email: approvalData.lead_email,
+          contact_name: approvalData.contact_name,
+          report_url: approvalData.report_url,
+          country: approvalData.country || '',
+          total_range: approvalData.total_range || '',
+          total_cases: approvalData.total_cases || '',
+          practice_label: approvalData.practice_label || '',
+          skip_email: `custom:${approvalId}`
+        }
+      };
+
+      const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+          'User-Agent': 'MortarMetrics-Telegram-Bot'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status !== 204) {
+        const errText = await response.text();
+        throw new Error(`GitHub API error: ${response.status} ${errText}`);
+      }
+
+      const liveUrl = approvalData.report_url
+        ? approvalData.report_url.replace('/pending-reports/', '/')
+        : approvalData.report_url;
+
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `✅ *APPROVED (Custom Email)*
+
+📊 *Firm:* ${approvalData.firm_name}
+👤 *Contact:* ${approvalData.contact_name}
+📧 *Email:* ${approvalData.lead_email}
+🔗 *Live Report:* ${liveUrl}
+
+✉️ *Custom email send triggered!*`);
+
+    } catch (err) {
+      console.error('Failed to trigger custom email workflow:', err.message);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `❌ *ERROR*\n\nFailed to trigger workflow: ${err.message}`);
+    }
+
+  } else if (action === 'cancel_edit') {
+    await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Cancelled', false);
+    // Clean up KV
+    await env.WEBHOOK_KV.delete(`custom_email:${approvalId}`);
+    await env.WEBHOOK_KV.delete(`custom_session:${approvalId}`);
+    await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+      '❌ *Edit cancelled.* Use the original approval message to approve or edit again.');
   }
 
   return { ok: true };
@@ -436,6 +590,58 @@ async function handleTelegramMessage(env, payload) {
     return { ok: true };
   }
 
+  // Check if this is a reply to an edit_email prompt
+  if (message.reply_to_message) {
+    const replyToId = message.reply_to_message.message_id;
+    const sessionRaw = await env.WEBHOOK_KV.get(`edit_reply:${replyToId}`);
+    if (sessionRaw) {
+      const session = JSON.parse(sessionRaw);
+      const customText = text.trim();
+
+      if (!customText) {
+        await sendTelegramReply(env, chatId, messageId, '⚠️ Empty reply. Please try again with your edited email text.');
+        return { ok: true };
+      }
+
+      // Store the custom email body + approval data in KV
+      await env.WEBHOOK_KV.put(
+        `custom_email:${session.approvalId}`,
+        customText,
+        { expirationTtl: 3600 } // 1 hour
+      );
+      await env.WEBHOOK_KV.put(
+        `custom_session:${session.approvalId}`,
+        JSON.stringify(session),
+        { expirationTtl: 3600 }
+      );
+
+      // Clean up the edit_reply key
+      await env.WEBHOOK_KV.delete(`edit_reply:${replyToId}`);
+
+      // Show confirmation with Send Now / Cancel buttons
+      const preview = customText.length > 300
+        ? customText.slice(0, 300) + '...'
+        : customText;
+
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `📧 *Custom email preview:*\n\n\`\`\`\n${preview}\n\`\`\`\n\nSend this to *${session.leadEmail}*?`,
+        {
+          reply_to_message_id: messageId,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '✅ Send Now', callback_data: `send_custom:${session.approvalId}` },
+                { text: '❌ Cancel', callback_data: `cancel_edit:${session.approvalId}` }
+              ]
+            ]
+          }
+        }
+      );
+
+      return { ok: true };
+    }
+  }
+
   // Only handle /build commands — ignore everything else
   if (!text.startsWith('/build')) {
     return { ok: true };
@@ -654,9 +860,11 @@ export default {
   },
 
   async fetch(request, env, ctx) {
-    // Debug endpoint: GET /debug - shows last raw Instantly payloads stored in KV
+    // GET endpoints
     if (request.method === 'GET') {
       const url = new URL(request.url);
+
+      // Debug endpoint: GET /debug - shows last raw Instantly payloads stored in KV
       if (url.pathname === '/debug') {
         const keys = await env.WEBHOOK_KV.list({ prefix: 'raw:' });
         const entries = [];
@@ -668,6 +876,20 @@ export default {
           headers: { 'Content-Type': 'application/json' }
         });
       }
+
+      // Custom email endpoint: GET /custom-email/{approvalId}
+      const customMatch = url.pathname.match(/^\/custom-email\/(.+)$/);
+      if (customMatch) {
+        const approvalId = decodeURIComponent(customMatch[1]);
+        const body = await env.WEBHOOK_KV.get(`custom_email:${approvalId}`);
+        if (body) {
+          return new Response(body, {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+          });
+        }
+        return new Response('Not found', { status: 404 });
+      }
+
       return new Response('OK', { status: 200 });
     }
 

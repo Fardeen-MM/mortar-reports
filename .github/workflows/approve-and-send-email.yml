@@ -178,6 +178,30 @@ jobs:
             fi
           }
 
+      - name: Fetch custom email body (if edited)
+        id: custom_email
+        if: startsWith(steps.inputs.outputs.skip_email, 'custom:')
+        env:
+          SKIP_EMAIL: ${{ steps.inputs.outputs.skip_email }}
+        run: |
+          # Extract approvalId from "custom:{approvalId}"
+          APPROVAL_ID="${SKIP_EMAIL#custom:}"
+          export APPROVAL_ID
+          echo "📝 Fetching custom email for approval ID: $APPROVAL_ID"
+
+          ENCODED_ID=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('APPROVAL_ID','')))")
+          CUSTOM_BODY=$(curl -sf "https://instantly-webhook-proxy.fardeen-729.workers.dev/custom-email/$ENCODED_ID" || echo "")
+
+          if [ -z "$CUSTOM_BODY" ]; then
+            echo "❌ Custom email body not found or expired"
+            exit 1
+          fi
+
+          echo "✅ Custom email body fetched (${#CUSTOM_BODY} chars)"
+          # Write to temp file to preserve newlines
+          echo "$CUSTOM_BODY" > /tmp/custom-email-body.txt
+          echo "has_custom=true" >> $GITHUB_OUTPUT
+
       - name: Send approved email
         if: steps.inputs.outputs.skip_email != 'true'
         env:
@@ -197,6 +221,12 @@ jobs:
           echo "🔗 Report: $LIVE_URL"
           echo "📊 Range: $TOTAL_RANGE | Cases: $TOTAL_CASES | Practice: $PRACTICE_LABEL"
           echo "🌍 Country: $COUNTRY"
+
+          # Load custom email body if available
+          if [ -f /tmp/custom-email-body.txt ]; then
+            export CUSTOM_EMAIL_BODY=$(cat /tmp/custom-email-body.txt)
+            echo "📝 Using custom email body (${#CUSTOM_EMAIL_BODY} chars)"
+          fi
 
           node send-email.js \
             "$LEAD_EMAIL" \

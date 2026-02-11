@@ -224,7 +224,10 @@ const keyboard = {
           { text: '❌ Reject', callback_data: `reject:${approvalId}` }
         ],
         [
-          { text: '📄 Approve (No Email)', callback_data: `approve_no_email:${approvalId}` },
+          { text: '✏️ Edit Email', callback_data: `edit_email:${approvalId}` },
+          { text: '📄 No Email', callback_data: `approve_no_email:${approvalId}` }
+        ],
+        [
           { text: '🔗 Open Report', url: approvalData.report_url }
         ]
       ]
