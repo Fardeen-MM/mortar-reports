@@ -582,24 +582,38 @@ async function fetchFirmGoogleData(firmName, city, state, country) {
       return { reviews: 0, rating: 0 };
     }
 
-    // Find the best match - look for the firm name in results
+    // Find ALL matching locations for this firm and aggregate reviews
     const firmNameLower = firmName.toLowerCase();
-    const match = results.results.find(place => {
+    const matches = results.results.filter(place => {
       const placeName = (place.name || '').toLowerCase();
-      // Check if firm name is contained in place name or vice versa
       return placeName.includes(firmNameLower) || firmNameLower.includes(placeName);
-    }) || results.results[0]; // Fall back to first result if no exact match
+    });
 
-    const reviews = match.user_ratings_total || 0;
-    const rating = match.rating || 0;
+    // Fall back to first result if no name match
+    if (matches.length === 0) matches.push(results.results[0]);
 
-    console.log(`   ✅ Found: "${match.name}" - ${rating}★, ${reviews} reviews`);
+    // Aggregate: sum reviews across locations, use highest rating
+    let totalReviews = 0;
+    let bestRating = 0;
+    let bestName = matches[0].name;
+    let bestAddress = matches[0].formatted_address || '';
+    for (const m of matches) {
+      const r = m.user_ratings_total || 0;
+      totalReviews += r;
+      if ((m.rating || 0) > bestRating) {
+        bestRating = m.rating || 0;
+        if (r > 0) { bestName = m.name; bestAddress = m.formatted_address || ''; }
+      }
+      console.log(`   📍 "${m.name}" - ${m.rating || 0}★, ${r} reviews`);
+    }
+
+    console.log(`   ✅ Total: ${bestRating}★, ${totalReviews} reviews across ${matches.length} location(s)`);
 
     return {
-      reviews,
-      rating,
-      name: match.name,
-      address: match.formatted_address || ''
+      reviews: totalReviews,
+      rating: bestRating,
+      name: bestName,
+      address: bestAddress
     };
 
   } catch (error) {
