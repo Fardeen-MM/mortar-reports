@@ -166,12 +166,17 @@ async function handleTelegramCallback(env, update) {
         skipEmail ? 'Deploying report...' : 'Sending email...', false);
       await triggerGitHubWorkflow(env.GITHUB_TOKEN, approvalData, skipEmail);
 
+      // Show live URL (not pending) since approval moves the report
+      const liveUrl = approvalData.report_url
+        ? approvalData.report_url.replace('/pending-reports/', '/')
+        : approvalData.report_url;
+
       const successText = skipEmail
         ? `✅ *APPROVED (No Email)*
 
 📊 *Firm:* ${approvalData.firm_name}
 👤 *Contact:* ${approvalData.contact_name}
-🔗 *Report:* ${approvalData.report_url}
+🔗 *Live Report:* ${liveUrl}
 
 📄 *Report deployed — no email sent.*`
         : `✅ *APPROVED & SENT*
@@ -179,7 +184,7 @@ async function handleTelegramCallback(env, update) {
 📊 *Firm:* ${approvalData.firm_name}
 👤 *Contact:* ${approvalData.contact_name}
 📧 *Email:* ${approvalData.lead_email}
-🔗 *Report:* ${approvalData.report_url}
+🔗 *Live Report:* ${liveUrl}
 
 ✉️ *Email send triggered via GitHub Actions!*`;
 
