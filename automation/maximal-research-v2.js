@@ -223,8 +223,8 @@ async function scrapeGoogleBusiness(page, firmName, city, state) {
       // Try to extract from knowledge panel
       const ratingEl = document.querySelector('[aria-label*="stars"]') || 
                        document.querySelector('span[role="img"][aria-label*="Star"]');
-      const reviewEl = document.querySelector('span:has-text("Google reviews")') ||
-                      document.querySelector('span:has-text("reviews")');
+      const spans = Array.from(document.querySelectorAll('span'));
+      const reviewEl = spans.find(s => /\d+\s*(Google\s*)?reviews?/i.test(s.innerText));
       
       const rating = ratingEl ? parseFloat(ratingEl.getAttribute('aria-label') || '0') : 0;
       const reviews = reviewEl ? parseInt(reviewEl.innerText.replace(/\D/g, '') || '0') : 0;
@@ -362,7 +362,8 @@ async function deepCompetitorResearch(page, competitors, city, state) {
       // Extract Google Business data
       const compData = await page.evaluate(() => {
         const ratingEl = document.querySelector('[aria-label*="stars"]');
-        const reviewEl = document.querySelector('span:has-text("reviews")');
+        const spans = Array.from(document.querySelectorAll('span'));
+        const reviewEl = spans.find(s => /\d+\s*reviews?/i.test(s.innerText));
         const websiteEl = document.querySelector('a[href*="http"]:not([href*="google"])');
         
         return {

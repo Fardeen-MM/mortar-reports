@@ -586,8 +586,14 @@ Return ONLY valid JSON:
   try {
     const response = await askHaiku(prompt, 2000);
     let jsonStr = response;
+    // Try markdown code block first
     const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) jsonStr = jsonMatch[1];
+    // Fallback: find the first { ... } JSON object in the response
+    if (!jsonStr.trim().startsWith('{')) {
+      const objMatch = response.match(/\{[\s\S]*\}/);
+      if (objMatch) jsonStr = objMatch[0];
+    }
     const result = JSON.parse(jsonStr.trim());
     return {
       issues: result.issues || [],
