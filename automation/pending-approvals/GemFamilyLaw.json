@@ -11,7 +11,7 @@
   "campaign_name": "manual_build",
   "phone": "",
   "created_at": "2026-02-11T20:17:39.329Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -27,5 +27,6 @@
     "seniority": "unknown",
     "is_decision_maker": false,
     "source": "email_inference"
-  }
+  },
+  "approved_at": "2026-02-11T20:25:06.640Z"
 }
