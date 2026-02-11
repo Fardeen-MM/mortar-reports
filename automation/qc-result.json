@@ -1,12 +1,19 @@
 {
   "status": "PASSED",
-  "firmName": "Doss Law",
+  "firmName": "Randall, McClenney, Daniels & Dunn",
   "iterations": 1,
   "score": 10,
   "wouldBook": true,
-  "biggestIssue": null,
-  "qualityIssues": 0,
+  "biggestIssue": "Report uses fallback template prose (3 fingerprint phrases found)",
+  "qualityIssues": 1,
   "recommendation": "Report passed deterministic QC and is ready to send.",
-  "leadIntelligence": null,
-  "leadFit": null
+  "fixesApplied": [],
+  "correctedContactName": null,
+  "leadIntelligence": {
+    "name": null,
+    "title": null,
+    "seniority": "unknown",
+    "isDecisionMaker": false,
+    "source": "email_inference"
+  }
 }

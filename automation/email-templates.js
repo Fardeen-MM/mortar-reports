@@ -37,47 +37,51 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
   let textBody, htmlBody;
 
   if (cleanRange && totalCases && practiceLabel) {
-    // Personalized email with case count + revenue
+    // Personalized email with guarantee + case study proof
     textBody = `Hey ${firstName},
 
-${openingLine} We dug into the ${practiceLabel} market around ${firm} and honestly there's a lot of money being left on the table.
+${openingLine} We ran the numbers on ${firm} and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now. We guarantee it.
 
-Right now about ${totalCases} ${practiceLabel} cases per month in your area are going to other firms. That's roughly ${cleanRange}/mo you could be pulling in.
+One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases. We do the same thing for every firm we work with.
 
-Here's the full breakdown:
+Here's your full breakdown:
 ${reportUrl}
 
-Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?`;
+15 minutes and I'll show you exactly how we'd do this for ${firm}. We guarantee results. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} We dug into the ${practiceLabel} market around ${firm} and honestly there's a lot of money being left on the table.</div>
+<div>${openingLine} We ran the numbers on ${firm} and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now. We guarantee it.</div>
 <div><br /></div>
-<div>Right now about ${totalCases} ${practiceLabel} cases per month in your area are going to other firms. That's roughly ${cleanRange}/mo you could be pulling in.</div>
+<div>One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases. We do the same thing for every firm we work with.</div>
 <div><br /></div>
-<div>Here's the full breakdown:</div>
+<div>Here's your full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?</div>`;
+<div>15 minutes and I'll show you exactly how we'd do this for ${firm}. We guarantee results. Does ${day1} or ${day2} work?</div>`;
   } else {
-    // Fallback when no numbers available
+    // Fallback with guarantee + case study proof
     textBody = `Hey ${firstName},
 
-${openingLine} We dug into the market around ${firm} and found some real gaps worth looking at.
+${openingLine} We ran the numbers on ${firm} and found serious gaps. Other firms in your area are getting cases that should be yours. We guarantee we can fix that.
 
-Here's the full breakdown:
+One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases.
+
+Here's your full breakdown:
 ${reportUrl}
 
-Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?`;
+15 minutes and I'll show you exactly how. We guarantee results. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} We dug into the market around ${firm} and found some real gaps worth looking at.</div>
+<div>${openingLine} We ran the numbers on ${firm} and found serious gaps. Other firms in your area are getting cases that should be yours. We guarantee we can fix that.</div>
 <div><br /></div>
-<div>Here's the full breakdown:</div>
+<div>One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases.</div>
+<div><br /></div>
+<div>Here's your full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>Happy to walk you through it. 15 minutes and I'll show you exactly how we'd get you these cases. Does ${day1} or ${day2} work?</div>`;
+<div>15 minutes and I'll show you exactly how. We guarantee results. Does ${day1} or ${day2} work?</div>`;
   }
 
   return {
