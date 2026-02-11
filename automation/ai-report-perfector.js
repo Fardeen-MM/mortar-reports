@@ -652,6 +652,20 @@ function applyAiFixes(html, fixes, research) {
       }
     }
 
+    // WRONG_NAME guard: reject meta-instructions as replacements
+    if (fix.type === 'WRONG_NAME') {
+      const metaWords = /\b(confirm|check|verify|correct|recipient|unknown|placeholder|todo|fixme|update|replace|insert|tbd)\b/i;
+      if (fix.replace && metaWords.test(fix.replace)) {
+        console.log(`   ⚠️  Skipping WRONG_NAME fix — replacement looks like a meta-instruction: "${fix.replace}"`);
+        continue;
+      }
+      // Replacement must look like a name (starts with capital, 2-5 words)
+      if (fix.replace && (!/^[A-Z]/.test(fix.replace) || fix.replace.split(/\s+/).length > 5)) {
+        console.log(`   ⚠️  Skipping WRONG_NAME fix — replacement doesn't look like a name: "${fix.replace}"`);
+        continue;
+      }
+    }
+
     // WRONG_COUNTRY guard: only allow currency/terminology swaps
     if (fix.type === 'WRONG_COUNTRY') {
       const currencySwap = /^[\$£€]/.test(fix.find) || /\b(attorney|solicitor|lawyer|law firm|law practice)\b/i.test(fix.find);
