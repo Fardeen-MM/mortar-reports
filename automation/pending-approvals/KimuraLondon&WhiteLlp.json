@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "",
   "created_at": "2026-02-11T20:39:44.791Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "2",
@@ -27,5 +27,6 @@
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
-  }
+  },
+  "approved_at": "2026-02-11T20:50:29.942Z"
 }
