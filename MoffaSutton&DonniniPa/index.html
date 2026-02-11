@@ -105,6 +105,21 @@
 
   @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
+  /* ========== OBSERVATIONS ========== */
+  .observations-section {
+    margin: 36px auto; max-width: 680px;
+  }
+
+  .observations-label {
+    font-family: 'Fraunces', Georgia, serif; font-size: 1.125rem;
+    font-weight: 600; color: var(--ink); margin-bottom: 16px;
+  }
+
+  .observation-item {
+    font-size: 0.925rem; color: var(--slate); line-height: 1.7;
+    margin-bottom: 8px; padding-left: 24px; text-indent: -24px;
+  }
+
   /* ========== DIVIDER ========== */
   .divider {
     height: 1px;
@@ -591,7 +606,7 @@
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-context">TAX LAW · TALLAHASSEE, FLORIDA</div>
+      <div class="hero-context">TAX LAW · TALLAHASSEE, FL</div>
 
       <h2 class="hero-setup">Every month, people in Tallahassee search for</h2>
 
@@ -622,6 +637,19 @@
       </div>
     </section>
 
+
+    <!-- OBSERVATIONS -->
+    
+    <div class="observations-section fade-in">
+      <div class="observations-label">What we found when we looked at your firm</div>
+      <div class="observations-list">
+        <div class="observation-item">→ Your floridasalestax.com domain strategy shows smart keyword targeting separate from your firm name.</div>
+        <div class="observation-item">→ You're running 8 Google Ads but have zero Google Business reviews, creating a visibility gap in local search.</div>
+        <div class="observation-item">→ Your webinars and video content demonstrate content marketing sophistication that's not being amplified through social media channels.</div>
+        <div class="observation-item">→ Your modern website and active blog show marketing investment, but no Meta ads means you're missing the 65K reachable audience beyond Google search.</div>
+      </div>
+    </div>
+    
 
     <!-- THE NUMBERS -->
     <div class="divider"></div>
@@ -707,7 +735,7 @@
           </div>
         </div>
         <div class="revenue-card-body">
-          <strong>Tallahassee's tax law market generates approximately 880 monthly searches, with your firm competing against Defense Tax Partners (47 reviews), Coleman Law, P.A. (35 reviews), and Partners Tax (26 reviews).</strong> Our SEO strategy targets high-intent keywords like 'tax attorney Tallahassee' and 'IRS audit defense' to capture organic rankings, while Google Ads immediately place you above competitors for premium search terms. The redesigned website converts these visitors with clear messaging around tax resolution and audit defense services. See the SERP mockup below for your projected search visibility.
+          <strong>Your Google Ads are running, but you're missing 880 monthly searches for tax law in Tallahassee.</strong> While your 8 current ads target some traffic, zero Google Business reviews means you're invisible in local search results. Your floridasalestax.com domain shows smart keyword targeting, but without proper SEO optimization, you're losing organic rankings to Defense Tax Partners and Coleman Law. A coordinated approach combining your existing ads with local SEO and conversion-focused website updates will capture more of those 880 monthly searches and turn visitors into clients.
         </div>
       <div class="serp-mockup">
         <div class="serp-query">
@@ -750,7 +778,7 @@
           </div>
         </div>
         <div class="revenue-card-body">
-          <strong>Google only catches people who already know they need a lawyer.</strong> Meta's 65,000-person reachable audience in Tallahassee includes business owners and individuals facing tax issues before they start searching for attorneys. Lead magnet funnels like 'Tax Issues? Your Tallahassee Guide' capture contact information by providing immediate value on tax resolution and audit defense. Webinar funnels position you as the local tax law authority, moving prospects from problem-aware to solution-aware. This creates a conversion path from targeted ad to trusted contact before they ever consider your competitors.
+          <strong>Google only catches people who already know they need a lawyer.</strong> Your webinars and video content prove you understand education-based marketing, but you're missing 65,000 reachable prospects on Meta who don't yet realize they have tax problems. Lead magnet funnels like "Tax Issues? Your Tallahassee Guide" covering tax resolution and audit defense will capture early-stage prospects. Combined with webinar funnels promoting your existing educational content, this creates a conversion path from problem-unaware prospect to trusted contact, expanding far beyond the 880 monthly Google searches.
         </div>
         <div class="mini-compare">
           <div class="mini-compare-side mini-compare-a">
@@ -777,7 +805,7 @@
           </div>
         </div>
         <div class="revenue-card-body">
-          <strong>The first two channels drive leads, this is what makes sure none slip through.</strong> With 128 monthly calls and 35% coming after hours, you're losing prospects when 60% won't leave voicemail. AI phone answering captures every inquiry 24/7, while website chatbots and social DM handling ensure no digital touchpoint goes unanswered. CRM follow-up sequences automatically nurture leads through SMS and email, maintaining contact until they're ready to retain your services.
+          <strong>The first two channels drive leads, but this is what makes sure none slip through.</strong> With 128 potential calls monthly and 35% coming after hours, you're losing prospects when your phones go dark. AI phone answering captures after-hours inquiries, while website chatbots and social DM handling cover all digital touchpoints. CRM follow-up sequences with SMS and email nurture keep your 150+ years of experience and Florida-focused expertise top of mind, converting the 60% who won't leave voicemails into scheduled consultations.
         </div>
         <div class="mini-compare">
           <div class="mini-compare-side mini-compare-a">
@@ -974,7 +1002,7 @@
     </div>
 
     <div class="footer">
-      Mortar Metrics · Legal Growth Agency · Tallahassee, Florida<br>
+      Mortar Metrics · Legal Growth Agency · Tallahassee, FL<br>
       <a href="mailto:fardeen@mortarmetrics.com">fardeen@mortarmetrics.com</a>
     </div>
 
@@ -1013,7 +1041,7 @@ class SearchTyper {
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('typed-search');
   if (el) el.textContent = '';
-  new SearchTyper('typed-search', ["tax attorney near me","irs lawyer Tallahassee Florida","tax debt relief attorney","irs audit lawyer","tax settlement attorney"]).start();
+  new SearchTyper('typed-search', ["tax attorney near me","irs lawyer Tallahassee FL","tax debt relief attorney","irs audit lawyer","tax settlement attorney"]).start();
 
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
