@@ -5,7 +5,7 @@
  * 8-step pipeline: deterministic checks + AI review.
  * Catches anything that would make a law firm partner think "automated garbage."
  *
- * Deterministic checks (1-23):
+ * Deterministic checks (1-28):
  * 1. Broken content (undefined, null, NaN, [object Object])
  * 2. Currency match (£ for UK, $ for US)
  * 3. Terminology match (solicitor vs attorney, excluding business names)
@@ -29,18 +29,25 @@
  * 21. Ad spend ratio sanity ($0 or > 20% of total)
  * 22. Fabricated statistics (unreferenced percentages in prose)
  * 23. Fallback prose detection (template fingerprint phrases)
+ * 25. Generic search terms in typing animation
+ * 26. Unverified "Ad" tags in SERP mockup
+ * 27. Footer shows prospect city instead of Toronto
+ * 28. Generic SERP query (not practice-specific)
  *
  * AI-powered (Haiku 3.5, ~$0.003/report):
  * - Contact name fix: matches email to team members
- * - Comprehensive AI review: 12 issue categories (replaces old 5-category sanity check)
- * - Auto-fixes: WRONG_NAME, BROKEN_SENTENCE, FABRICATED_STAT, WRONG_COUNTRY
+ * - Skeptic AI review: 16 issue categories with lawyer persona
+ * - Auto-fixes: WRONG_NAME, BROKEN_SENTENCE, FABRICATED_STAT, WRONG_COUNTRY,
+ *   UNVERIFIED_CLAIM, GENERIC_JARGON, TEMPLATE_PROSE, WRONG_CONTEXT
+ * - Prose quality rewrite: per-card rewrite with research context
  *
  * Pipeline:
  * Step 1: Fix contact name (deterministic)
  * Step 2: Pre-fix verbose phrases
  * Step 3: Validate research data
- * Step 4: Deterministic QC (checks 1-23)
- * Step 5: Comprehensive AI review (Haiku 3.5)
+ * Step 4: Deterministic QC (checks 1-28)
+ * Step 5: Skeptic AI review (Haiku 3.5)
+ * Step 5.5: Prose quality rewrite (Haiku 3.5, per-card)
  * Step 6: Apply auto-fixes
  * Step 7: Re-run deterministic QC if fixes applied
  * Step 8: Save results
@@ -538,9 +545,9 @@ async function comprehensiveAIReview(html, research, leadEmail, leadIntel) {
     `Lead: ${leadEmail || 'Unknown'}, Intel: ${leadIntel ? `${leadIntel.name || 'Unknown'} (${leadIntel.title || 'Unknown'})` : 'None'}`
   ].join('\n');
 
-  const prompt = `You are a QC reviewer for a personalized marketing report sent to a law firm. Your job is to catch issues that would make the recipient think "this is automated garbage."
+  const prompt = `You are reading this report as the lawyer who received it. You bill $500/hour and you verify claims for a living. If something feels off, wrong, generic, or like marketing BS — flag it. Be brutal.
 
-RESEARCH DATA:
+WHAT WE ACTUALLY KNOW ABOUT THIS FIRM (research data):
 ${researchSummary}
 
 REPORT ADDRESSED TO: "${prospectName}"
@@ -552,25 +559,30 @@ ${cardBodies.substring(0, 3000)}
 FULL REPORT TEXT (first 8000 chars):
 ${text.substring(0, 8000)}
 
-CHECK FOR THESE ISSUES (be precise — do NOT fabricate problems that don't exist):
+CHECK FOR THESE ISSUES. For each, provide a "find" (exact text) and "replace" (what it should say, or "" to remove):
 
 1. WRONG_NAME — "${prospectName}" is clearly the wrong person
 2. WRONG_CITY — Report mentions a city that contradicts the firm's location
 3. WRONG_PRACTICE — Report describes a completely wrong practice area
 4. WRONG_FIRM — Report mentions the wrong firm name
-5. FABRICATED_STAT — Prose contains made-up percentages or claims not from the formula data
-6. CONTRADICTORY_CLAIMS — Two sections of the report contradict each other
-7. NONSENSICAL_PROSE — Grammatically correct but logically wrong sentences
-8. COMPETITOR_ISSUE — A competitor listed is actually the target firm, or clearly not a law firm
-9. WRONG_COUNTRY — Currency symbols ($/£) or terminology (attorney/solicitor) wrong for country "${country}"
+5. FABRICATED_STAT — A specific claim (percentage, review count, years in business) that seems too specific to trust. If you can't tell where the data came from, flag it.
+6. CONTRADICTORY_CLAIMS — Two sections contradict each other
+7. NONSENSICAL_PROSE — Grammatically correct but logically wrong
+8. COMPETITOR_ISSUE — A competitor is actually the target firm, or clearly not a law firm
+9. WRONG_COUNTRY — Currency symbols ($/£) or terminology (attorney/solicitor) wrong for "${country}"
 10. BROKEN_CONTENT — "undefined", "null", "NaN", or "[object Object]" in visible text
-11. GENERIC_REPORT — Report feels entirely generic with no firm-specific personalization
-12. BROKEN_NUMBERS — ROI is $0, negative, NaN, or over $500K/month (calculation bug)
+11. GENERIC_REPORT — Report feels entirely generic with no firm-specific detail
+12. BROKEN_NUMBERS — ROI is $0, negative, NaN, or over $500K/month
+13. UNVERIFIED_CLAIM — A specific factual claim (review count, years in business, media features) not supported by the research data above. If the data isn't listed above, the claim is unverified.
+14. GENERIC_JARGON — Marketing speak no real person would say: "low marketing maturity", "high-intent keywords", "organic ranking potential", "digital presence". A lawyer would stop reading.
+15. TEMPLATE_PROSE — A sentence that could apply to literally any law firm. No firm name, no city, no specific detail. Just filler.
+16. WRONG_CONTEXT — Something that doesn't fit this firm's practice area, location, or situation. Business law firm with injury search terms, etc.
 
 CRITICAL INSTRUCTIONS:
-- Do NOT fabricate issues. Only flag REAL problems a human reader would notice.
-- High revenue numbers ($100K-$225K+/month) are INTENTIONAL. The report shows massive opportunity. Only flag BROKEN_NUMBERS if the number is $0, negative, or over $500K/month.
-- Percentages that come from the formula (4.5%, 15%, 25%, 2.0%, 1.2%, 35%, 60%, 70%) are correct — do NOT flag these.
+- Only flag REAL problems. Do NOT fabricate issues.
+- High revenue numbers ($100K-$225K+/month) are INTENTIONAL — only flag if $0, negative, or >$500K.
+- Formula percentages (4.5%, 15%, 25%, 2.0%, 1.2%, 35%, 60%, 70%) are correct — do NOT flag.
+- Your replacements should sound like a real human wrote them — short, direct, specific. Not marketing speak.
 - If the report looks good, return empty arrays. Most reports should pass clean.
 
 Return ONLY valid JSON:
@@ -605,23 +617,39 @@ Return ONLY valid JSON:
   }
 }
 
-function applyAiFixes(html, fixes) {
+function applyAiFixes(html, fixes, research) {
   let fixedHtml = html;
   let fixCount = 0;
 
   // Types safe to auto-fix
-  const safeTypes = ['WRONG_NAME', 'BROKEN_SENTENCE', 'FABRICATED_STAT', 'WRONG_COUNTRY'];
+  const safeTypes = ['WRONG_NAME', 'BROKEN_SENTENCE', 'FABRICATED_STAT', 'WRONG_COUNTRY',
+                     'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'TEMPLATE_PROSE', 'WRONG_CONTEXT'];
+
+  const firmName = research?.firmName || '';
+  const city = research?.location?.city || '';
 
   for (const fix of fixes) {
-    if (!fix.find || !fix.replace || fix.find === fix.replace) continue;
+    if (!fix.find || fix.find === fix.replace) continue;
     if (!safeTypes.includes(fix.type)) continue;
     // Don't replace very short strings (risk of false matches)
-    if (fix.find.length < 3) continue;
+    if (fix.find.length < 10) continue;
 
-    // FABRICATED_STAT guard: replacement must be shorter or similar length (prevent AI inserting new fabricated content)
-    if (fix.type === 'FABRICATED_STAT' && fix.replace.length > fix.find.length * 1.5) {
-      console.log(`   ⚠️  Skipping FABRICATED_STAT fix — replacement is too long (${fix.replace.length} vs ${fix.find.length} chars)`);
+    // Length guard: replacement must be ≤ 1.5x original (prevents AI inserting hallucinations)
+    const lengthTypes = ['FABRICATED_STAT', 'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'WRONG_CONTEXT'];
+    if (lengthTypes.includes(fix.type) && fix.replace && fix.replace.length > fix.find.length * 1.5) {
+      console.log(`   ⚠️  Skipping ${fix.type} fix — replacement too long (${fix.replace.length} vs ${fix.find.length} chars)`);
       continue;
+    }
+
+    // TEMPLATE_PROSE guard: replacement must contain firm name or city (ensures it's actually personalized)
+    if (fix.type === 'TEMPLATE_PROSE' && fix.replace) {
+      const replaceLower = fix.replace.toLowerCase();
+      const hasFirmName = firmName && replaceLower.includes(firmName.toLowerCase());
+      const hasCity = city && city.length > 2 && replaceLower.includes(city.toLowerCase());
+      if (!hasFirmName && !hasCity) {
+        console.log(`   ⚠️  Skipping TEMPLATE_PROSE fix — replacement doesn't mention firm name or city`);
+        continue;
+      }
     }
 
     // WRONG_COUNTRY guard: only allow currency/terminology swaps
@@ -633,17 +661,132 @@ function applyAiFixes(html, fixes) {
       }
     }
 
+    // Empty replacement is allowed (removing a claim/jargon is safe)
+    const replacement = fix.replace || '';
+
     const escaped = fix.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(escaped, 'g');
     const matches = fixedHtml.match(regex);
     if (matches) {
-      fixedHtml = fixedHtml.replace(regex, fix.replace);
+      fixedHtml = fixedHtml.replace(regex, replacement);
       fixCount += matches.length;
-      console.log(`   ✅ AI fix [${fix.type}]: "${fix.find}" → "${fix.replace}" (${matches.length}x)`);
+      const truncReplace = replacement.length > 60 ? replacement.substring(0, 57) + '...' : replacement;
+      console.log(`   ✅ AI fix [${fix.type}]: "${fix.find.substring(0, 60)}" → "${truncReplace}" (${matches.length}x)`);
     }
   }
 
   return { html: fixedHtml, fixCount };
+}
+
+// ============================================================================
+// PROSE QUALITY REWRITE — Per-card rewrite with research context (Step 5.5)
+// ============================================================================
+
+async function rewriteCardProse(html, research) {
+  if (!ANTHROPIC_API_KEY) {
+    console.log('   ⚠️  No ANTHROPIC_API_KEY — skipping prose rewrite');
+    return { html, rewriteCount: 0 };
+  }
+
+  const firmName = research.firmName || 'Unknown';
+  const city = research.location?.city || '';
+  const country = (research.location?.country || 'US').toUpperCase();
+  const practiceArea = research.practiceArea || research.practice_area || '';
+
+  // Build compact research summary for context
+  const researchLines = [];
+  const gmb = research.googleBusiness || {};
+  if (gmb.rating) researchLines.push(`Google: ${gmb.rating}★, ${gmb.reviews || 0} reviews`);
+  const sm = research.socialMedia || {};
+  const channels = Object.entries(sm).filter(([k, v]) => v).map(([k]) => k);
+  if (channels.length) researchLines.push(`Social: ${channels.join(', ')}`);
+  const mktg = research.marketing || {};
+  if (mktg.hasBlog) researchLines.push('Has blog');
+  if (mktg.hasLiveChat) researchLines.push('Has live chat');
+  if (mktg.videoContent) researchLines.push('Has video');
+  if (research.hasChatbot) researchLines.push('Has chatbot');
+  if (research.hasBookingWidget) researchLines.push('Has booking widget');
+  const adsData = research.adsData || {};
+  const gAds = adsData.googleAds || adsData.summary;
+  if (gAds?.adCount > 0 || gAds?.runningGoogleAds) researchLines.push(`Running ${gAds.adCount || 'some'} Google Ads`);
+  else researchLines.push('No Google Ads');
+  const mAds = adsData.metaAds;
+  if (mAds?.activeCount > 0) researchLines.push(`Running ${mAds.activeCount} Meta ads`);
+  else researchLines.push('No Meta ads');
+  const compList = (research.competitors || []).slice(0, 3).map(c => `${c.name} (${c.reviews || c.reviewCount || 0} reviews)`).join(', ');
+  if (compList) researchLines.push(`Competitors: ${compList}`);
+  const researchContext = researchLines.join('\n');
+
+  // Extract card bodies with their surrounding HTML for replacement
+  const cardBodyRegex = /<div class="revenue-card-body">([\s\S]*?)<\/div>/gi;
+  const cardMatches = [];
+  let match;
+  while ((match = cardBodyRegex.exec(html)) !== null) {
+    cardMatches.push({ full: match[0], body: match[1].trim(), index: match.index });
+  }
+
+  if (cardMatches.length === 0) {
+    console.log('   ⚠️  No card bodies found to rewrite');
+    return { html, rewriteCount: 0 };
+  }
+
+  const cardLabels = ['Google Ads + SEO + Website', 'Meta Ads + Funnels + Content', 'AI Intake + CRM'];
+  let fixedHtml = html;
+  let rewriteCount = 0;
+
+  for (let i = 0; i < cardMatches.length && i < 3; i++) {
+    const card = cardMatches[i];
+    const plainText = card.body.replace(/<[^>]+>/g, '').trim();
+
+    // Skip if card body is very short (probably broken, don't make it worse)
+    if (plainText.length < 50) continue;
+
+    const prompt = `You're editing a marketing report for a lawyer. Here's one section (${cardLabels[i] || 'Revenue Card'}).
+
+FIRM: ${firmName}, ${city}, ${country}
+PRACTICE: ${practiceArea}
+
+RESEARCH DATA (what we actually know):
+${researchContext}
+
+CURRENT PROSE:
+${plainText}
+
+Rewrite this section to be:
+1. Specific to THIS firm — use "${firmName}", "${city}", their actual data from above
+2. Written like a smart person talking to another smart person — no marketing jargon
+3. Honest — only claim things the research data supports
+4. Short — every sentence earns its place or gets cut
+5. Keep the opening sentence bold (wrap in <strong> tags)
+
+If the prose is already good and specific, return it UNCHANGED. Only rewrite what needs fixing.
+Return ONLY the rewritten prose HTML, nothing else. No markdown, no explanation.`;
+
+    try {
+      const rewritten = await askHaiku(prompt, 800);
+      const cleaned = rewritten.trim();
+
+      // Safety checks: don't use the rewrite if it's broken
+      if (cleaned.length < 30) continue; // too short
+      if (cleaned.length > plainText.length * 2.5) continue; // way too long
+      if (cleaned.includes('```') || cleaned.includes('Here is') || cleaned.includes('I\'ve rewritten')) continue; // meta text
+      if (/\bundefined\b|\bnull\b|\bNaN\b/.test(cleaned)) continue; // broken content
+
+      // Check if it actually changed
+      const cleanedPlain = cleaned.replace(/<[^>]+>/g, '').trim();
+      if (cleanedPlain === plainText) continue; // no change needed
+
+      // Replace in HTML
+      const newCardBody = `<div class="revenue-card-body">\n          ${cleaned}\n        </div>`;
+      fixedHtml = fixedHtml.replace(card.full, newCardBody);
+      rewriteCount++;
+      console.log(`   ✅ Card ${i + 1} (${cardLabels[i]}): rewritten (${plainText.length} → ${cleanedPlain.length} chars)`);
+    } catch (e) {
+      console.log(`   ⚠️  Card ${i + 1} rewrite failed: ${e.message}`);
+    }
+  }
+
+  return { html: fixedHtml, rewriteCount };
 }
 
 // ============================================================================
@@ -1333,6 +1476,49 @@ function deterministicQC(html, research) {
     // Don't deduct — fallback prose is valid, just less personalized
   }
 
+  // 25. GENERIC_SEARCH_TERMS — typing animation has "lawyer near me" etc.
+  const typedSearchMatch = html.match(/id="typed-search"[^>]*>([^<]+)/);
+  if (typedSearchMatch) {
+    const typedText = typedSearchMatch[1].trim().toLowerCase();
+    const genericSearchTerms = ['lawyer near me', 'attorney near me', 'legal help near me', 'law firm near me', 'solicitor near me'];
+    if (genericSearchTerms.includes(typedText)) {
+      issues.push({ severity: 'IMPORTANT', category: 'PERSONALIZATION', issue: `Typing animation uses generic search term "${typedText}" — should be practice-specific` });
+      score -= 1;
+    }
+  }
+
+  // 26. COMPETITOR_AD_TAGS — SERP mockup has "Ad" tags for competitors we never verified
+  const adTagMatches = html.match(/class="serp-tag serp-tag-ad"/g) || [];
+  if (adTagMatches.length > 0) {
+    // Check if we have actual ads data for competitors
+    const hasVerifiedAds = (research.competitors || []).some(c => c.hasGoogleAds === true);
+    if (!hasVerifiedAds) {
+      issues.push({ severity: 'IMPORTANT', category: 'FABRICATION', issue: `SERP mockup has ${adTagMatches.length} "Ad" tag(s) for competitors whose ad status was never verified` });
+      score -= 1;
+    }
+  }
+
+  // 27. FOOTER_LOCATION — footer shows prospect's city instead of Toronto (Mortar Metrics' location)
+  const footerMatch = html.match(/class="footer"[^>]*>([\s\S]*?)<\/div>/i);
+  if (footerMatch) {
+    const footerText = footerMatch[1].replace(/<[^>]+>/g, '').trim();
+    if (footerText.includes('Legal Growth Agency') && !footerText.includes('Toronto')) {
+      issues.push({ severity: 'MINOR', category: 'BRANDING', issue: `Footer shows prospect's city instead of Toronto, ON (Mortar Metrics' location)` });
+      score -= 0.5;
+    }
+  }
+
+  // 28. SERP_QUERY_GENERIC — SERP query shows "lawyer near me" not practice-specific
+  const serpQueryMatch = html.match(/class="serp-query"[\s\S]*?"([^"]+)"\s*<\/span>/);
+  if (serpQueryMatch) {
+    const serpQuery = serpQueryMatch[1].toLowerCase();
+    const genericQueries = ['lawyer near me', 'attorney near me', 'solicitor near me', 'legal help near me'];
+    if (genericQueries.includes(serpQuery)) {
+      issues.push({ severity: 'MINOR', category: 'PERSONALIZATION', issue: `SERP mockup query is generic "${serpQuery}" — should mention practice area` });
+      score -= 0.5;
+    }
+  }
+
   // Clamp score
   score = Math.max(0, Math.min(10, Math.round(score * 2) / 2));
 
@@ -1504,26 +1690,40 @@ async function perfectReport() {
     console.log(`   ✅ No semantic issues found`);
   }
 
-  // Step 6: Apply AI-suggested fixes (safe types: WRONG_NAME, BROKEN_SENTENCE, FABRICATED_STAT, WRONG_COUNTRY)
+  // Step 5.5: Prose quality rewrite (per-card, Haiku 3.5)
+  console.log('\n✍️  STEP 5.5: Prose quality rewrite...');
+  const proseResult = await rewriteCardProse(currentHtml, research);
+  if (proseResult.rewriteCount > 0) {
+    currentHtml = proseResult.html;
+    fixesApplied.push(`Prose rewrite: ${proseResult.rewriteCount} card(s)`);
+    fs.writeFileSync(reportFile, currentHtml);
+    console.log('💾 Saved prose-rewritten report');
+  } else {
+    console.log('   ✅ Card prose already good — no rewrites needed');
+  }
+
+  // Step 6: Apply AI-suggested fixes
   if (aiResult.fixes.length > 0) {
     console.log('\n🔧 STEP 6: Applying AI fixes...');
-    const aiFixResult = applyAiFixes(currentHtml, aiResult.fixes);
+    const aiFixResult = applyAiFixes(currentHtml, aiResult.fixes, research);
     if (aiFixResult.fixCount > 0) {
       currentHtml = aiFixResult.html;
       fixesApplied.push(`AI fixes: ${aiFixResult.fixCount} replacement(s)`);
       fs.writeFileSync(reportFile, currentHtml);
       console.log('💾 Saved AI-fixed report');
-
-      // Step 7: Re-run deterministic QC after AI fixes to get updated score
-      console.log('\n🔍 STEP 7: Re-running deterministic QC after fixes...');
-      const recheck = deterministicQC(currentHtml, research);
-      qcResult.score = recheck.score;
-      qcResult.wouldBook = recheck.wouldBook;
-      qcResult.verdict = recheck.verdict;
-      qcResult.biggestProblem = recheck.biggestProblem;
-      qcResult.issues = recheck.issues;
-      console.log(`   Updated score: ${recheck.score}/10`);
     }
+  }
+
+  // Step 7: Re-run deterministic QC after any fixes to get updated score
+  if (proseResult.rewriteCount > 0 || aiResult.fixes.length > 0) {
+    console.log('\n🔍 STEP 7: Re-running deterministic QC after fixes...');
+    const recheck = deterministicQC(currentHtml, research);
+    qcResult.score = recheck.score;
+    qcResult.wouldBook = recheck.wouldBook;
+    qcResult.verdict = recheck.verdict;
+    qcResult.biggestProblem = recheck.biggestProblem;
+    qcResult.issues = recheck.issues;
+    console.log(`   Updated score: ${recheck.score}/10`);
   }
 
   // Save QC result alongside report

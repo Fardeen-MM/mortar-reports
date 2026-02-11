@@ -663,48 +663,27 @@ function generateSerpMockup(competitors, firmName, searchTerms) {
           <span class="serp-note">top of page</span>
         </div>\n`;
 
-  // Competitors below
-  if (topComps.length >= 1) {
-    rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[0].name))}</span>
-          <span class="serp-note">paying for clicks</span>
+  // Competitors below — only show "Ad" tag if we actually know they run ads
+  for (let i = 0; i < 3; i++) {
+    if (topComps.length > i) {
+      const comp = topComps[i];
+      const reviews = comp.reviews || comp.reviewCount || 0;
+      const hasAds = comp.hasGoogleAds === true;
+      const tag = hasAds ? 'ad' : 'map';
+      const tagLabel = hasAds ? 'Ad' : 'Map';
+      const note = hasAds ? 'paying for clicks' : `${reviews.toLocaleString()} reviews`;
+      rows += `        <div class="serp-row">
+          <span class="serp-tag serp-tag-${tag}">${tagLabel}</span>
+          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(comp.name))}</span>
+          <span class="serp-note">${note}</span>
         </div>\n`;
-  } else {
-    rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">Other firms</span>
-          <span class="serp-note">paying for clicks</span>
-        </div>\n`;
-  }
-
-  if (topComps.length >= 2) {
-    rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[1].name))}</span>
-          <span class="serp-note">paying for clicks</span>
-        </div>\n`;
-  } else {
-    rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-ad">Ad</span>
-          <span class="serp-name">Another firm with ads</span>
-          <span class="serp-note">paying for clicks</span>
-        </div>\n`;
-  }
-
-  if (topComps.length >= 3) {
-    const reviews = topComps[2].reviews || topComps[2].reviewCount || 0;
-    rows += `        <div class="serp-row">
+    } else {
+      rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-map">Map</span>
-          <span class="serp-name">${escapeHtml(sanitizeCompetitorName(topComps[2].name))}</span>
-          <span class="serp-note">${reviews.toLocaleString()} reviews</span>
+          <span class="serp-name">${i === 0 ? 'Other firms' : 'Local result'}</span>
+          <span class="serp-note">local result</span>
         </div>\n`;
-  } else {
-    rows += `        <div class="serp-row">
-          <span class="serp-tag serp-tag-map">Map</span>
-          <span class="serp-name">Top-reviewed firm</span>
-          <span class="serp-note">100+ reviews</span>
-        </div>\n`;
+    }
   }
 
   return `      <div class="serp-mockup">
@@ -1071,7 +1050,7 @@ ${deliverableItem('Dedicated account manager', 'One point of contact. Not a tick
     </div>
 
     <div class="footer">
-      Mortar Metrics \u00B7 Legal Growth Agency \u00B7 ${escapeHtml(city && state ? `${city}, ${state}` : city || state || '')}<br>
+      Mortar Metrics \u00B7 Legal Growth Agency \u00B7 Toronto, ON<br>
       <a href="mailto:fardeen@mortarmetrics.com">fardeen@mortarmetrics.com</a>
     </div>
 

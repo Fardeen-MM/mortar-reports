@@ -842,6 +842,13 @@ function getSearchTerms(practiceArea, city, state, country) {
       'harassment attorney',
       'wage theft lawyer'
     ],
+    'business': [
+      'business attorney near me',
+      `corporate lawyer ${location}`,
+      `contract attorney ${location}`,
+      'business formation lawyer',
+      'commercial litigation attorney'
+    ],
     'real estate': [
       'real estate lawyer near me',
       `property attorney ${location}`,

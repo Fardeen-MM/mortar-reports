@@ -12,6 +12,36 @@
 const { chromium } = require('playwright');
 
 /**
+ * Normalize a firm name for comparison: lowercase, strip punctuation, remove
+ * common legal suffixes (LLP, LLC, PA, PC, PLLC, PLC, Inc, Corp, etc.)
+ */
+function normalizeName(name) {
+  return (name || '')
+    .toLowerCase()
+    .replace(/[.,&'"""''()-]/g, ' ')
+    .replace(/\b(llp|llc|pa|pc|pllc|plc|inc|corp|ltd|co|law\s*firm|law\s*offices?|law\s*group|attorneys?\s*at\s*law|solicitors?)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Check if two normalized names are a likely match:
+ * one is a substring of the other, or they share enough words
+ */
+function namesMatch(a, b) {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (!na || !nb) return false;
+  // Substring match either direction
+  if (na.includes(nb) || nb.includes(na)) return true;
+  // Word overlap: if 2+ meaningful words match
+  const wordsA = na.split(' ').filter(w => w.length > 2);
+  const wordsB = new Set(nb.split(' ').filter(w => w.length > 2));
+  const overlap = wordsA.filter(w => wordsB.has(w)).length;
+  return overlap >= 2;
+}
+
+/**
  * Detect Google Ads via Ads Transparency Center
  * Searches by firm name for more reliable detection
  */
@@ -51,27 +81,71 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
                            bodyText.includes("hasn't advertised") ||
                            bodyText.includes('No results');
 
-      // Extract ad counts - look for patterns like "89 ads" or "1 ads"
+      // Try to extract individual advertiser result cards and match by name
       let adCount = 0;
-      const adMatches = bodyText.match(/(\d+)\s+ads?/gi) || [];
+      let matched = false;
+      const domainBase = (firmDomain || '').replace(/^www\./, '').toLowerCase();
 
-      // Sum up all ad counts found (multiple advertisers might match)
-      for (const match of adMatches) {
-        const num = parseInt(match.match(/(\d+)/)[1]);
-        if (num > 0 && num < 10000) { // Sanity check
-          adCount = Math.max(adCount, num); // Take the highest count
+      try {
+        // Each result card typically contains an advertiser name + "N ads" text
+        const cards = await page.locator('[class*="result"], [class*="card"], [class*="advertiser"], [role="listitem"]').all();
+        if (cards.length > 0) {
+          console.log(`   📋 Found ${cards.length} advertiser card(s), checking for name match...`);
+          for (const card of cards) {
+            const cardText = await card.textContent().catch(() => '');
+            if (!cardText) continue;
+
+            // Extract ad count from this card
+            const countMatch = cardText.match(/(\d+)\s+ads?/i);
+            if (!countMatch) continue;
+            const cardAdCount = parseInt(countMatch[1]);
+
+            // Check if this card's advertiser matches our firm
+            if (namesMatch(cardText, firmName)) {
+              adCount = cardAdCount;
+              result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
+              matched = true;
+              console.log(`   🎯 Name match: "${result.advertiserName}" → ${adCount} ads`);
+              break;
+            }
+
+            // Domain match: check if card displays a URL containing our domain
+            if (domainBase && cardText.toLowerCase().includes(domainBase)) {
+              adCount = cardAdCount;
+              result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
+              matched = true;
+              console.log(`   🎯 Domain match (${domainBase}): "${result.advertiserName}" → ${adCount} ads`);
+              break;
+            }
+          }
+        }
+      } catch (cardErr) {
+        console.log(`   ⚠️  Card extraction failed: ${cardErr.message}`);
+      }
+
+      // Fallback: if card extraction didn't find a match, use old regex approach
+      if (!matched) {
+        const adMatches = bodyText.match(/(\d+)\s+ads?/gi) || [];
+        for (const match of adMatches) {
+          const num = parseInt(match.match(/(\d+)/)[1]);
+          if (num > 0 && num < 10000) {
+            adCount = Math.max(adCount, num);
+          }
+        }
+        if (adCount > 0) {
+          console.log(`   ⚠️  No name/domain match found, using fallback max: ${adCount} ads`);
         }
       }
 
-      // Also try to find advertiser cards
-      const advertiserCount = await page.locator('[class*="advertiser"], [data-advertiser]').count();
+      // Sanity cap: most law firms run < 20 ads
+      adCount = Math.min(adCount, 50);
 
       // Final determination
       result.running = !hasNoResults && adCount > 0;
       result.adCount = adCount;
 
       if (result.running) {
-        console.log(`   ✅ Google Ads: Running (${result.adCount} ads detected)`);
+        console.log(`   ✅ Google Ads: Running (${result.adCount} ads detected${matched ? ', name-matched' : ''})`);
       } else {
         console.log(`   ❌ Google Ads: Not running`);
       }

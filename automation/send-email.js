@@ -154,9 +154,10 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
 
 /**
  * Generate a warm opener using Claude Haiku based on the lead's reply and country.
+ * If the lead asked a question, briefly answers it and pivots to the report.
  * Falls back to "Glad you replied." on error or missing API key.
  */
-function generateOpener(leadReply, leadCountry) {
+function generateOpener(leadReply, leadCountry, label) {
   const fallback = 'Appreciate you getting back to me.';
   if (!ANTHROPIC_API_KEY) {
     console.log('⚠️  No ANTHROPIC_API_KEY - using fallback opener');
@@ -164,7 +165,30 @@ function generateOpener(leadReply, leadCountry) {
   }
   if (!leadReply && leadCountry !== 'CA') return Promise.resolve(fallback);
 
-  let prompt = `You're Fardeen, founder of a legal marketing agency. A law firm lead replied to your cold email with: "${leadReply || 'interested'}"
+  const replyText = leadReply || 'interested';
+  const hasQuestion = replyText.includes('?');
+  let prompt;
+  let maxTokens = 60;
+
+  if (hasQuestion) {
+    // Lead asked a question — answer it briefly and pivot to the report
+    console.log('❓ Question detected in lead reply, using answer-and-pivot prompt');
+    const caseType = label || 'new cases';
+    prompt = `You're Fardeen, founder of a legal marketing agency called Mortar Metrics. A law firm lead replied to your cold email with: "${replyText}"
+
+They asked a question. Write 1-2 short sentences (max 40 words) that:
+1. Briefly answer their question (the report covers ${caseType} — new billable matters their competitors are signing that they're currently missing)
+2. Pivot to the report you built for them
+
+Examples of good question-answering openers:
+- "Great question — the report breaks down new ${caseType} your competitors are signing that you're currently missing. Here's the full breakdown:"
+- "Yes, these are new billable ${caseType}. The report shows exactly where they're coming from:"
+- "Good question. The analysis covers real ${caseType} in your market — here's what we found:"
+
+Sound like a real person, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the 1-2 sentences.`;
+    maxTokens = 120;
+  } else {
+    prompt = `You're Fardeen, founder of a legal marketing agency. A law firm lead replied to your cold email with: "${replyText}"
 
 Write ONE short sentence (max 15 words) that thanks them for replying. Just a quick genuine thank-you, nothing else.
 
@@ -173,17 +197,18 @@ Examples of good openers:
 - "Thanks for the reply, glad this caught your eye."
 - "Good to hear from you."
 - "Glad this resonated."`;
+  }
 
   if (leadCountry === 'CA') {
     prompt += `\nThe lead is Canadian and so are you. Work in something like "always great to work with fellow Canadians" but keep it natural, not forced.`;
   }
 
-  prompt += `\nSound like a real person texting a business contact, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the sentence.`;
+  prompt += `\nSound like a real person texting a business contact, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the sentence${hasQuestion ? 's' : ''}.`;
 
   return new Promise((resolve) => {
     const payload = JSON.stringify({
       model: 'claude-3-5-haiku-20241022',
-      max_tokens: 60,
+      max_tokens: maxTokens,
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -287,7 +312,7 @@ function plainTextToHtml(text) {
     };
   } else {
     // Generate AI opener from the lead's reply
-    const opener = await generateOpener(latestEmail.leadReply, country);
+    const opener = await generateOpener(latestEmail.leadReply, country, practiceLabel);
     // Build email with personalization data + AI opener
     emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
   }
