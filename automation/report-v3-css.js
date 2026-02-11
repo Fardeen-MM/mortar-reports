@@ -113,6 +113,21 @@ module.exports = function getV3CSS() {
 
   @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
+  /* ========== OBSERVATIONS ========== */
+  .observations-section {
+    margin: 36px auto; max-width: 680px;
+  }
+
+  .observations-label {
+    font-family: 'Fraunces', Georgia, serif; font-size: 1.125rem;
+    font-weight: 600; color: var(--ink); margin-bottom: 16px;
+  }
+
+  .observation-item {
+    font-size: 0.925rem; color: var(--slate); line-height: 1.7;
+    margin-bottom: 8px; padding-left: 24px; text-indent: -24px;
+  }
+
   /* ========== DIVIDER ========== */
   .divider {
     height: 1px;

@@ -168,6 +168,95 @@ function getFunnelExample(practiceArea, city) {
 }
 
 // ============================================================================
+// FIRM CONTEXT BUILDER - Assembles research data into plain-English summary
+// ============================================================================
+
+function buildFirmContext(researchData) {
+  const lines = [];
+
+  // Ads status
+  const gAds = researchData.adsData?.googleAds || researchData.adsData?.summary;
+  const mAds = researchData.adsData?.metaAds;
+  if (gAds?.adCount > 0 || gAds?.runningGoogleAds) {
+    lines.push(`Currently running ${gAds.adCount || 'some'} Google Ads.`);
+  } else if (researchData.googleAdsData?.hasAds) {
+    lines.push(`Currently running ${researchData.googleAdsData.adCount || 'some'} Google Ads.`);
+  } else {
+    lines.push('Not currently running Google Ads.');
+  }
+
+  if (mAds?.activeCount > 0) {
+    lines.push(`Currently running ${mAds.activeCount} active Meta/Facebook ads.`);
+  } else if (mAds?.inactiveCount > 0) {
+    lines.push(`Previously ran Meta ads (${mAds.inactiveCount} inactive), but none active now.`);
+  } else if (researchData.metaAdsData?.hasActiveAds) {
+    lines.push(`Currently running Meta/Facebook ads (${researchData.metaAdsData.activeCount || 'some'} active).`);
+  } else if (researchData.metaAdsData?.hasInactiveAds) {
+    lines.push(`Previously ran Meta ads (${researchData.metaAdsData.inactiveCount || 'some'} inactive), but none active now.`);
+  } else {
+    lines.push('No Meta/Facebook ads detected.');
+  }
+
+  // Domain vs firm name
+  try {
+    const domain = new URL(researchData.website).hostname.replace('www.', '');
+    const nameSlug = (researchData.firmName || '').toLowerCase().replace(/[^a-z]/g, '');
+    const domainSlug = domain.split('.')[0].toLowerCase().replace(/[^a-z]/g, '');
+    if (domainSlug && nameSlug && domainSlug !== nameSlug) {
+      lines.push(`Domain "${domain}" differs from firm name. Likely an SEO/keyword domain strategy.`);
+    }
+  } catch (_) { /* invalid URL, skip */ }
+
+  // Social & content
+  const sm = researchData.socialMedia || {};
+  const channels = Object.entries(sm).filter(([k, v]) => v).map(([k]) => k);
+  if (channels.length) lines.push(`Social media presence: ${channels.join(', ')}.`);
+
+  const mktg = researchData.marketing || {};
+  if (mktg.hasBlog) lines.push('Has an active blog.');
+  if (mktg.videoContent) lines.push('Has video content on their site.');
+  if (mktg.hasLiveChat) lines.push('Has live chat on their website.');
+  if (mktg.websiteModernization) lines.push(`Website modernization: ${mktg.websiteModernization}.`);
+
+  // Scan pages for content signals
+  const allText = (researchData.websitePages || []).map(p => (p.text || '').toLowerCase()).join(' ');
+  const signals = [];
+  if (allText.includes('webinar')) signals.push('webinars');
+  if (allText.includes('podcast')) signals.push('podcast');
+  if (allText.includes('newsletter') || allText.includes('subscribe')) signals.push('newsletter/email list');
+  if (allText.includes('youtube') || allText.includes('video')) signals.push('video content');
+  if (allText.includes('seminar') || allText.includes('workshop')) signals.push('seminars/workshops');
+  if (signals.length) lines.push(`Content marketing signals: ${signals.join(', ')}.`);
+
+  // Website features
+  const features = [];
+  if (researchData.hasChatbot) features.push('chatbot');
+  if (researchData.hasBookingWidget) features.push('booking widget');
+  if (researchData.mobileOptimized) features.push('mobile-optimized');
+  if (features.length) lines.push(`Website features: ${features.join(', ')}.`);
+
+  // Google Business
+  const gmb = researchData.googleBusiness;
+  if (gmb?.rating) {
+    lines.push(`Google Business: ${gmb.rating} stars, ${gmb.reviews || 0} reviews.`);
+  }
+
+  // AI intelligence
+  const intel = researchData.intelligence || {};
+  if (intel.marketingMaturity) lines.push(`Marketing maturity: ${intel.marketingMaturity}.`);
+  if (intel.painPoints?.length) lines.push(`Potential pain points: ${intel.painPoints.slice(0, 3).join('; ')}.`);
+  if (intel.personalizationHooks?.length) lines.push(`Personalization hooks: ${intel.personalizationHooks.slice(0, 3).join('; ')}.`);
+  if (intel.opportunities?.length) lines.push(`Opportunities: ${intel.opportunities.slice(0, 3).join('; ')}.`);
+
+  // Positioning
+  const pos = researchData.positioning || {};
+  if (pos.uniqueSellingPoints?.length) lines.push(`USPs: ${pos.uniqueSellingPoints.slice(0, 3).join('; ')}.`);
+  if (pos.differentiation) lines.push(`Differentiation: ${pos.differentiation}.`);
+
+  return lines.join('\n');
+}
+
+// ============================================================================
 // AI PROSE GENERATION - One Claude call writes card body paragraphs
 // ============================================================================
 
@@ -238,7 +327,7 @@ async function generateProseContent(context) {
     firmName, city, state, country, currency,
     practiceArea, practiceDescription,
     gap1, gap2, gap3,
-    competitors
+    competitors, firmContext
   } = context;
 
   const isUK = (country === 'GB' || country === 'UK');
@@ -258,6 +347,10 @@ async function generateProseContent(context) {
 
   const funnel = getFunnelExample(practiceArea, city);
 
+  const firmContextBlock = firmContext
+    ? `\nWHAT WE KNOW ABOUT THIS FIRM'S CURRENT MARKETING:\n${firmContext}\n\nFRAMING RULES:\n- If they're already doing something (running ads, posting content, hosting webinars), acknowledge it. Show them how to do it better, not how to start from scratch.\n- If they're NOT doing something, frame it as an untapped opportunity.\n- Reference specific things from the research above to prove we looked at their firm closely.\n- Never fabricate. Only reference what's listed above.\n`
+    : '';
+
   const prompt = `You are writing body paragraphs for 3 revenue cards in a marketing report for a law firm. Write confident, specific copy that references the firm's market data.
 
 FIRM CONTEXT:
@@ -268,7 +361,7 @@ FIRM CONTEXT:
 ${localeInstructions}
 
 COMPETITOR DATA: ${competitorNames || 'No competitor data available'}
-
+${firmContextBlock}
 DATA FOR CARDS:
 - Card 1 (Google Ads + SEO + Website): ~${gap1.searches} monthly searches for ${practiceDescription} in ${locationStr}
 - Card 2 (Meta Ads + Funnels + Content): ~${(gap2.audience/1000).toFixed(0)}K reachable audience. Funnel example: "${funnel.guide}" covering ${funnel.topics}
@@ -288,12 +381,13 @@ Return ONLY valid JSON with these exact fields:
 {
   "card1Body": "Paragraph for Google Ads + SEO + Website card. Reference ~X searches, city, practice area. Mention SEO for organic rankings and website redesign to convert. End with reference to the SERP mockup below. Use <strong> for the bold opening sentence.",
   "card2Body": "Paragraph for Meta Ads + Funnels + Content card. Reference ~XK audience. Bold opening: Google only catches people who already know they need a lawyer. Mention lead magnet funnels with the specific guide example. Mention webinar funnels on ${funnel.topics}. Explain the conversion path from ad to trusted contact. Use <strong> for the bold opening sentence.",
-  "card3Body": "Paragraph for AI Intake + CRM card. Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence."
+  "card3Body": "Paragraph for AI Intake + CRM card. Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence.",
+  "observations": "An array of 2-4 short, specific observations about this firm's current marketing. Each should be one sentence that shows we researched them. Reference concrete things (their domain strategy, their ad count, their social media presence, their blog, their website features, etc). Only include observations where you have real data from the firm profile above. Do NOT make generic statements. If little data is available, return fewer observations or an empty array."
 }`;
 
   console.log('🤖 Generating AI prose content...');
 
-  const response = await callClaude(prompt, 2000);
+  const response = await callClaude(prompt, 2500);
 
   let jsonStr = response;
   const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -321,7 +415,18 @@ Return ONLY valid JSON with these exact fields:
     throw new Error(`AI prose missing fields: ${missing.join(', ')}`);
   }
 
+  // Normalize observations: ensure it's an array of strings
+  if (!Array.isArray(prose.observations)) {
+    prose.observations = [];
+  }
+  prose.observations = prose.observations
+    .filter(o => typeof o === 'string' && o.trim().length > 0)
+    .slice(0, 4);
+
   console.log('✅ AI prose generated successfully');
+  if (prose.observations.length > 0) {
+    console.log(`   📌 ${prose.observations.length} observations generated`);
+  }
   return prose;
 }
 
@@ -349,7 +454,8 @@ function generateFallbackProse(context) {
   return {
     card1Body: `<strong>~${gap1.searches.toLocaleString()} people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire. We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. Professional, fast, built to turn visitors into consultations. ${compRef}`,
     card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
-    card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`
+    card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`,
+    observations: []
   };
 }
 
@@ -466,12 +572,17 @@ async function generateReport(researchData, prospectName) {
   console.log(`   Cases: ${card1Cases} + ${card2Cases} + ${card3Cases} = ${totalCases}/month\n`);
 
   // Build prose context
+  const firmContext = buildFirmContext(researchData);
+  if (firmContext) {
+    console.log('📋 Firm context for AI:\n' + firmContext.split('\n').map(l => '   ' + l).join('\n'));
+  }
+
   const proseContext = {
     firmName, city, state, country, currency,
     practiceArea, practiceDescription,
     searchTerms,
     gap1, gap2, gap3, totalLow, totalHigh,
-    competitors
+    competitors, firmContext
   };
 
   // Try AI prose generation, fall back to templates
@@ -690,6 +801,16 @@ ${css}
       </div>
     </section>
 
+
+    <!-- OBSERVATIONS -->
+    ${(prose.observations && prose.observations.length > 0) ? `
+    <div class="observations-section fade-in">
+      <div class="observations-label">What we found when we looked at your firm</div>
+      <div class="observations-list">
+        ${prose.observations.map(o => `<div class="observation-item">\u2192 ${o}</div>`).join('\n        ')}
+      </div>
+    </div>
+    ` : ''}
 
     <!-- THE NUMBERS -->
     <div class="divider"></div>
