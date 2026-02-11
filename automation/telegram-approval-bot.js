@@ -205,29 +205,29 @@ ${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${em
 const approvalId = Buffer.from(approvalData.firm_name).toString('base64').substring(0, 20);
 
 // Inline keyboard with Approve/Reject buttons (using short callback_data)
+// Manual builds only get Deploy + Reject (no email sending option)
+const isManualBuild = approvalData.campaign_name === 'manual_build';
 const keyboard = {
-  inline_keyboard: [
-    [
-      {
-        text: '✅ Approve & Send',
-        callback_data: `approve:${approvalId}`
-      },
-      {
-        text: '❌ Reject',
-        callback_data: `reject:${approvalId}`
-      }
-    ],
-    [
-      {
-        text: '📄 Approve (No Email)',
-        callback_data: `approve_no_email:${approvalId}`
-      },
-      {
-        text: '🔗 Open Report',
-        url: approvalData.report_url
-      }
-    ]
-  ]
+  inline_keyboard: isManualBuild
+    ? [
+        [
+          { text: '✅ Deploy Report', callback_data: `approve_no_email:${approvalId}` },
+          { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+        ],
+        [
+          { text: '🔗 Open Report', url: approvalData.report_url }
+        ]
+      ]
+    : [
+        [
+          { text: '✅ Approve & Send', callback_data: `approve:${approvalId}` },
+          { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+        ],
+        [
+          { text: '📄 Approve (No Email)', callback_data: `approve_no_email:${approvalId}` },
+          { text: '🔗 Open Report', url: approvalData.report_url }
+        ]
+      ]
 };
 
 // Send message to Telegram

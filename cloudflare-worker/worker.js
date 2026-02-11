@@ -1,11 +1,12 @@
 /**
  * Cloudflare Worker: Instantly Webhook + Telegram Approval Handler
  *
- * Handles two types of webhooks:
+ * Handles three types of webhooks:
  * 1. Instantly webhooks → forwards to GitHub Actions
  * 2. Telegram callbacks → triggers email approval workflow
+ * 3. Telegram /build commands → manually trigger report pipeline
  *
- * Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN
+ * Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
  */
 
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
@@ -376,6 +377,124 @@ async function sendTelegramNotification(env, email, replyText, classification) {
   }
 }
 
+// ============ TELEGRAM /build COMMAND ============
+
+function parseBuildCommand(text) {
+  // Remove /build prefix and split remaining tokens
+  const tokens = text.replace(/^\/build\s*/, '').trim().split(/\s+/).filter(Boolean);
+  let email = '';
+  let website = '';
+  const nameParts = [];
+
+  for (const token of tokens) {
+    if (token.includes('@')) {
+      email = token;
+    } else if (/^https?:\/\//i.test(token)) {
+      website = token;
+    } else if (/^[a-z0-9-]+\.[a-z]{2,}$/i.test(token)) {
+      // Bare domain like smithlaw.com
+      website = `https://${token}`;
+    } else {
+      nameParts.push(token);
+    }
+  }
+
+  return {
+    email,
+    website,
+    firstName: nameParts[0] || '',
+    lastName: nameParts.slice(1).join(' ') || ''
+  };
+}
+
+async function sendTelegramReply(env, chatId, replyToMessageId, text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        reply_to_message_id: replyToMessageId,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (e) {
+    console.error('Telegram reply failed:', e.message);
+  }
+}
+
+async function handleTelegramMessage(env, payload) {
+  const message = payload.message;
+  const chatId = String(message.chat.id);
+  const messageId = message.message_id;
+  const text = (message.text || '').trim();
+
+  // Security: only allow messages from the authorized chat
+  if (chatId !== String(env.TELEGRAM_CHAT_ID)) {
+    console.log(`Ignoring message from unauthorized chat ${chatId}`);
+    return { ok: true };
+  }
+
+  // Only handle /build commands — ignore everything else
+  if (!text.startsWith('/build')) {
+    return { ok: true };
+  }
+
+  const parsed = parseBuildCommand(text);
+
+  // Validate: email is required
+  if (!parsed.email) {
+    await sendTelegramReply(env, chatId, messageId,
+      `⚠️ *Usage:*\n\n\`/build email@firm.com [website] [First Last]\`\n\nEmail is required. Website and name are optional (inferred if missing).`
+    );
+    return { ok: true };
+  }
+
+  // Build GitHub payload matching the Instantly pipeline format
+  const githubPayload = {
+    event_type: 'interested_lead',
+    client_payload: {
+      email: parsed.email,
+      first_name: parsed.firstName,
+      last_name: parsed.lastName,
+      website: parsed.website,
+      location: '',
+      country: '',
+      company: '',
+      job_title: '',
+      linkedin: '',
+      _meta: JSON.stringify({
+        reply_text: '',
+        campaign_name: 'manual_build',
+        phone: '',
+        timestamp: new Date().toISOString()
+      })
+    }
+  };
+
+  try {
+    await forwardToGitHub(env, githubPayload);
+
+    const details = [
+      `📧 *Email:* ${parsed.email}`,
+      parsed.website ? `🌐 *Website:* ${parsed.website}` : null,
+      parsed.firstName ? `👤 *Name:* ${parsed.firstName}${parsed.lastName ? ' ' + parsed.lastName : ''}` : null
+    ].filter(Boolean).join('\n');
+
+    await sendTelegramReply(env, chatId, messageId,
+      `✅ *Build triggered!*\n\n${details}\n\nYou'll get an approval request in ~5 minutes.`
+    );
+  } catch (err) {
+    console.error('Build dispatch failed:', err.message);
+    await sendTelegramReply(env, chatId, messageId,
+      `❌ *Build failed:* ${err.message}`
+    );
+  }
+
+  return { ok: true };
+}
+
 // Helper: list all webhook slots for an email, merge them, dispatch, and clean up.
 // Returns true if dispatched, false if nothing to dispatch.
 async function listMergeDispatch(env, email, minSlots) {
@@ -564,9 +683,9 @@ export default {
       const email = payload.lead_email || payload.email || payload?.lead?.email || 'unknown';
       await env.WEBHOOK_KV.put(`raw:${email}:${ts}`, JSON.stringify(payload), { expirationTtl: 600 });
 
-      // Detect Telegram callback vs Instantly webhook
+      // Detect: Telegram callback vs Telegram message vs Instantly webhook
       if (payload.callback_query) {
-        // Telegram callback
+        // Telegram callback (approve/reject buttons)
         if (!env.TELEGRAM_BOT_TOKEN) {
           return new Response(JSON.stringify({ error: 'TELEGRAM_BOT_TOKEN not configured' }), {
             status: 500,
@@ -574,6 +693,13 @@ export default {
           });
         }
         const result = await handleTelegramCallback(env, payload);
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } else if (payload.message?.text) {
+        // Telegram message (e.g. /build command)
+        const result = await handleTelegramMessage(env, payload);
         return new Response(JSON.stringify(result), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
