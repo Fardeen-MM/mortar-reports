@@ -182,7 +182,7 @@ Examples of good openers:
 
   return new Promise((resolve) => {
     const payload = JSON.stringify({
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 60,
       messages: [{ role: 'user', content: prompt }]
     });
@@ -258,13 +258,19 @@ Examples of good openers:
   // Build email with personalization data + AI opener
   const emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
 
-  // Run email QC checks (warnings only, does not block send)
+  // Run email QC checks
   const { validateEmail } = require('./email-qc');
   const emailQC = validateEmail(emailContent, { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel });
-  if (!emailQC.passed) {
+  if (emailQC.errors.length > 0) {
+    console.error('❌ EMAIL QC ERRORS (blocking send):');
+    emailQC.errors.forEach(e => console.error(`   - ${e}`));
+    process.exit(1);
+  }
+  if (emailQC.warnings.length > 0) {
     console.warn('⚠️  EMAIL QC WARNINGS:');
     emailQC.warnings.forEach(w => console.warn(`   - ${w}`));
-  } else {
+  }
+  if (emailQC.errors.length === 0 && emailQC.warnings.length === 0) {
     console.log('✅ Email QC passed');
   }
 

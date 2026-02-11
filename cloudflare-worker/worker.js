@@ -194,65 +194,6 @@ async function handleTelegramCallback(env, update) {
   return { ok: true };
 }
 
-// ============ REPLY CLASSIFICATION ============
-
-// Strip quoted text from reply to avoid false positives on forwarded content
-function stripQuotedText(text) {
-  if (!text) return '';
-  // Remove lines starting with > (email quote markers)
-  let lines = text.split('\n');
-  // Find "On ... wrote:" pattern and cut everything after it
-  const wroteIdx = lines.findIndex(l => /^On .+ wrote:$/i.test(l.trim()));
-  if (wroteIdx !== -1) lines = lines.slice(0, wroteIdx);
-  // Remove > quoted lines
-  lines = lines.filter(l => !l.trim().startsWith('>'));
-  return lines.join('\n').trim();
-}
-
-// Classify reply as proceed or skip. Only skips on the most unambiguous patterns.
-function classifyReply(replyText) {
-  if (!replyText) return { action: 'proceed', reason: '' };
-  const clean = stripQuotedText(replyText).toLowerCase();
-  if (!clean) return { action: 'proceed', reason: '' };
-
-  const skipPatterns = [
-    /\bunsubscribe\b/,
-    /\bremove me from\b/,
-    /\bstop email(ing|s)\b/,
-    /\bopt out\b/,
-    /\bopt-out\b/,
-    /\bdo not contact\b/,
-    /\btake me off\b/,
-  ];
-  for (const pat of skipPatterns) {
-    if (pat.test(clean)) {
-      return { action: 'skip', reason: `Matched: ${pat.source}` };
-    }
-  }
-  return { action: 'proceed', reason: '' };
-}
-
-// Send a simple Telegram notification (used for auto-skipped leads)
-async function sendTelegramNotification(env, text) {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
-    console.log('Telegram secrets not configured — skipping notification');
-    return;
-  }
-  try {
-    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: env.TELEGRAM_CHAT_ID,
-        text,
-        parse_mode: 'Markdown'
-      })
-    });
-  } catch (e) {
-    console.error('Failed to send Telegram notification:', e.message);
-  }
-}
-
 // ============ INSTANTLY HANDLER ============
 
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
@@ -408,33 +349,21 @@ async function listMergeDispatch(env, email, minSlots) {
 
   if (!merged) return false;
 
-  // Run reply classification
-  const replyText = collectedExtra._reply_text;
-  const classification = classifyReply(replyText);
-  console.log(`Reply classification for ${email}: ${classification.action} (${classification.reason || 'no issue'})`);
-
   // Set done flag BEFORE dispatching to prevent other timers from also dispatching
   await env.WEBHOOK_KV.put(`done:${email}`, 'true', { expirationTtl: 300 });
 
-  if (classification.action === 'skip') {
-    // Auto-skip: send Telegram notification, don't dispatch to GitHub
-    const preview = replyText.length > 200 ? replyText.slice(0, 200) + '...' : replyText;
-    const msg = `🚫 *AUTO-SKIPPED LEAD*\n\n📧 *Email:* ${email}\n💬 *Reply:*\n\`\`\`\n${preview}\n\`\`\`\n\n📌 *Reason:* ${classification.reason}`;
-    await sendTelegramNotification(env, msg);
-    console.log(`Auto-skipped ${email}: ${classification.reason}`);
-  } else {
-    // Build _meta JSON with extra data (truncate reply to 500 chars)
-    const meta = {
-      reply_text: replyText ? replyText.slice(0, 500) : '',
-      campaign_name: collectedExtra._campaign_name,
-      phone: collectedExtra._phone,
-      timestamp: collectedExtra._timestamp
-    };
-    merged.client_payload._meta = JSON.stringify(meta);
+  // Build _meta JSON with extra data (truncate reply to 500 chars)
+  const replyText = collectedExtra._reply_text;
+  const meta = {
+    reply_text: replyText ? replyText.slice(0, 500) : '',
+    campaign_name: collectedExtra._campaign_name,
+    phone: collectedExtra._phone,
+    timestamp: collectedExtra._timestamp
+  };
+  merged.client_payload._meta = JSON.stringify(meta);
 
-    console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
-    await forwardToGitHub(env, merged);
-  }
+  console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
+  await forwardToGitHub(env, merged);
 
   // Clean up slot keys
   for (const key of keys.keys) {

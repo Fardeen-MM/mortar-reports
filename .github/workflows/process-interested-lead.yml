@@ -7,10 +7,10 @@ on:
 # Prevent duplicate runs for the same lead
 # NOTE: Uses only email (not email_id) because Instantly sends two webhooks
 # with different payloads (campaign-level and workspace-level)
-# cancel-in-progress: true will cancel the older run if a new one starts
+# cancel-in-progress: false — runs queue instead of cancelling (prevents Telegram race condition)
 concurrency:
   group: lead-${{ github.event.client_payload.email }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   research-and-report:
@@ -44,28 +44,7 @@ jobs:
           npx playwright install chromium
         working-directory: ./automation
         
-      - name: Extract lead data
-        id: lead_data
-        env:
-          LEAD_EMAIL: ${{ github.event.client_payload.email }}
-          JOB_TITLE: ${{ github.event.client_payload.job_title }}
-          LINKEDIN: ${{ github.event.client_payload.linkedin }}
-        run: |
-          echo "lead_email=$LEAD_EMAIL" >> $GITHUB_OUTPUT
-          echo "job_title=$JOB_TITLE" >> $GITHUB_OUTPUT
-          echo "linkedin=$LINKEDIN" >> $GITHUB_OUTPUT
-          
-      - name: Debug - Show ALL webhook data
-        env:
-          PAYLOAD_JSON: ${{ toJSON(github.event.client_payload) }}
-        run: |
-          echo "========================================="
-          echo "ALL FIELDS FROM INSTANTLY WEBHOOK:"
-          echo "========================================="
-          echo "$PAYLOAD_JSON" | jq '.'
-          echo "========================================="
-          
-      - name: Parse website from lead data
+      - name: Parse webhook data
         id: parse
         env:
           WEBSITE: ${{ github.event.client_payload.website }}
@@ -78,7 +57,14 @@ jobs:
           COMPANY: ${{ github.event.client_payload.company }}
           LEAD_EMAIL: ${{ github.event.client_payload.email }}
           META_JSON: ${{ github.event.client_payload._meta }}
+          JOB_TITLE: ${{ github.event.client_payload.job_title }}
+          LINKEDIN: ${{ github.event.client_payload.linkedin }}
         run: |
+          # Output lead identity fields
+          echo "lead_email=$LEAD_EMAIL" >> $GITHUB_OUTPUT
+          echo "job_title=$JOB_TITLE" >> $GITHUB_OUTPUT
+          echo "linkedin=$LINKEDIN" >> $GITHUB_OUTPUT
+
           # Unpack location (new format: "city|state") with backward compat
           if [ -n "$LOCATION" ]; then
             CITY=$(echo "$LOCATION" | cut -d'|' -f1)
@@ -217,7 +203,7 @@ jobs:
         run: |
           echo "======================================="
           echo "⏭️  SKIPPING: Duplicate webhook detected"
-          echo "   Email: ${{ steps.lead_data.outputs.lead_email }}"
+          echo "   Email: ${{ steps.parse.outputs.lead_email }}"
           echo "   A pending report already exists for this lead."
           echo "   This workflow will exit without processing."
           echo "======================================="
@@ -247,7 +233,7 @@ jobs:
         id: extract
         if: steps.check_existing.outputs.skip != 'true'
         env:
-          LEAD_EMAIL: ${{ steps.lead_data.outputs.lead_email }}
+          LEAD_EMAIL: ${{ steps.parse.outputs.lead_email }}
           WEBHOOK_CONTACT: ${{ steps.parse.outputs.contact_name }}
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
@@ -469,7 +455,7 @@ jobs:
 
           # Run AI Perfector - it modifies the report in place
           # Pass lead email for LinkedIn intelligence lookup
-          LEAD_EMAIL="${{ steps.lead_data.outputs.lead_email }}"
+          LEAD_EMAIL="${{ steps.parse.outputs.lead_email }}"
           set +e
           node ai-report-perfector.js "$RESEARCH_FILE" "$REPORT_FILE" "$LEAD_EMAIL"
           QC_EXIT=$?
@@ -484,8 +470,8 @@ jobs:
             QC_ITERATIONS=$(cat qc-result.json | jq -r '.iterations // 1')
 
             # Extract lead intelligence - prefer webhook data over perfector lookup
-            WEBHOOK_JOB_TITLE="${{ steps.lead_data.outputs.job_title }}"
-            WEBHOOK_LINKEDIN="${{ steps.lead_data.outputs.linkedin }}"
+            WEBHOOK_JOB_TITLE="${{ steps.parse.outputs.job_title }}"
+            WEBHOOK_LINKEDIN="${{ steps.parse.outputs.linkedin }}"
             WEBHOOK_CONTACT="${{ steps.extract.outputs.contact_name }}"
 
             if [ -n "$WEBHOOK_JOB_TITLE" ]; then
@@ -574,7 +560,7 @@ jobs:
         run: |
           REASON="${{ steps.validate.outputs.reason || steps.report.outputs.reason || 'Unknown error' }}"
           FIRM_NAME="${{ steps.extract.outputs.firm_name || 'Unknown' }}"
-          LEAD_EMAIL="${{ steps.lead_data.outputs.lead_email }}"
+          LEAD_EMAIL="${{ steps.parse.outputs.lead_email }}"
 
           MESSAGE="⚠️ *Report Generation Failed*%0A%0AFirm: ${FIRM_NAME}%0AEmail: ${LEAD_EMAIL}%0AReason: ${REASON}%0A%0ACheck GitHub Actions for details."
 
@@ -624,9 +610,9 @@ jobs:
           FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
           CONTACT_NAME_ORIG: ${{ steps.extract.outputs.contact_name }}
           CONTACT_NAME_CORRECTED: ${{ steps.qc.outputs.corrected_contact_name }}
-          LEAD_EMAIL_ADDR: ${{ steps.lead_data.outputs.lead_email }}
-          JOB_TITLE: ${{ steps.lead_data.outputs.job_title }}
-          LINKEDIN: ${{ steps.lead_data.outputs.linkedin }}
+          LEAD_EMAIL_ADDR: ${{ steps.parse.outputs.lead_email }}
+          JOB_TITLE: ${{ steps.parse.outputs.job_title }}
+          LINKEDIN: ${{ steps.parse.outputs.linkedin }}
           QC_PASSED: ${{ steps.qc.outputs.qc_passed }}
           QC_ISSUES: ${{ steps.qc.outputs.qc_issues }}
           QC_WOULD_BOOK: ${{ steps.qc.outputs.qc_would_book }}

@@ -201,10 +201,8 @@ ${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${em
 
 *Please review the report and email, then choose an action below:*`;
 
-// Save approval data to file with shorter ID
+// Build approval ID for callback buttons
 const approvalId = Buffer.from(approvalData.firm_name).toString('base64').substring(0, 20);
-const approvalDataFile = path.join(path.dirname(approvalFile), `approval-${approvalId}.json`);
-fs.writeFileSync(approvalDataFile, JSON.stringify(approvalData, null, 2));
 
 // Inline keyboard with Approve/Reject buttons (using short callback_data)
 const keyboard = {
