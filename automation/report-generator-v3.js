@@ -1262,23 +1262,7 @@ function sanitizeCompetitorName(name) {
 }
 
 function detectPracticeArea(practiceAreas, researchData) {
-  // Level 0: Strong firm-name signals (unambiguous practice area in name)
   const firmNameLower = (researchData.firmName || '').toLowerCase();
-  const strongSignals = [
-    { pattern: /\bag(ricult\w*)?\b/i, category: 'agricultural' },
-    { pattern: /\bfarm\b/i, category: 'agricultural' },
-    { pattern: /\branch\b/i, category: 'agricultural' },
-    { pattern: /\binjury\b/i, category: 'personal injury' },
-    { pattern: /\bimmigration\b/i, category: 'immigration' },
-    { pattern: /\bbankruptcy\b/i, category: 'bankruptcy' },
-    { pattern: /\bdui\b/i, category: 'criminal' },
-  ];
-  for (const { pattern, category } of strongSignals) {
-    if (pattern.test(firmNameLower)) {
-      console.log(`   Practice area (firm name signal): ${category}`);
-      return category;
-    }
-  }
 
   const aiCategory = researchData.practiceAreaCategory
     || researchData.practice?.practiceAreaCategory;
