@@ -5,7 +5,7 @@
  * Architecture: Three layers
  *   STRUCTURE (fixed) - HTML, CSS, JS animations, revenue cards, deliverables
  *   MATH (fixed) - Gap formulas, market multipliers, case values, boosted floors
- *   PROSE (AI) - Claude writes card body paragraphs (3 fields only)
+ *   PROSE (AI) - Claude writes card body paragraphs + per-card insights
  *
  * V7 changes from V3:
  *   - Positive hero ("Here's how your firm adds $XXX/month")
@@ -382,7 +382,9 @@ Return ONLY valid JSON with these exact fields:
   "card1Body": "Paragraph for Google Ads + SEO + Website card. Reference ~X searches, city, practice area. Mention SEO for organic rankings and website redesign to convert. End with reference to the SERP mockup below. Use <strong> for the bold opening sentence.",
   "card2Body": "Paragraph for Meta Ads + Funnels + Content card. Reference ~XK audience. Bold opening: Google only catches people who already know they need a lawyer. Mention lead magnet funnels with the specific guide example. Mention webinar funnels on ${funnel.topics}. Explain the conversion path from ad to trusted contact. Use <strong> for the bold opening sentence.",
   "card3Body": "Paragraph for AI Intake + CRM card. Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence.",
-  "observations": "An array of 2-4 short, specific observations about this firm's current marketing. Each should be one sentence that shows we researched them. Reference concrete things (their domain strategy, their ad count, their social media presence, their blog, their website features, etc). Only include observations where you have real data from the firm profile above. Do NOT make generic statements. If little data is available, return fewer observations or an empty array."
+  "card1Insight": "One punchy sentence about their Google Ads / SEO / website situation based on the research data above. If they run ads, acknowledge it. If not, note the gap. Reference their domain, reviews, or blog if relevant. Only include if you have real data. Leave empty string if no data.",
+  "card2Insight": "One punchy sentence about their social media, content marketing, or funnel situation. Reference their YouTube, webinars, blog, newsletter if present. If nothing, note the untapped audience. Only include if you have real data. Leave empty string if no data.",
+  "card3Insight": "One punchy sentence about their intake/response setup. Reference chatbot, booking widget, live chat, or lack thereof. Only include if you have real data. Leave empty string if no data."
 }`;
 
   console.log('🤖 Generating AI prose content...');
@@ -415,17 +417,16 @@ Return ONLY valid JSON with these exact fields:
     throw new Error(`AI prose missing fields: ${missing.join(', ')}`);
   }
 
-  // Normalize observations: ensure it's an array of strings
-  if (!Array.isArray(prose.observations)) {
-    prose.observations = [];
+  // Normalize card insights: ensure they're strings (optional)
+  for (const key of ['card1Insight', 'card2Insight', 'card3Insight']) {
+    if (typeof prose[key] !== 'string') prose[key] = '';
+    prose[key] = prose[key].trim();
   }
-  prose.observations = prose.observations
-    .filter(o => typeof o === 'string' && o.trim().length > 0)
-    .slice(0, 4);
 
   console.log('✅ AI prose generated successfully');
-  if (prose.observations.length > 0) {
-    console.log(`   📌 ${prose.observations.length} observations generated`);
+  const insightCount = ['card1Insight', 'card2Insight', 'card3Insight'].filter(k => prose[k]).length;
+  if (insightCount > 0) {
+    console.log(`   📌 ${insightCount} card insights generated`);
   }
   return prose;
 }
@@ -455,7 +456,9 @@ function generateFallbackProse(context) {
     card1Body: `<strong>~${gap1.searches.toLocaleString()} people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire. We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. Professional, fast, built to turn visitors into consultations. ${compRef}`,
     card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
     card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`,
-    observations: []
+    card1Insight: '',
+    card2Insight: '',
+    card3Insight: ''
   };
 }
 
@@ -802,16 +805,6 @@ ${css}
     </section>
 
 
-    <!-- OBSERVATIONS -->
-    ${(prose.observations && prose.observations.length > 0) ? `
-    <div class="observations-section fade-in">
-      <div class="observations-label">What we found when we looked at your firm</div>
-      <div class="observations-list">
-        ${prose.observations.map(o => `<div class="observation-item">\u2192 ${o}</div>`).join('\n        ')}
-      </div>
-    </div>
-    ` : ''}
-
     <!-- THE NUMBERS -->
     <div class="divider"></div>
 
@@ -895,6 +888,7 @@ ${css}
             <div class="revenue-card-cases">\u2248 ${card1Cases} new signed cases</div>
           </div>
         </div>
+${prose.card1Insight ? `        <div class="revenue-card-insight">\u2192 ${prose.card1Insight}</div>` : ''}
         <div class="revenue-card-body">
           ${prose.card1Body}
         </div>
@@ -913,6 +907,7 @@ ${generateSerpMockup(competitors, firmName, searchTerms)}
             <div class="revenue-card-cases">\u2248 ${card2Cases} new signed cases</div>
           </div>
         </div>
+${prose.card2Insight ? `        <div class="revenue-card-insight">\u2192 ${prose.card2Insight}</div>` : ''}
         <div class="revenue-card-body">
           ${prose.card2Body}
         </div>
@@ -940,6 +935,7 @@ ${generateSerpMockup(competitors, firmName, searchTerms)}
             <div class="revenue-card-cases">\u2248 ${card3Cases} cases recovered</div>
           </div>
         </div>
+${prose.card3Insight ? `        <div class="revenue-card-insight">\u2192 ${prose.card3Insight}</div>` : ''}
         <div class="revenue-card-body">
           ${prose.card3Body}
         </div>
