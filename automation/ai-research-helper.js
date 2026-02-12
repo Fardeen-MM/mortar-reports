@@ -589,6 +589,7 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
       .slice(0, 3)
       .map(place => ({
         name: place.name,
+        placeId: place.place_id,
         city: city,
         state: state,
         rating: place.rating || 0,
@@ -602,9 +603,16 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
         source: 'google_places'
       }));
 
+    // Fetch website URLs from Place Details API (parallel)
+    await Promise.all(competitors.map(async (comp) => {
+      if (comp.placeId) {
+        comp.website = await getPlaceWebsite(comp.placeId, GOOGLE_PLACES_API_KEY);
+      }
+    }));
+
     console.log(`   ✅ Found ${competitors.length} real competitors:`);
     competitors.forEach((comp, i) => {
-      console.log(`      ${i + 1}. ${comp.name} (${comp.rating}★, ${comp.reviewCount} reviews)`);
+      console.log(`      ${i + 1}. ${comp.name} (${comp.rating}★, ${comp.reviewCount} reviews)${comp.website ? ' → ' + comp.website : ''}`);
     });
 
     return competitors;
@@ -679,6 +687,27 @@ async function fetchFirmGoogleData(firmName, city, state, country) {
     console.log(`   ⚠️  Error fetching firm data: ${error.message}`);
     return { reviews: 0, rating: 0 };
   }
+}
+
+/**
+ * Get Place Details (website URL) from Google Places API
+ */
+function getPlaceWebsite(placeId, apiKey) {
+  return new Promise((resolve) => {
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=website&key=${apiKey}`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          resolve(result?.result?.website || null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', () => resolve(null));
+  });
 }
 
 /**
