@@ -689,8 +689,13 @@ function applyAiFixes(html, fixes, research) {
     if (fix.find.length < 10) continue;
 
     // Length guard: replacement must be ≤ 1.5x original (prevents AI inserting hallucinations)
-    const lengthTypes = ['FABRICATED_STAT', 'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'WRONG_CONTEXT', 'CONVERSION_FIX'];
+    const lengthTypes = ['FABRICATED_STAT', 'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'WRONG_CONTEXT'];
     if (lengthTypes.includes(fix.type) && fix.replace && fix.replace.length > fix.find.length * 1.5) {
+      console.log(`   ⚠️  Skipping ${fix.type} fix — replacement too long (${fix.replace.length} vs ${fix.find.length} chars)`);
+      continue;
+    }
+    // CONVERSION_FIX gets a more generous limit — persuasion rewrites legitimately expand text
+    if (fix.type === 'CONVERSION_FIX' && fix.replace && fix.replace.length > fix.find.length * 2.5) {
       console.log(`   ⚠️  Skipping ${fix.type} fix — replacement too long (${fix.replace.length} vs ${fix.find.length} chars)`);
       continue;
     }
@@ -804,6 +809,8 @@ CRITICAL GUARDRAILS:
 - Be specific — quote the EXACT text you're critiquing
 - Your suggested replacements should sound like a smart human wrote them — concise, direct, no marketing fluff
 
+For one_thing, also provide the exact find/replace text if the fix can be expressed as a text swap. If the tip is abstract advice that can't be a text swap, leave one_thing_find and one_thing_replace as empty strings.
+
 Return ONLY valid JSON:
 {
   "issues": [
@@ -818,7 +825,9 @@ Return ONLY valid JSON:
   ],
   "verdict": "SHIP_IT|NEEDS_WORK|REBUILD",
   "conversion_estimate": "15%",
-  "one_thing": "The single most impactful change to increase conversion"
+  "one_thing": "The single most impactful change to increase conversion",
+  "one_thing_find": "exact text from the report to replace (or empty string if no text fix possible)",
+  "one_thing_replace": "replacement text (or empty string)"
 }`;
 
   try {
@@ -836,6 +845,11 @@ Return ONLY valid JSON:
     const fixes = issues
       .filter(i => i.find && i.replace && i.find.length >= 10)
       .map(i => ({ type: 'CONVERSION_FIX', find: i.find, replace: i.replace }));
+
+    // Also extract one_thing fix if provided
+    if (result.one_thing_find && result.one_thing_replace && result.one_thing_find.length >= 10) {
+      fixes.push({ type: 'CONVERSION_FIX', find: result.one_thing_find, replace: result.one_thing_replace });
+    }
 
     return {
       verdict: result.verdict || 'SHIP_IT',
