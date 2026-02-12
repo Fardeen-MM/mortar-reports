@@ -395,11 +395,6 @@ async function deepCompetitorResearch(page, competitors, city, state) {
         };
       });
 
-      // Check for ads
-      const hasGoogleAds = await page.evaluate(() => {
-        return !!document.querySelector('[data-text-ad]');
-      });
-
       // Preserve Places API data if DOM scrape returned 0 reviews
       const finalRating = compData.rating || comp.rating || 0;
       const finalReviews = compData.reviews || comp.reviewCount || comp.reviews || 0;
@@ -410,11 +405,11 @@ async function deepCompetitorResearch(page, competitors, city, state) {
         reviewCount: finalReviews,
         reviews: finalReviews,
         website: compData.website || comp.website,
-        hasGoogleAds,
+        hasGoogleAds: false,
         hasMetaAds: false
       });
 
-      console.log(`      ✅ ${finalRating}⭐ (${finalReviews} reviews) ${hasGoogleAds ? '📢 Running ads' : '❌ No ads'}`);
+      console.log(`      ✅ ${finalRating}⭐ (${finalReviews} reviews)`);
       
     } catch (error) {
       console.log(`      ⚠️  Research failed: ${error.message}`);
@@ -722,6 +717,25 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     console.log(`   🔍 Searching competitors for: ${practiceAreasForSearch[0]}`);
     const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch, country);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
+
+    // Phase 6.5: Competitor Ads Detection via Google Ads Transparency Center
+    console.log('\n📢 PHASE 6.5: COMPETITOR ADS DETECTION');
+    try {
+      const { detectGoogleAds } = require('./ads-detector');
+      const adChecks = research.competitors.map(async (comp) => {
+        const domain = comp.website ? new URL(comp.website).hostname.replace(/^www\./, '') : '';
+        const result = await detectGoogleAds(browser, comp.name, domain);
+        comp.hasGoogleAds = result.running && result.adCount > 0;
+        if (comp.hasGoogleAds) {
+          console.log(`   📢 ${comp.name}: Running ${result.adCount} Google Ads`);
+        } else {
+          console.log(`   ❌ ${comp.name}: No Google Ads detected`);
+        }
+      });
+      await Promise.all(adChecks);
+    } catch (err) {
+      console.log(`   ⚠️  Competitor ads check failed: ${err.message}`);
+    }
 
     // Phase 7: Ads Detection (Google + Meta)
     console.log(`\n📱 PHASE 7: ADS DETECTION`);
