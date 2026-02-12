@@ -58,31 +58,77 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
   const page = await browser.newPage();
 
   try {
-    // Go to Google Ads Transparency Center search URL directly
-    const searchUrl = `https://adstransparency.google.com/?region=anywhere&query=${encodeURIComponent(firmName)}`;
-    console.log(`   🔗 Navigating to: ${searchUrl}`);
-    await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    // Go to Google Ads Transparency Center
+    await page.goto('https://adstransparency.google.com/', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
+
+    // Find and use the search input
+    const searchInput = page.locator('input[type="text"], input[type="search"], [role="searchbox"], [role="combobox"]').first();
+    if (await searchInput.count() === 0) {
+      console.log(`   ⚠️  Could not find search input on Google Ads Transparency Center`);
+      return result;
+    }
+
+    await searchInput.click();
+    await page.waitForTimeout(500);
+    // Type slowly to trigger autocomplete
+    await searchInput.fill('');
+    await page.type('input:focus', firmName, { delay: 50 });
     await page.waitForTimeout(3000);
 
-    // Try clicking on first autocomplete suggestion if visible
+    // Try clicking autocomplete suggestion matching firm name
+    let clickedSuggestion = false;
     try {
-      const suggestion = page.locator('[role="option"], [role="listbox"] >> nth=0').first();
-      if (await suggestion.count() > 0) {
-        await suggestion.click();
-        await page.waitForTimeout(4000);
-        console.log(`   📋 Clicked autocomplete suggestion`);
+      // Look for suggestion items — try multiple selectors
+      const suggestionSelectors = [
+        '[role="option"]', '[role="listbox"] li', '[class*="suggestion"]',
+        '[class*="dropdown"] li', '[class*="autocomplete"] li', '[class*="menu"] li'
+      ];
+      for (const sel of suggestionSelectors) {
+        const suggestions = await page.locator(sel).all();
+        if (suggestions.length > 0) {
+          console.log(`   📋 Found ${suggestions.length} autocomplete suggestions (${sel})`);
+          // Try to find one matching our firm name
+          for (const sug of suggestions) {
+            const sugText = await sug.textContent().catch(() => '');
+            console.log(`   🔎 Suggestion: "${(sugText || '').replace(/\s+/g, ' ').substring(0, 100)}"`);
+            if (namesMatch(sugText, firmName)) {
+              await sug.click();
+              clickedSuggestion = true;
+              console.log(`   ✅ Clicked matching suggestion`);
+              break;
+            }
+          }
+          if (!clickedSuggestion && suggestions.length > 0) {
+            // No name match — click first suggestion anyway
+            await suggestions[0].click();
+            clickedSuggestion = true;
+            console.log(`   📋 Clicked first suggestion (no name match)`);
+          }
+          break;
+        }
       }
-    } catch (e) { /* no suggestions, that's ok */ }
+    } catch (e) {
+      console.log(`   ⚠️  Autocomplete click failed: ${e.message}`);
+    }
 
-    // Wait for results to render (SPA needs time)
-    await page.waitForTimeout(5000);
+    // If no autocomplete, press Enter as fallback
+    if (!clickedSuggestion) {
+      console.log(`   📋 No autocomplete suggestions found, pressing Enter`);
+      await page.keyboard.press('Enter');
+    }
 
-    // Use innerText (not textContent) to get only VISIBLE text, excluding <script> tags
+    // Wait for results page to load
+    await page.waitForTimeout(6000);
+
+    // Use innerText to get only VISIBLE text (excludes <script> tags)
     const bodyText = await page.evaluate(() => document.body.innerText);
+    const currentUrl = page.url();
 
-    // Debug: log a portion of the visible text
+    // Debug: log URL and visible text
     const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
-    console.log(`   🔎 Visible text (first 400 chars): "${cleanBody.substring(0, 400)}"`);
+    console.log(`   🔗 Current URL: ${currentUrl}`);
+    console.log(`   🔎 Visible text (first 500 chars): "${cleanBody.substring(0, 500)}"`);
 
       // Check for "no results" indicators
       const hasNoResults = bodyText.includes('No ads found') ||
