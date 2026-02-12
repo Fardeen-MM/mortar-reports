@@ -46,7 +46,7 @@ function namesMatch(a, b) {
  * Searches by firm name for more reliable detection
  */
 async function detectGoogleAds(browser, firmName, firmDomain) {
-  console.log(`   🔍 Checking Google Search for "${firmName}" ads...`);
+  console.log(`   🔍 Checking "${firmName}" website for Google Ads tracking...`);
 
   const result = {
     running: false,
@@ -55,66 +55,74 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
     error: null
   };
 
+  // Need a website to check — construct from domain if needed
+  let websiteUrl = '';
+  if (firmDomain) {
+    const domain = firmDomain.replace(/^www\./, '');
+    websiteUrl = `https://www.${domain}`;
+  }
+
+  if (!websiteUrl) {
+    console.log(`   ⚠️  No website URL available for "${firmName}", skipping ads check`);
+    return result;
+  }
+
   const page = await browser.newPage();
 
   try {
-    // Search Google for the firm name — ads appear at top of results
-    const searchQuery = `${firmName} lawyer`;
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&gl=us`;
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(3000);
-
-    // Get visible page text
-    const bodyText = await page.evaluate(() => document.body.innerText);
-    const domainBase = (firmDomain || '').replace(/^www\./, '').toLowerCase();
-    const normalizedFirm = normalizeName(firmName);
-
-    // Look for "Sponsored" labels in search results — these indicate Google Ads
-    const sponsoredCount = (bodyText.match(/\bSponsored\b/g) || []).length;
-    console.log(`   📋 Found ${sponsoredCount} "Sponsored" label(s) on Google Search`);
-
-    if (sponsoredCount > 0) {
-      // Check if any sponsored result mentions the firm name or domain
-      // Get text around each "Sponsored" occurrence
-      const lines = bodyText.split('\n');
-      let firmInSponsored = false;
-
-      for (let i = 0; i < lines.length; i++) {
-        if (!/\bSponsored\b/.test(lines[i])) continue;
-
-        // Check surrounding lines (context window: 5 lines before and after)
-        const contextStart = Math.max(0, i - 5);
-        const contextEnd = Math.min(lines.length, i + 6);
-        const context = lines.slice(contextStart, contextEnd).join(' ').toLowerCase();
-
-        // Check if firm name or domain appears in the sponsored context
-        if (normalizeName(context).includes(normalizedFirm) ||
-            (domainBase && context.includes(domainBase))) {
-          firmInSponsored = true;
-          result.advertiserName = firmName;
-          console.log(`   🎯 Firm found in sponsored result context (line ${i})`);
-          break;
-        }
+    // Track network requests for Google Ads related domains
+    const adsSignals = [];
+    page.on('request', (request) => {
+      const url = request.url().toLowerCase();
+      if (url.includes('googleadservices.com') ||
+          url.includes('googleads.g.doubleclick.net') ||
+          url.includes('googlesyndication.com') ||
+          url.includes('google-analytics.com/collect') ||
+          url.includes('gtag/js') ||
+          url.includes('ads/ga-audiences') ||
+          url.includes('pagead/') ||
+          url.includes('conversion/')) {
+        adsSignals.push(url.substring(0, 120));
       }
+    });
 
-      if (firmInSponsored) {
-        result.running = true;
-        result.adCount = sponsoredCount;
-        console.log(`   ✅ Google Ads: Running (firm appears in ${sponsoredCount} sponsored result(s))`);
-      } else {
-        // Sponsored results exist but not for this firm — firm is NOT running ads
-        console.log(`   ❌ Sponsored results found but not for "${firmName}"`);
-        // Log first sponsored context for debugging
-        for (let i = 0; i < lines.length; i++) {
-          if (/\bSponsored\b/.test(lines[i])) {
-            const ctx = lines.slice(Math.max(0, i - 2), i + 3).join(' ').replace(/\s+/g, ' ').substring(0, 200);
-            console.log(`   🔎 Sponsored context: "${ctx}"`);
-            break;
-          }
-        }
-      }
+    // Visit the firm's website
+    console.log(`   🔗 Visiting: ${websiteUrl}`);
+    await page.goto(websiteUrl, { waitUntil: 'networkidle', timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(2000);
+
+    // Also check page source for Google Ads scripts
+    const hasAdsScripts = await page.evaluate(() => {
+      const html = document.documentElement.outerHTML.toLowerCase();
+      const signals = {
+        googleadservices: html.includes('googleadservices.com'),
+        doubleclick: html.includes('doubleclick.net'),
+        conversionId: /aw-\d+/.test(html) || /conversion_id/.test(html),
+        gtagAds: html.includes('config') && html.includes('aw-'),
+        adwordsRemarketing: html.includes('remarketing') && html.includes('google'),
+        callTracking: html.includes('calltracking') || html.includes('call-tracking')
+      };
+      return signals;
+    }).catch(() => ({}));
+
+    // Determine if running Google Ads
+    const networkAdsFound = adsSignals.length > 0;
+    const scriptAdsFound = hasAdsScripts.googleadservices || hasAdsScripts.doubleclick ||
+                           hasAdsScripts.conversionId || hasAdsScripts.gtagAds;
+
+    console.log(`   📋 Network requests: ${adsSignals.length} ads-related signal(s)`);
+    if (adsSignals.length > 0) {
+      console.log(`   🔎 Signals: ${adsSignals.slice(0, 3).join(', ')}`);
+    }
+    console.log(`   📋 Script signals: ${JSON.stringify(hasAdsScripts)}`);
+
+    if (networkAdsFound || scriptAdsFound) {
+      result.running = true;
+      result.adCount = Math.max(1, adsSignals.length);
+      result.advertiserName = firmName;
+      console.log(`   ✅ Google Ads: Running (${networkAdsFound ? 'network' : 'script'} signals detected)`);
     } else {
-      console.log(`   ❌ No sponsored results on Google Search for "${searchQuery}"`);
+      console.log(`   ❌ Google Ads: No tracking detected on website`);
     }
 
   } catch (error) {
