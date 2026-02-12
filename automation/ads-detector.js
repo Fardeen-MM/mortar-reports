@@ -58,26 +58,31 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
   const page = await browser.newPage();
 
   try {
-    // Go to Google Ads Transparency Center and search by firm name
-    await page.goto('https://adstransparency.google.com/', { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    // Go to Google Ads Transparency Center search URL directly
+    const searchUrl = `https://adstransparency.google.com/?region=anywhere&query=${encodeURIComponent(firmName)}`;
+    console.log(`   🔗 Navigating to: ${searchUrl}`);
+    await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(3000);
 
-    // Find and use the search input
-    const searchInput = page.locator('input[type="text"]').first();
-    if (await searchInput.count() > 0) {
-      await searchInput.click();
-      await page.waitForTimeout(500);
-      await searchInput.fill(firmName);
-      await page.waitForTimeout(1000);
-      await page.keyboard.press('Enter');
-      await page.waitForTimeout(6000); // Wait for results
+    // Try clicking on first autocomplete suggestion if visible
+    try {
+      const suggestion = page.locator('[role="option"], [role="listbox"] >> nth=0').first();
+      if (await suggestion.count() > 0) {
+        await suggestion.click();
+        await page.waitForTimeout(4000);
+        console.log(`   📋 Clicked autocomplete suggestion`);
+      }
+    } catch (e) { /* no suggestions, that's ok */ }
 
-      // Get page text
-      const bodyText = await page.textContent('body');
+    // Wait for results to render (SPA needs time)
+    await page.waitForTimeout(5000);
 
-      // Debug: log a portion of the body text to understand page format
-      const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
-      console.log(`   🔎 Body text (first 300 chars): "${cleanBody.substring(0, 300)}"`);
+    // Use innerText (not textContent) to get only VISIBLE text, excluding <script> tags
+    const bodyText = await page.evaluate(() => document.body.innerText);
+
+    // Debug: log a portion of the visible text
+    const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
+    console.log(`   🔎 Visible text (first 400 chars): "${cleanBody.substring(0, 400)}"`);
 
       // Check for "no results" indicators
       const hasNoResults = bodyText.includes('No ads found') ||
@@ -172,9 +177,6 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
       } else {
         console.log(`   ❌ Google Ads: Not running`);
       }
-    } else {
-      console.log(`   ⚠️  Could not find search input on Google Ads Transparency Center`);
-    }
 
   } catch (error) {
     console.log(`   ⚠️  Google Ads check failed: ${error.message}`);
