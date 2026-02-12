@@ -478,9 +478,9 @@ COMPREHENSIVE ANALYSIS REQUIRED:
    - What weaknesses can you infer?
    - What opportunities are they missing?
    - What problems would marketing solve for them?
+   - DO NOT list low/zero Google reviews as a pain point. Reviews are a vanity metric, not a marketing gap.
 
 6. **COMPETITIVE POSITION**
-   - How do they compare to competitors on reviews/ratings?
    - Are competitors running ads? Are they?
    - What's their market position?
 

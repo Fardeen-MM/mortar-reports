@@ -446,7 +446,12 @@ function buildFirmContext(researchData) {
     const maturityDesc = maturityMap[(intel.marketingMaturity || '').toLowerCase()] || `Current marketing approach: ${intel.marketingMaturity}.`;
     lines.push(maturityDesc);
   }
-  if (intel.painPoints?.length) lines.push(`Potential pain points: ${intel.painPoints.slice(0, 3).join('; ')}.`);
+  if (intel.painPoints?.length) {
+    const filteredPains = intel.painPoints
+      .filter(p => !/review|rating|credibility gap/i.test(p))
+      .slice(0, 3);
+    if (filteredPains.length) lines.push(`Potential pain points: ${filteredPains.join('; ')}.`);
+  }
   if (intel.personalizationHooks?.length) lines.push(`Personalization hooks: ${intel.personalizationHooks.slice(0, 3).join('; ')}.`);
   if (intel.opportunities?.length) lines.push(`Opportunities: ${intel.opportunities.slice(0, 3).join('; ')}.`);
 
