@@ -58,6 +58,20 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
   const page = await browser.newPage();
 
   try {
+    // Intercept API responses from the Transparency Center
+    const apiResponses = [];
+    page.on('response', async (response) => {
+      const url = response.url();
+      // Capture any search/suggest/RPC API calls
+      if (url.includes('rpc') || url.includes('Search') || url.includes('suggest') ||
+          url.includes('Advertiser') || url.includes('query')) {
+        try {
+          const body = await response.text();
+          apiResponses.push({ url, body: body.substring(0, 2000) });
+        } catch (e) {}
+      }
+    });
+
     // Go to Google Ads Transparency Center
     await page.goto('https://adstransparency.google.com/', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(2000);
@@ -71,61 +85,26 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
 
     await searchInput.click();
     await page.waitForTimeout(500);
-    // Type slowly to trigger autocomplete
-    await searchInput.fill('');
-    await page.type('input:focus', firmName, { delay: 50 });
-    await page.waitForTimeout(3000);
 
-    // Try clicking autocomplete suggestion matching firm name
-    let clickedSuggestion = false;
-    try {
-      // Look for suggestion items — try multiple selectors
-      const suggestionSelectors = [
-        '[role="option"]', '[role="listbox"] li', '[class*="suggestion"]',
-        '[class*="dropdown"] li', '[class*="autocomplete"] li', '[class*="menu"] li'
-      ];
-      for (const sel of suggestionSelectors) {
-        const suggestions = await page.locator(sel).all();
-        if (suggestions.length > 0) {
-          console.log(`   📋 Found ${suggestions.length} autocomplete suggestions (${sel})`);
-          // Try to find one matching our firm name
-          for (const sug of suggestions) {
-            const sugText = await sug.textContent().catch(() => '');
-            console.log(`   🔎 Suggestion: "${(sugText || '').replace(/\s+/g, ' ').substring(0, 100)}"`);
-            if (namesMatch(sugText, firmName)) {
-              await sug.click();
-              clickedSuggestion = true;
-              console.log(`   ✅ Clicked matching suggestion`);
-              break;
-            }
-          }
-          if (!clickedSuggestion && suggestions.length > 0) {
-            // No name match — click first suggestion anyway
-            await suggestions[0].click();
-            clickedSuggestion = true;
-            console.log(`   📋 Clicked first suggestion (no name match)`);
-          }
-          break;
-        }
-      }
-    } catch (e) {
-      console.log(`   ⚠️  Autocomplete click failed: ${e.message}`);
+    // Type firm name to trigger search/autocomplete
+    await searchInput.fill(firmName);
+    await page.waitForTimeout(2000);
+
+    // Press Enter to submit search
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(8000);
+
+    // Log API calls that were intercepted
+    console.log(`   📋 Intercepted ${apiResponses.length} API response(s)`);
+    for (const resp of apiResponses.slice(0, 3)) {
+      console.log(`   🔎 API: ${resp.url.substring(0, 120)}`);
+      console.log(`   🔎 Response: ${resp.body.substring(0, 300)}`);
     }
 
-    // If no autocomplete, press Enter as fallback
-    if (!clickedSuggestion) {
-      console.log(`   📋 No autocomplete suggestions found, pressing Enter`);
-      await page.keyboard.press('Enter');
-    }
-
-    // Wait for results page to load
-    await page.waitForTimeout(6000);
-
-    // Use innerText to get only VISIBLE text (excludes <script> tags)
+    // Use innerText to get only VISIBLE text
     const bodyText = await page.evaluate(() => document.body.innerText);
     const currentUrl = page.url();
 
-    // Debug: log URL and visible text
     const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
     console.log(`   🔗 Current URL: ${currentUrl}`);
     console.log(`   🔎 Visible text (first 500 chars): "${cleanBody.substring(0, 500)}"`);
