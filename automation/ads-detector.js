@@ -55,11 +55,15 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
     error: null
   };
 
-  // Need a website to check — construct from domain if needed
+  // Construct website URL — handle full URLs, domains, or empty
   let websiteUrl = '';
   if (firmDomain) {
-    const domain = firmDomain.replace(/^www\./, '');
-    websiteUrl = `https://www.${domain}`;
+    if (firmDomain.startsWith('http')) {
+      websiteUrl = firmDomain; // Already a full URL
+    } else {
+      const domain = firmDomain.replace(/^www\./, '');
+      websiteUrl = `https://www.${domain}`;
+    }
   }
 
   if (!websiteUrl) {

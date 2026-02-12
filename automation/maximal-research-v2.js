@@ -718,16 +718,45 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
     const basicCompetitors = await aiHelper.findCompetitors(effectiveFirmName, city, state, practiceAreasForSearch, country);
     research.competitors = await deepCompetitorResearch(page, basicCompetitors, city, state);
 
-    // Phase 6.5: Competitor Ads Detection via Google Ads Transparency Center
+    // Phase 6.5: Competitor Ads Detection via website tracking scripts
     console.log('\n📢 PHASE 6.5: COMPETITOR ADS DETECTION');
     try {
       const { detectGoogleAds } = require('./ads-detector');
       const adChecks = research.competitors.map(async (comp) => {
-        const domain = comp.website ? new URL(comp.website).hostname.replace(/^www\./, '') : '';
-        const result = await detectGoogleAds(browser, comp.name, domain);
+        // If no website from deep research, try quick Google search to find it
+        if (!comp.website) {
+          try {
+            const searchPage = await browser.newPage();
+            await searchPage.goto(`https://www.google.com/search?q=${encodeURIComponent(comp.name + ' ' + city + ' ' + state + ' law firm')}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+            await searchPage.waitForTimeout(2000);
+            // Grab first organic result link (skip ads/maps)
+            const firstUrl = await searchPage.evaluate(() => {
+              const links = document.querySelectorAll('#search a[href^="http"]');
+              for (const link of links) {
+                const href = link.href;
+                if (href && !href.includes('google.') && !href.includes('yelp.') &&
+                    !href.includes('facebook.') && !href.includes('linkedin.') &&
+                    !href.includes('avvo.') && !href.includes('findlaw.') &&
+                    !href.includes('justia.') && !href.includes('lawyers.com')) {
+                  return href;
+                }
+              }
+              return null;
+            });
+            if (firstUrl) {
+              comp.website = firstUrl;
+              console.log(`   🔗 Found website for ${comp.name}: ${firstUrl}`);
+            }
+            await searchPage.close();
+          } catch (e) {
+            console.log(`   ⚠️  Website lookup failed for ${comp.name}: ${e.message}`);
+          }
+        }
+        // Pass the full website URL (detectGoogleAds handles both URLs and domains)
+        const result = await detectGoogleAds(browser, comp.name, comp.website || '');
         comp.hasGoogleAds = result.running && result.adCount > 0;
         if (comp.hasGoogleAds) {
-          console.log(`   📢 ${comp.name}: Running ${result.adCount} Google Ads`);
+          console.log(`   📢 ${comp.name}: Running Google Ads`);
         } else {
           console.log(`   ❌ ${comp.name}: No Google Ads detected`);
         }
