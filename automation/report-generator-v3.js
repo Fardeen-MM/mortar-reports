@@ -928,22 +928,18 @@ function generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds)
 
   let rows = '';
   for (const comp of topComps) {
-    const reviews = comp.reviews || comp.reviewCount || 0;
     const hasAds = comp.hasGoogleAds === true;
-    const adsCell = hasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">No</span>';
+    const adsCell = hasAds ? `<span class="ads-yes">${CHECK_SVG} Running ads</span>` : '<span class="ads-no">No ads detected</span>';
     rows += `          <tr>
             <td>${escapeHtml(sanitizeCompetitorName(comp.name))}</td>
-            <td>${reviews > 0 ? reviews.toLocaleString() : '<span class="review-building">Growing</span>'}</td>
             <td>${adsCell}</td>
           </tr>\n`;
   }
 
   // Firm's own row
-  const firmRevCount = firmReviews || 0;
-  const firmAdsCell = firmHasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">Not yet</span>';
+  const firmAdsCell = firmHasAds ? `<span class="ads-yes">${CHECK_SVG} Running ads</span>` : '<span class="ads-no">Not yet</span>';
   rows += `          <tr class="competitor-table-you">
             <td>${escapeHtml(firmName)} (You)</td>
-            <td>${firmRevCount > 0 ? firmRevCount.toLocaleString() : '<span class="review-building">Growing</span>'}</td>
             <td>${firmAdsCell}</td>
           </tr>`;
 
@@ -953,8 +949,7 @@ function generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds)
           <thead>
             <tr>
               <th>Firm</th>
-              <th>Google Reviews</th>
-              <th>Running Google Ads</th>
+              <th>Google Ads</th>
             </tr>
           </thead>
           <tbody>
