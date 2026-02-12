@@ -630,6 +630,8 @@ CHECK FOR THESE ISSUES. For each, provide a "find" (exact text) and "replace" (w
 14. GENERIC_JARGON — Marketing speak no real person would say: "low marketing maturity", "high-intent keywords", "organic ranking potential", "digital presence". A lawyer would stop reading.
 15. TEMPLATE_PROSE — A sentence that could apply to literally any law firm. No firm name, no city, no specific detail. Just filler.
 16. WRONG_CONTEXT — Something that doesn't fit this firm's practice area, location, or situation. Business law firm with injury search terms, etc.
+17. REVIEW_CRITICISM — Using Google review counts as a criticism or gap. "You have 0 reviews while competitors have 85." Reviews don't determine ad performance. This tone is wrong for a pitch.
+18. MISSING_AUTHORITY — Report reads like a template with no indication the agency has done this before. Look for experience signals like "we typically see", "firms like yours", "the pattern we see", "one of the biggest mistakes we see". If none exist, flag it.
 
 CRITICAL INSTRUCTIONS:
 - Only flag REAL problems. Do NOT fabricate issues.
@@ -794,7 +796,7 @@ EVALUATE THESE 7 DIMENSIONS:
 
 3. **Prose Quality** — Any boring filler? Repetitive phrases? Marketing jargon a lawyer would eye-roll at? Every sentence should earn its place.
 
-4. **Specificity** — Does this feel researched or templated? Are competitors real and relevant? Does it mention specific things about their firm/market?
+4. **Specificity** — Does this feel researched or templated? Are competitors real and relevant? Does it mention specific things about their firm/market? Does the report show the agency has experience with this type of firm? Look for subtle authority signals like "we typically see PI firms..." or "the biggest gap we see in family law is...".
 
 5. **Mobile Experience** — Short paragraphs? Skimmable? A lawyer reading this on their phone between hearings — can they get the point in 2 minutes?
 
@@ -805,6 +807,7 @@ EVALUATE THESE 7 DIMENSIONS:
 CRITICAL GUARDRAILS:
 - Lawyers WANT high revenue numbers — don't flag $100K+/month as unbelievable if the math is shown with formulas and caveats
 - Formula percentages (4.5% CTR, 15% inquiry, 25% close, 2.0% reach, 1.2% conversion, 35% after-hours, 60% won't voicemail, 70% recoverable) are CORRECT — do NOT critique them
+- Google review counts are NOT relevant to ad performance. Do NOT suggest adding review comparisons. Reviews and ads are separate channels.
 - If the report is genuinely strong, return "SHIP_IT" with an empty issues array — do NOT invent problems
 - Be specific — quote the EXACT text you're critiquing
 - Your suggested replacements should sound like a smart human wrote them — concise, direct, no marketing fluff
@@ -1015,7 +1018,13 @@ function preFixCommonIssues(html) {
     { pattern: /individual seeking legal help/gi, replacement: 'potential client' },
     { pattern: /person seeking legal help/gi, replacement: 'potential client' },
     { pattern: /\ban individual\b/gi, replacement: 'a potential client' },
-    { pattern: /\ba individual\b/gi, replacement: 'a potential client' }
+    { pattern: /\ba individual\b/gi, replacement: 'a potential client' },
+    // Review-criticism patterns — reviews don't determine ad performance
+    { pattern: /have no Google (?:Business )?reviews while competitors/gi, replacement: 'are competing against firms that already have strong online visibility' },
+    { pattern: /only have \d+ Google reviews? compared to/gi, replacement: 'are building your online presence while' },
+    { pattern: /with (?:low|no|zero) marketing maturity/gi, replacement: 'with room to scale your digital marketing' },
+    { pattern: /(?:low|no|zero) marketing maturity/gi, replacement: 'room to build digital infrastructure' },
+    { pattern: /\bmarketing maturity\b/gi, replacement: 'current marketing setup' }
   ];
 
   for (const fix of phraseFixes) {
@@ -1780,6 +1789,30 @@ function deterministicQC(html, research) {
   // 34. COMPETITOR TABLE PRESENT (inside Card 1)
   if (!/class="competitor-table/.test(html)) {
     issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing competitor comparison table' });
+  }
+
+  // 35. REVIEW_AS_CRITICISM — card insights/prose should not weaponize review counts
+  const reviewCriticismPatterns = [
+    /you have (?:no|zero|0) (?:Google )?reviews/i,
+    /only (?:have |has )?\d+ reviews? (?:while|compared|versus|but|and) (?:your )?competitors?/i,
+    /competitors? (?:have|has) \d+ reviews? (?:while|and|but) you/i,
+    /no (?:Google Business )?reviews while/i,
+    /lacking (?:in )?(?:Google )?reviews/i,
+    /low marketing maturity/i,
+    /\bmarketing maturity\b/i
+  ];
+  for (const pat of reviewCriticismPatterns) {
+    if (pat.test(text)) {
+      issues.push({ severity: 'IMPORTANT', category: 'TONE', issue: `Review-based criticism detected: "${text.match(pat)?.[0] || 'review comparison'}"` });
+      score -= 1;
+      break;
+    }
+  }
+
+  // 36. FAQ SECTION PRESENT
+  if (!/class="faq-section/.test(html)) {
+    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing FAQ / objection handler section' });
+    score -= 0.5;
   }
 
   // Clamp score

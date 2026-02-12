@@ -537,6 +537,37 @@ module.exports = function getV3CSS() {
   .fade-in { opacity: 0; }
   .fade-in.visible { animation: fadeUp 0.6s ease-out forwards; }
 
+  /* ========== FAQ / OBJECTION HANDLER ========== */
+  .faq-section { margin: 32px 0; }
+  .faq-label {
+    font-family: 'Outfit', sans-serif; font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .faq-list { display: flex; flex-direction: column; gap: 0; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-question {
+    width: 100%; background: none; border: none; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 0; font-size: 1rem; font-weight: 600;
+    color: var(--ink); text-align: left; font-family: 'Outfit', sans-serif;
+  }
+  .faq-question:hover { color: var(--primary); }
+  .faq-chevron { transition: transform 0.2s; font-size: 0.9rem; color: var(--muted); flex-shrink: 0; margin-left: 12px; }
+  .faq-item.open .faq-chevron { transform: rotate(90deg); }
+  .faq-answer {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+    padding: 0;
+  }
+  .faq-item.open .faq-answer { max-height: 200px; padding-bottom: 16px; }
+  .faq-answer p { color: var(--slate); font-size: 0.92rem; line-height: 1.6; margin: 0; }
+
+  /* ========== REVIEW BUILDING LABEL ========== */
+  .review-building {
+    color: var(--muted); font-style: italic; font-size: 0.85em;
+  }
+
   /* ========== FOOTER ========== */
   .footer {
     text-align: center; padding: 32px 0 16px; color: var(--slate-light);
@@ -743,6 +774,8 @@ module.exports = function getV3CSS() {
     .competitor-table table { font-size: 0.78rem; }
     .competitor-table th, .competitor-table td { padding: 8px 8px; }
     .hero-revenue-sub { font-size: 1.1rem; }
+    .faq-question { font-size: 0.92rem; padding: 14px 0; }
+    .faq-answer p { font-size: 0.85rem; }
   }
 
   @media (max-width: 480px) {

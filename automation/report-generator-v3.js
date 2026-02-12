@@ -192,6 +192,123 @@ const FUNNEL_EXAMPLES = {
   'default': { guide: 'Your Legal Rights in {city}', topics: 'legal options and next steps' }
 };
 
+// Authority signals — subtle experience/credibility cues to weave into prose
+const AUTHORITY_SIGNALS = {
+  'personal injury': [
+    'PI keywords cost $100-300/click. The firms winning aren\'t outbidding everyone. They\'re using Performance Max and retargeting to cut cost per signed case in half.',
+    'We typically see PI firms sign their first ad-sourced case within 10 days of launch.',
+    'The biggest intake gap we see in PI is after-hours. 40% of injury calls come between 6pm and 8am.'
+  ],
+  'medical malpractice': [
+    'Med mal has the highest cost-per-click in legal. The firms winning use Performance Max to diversify beyond search, then retarget website visitors who didn\'t convert.',
+    'We typically see med mal firms generate their first qualified consultation within 14 days.',
+    'Most med mal leads need 3-4 touchpoints before they call. That\'s why content funnels matter more here than in any other practice area.'
+  ],
+  'family': [
+    'Family law keywords are competitive, but conversion rates are high because people searching are ready to act. The key is landing pages, not just ads.',
+    'We typically see family law firms book their first consultation from ads within 7-10 days.',
+    'The biggest gap we see in family law is follow-up. Most firms lose 40%+ of leads because they don\'t have automated nurture sequences.'
+  ],
+  'divorce': [
+    'Family law keywords are competitive, but conversion rates are high because people searching are ready to act. The key is landing pages, not just ads.',
+    'We typically see family law firms book their first consultation from ads within 7-10 days.',
+    'The biggest gap we see in family law is follow-up. Most firms lose 40%+ of leads because they don\'t have automated nurture sequences.'
+  ],
+  'immigration': [
+    'Immigration clients often search in multiple languages. Firms that run bilingual ads and landing pages see 2-3x the conversion rate.',
+    'We typically see immigration firms fill their consultation calendar within the first 2 weeks of launching ads.',
+    'The biggest opportunity in immigration is content. Free guides on visa processes generate leads for months after you publish them.'
+  ],
+  'criminal': [
+    'Criminal defense is the most time-sensitive practice area. The firm that answers first gets the case, every single time.',
+    'We typically see criminal defense firms sign their first ad-sourced case within a week of launch.',
+    'Most criminal defense firms we work with were leaving money on the table because nobody answered at 2am when the calls actually come in.'
+  ],
+  'estate': [
+    'Estate planning has lower search volume than other practice areas, but the clients who do search convert at a much higher rate. Less competition means lower ad costs.',
+    'We typically see estate planning firms generate their first consultations within 2 weeks using a combination of ads and free guide funnels.',
+    'The biggest opportunity in estate planning is educational content. Webinars on "what happens without a will" consistently fill rooms and pipelines.'
+  ],
+  'agricultural': [
+    'Agricultural law is niche, but that works in your favor. Lower competition means lower ad costs and higher conversion rates.',
+    'We typically see agricultural firms generate their first qualified leads within 2 weeks because the competition for these keywords is thin.',
+    'Most agricultural law clients find their attorney through search. The firm that shows up first in the local results wins the case.'
+  ],
+  'tax': [
+    'Tax law has huge seasonal surges. The firms that win are the ones with ads scaled up before filing deadlines, not scrambling after.',
+    'We typically see tax firms generate their first leads within 10 days of launching ads.',
+    'The biggest gap we see in tax law is follow-up. Someone who doesn\'t hire today still has a tax problem. Automated nurture turns "not yet" into signed retainers.'
+  ],
+  'business': [
+    'Business law clients rarely search "business lawyer." They search their specific problem. The firms winning run ads on 50+ long-tail keywords, not just 5 generic ones.',
+    'We typically see business law firms generate their first qualified consultation within 2 weeks.',
+    'Most business law clients come from referrals. Digital marketing doesn\'t replace that. It adds a second pipeline of clients who don\'t know anyone to ask.'
+  ],
+  'bankruptcy': [
+    'Bankruptcy clients are in crisis. The firm that shows up first and answers immediately gets the case. Speed-to-lead is everything.',
+    'We typically see bankruptcy firms sign their first ad-sourced case within 10 days.',
+    'Bankruptcy has tight deadlines and seasonal surges. The firms that win scale their ad spend up and down with demand, not flat monthly budgets.'
+  ],
+  'employment': [
+    'Employment law clients often don\'t know they have a case until they find your content. Educational ads and free guides outperform direct-response ads 3:1.',
+    'We typically see employment law firms generate their first qualified leads within 2 weeks.',
+    'The biggest gap we see in employment law is content. Free guides on wrongful termination or discrimination generate leads for months.'
+  ],
+  'landlord': [
+    'Landlord law has lower search volume, but the clients who search are ready to act. Conversion rates are consistently higher than other practice areas.',
+    'We typically see landlord law firms book their first consultation from ads within 10 days.',
+    'The biggest opportunity in landlord law is being the first result. Most landlords search once, call the first firm they find, and hire them.'
+  ],
+  'default': [
+    'The firms winning in your market aren\'t the biggest. They\'re the ones answering first and showing up in every search.',
+    'We typically see firms sign their first new case from ads within 10-14 days of launch.',
+    'Most firms we work with are leaving money on the table because their website isn\'t built to convert visitors into consultations.'
+  ]
+};
+
+// FAQ by practice area — tailored objection-handling questions
+const FAQ_BY_PRACTICE = {
+  'personal injury': [
+    { q: 'How do you handle high-cost keywords?', a: 'PI keywords cost $100-300/click. We use Performance Max, retargeting, and content funnels to reduce cost per signed case. You pay per case signed, not per click.' },
+  ],
+  'medical malpractice': [
+    { q: 'How do you handle high-cost keywords?', a: 'Med mal keywords are the most expensive in legal. We use Performance Max, retargeting, and content funnels to reduce cost per signed case. You pay per case signed, not per click.' },
+  ],
+  'family': [
+    { q: 'My clients are going through emotional situations. Will the marketing feel appropriate?', a: 'Every touchpoint is designed with empathy. Free guides, educational webinars, warm follow-up. No ambulance-chasing. Your clients feel supported from the first click.' },
+  ],
+  'divorce': [
+    { q: 'My clients are going through emotional situations. Will the marketing feel appropriate?', a: 'Every touchpoint is designed with empathy. Free guides, educational webinars, warm follow-up. No ambulance-chasing. Your clients feel supported from the first click.' },
+  ],
+  'immigration': [
+    { q: 'My clients speak multiple languages. Can the system handle that?', a: 'AI intake handles English and Spanish. Landing pages and follow-up sequences can be translated to any language your clients need.' },
+  ],
+  'criminal': [
+    { q: 'My cases are urgent. Leads need to reach me now.', a: 'That\'s exactly what AI intake solves. Every call answered in seconds, 24/7. After-hours leads booked before they call the next firm.' },
+  ],
+  'estate': [
+    { q: 'My practice area is niche. Is there enough search volume?', a: 'The report shows your exact local search volume. Niche areas have less competition, which means lower ad costs and higher conversion rates. Less volume, more quality.' },
+  ],
+  'agricultural': [
+    { q: 'My practice area is niche. Is there enough search volume?', a: 'The report shows your exact local search volume. Niche areas have less competition, which means lower ad costs and higher conversion rates. Less volume, more quality.' },
+  ],
+  'tax': [
+    { q: 'My cases have tight deadlines. Can the system handle seasonal surges?', a: 'The ad spend scales up and down. Tax season, filing deadlines. We adjust budgets and targeting in real-time so you\'re not overspending in quiet months or missing leads in busy ones.' },
+  ],
+  'bankruptcy': [
+    { q: 'My cases have tight deadlines. Can the system handle seasonal surges?', a: 'The ad spend scales up and down. Filing deadlines, seasonal surges. We adjust budgets and targeting in real-time so you capture every lead when demand spikes.' },
+  ],
+  'business': [
+    { q: 'Most of my clients come from referrals. Will digital marketing cannibalize that?', a: 'No, it compounds it. Referrals still come in. Digital adds a second pipeline of clients who don\'t know anyone to ask. Two sources are better than one.' },
+  ],
+  'employment': [
+    { q: 'Most of my clients come from referrals. Will digital marketing cannibalize that?', a: 'No, it compounds it. Referrals still come in. Digital adds a second pipeline of clients who don\'t know anyone to ask. Two sources are better than one.' },
+  ],
+  'default': [
+    { q: 'My practice area is specialized. Do you have experience with it?', a: 'We build custom campaigns for every practice area. The research in this report is specific to your market and your competitors. Nothing is generic.' },
+  ]
+};
+
 function getAttorneyType(practiceArea) {
   return ATTORNEY_TYPES[practiceArea] || '';
 }
@@ -312,15 +429,23 @@ function buildFirmContext(researchData) {
   if (researchData.mobileOptimized) features.push('mobile-optimized');
   if (features.length) lines.push(`Website features: ${features.join(', ')}.`);
 
-  // Google Business
+  // Google Business — only note if profile is active, don't feed raw review counts
   const gmb = researchData.googleBusiness;
-  if (gmb?.rating) {
-    lines.push(`Google Business: ${gmb.rating} stars, ${gmb.reviews || 0} reviews.`);
+  if (gmb?.rating && gmb.rating > 0) {
+    lines.push(`Google Business Profile: active (${gmb.rating} stars).`);
   }
 
   // AI intelligence
   const intel = researchData.intelligence || {};
-  if (intel.marketingMaturity) lines.push(`Marketing maturity: ${intel.marketingMaturity}.`);
+  if (intel.marketingMaturity) {
+    const maturityMap = {
+      'low': 'Marketing is mostly word-of-mouth and referrals. Room to build digital infrastructure.',
+      'medium': 'Some digital marketing in place. Opportunity to optimize and scale.',
+      'high': 'Already investing in digital marketing. Opportunity to optimize ROI.'
+    };
+    const maturityDesc = maturityMap[(intel.marketingMaturity || '').toLowerCase()] || `Current marketing approach: ${intel.marketingMaturity}.`;
+    lines.push(maturityDesc);
+  }
   if (intel.painPoints?.length) lines.push(`Potential pain points: ${intel.painPoints.slice(0, 3).join('; ')}.`);
   if (intel.personalizationHooks?.length) lines.push(`Personalization hooks: ${intel.personalizationHooks.slice(0, 3).join('; ')}.`);
   if (intel.opportunities?.length) lines.push(`Opportunities: ${intel.opportunities.slice(0, 3).join('; ')}.`);
@@ -412,8 +537,8 @@ async function generateProseContent(context) {
   const locationStr = city && state ? `${city}, ${state}` : city || state || 'your area';
 
   const competitorNames = (competitors || []).slice(0, 3).map(c => {
-    const reviews = c.reviews || c.reviewCount || 0;
-    return `${c.name} (${reviews} reviews)`;
+    const hasAds = c.hasGoogleAds === true;
+    return `${c.name}${hasAds ? ' (running Google Ads)' : ''}`;
   }).join(', ');
 
   const localeInstructions = isUK
@@ -425,10 +550,13 @@ async function generateProseContent(context) {
   const funnel = getFunnelExample(practiceArea, city);
 
   const firmContextBlock = firmContext
-    ? `\nWHAT WE KNOW ABOUT THIS FIRM'S CURRENT MARKETING:\n${firmContext}\n\nFRAMING RULES:\n- If they're already doing something (running ads, posting content, hosting webinars), acknowledge it. Show them how to do it better, not how to start from scratch.\n- If they're NOT doing something, frame it as an untapped opportunity.\n- Reference specific things from the research above to prove we looked at their firm closely.\n- Never fabricate. Only reference what's listed above.\n`
+    ? `\nWHAT WE KNOW ABOUT THIS FIRM'S CURRENT MARKETING:\n${firmContext}\n\nFRAMING RULES:\n- If they're already doing something (running ads, posting content, hosting webinars), acknowledge it. Show them how to do it better, not how to start from scratch.\n- If they're NOT doing something, frame it as an untapped opportunity.\n- Reference specific things from the research above to prove we looked at their firm closely.\n- Never fabricate. Only reference what's listed above.\n- DO NOT use Google review counts as a criticism. Reviews and ads are separate channels. Focus on conversion-relevant gaps: ad strategy, funnel optimization, retargeting, intake automation.\n- DO NOT use the phrase "marketing maturity" or any internal scoring labels.\n`
     : '';
 
-  const prompt = `You are writing body paragraphs for 3 revenue cards in a marketing report for a law firm. Write confident, specific copy that references the firm's market data.
+  // Get authority signals for this practice area
+  const signals = AUTHORITY_SIGNALS[practiceArea] || AUTHORITY_SIGNALS['default'];
+
+  const prompt = `You are writing body paragraphs for 3 revenue cards in a marketing report for a law firm. Write confident, specific copy that sounds like a strategist recommending a system, not a salesperson listing features.
 
 FIRM CONTEXT:
 - Name: ${firmName}
@@ -444,25 +572,31 @@ DATA FOR CARDS:
 - Card 2 (Meta Ads + Funnels + Content): ~${(gap2.audience/1000).toFixed(0)}K reachable audience. Funnel example: "${funnel.guide}" covering ${funnel.topics}
 - Card 3 (AI Intake + CRM): ~${gap3.calls} calls/month, 35% after-hours, 60% won't leave voicemail
 
+AUTHORITY CONTEXT (weave 1-2 of these naturally into the card bodies, don't force all of them):
+${signals.join('\n')}
+
 STYLE GUIDE:
-- Punchy, direct, no fluff. Write like a strategist, not a salesperson.
+- Punchy, direct, no fluff. Write like a strategist recommending specific tactics, not a salesperson listing features.
 - Bold the opening sentence of each card with <strong> tags.
 - Reference THEIR specific data (search volume, audience size, competitor names).
 - Wrap key numbers in <span class="stat-highlight"> tags, e.g. <span class="stat-highlight">~700 searches</span>.
 - Write 2-3 SHORT paragraphs per card (2-3 sentences each). Separate paragraphs with </p><p> tags.
+- Weave in 1-2 subtle experience signals per card. Show you've done this before for similar firms. Don't brag, just casually reference patterns you've seen. Example: "One of the biggest mistakes we see ${practiceDescription} firms make is..." or "We typically see firms like yours..."
 - DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
 - DO NOT use em dashes. Use periods or commas instead.
 - DO NOT fabricate statistics or case studies.
+- DO NOT use Google review counts as a criticism or gap. Reviews don't determine ad performance. Focus on ad strategy, funnels, and conversion systems.
+- DO NOT use the phrase "marketing maturity" or internal scoring labels.
 
 Return ONLY valid JSON with these exact fields:
 
 {
-  "card1Body": "Paragraph for Google Ads + SEO + Website card. Reference ~X searches, city, practice area. Mention SEO for organic rankings and website redesign to convert. End with reference to the SERP mockup below. Use <strong> for the bold opening sentence.",
-  "card2Body": "Paragraph for Meta Ads + Funnels + Content card. Reference ~XK audience. Bold opening: Google only catches people who already know they need a lawyer. Mention lead magnet funnels with the specific guide example. Mention webinar funnels on ${funnel.topics}. Explain the conversion path from ad to trusted contact. Use <strong> for the bold opening sentence.",
-  "card3Body": "Paragraph for AI Intake + CRM card. Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence.",
-  "card1Insight": "One punchy sentence about their Google Ads / SEO / website situation based on the research data above. If they run ads, acknowledge it. If not, note the gap. Reference their domain, reviews, or blog if relevant. Only include if you have real data. Leave empty string if no data.",
-  "card2Insight": "One punchy sentence about their social media, content marketing, or funnel situation. Reference their YouTube, webinars, blog, newsletter if present. If nothing, note the untapped audience. Only include if you have real data. Leave empty string if no data.",
-  "card3Insight": "One punchy sentence about their intake/response setup. Reference chatbot, booking widget, live chat, or lack thereof. Only include if you have real data. Leave empty string if no data."
+  "card1Body": "Reference ~X searches and what competitors are doing with ads. Recommend specific ad strategies: Performance Max campaigns to dominate search + display + maps, retargeting visitors who didn't convert, dedicated landing pages that convert 3x better than a homepage. Mention SEO for long-term organic rankings. End with reference to the SERP mockup below. Use <strong> for the bold opening sentence.",
+  "card2Body": "Reference ~XK audience. Bold opening: Google only catches people actively searching. Recommend a full content-to-client funnel: webinar funnels on ${funnel.topics} that position the firm as the authority, lead magnet funnels with the specific guide example, retargeting warm audiences who engaged but didn't convert. Explain how paid social + organic content compound into a pipeline. Use <strong> for the bold opening sentence.",
+  "card3Body": "Bold opening: The first two channels drive leads, this is what makes sure none slip through. Reference after-hours stats and the revenue impact of missed calls. Emphasize speed-to-lead: the firm that answers first signs the case. Mention AI phone answering, website chatbot, social DM handling, CRM follow-up sequences, SMS and email nurture. Use <strong> for the bold opening sentence.",
+  "card1Insight": "One punchy sentence about their current ad/SEO situation. If they run ads, acknowledge it and note the opportunity to scale. If not, note competitors who do. DO NOT mention review counts. Leave empty string if no data.",
+  "card2Insight": "One punchy sentence about their content/funnel situation. If they have a blog/YouTube/social, note the untapped conversion potential. If nothing, note the audience they're not reaching. DO NOT mention reviews. Leave empty string if no data.",
+  "card3Insight": "One punchy sentence about their intake setup. Frame missing tools as lost revenue, not criticism. DO NOT mention reviews. Leave empty string if no data."
 }`;
 
   console.log('🤖 Generating AI prose content...');
@@ -531,9 +665,9 @@ function generateFallbackProse(context) {
     : `We put your firm at the top.`;
 
   return {
-    card1Body: `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire.</p><p>We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. ${compRef}</p>`,
-    card2Body: `<p><strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it.</p><p>There are <span class="stat-highlight">~${(gap2.audience/1000).toFixed(0)}K</span> reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}. By the time they're ready to hire, they already know your name.</p>`,
-    card3Body: `<p><strong>The first two channels drive leads. This is what makes sure none slip through.</strong> <span class="stat-highlight">35%</span> of your leads come in outside business hours, and <span class="stat-highlight">60%</span> of those won't leave a voicemail.</p><p>Our AI answers every call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book get dropped into automated SMS and email follow-up sequences. Nothing goes cold.</p>`,
+    card1Body: `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand, and most of it is going to the firms that show up first.</p><p>We run Performance Max campaigns to put your firm across Google Search, Display, and Maps simultaneously. Visitors who don't convert get retargeted until they do. Every click lands on a dedicated page we build to convert, not your homepage. The firms winning in your market aren't the biggest. They're the ones showing up first. ${compRef}</p>`,
+    card2Body: `<p><strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it.</p><p>There are <span class="stat-highlight">~${(gap2.audience/1000).toFixed(0)}K</span> reachable people in your area matching this profile. We build a full content-to-client funnel: webinar funnels on ${escapeHtml(funnel.topics)} that position your firm as the authority, free guides like <em>"${escapeHtml(funnel.guide)}"</em> that capture contact info, and retargeting that brings warm audiences back when they're ready. Most firms we work with started with zero funnel infrastructure. Within 30 days they had a pipeline.</p>`,
+    card3Body: `<p><strong>The first two channels drive leads. This is what makes sure none slip through.</strong> <span class="stat-highlight">35%</span> of your leads come in outside business hours, and <span class="stat-highlight">60%</span> of those won't leave a voicemail. That's signed cases walking out the door every week.</p><p>Our AI answers every call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book get dropped into automated SMS and email follow-up sequences. The biggest leak we see is after-hours. Your competitors' missed calls become your signed cases.</p>`,
     card1Insight: '',
     card2Insight: '',
     card3Insight: ''
@@ -680,7 +814,7 @@ async function generateReport(researchData, prospectName) {
   }
 
   // Extract firm's own review/ads data for competitor table
-  const firmReviews = researchData.googleReviews || researchData.reviews || 0;
+  const firmReviews = researchData.googleBusiness?.reviews || researchData.googleReviews || researchData.reviews || 0;
   const gAdsForFirm = adsData.googleAds || adsData.summary || {};
   const firmHasAds = gAdsForFirm.running === true || (gAdsForFirm.adCount > 0);
 
@@ -799,7 +933,7 @@ function generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds)
     const adsCell = hasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">No</span>';
     rows += `          <tr>
             <td>${escapeHtml(sanitizeCompetitorName(comp.name))}</td>
-            <td>${reviews > 0 ? reviews.toLocaleString() : 'Unknown'}</td>
+            <td>${reviews > 0 ? reviews.toLocaleString() : '<span class="review-building">Growing</span>'}</td>
             <td>${adsCell}</td>
           </tr>\n`;
   }
@@ -809,7 +943,7 @@ function generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds)
   const firmAdsCell = firmHasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">Not yet</span>';
   rows += `          <tr class="competitor-table-you">
             <td>${escapeHtml(firmName)} (You)</td>
-            <td>${firmRevCount > 0 ? firmRevCount.toLocaleString() : 'Unknown'}</td>
+            <td>${firmRevCount > 0 ? firmRevCount.toLocaleString() : '<span class="review-building">Growing</span>'}</td>
             <td>${firmAdsCell}</td>
           </tr>`;
 
@@ -828,6 +962,41 @@ ${rows}
           </tbody>
         </table>
       </div>`;
+}
+
+// ============================================================================
+// FAQ / OBJECTION HANDLER SECTION
+// ============================================================================
+
+function generateFaqSection(practiceArea) {
+  const universalFaqs = [
+    { q: 'How long before I see results?', a: 'Most firms see booked consultations within 14 days. Paid ads drive immediate traffic, while SEO and content compound over months. You\'ll have a full pipeline within 60-90 days.' },
+    { q: 'What if I\'ve tried marketing before and it didn\'t work?', a: 'Most firms we talk to had agencies that ran ads but didn\'t build the full system: landing pages, intake, follow-up, tracking. We build the entire pipeline so nothing leaks.' },
+    { q: 'How do you know these numbers are realistic?', a: 'Every number in this report comes from a formula with visible assumptions. We show our math and the conversion rates we use. If your market is smaller, the numbers adjust.' },
+    { q: 'What\'s the catch with month-to-month?', a: 'No catch. We keep clients by delivering results, not by locking them in. You keep everything we build if you cancel.' },
+    { q: 'Do I need to do anything?', a: 'Show up to consultations and sign cases. We handle ads, website, funnels, intake, follow-up, reporting. Your team gets a weekly report and a Slack channel for questions.' },
+  ];
+
+  const practiceFaqs = FAQ_BY_PRACTICE[practiceArea] || FAQ_BY_PRACTICE['default'] || [];
+
+  const allFaqs = [...universalFaqs, ...practiceFaqs];
+
+  const items = allFaqs.map(faq => `    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        ${escapeHtml(faq.q)}
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>${escapeHtml(faq.a)}</p>
+      </div>
+    </div>`).join('\n');
+
+  return `    <div class="faq-section fade-in">
+      <div class="faq-label">Questions firms ask us</div>
+      <div class="faq-list">
+${items}
+      </div>
+    </div>`;
 }
 
 function deliverableItem(title, desc) {
@@ -1214,6 +1383,7 @@ ${deliverableItem('Dedicated account manager', 'One point of contact. Not a tick
       </div>
     </div>
 
+${generateFaqSection(practiceArea)}
 
     <!-- CTA -->
     <div class="divider"></div>
@@ -1644,6 +1814,7 @@ function validateReportHTML(html, firmName) {
     ['case-study-timeline', /class="case-study-timeline/i],
     ['deliverables', /class="deliverables-group/i],
     ['only-job', /class="only-job/i],
+    ['faq-section', /class="faq-section/i],
     ['footer', /class="footer"/i]
   ];
   for (const [name, pattern] of sections) {
