@@ -91,32 +91,33 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
         const cards = await page.locator('[class*="result"], [class*="card"], [class*="advertiser"], [role="listitem"]').all();
         if (cards.length > 0) {
           console.log(`   📋 Found ${cards.length} advertiser card(s), checking for name match...`);
+          // Debug: log first 3 cards' text to diagnose format
+          for (let i = 0; i < Math.min(3, cards.length); i++) {
+            const debugText = await cards[i].textContent().catch(() => '');
+            console.log(`   🔎 Card ${i}: "${(debugText || '').replace(/\s+/g, ' ').substring(0, 120)}"`);
+          }
           for (const card of cards) {
             const cardText = await card.textContent().catch(() => '');
             if (!cardText) continue;
 
-            // Extract ad count from this card
-            const countMatch = cardText.match(/(\d+)\s+ads?/i);
-            if (!countMatch) continue;
-            const cardAdCount = parseInt(countMatch[1]);
+            // Check name/domain match FIRST, then extract ad count
+            const isNameMatch = namesMatch(cardText, firmName);
+            const isDomainMatch = domainBase && cardText.toLowerCase().includes(domainBase);
+            if (!isNameMatch && !isDomainMatch) continue;
 
-            // Check if this card's advertiser matches our firm
-            if (namesMatch(cardText, firmName)) {
-              adCount = cardAdCount;
-              result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
-              matched = true;
-              console.log(`   🎯 Name match: "${result.advertiserName}" → ${adCount} ads`);
-              break;
-            }
+            // Extract ad count — try multiple formats
+            const countMatch = cardText.match(/(\d+)\s+ads?/i) ||
+                               cardText.match(/(\d+)\s+creatives?/i) ||
+                               cardText.match(/(\d+)\s+campaigns?/i);
+            // Even without a count match, if name/domain matched, mark as running with 1 ad
+            const cardAdCount = countMatch ? parseInt(countMatch[1]) : 1;
 
-            // Domain match: check if card displays a URL containing our domain
-            if (domainBase && cardText.toLowerCase().includes(domainBase)) {
-              adCount = cardAdCount;
-              result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
-              matched = true;
-              console.log(`   🎯 Domain match (${domainBase}): "${result.advertiserName}" → ${adCount} ads`);
-              break;
-            }
+            adCount = cardAdCount;
+            result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
+            matched = true;
+            const matchType = isNameMatch ? 'Name' : `Domain (${domainBase})`;
+            console.log(`   🎯 ${matchType} match: "${result.advertiserName}" → ${adCount} ads`);
+            break;
           }
         }
       } catch (cardErr) {
