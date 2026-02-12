@@ -57,12 +57,18 @@ async function askClaude(prompt, context, maxTokens = 4000) {
 async function scrapeEntireWebsite(page, baseUrl) {
   console.log('\n🌐 PHASE 1: WEBSITE DEEP SCRAPE');
   console.log('   Discovering all pages...\n');
-  
+
+  // Ensure URL has protocol (bare domains like "midwestag.law" crash new URL())
+  if (baseUrl && !/^https?:\/\//i.test(baseUrl)) {
+    baseUrl = 'https://' + baseUrl;
+    console.log(`   ℹ️  Added protocol: ${baseUrl}`);
+  }
+
   const scrapedPages = [];
   const visitedUrls = new Set();
   const urlsToVisit = [baseUrl];
   const maxPages = 50; // Limit to prevent infinite loops
-  
+
   const baseDomain = new URL(baseUrl).hostname;
   
   while (urlsToVisit.length > 0 && scrapedPages.length < maxPages) {

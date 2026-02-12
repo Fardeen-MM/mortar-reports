@@ -130,6 +130,11 @@ jobs:
             WEBSITE="https://www.$DOMAIN"
           fi
 
+          # Ensure website has protocol prefix (bare domains like "midwestag.law" crash URL parser)
+          if [[ -n "$WEBSITE" && "$WEBSITE" != http://* && "$WEBSITE" != https://* ]]; then
+            WEBSITE="https://$WEBSITE"
+          fi
+
           # ALWAYS infer country from email TLD — Instantly often defaults to "US" for non-US leads
           # TLD is more reliable than webhook country field
           TLD_COUNTRY=""
