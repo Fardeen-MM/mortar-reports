@@ -517,6 +517,12 @@ jobs:
             echo "lead_is_dm=$LEAD_IS_DM" >> $GITHUB_OUTPUT
             echo "lead_source=$LEAD_SOURCE" >> $GITHUB_OUTPUT
 
+            # Extract Conversion Critic fields
+            CONVERSION_VERDICT=$(cat qc-result.json | jq -r '.conversionVerdict // ""')
+            CONVERSION_NOTE=$(cat qc-result.json | jq -r '.conversionNote // ""')
+            echo "conversion_verdict=$CONVERSION_VERDICT" >> $GITHUB_OUTPUT
+            echo "conversion_note=$CONVERSION_NOTE" >> $GITHUB_OUTPUT
+
             echo ""
             echo "═══════════════════════════════════════"
             echo "📊 PERFECTOR RESULT"
@@ -548,6 +554,8 @@ jobs:
             echo "lead_seniority=unknown" >> $GITHUB_OUTPUT
             echo "lead_is_dm=false" >> $GITHUB_OUTPUT
             echo "lead_source=" >> $GITHUB_OUTPUT
+            echo "conversion_verdict=" >> $GITHUB_OUTPUT
+            echo "conversion_note=" >> $GITHUB_OUTPUT
           fi
         working-directory: ./automation
         timeout-minutes: 5
@@ -630,6 +638,8 @@ jobs:
           REPLY_TEXT: ${{ steps.parse.outputs.reply_text }}
           CAMPAIGN_NAME: ${{ steps.parse.outputs.campaign_name }}
           PHONE: ${{ steps.parse.outputs.phone }}
+          CONVERSION_VERDICT: ${{ steps.qc.outputs.conversion_verdict }}
+          CONVERSION_NOTE: ${{ steps.qc.outputs.conversion_note }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -679,7 +689,9 @@ jobs:
                 seniority: process.env.LEAD_SENIORITY || 'unknown',
                 is_decision_maker: process.env.LEAD_IS_DM === 'true',
                 source: process.env.LEAD_SOURCE || ''
-              }
+              },
+              conversion_verdict: process.env.CONVERSION_VERDICT || '',
+              conversion_note: process.env.CONVERSION_NOTE || ''
             };
             fs.writeFileSync(
               'pending-approvals/' + process.env.FIRM_FOLDER + '.json',

@@ -140,6 +140,15 @@ if (approvalData.qc_passed === 'true') {
   qcStatus = '\n❓ *QC:* Not run';
 }
 
+// Conversion Critic verdict
+if (approvalData.conversion_verdict) {
+  const cvEmoji = { 'SHIP_IT': '🚀', 'NEEDS_WORK': '📝', 'REBUILD': '🔴' }[approvalData.conversion_verdict] || '📊';
+  aiVerdict += `\n${cvEmoji} *Conversion:* ${approvalData.conversion_verdict}`;
+  if (approvalData.conversion_note) {
+    aiVerdict += `\n💡 *Tip:* ${escMd(approvalData.conversion_note)}`;
+  }
+}
+
 // Build lead intelligence section
 let leadIntelSection = '';
 const leadIntel = approvalData.lead_intelligence;

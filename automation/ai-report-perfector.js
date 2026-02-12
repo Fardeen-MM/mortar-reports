@@ -48,6 +48,7 @@
  * Step 4: Deterministic QC (checks 1-28)
  * Step 5: Skeptic AI review (Haiku 3.5)
  * Step 5.5: Prose quality rewrite (Haiku 3.5, per-card)
+ * Step 5.7: Conversion Critic (Sonnet, persuasion & conversion psychology)
  * Step 6: Apply auto-fixes
  * Step 7: Re-run deterministic QC if fixes applied
  * Step 8: Save results
@@ -509,6 +510,58 @@ function askHaiku(prompt, maxTokens = 2000) {
   });
 }
 
+function askSonnet(prompt, maxTokens = 2000) {
+  return new Promise((resolve, reject) => {
+    if (!ANTHROPIC_API_KEY) {
+      reject(new Error('No ANTHROPIC_API_KEY'));
+      return;
+    }
+    const requestData = JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      temperature: 0,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(requestData)
+      },
+      timeout: 60000
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.content?.[0]?.text) {
+            resolve(result.content[0].text);
+          } else if (result.error) {
+            reject(new Error(`Sonnet API error: ${result.error.message || JSON.stringify(result.error)}`));
+          } else {
+            reject(new Error(`Unexpected response: ${data.substring(0, 500)}`));
+          }
+        } catch (e) {
+          reject(new Error(`Parse error: ${e.message}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Sonnet request timeout')); });
+    req.write(requestData);
+    req.end();
+  });
+}
+
 async function comprehensiveAIReview(html, research, leadEmail, leadIntel) {
   if (!ANTHROPIC_API_KEY) {
     console.log('   ⚠️  No ANTHROPIC_API_KEY — skipping AI review');
@@ -623,7 +676,8 @@ function applyAiFixes(html, fixes, research) {
 
   // Types safe to auto-fix
   const safeTypes = ['WRONG_NAME', 'BROKEN_SENTENCE', 'FABRICATED_STAT', 'WRONG_COUNTRY',
-                     'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'TEMPLATE_PROSE', 'WRONG_CONTEXT'];
+                     'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'TEMPLATE_PROSE', 'WRONG_CONTEXT',
+                     'CONVERSION_FIX'];
 
   const firmName = research?.firmName || '';
   const city = research?.location?.city || '';
@@ -635,7 +689,7 @@ function applyAiFixes(html, fixes, research) {
     if (fix.find.length < 10) continue;
 
     // Length guard: replacement must be ≤ 1.5x original (prevents AI inserting hallucinations)
-    const lengthTypes = ['FABRICATED_STAT', 'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'WRONG_CONTEXT'];
+    const lengthTypes = ['FABRICATED_STAT', 'UNVERIFIED_CLAIM', 'GENERIC_JARGON', 'WRONG_CONTEXT', 'CONVERSION_FIX'];
     if (lengthTypes.includes(fix.type) && fix.replace && fix.replace.length > fix.find.length * 1.5) {
       console.log(`   ⚠️  Skipping ${fix.type} fix — replacement too long (${fix.replace.length} vs ${fix.find.length} chars)`);
       continue;
@@ -690,6 +744,110 @@ function applyAiFixes(html, fixes, research) {
   }
 
   return { html: fixedHtml, fixCount };
+}
+
+// ============================================================================
+// CONVERSION CRITIC — Persuasion & conversion psychology review (Step 5.7)
+// ============================================================================
+
+async function conversionCriticReview(html, research) {
+  if (!ANTHROPIC_API_KEY) {
+    console.log('   ⚠️  No ANTHROPIC_API_KEY — skipping conversion critic');
+    return { verdict: 'SHIP_IT', conversionEstimate: '', issues: [], oneThing: 'Conversion critique unavailable', fixes: [] };
+  }
+
+  // Strip CSS to save tokens
+  const strippedHtml = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').substring(0, 100000);
+
+  const firmName = research.firmName || 'Unknown';
+  const city = research.location?.city || '';
+  const state = research.location?.state || '';
+  const country = (research.location?.country || 'US').toUpperCase();
+  const practiceArea = research.practiceArea || research.practice_area || '';
+  const compList = (research.competitors || []).slice(0, 5)
+    .map(c => `${c.name} (${c.reviewCount || c.reviews || 0} reviews)`)
+    .join(', ');
+
+  const prompt = `You are a conversion rate optimization expert reviewing a marketing report that will be emailed to a law firm partner. This lawyer bills $500/hour, gets pitched constantly, and deletes 95% of cold emails.
+
+Your job: will this report make them click the CTA and book a call?
+
+CONTEXT:
+- Firm: ${firmName}
+- Location: ${city}${state ? ', ' + state : ''}, ${country}
+- Practice: ${practiceArea}
+- Competitors: ${compList || 'None found'}
+
+REPORT HTML (CSS stripped):
+${strippedHtml}
+
+EVALUATE THESE 7 DIMENSIONS:
+
+1. **First 5 Seconds** — Is the headline specific to THIS firm? Is the money number prominent and compelling? Would a busy lawyer keep reading?
+
+2. **The Money Story** — Do the numbers connect to THEIR money? Do the math boxes show clear cause → effect? Or just abstract metrics?
+
+3. **Prose Quality** — Any boring filler? Repetitive phrases? Marketing jargon a lawyer would eye-roll at? Every sentence should earn its place.
+
+4. **Specificity** — Does this feel researched or templated? Are competitors real and relevant? Does it mention specific things about their firm/market?
+
+5. **Mobile Experience** — Short paragraphs? Skimmable? A lawyer reading this on their phone between hearings — can they get the point in 2 minutes?
+
+6. **Flow & Momentum** — Does each section build toward the CTA? Or does energy die in the middle? Is there a clear narrative arc?
+
+7. **Objection Handling** — "Too good to be true" is the #1 objection. Are the caveats and ranges honest enough to feel credible? Are the formulas shown?
+
+CRITICAL GUARDRAILS:
+- Lawyers WANT high revenue numbers — don't flag $100K+/month as unbelievable if the math is shown with formulas and caveats
+- Formula percentages (4.5% CTR, 15% inquiry, 25% close, 2.0% reach, 1.2% conversion, 35% after-hours, 60% won't voicemail, 70% recoverable) are CORRECT — do NOT critique them
+- If the report is genuinely strong, return "SHIP_IT" with an empty issues array — do NOT invent problems
+- Be specific — quote the EXACT text you're critiquing
+- Your suggested replacements should sound like a smart human wrote them — concise, direct, no marketing fluff
+
+Return ONLY valid JSON:
+{
+  "issues": [
+    {
+      "severity": "CRITICAL|IMPORTANT|MINOR",
+      "section": "hero|card_1|card_2|card_3|competitors|deliverables|cta",
+      "problem": "One sentence describing the conversion problem",
+      "why": "Why it hurts conversion",
+      "find": "exact text from report to fix (or empty string if no text fix)",
+      "replace": "suggested replacement (or empty string)"
+    }
+  ],
+  "verdict": "SHIP_IT|NEEDS_WORK|REBUILD",
+  "conversion_estimate": "15%",
+  "one_thing": "The single most impactful change to increase conversion"
+}`;
+
+  try {
+    const response = await askSonnet(prompt, 2000);
+    let jsonStr = response;
+    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonStr = jsonMatch[1];
+    if (!jsonStr.trim().startsWith('{')) {
+      const objMatch = response.match(/\{[\s\S]*\}/);
+      if (objMatch) jsonStr = objMatch[0];
+    }
+    const result = JSON.parse(jsonStr.trim());
+
+    const issues = result.issues || [];
+    const fixes = issues
+      .filter(i => i.find && i.replace && i.find.length >= 10)
+      .map(i => ({ type: 'CONVERSION_FIX', find: i.find, replace: i.replace }));
+
+    return {
+      verdict: result.verdict || 'SHIP_IT',
+      conversionEstimate: result.conversion_estimate || '',
+      issues,
+      oneThing: result.one_thing || '',
+      fixes
+    };
+  } catch (e) {
+    console.log(`   ⚠️  Conversion Critic failed: ${e.message}`);
+    return { verdict: 'SHIP_IT', conversionEstimate: '', issues: [], oneThing: 'Conversion critique unavailable', fixes: [] };
+  }
 }
 
 // ============================================================================
@@ -1773,6 +1931,27 @@ async function perfectReport() {
     console.log('   ✅ Card prose already good — no rewrites needed');
   }
 
+  // Step 5.7: Conversion Critic (persuasion & conversion psychology)
+  console.log('\n📈 STEP 5.7: Conversion Critic...');
+  let conversionResult = null;
+  try {
+    conversionResult = await conversionCriticReview(currentHtml, research);
+    for (const issue of conversionResult.issues) {
+      const icon = { CRITICAL: '🔴', IMPORTANT: '🟡', MINOR: '🟢' }[issue.severity] || '⚪';
+      console.log(`   ${icon} [${issue.severity}] ${issue.section}: ${issue.problem}`);
+    }
+    console.log(`   Verdict: ${conversionResult.verdict}`);
+    console.log(`   Conversion estimate: ${conversionResult.conversionEstimate}`);
+    console.log(`   #1 fix: ${conversionResult.oneThing}`);
+
+    // Feed fixable issues into Step 6
+    if (conversionResult.fixes.length > 0) {
+      aiResult.fixes.push(...conversionResult.fixes);
+    }
+  } catch (e) {
+    console.log(`   ⚠️  Conversion Critic failed: ${e.message}`);
+  }
+
   // Step 6: Apply AI-suggested fixes
   if (aiResult.fixes.length > 0) {
     console.log('\n🔧 STEP 6: Applying AI fixes...');
@@ -1811,6 +1990,12 @@ async function perfectReport() {
       name: leadIntel.name, title: leadIntel.title,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
       source: leadIntel.source
+    } : null,
+    conversionCritic: conversionResult ? {
+      verdict: conversionResult.verdict,
+      estimate: conversionResult.conversionEstimate,
+      issues: conversionResult.issues.length,
+      oneThing: conversionResult.oneThing
     } : null
   }, null, 2));
 
@@ -1858,7 +2043,9 @@ async function perfectReport() {
       name: leadIntel.name, title: leadIntel.title, company: leadIntel.company,
       seniority: leadIntel.seniority, isDecisionMaker: leadIntel.isDecisionMaker,
       source: leadIntel.source, linkedInUrl: leadIntel.linkedInUrl
-    } : null
+    } : null,
+    conversionVerdict: conversionResult?.verdict || null,
+    conversionNote: conversionResult?.oneThing || null
   }, null, 2));
 
   process.exit(passed ? 0 : 1);
