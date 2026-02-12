@@ -727,25 +727,28 @@ async function maximalResearch(firmWebsite, contactName, city, state, country, c
         if (!comp.website) {
           try {
             const searchPage = await browser.newPage();
-            await searchPage.goto(`https://www.google.com/search?q=${encodeURIComponent(comp.name + ' ' + city + ' ' + state + ' law firm')}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-            await searchPage.waitForTimeout(2000);
-            // Grab first organic result link (skip ads/maps)
+            const searchQuery = comp.name + ' ' + city + ' ' + state;
+            await searchPage.goto(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+            await searchPage.waitForTimeout(3000);
+            // Grab first organic result link — try multiple selectors
             const firstUrl = await searchPage.evaluate(() => {
-              const links = document.querySelectorAll('#search a[href^="http"]');
-              for (const link of links) {
+              const skip = /google\.|yelp\.|facebook\.|linkedin\.|avvo\.|findlaw\.|justia\.|lawyers\.com|yellowpages|bbb\.org|mapquest/i;
+              // Try broad selector: all links on page
+              const allLinks = document.querySelectorAll('a[href^="http"]');
+              for (const link of allLinks) {
                 const href = link.href;
-                if (href && !href.includes('google.') && !href.includes('yelp.') &&
-                    !href.includes('facebook.') && !href.includes('linkedin.') &&
-                    !href.includes('avvo.') && !href.includes('findlaw.') &&
-                    !href.includes('justia.') && !href.includes('lawyers.com')) {
-                  return href;
-                }
+                if (!href || skip.test(href)) continue;
+                // Skip if it's a cached/similar link
+                if (href.includes('webcache') || href.includes('translate.google')) continue;
+                return href;
               }
               return null;
             });
             if (firstUrl) {
               comp.website = firstUrl;
               console.log(`   🔗 Found website for ${comp.name}: ${firstUrl}`);
+            } else {
+              console.log(`   ⚠️  No website found via Google for "${searchQuery}"`);
             }
             await searchPage.close();
           } catch (e) {
