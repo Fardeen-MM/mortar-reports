@@ -889,7 +889,7 @@ function generateSerpMockup(competitors, firmName, searchTerms) {
       const hasAds = comp.hasGoogleAds === true;
       const tag = hasAds ? 'ad' : 'map';
       const tagLabel = hasAds ? 'Ad' : 'Map';
-      const note = hasAds ? 'paying for clicks' : `${reviews.toLocaleString()} reviews`;
+      const note = hasAds ? 'paying for clicks' : 'local result';
       rows += `        <div class="serp-row">
           <span class="serp-tag serp-tag-${tag}">${tagLabel}</span>
           <span class="serp-name">${escapeHtml(sanitizeCompetitorName(comp.name))}</span>
