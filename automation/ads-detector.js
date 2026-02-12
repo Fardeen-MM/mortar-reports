@@ -46,7 +46,7 @@ function namesMatch(a, b) {
  * Searches by firm name for more reliable detection
  */
 async function detectGoogleAds(browser, firmName, firmDomain) {
-  console.log(`   🔍 Checking Google Ads Transparency Center for "${firmName}"...`);
+  console.log(`   🔍 Checking Google Search for "${firmName}" ads...`);
 
   const result = {
     running: false,
@@ -58,150 +58,64 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
   const page = await browser.newPage();
 
   try {
-    // Intercept API responses from the Transparency Center
-    const apiResponses = [];
-    page.on('response', async (response) => {
-      const url = response.url();
-      // Capture any search/suggest/RPC API calls
-      if (url.includes('rpc') || url.includes('Search') || url.includes('suggest') ||
-          url.includes('Advertiser') || url.includes('query')) {
-        try {
-          const body = await response.text();
-          apiResponses.push({ url, body: body.substring(0, 2000) });
-        } catch (e) {}
-      }
-    });
+    // Search Google for the firm name — ads appear at top of results
+    const searchQuery = `${firmName} lawyer`;
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&gl=us`;
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(3000);
 
-    // Go to Google Ads Transparency Center
-    await page.goto('https://adstransparency.google.com/', { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
-
-    // Find and use the search input
-    const searchInput = page.locator('input[type="text"], input[type="search"], [role="searchbox"], [role="combobox"]').first();
-    if (await searchInput.count() === 0) {
-      console.log(`   ⚠️  Could not find search input on Google Ads Transparency Center`);
-      return result;
-    }
-
-    await searchInput.click();
-    await page.waitForTimeout(500);
-
-    // Type firm name to trigger search/autocomplete
-    await searchInput.fill(firmName);
-    await page.waitForTimeout(2000);
-
-    // Press Enter to submit search
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(8000);
-
-    // Log API calls that were intercepted
-    console.log(`   📋 Intercepted ${apiResponses.length} API response(s)`);
-    for (const resp of apiResponses.slice(0, 3)) {
-      console.log(`   🔎 API: ${resp.url.substring(0, 120)}`);
-      console.log(`   🔎 Response: ${resp.body.substring(0, 300)}`);
-    }
-
-    // Use innerText to get only VISIBLE text
+    // Get visible page text
     const bodyText = await page.evaluate(() => document.body.innerText);
-    const currentUrl = page.url();
+    const domainBase = (firmDomain || '').replace(/^www\./, '').toLowerCase();
+    const normalizedFirm = normalizeName(firmName);
 
-    const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
-    console.log(`   🔗 Current URL: ${currentUrl}`);
-    console.log(`   🔎 Visible text (first 500 chars): "${cleanBody.substring(0, 500)}"`);
+    // Look for "Sponsored" labels in search results — these indicate Google Ads
+    const sponsoredCount = (bodyText.match(/\bSponsored\b/g) || []).length;
+    console.log(`   📋 Found ${sponsoredCount} "Sponsored" label(s) on Google Search`);
 
-      // Check for "no results" indicators
-      const hasNoResults = bodyText.includes('No ads found') ||
-                           bodyText.includes('no ads to show') ||
-                           bodyText.includes("hasn't advertised") ||
-                           bodyText.includes('No results found');
+    if (sponsoredCount > 0) {
+      // Check if any sponsored result mentions the firm name or domain
+      // Get text around each "Sponsored" occurrence
+      const lines = bodyText.split('\n');
+      let firmInSponsored = false;
 
-      let adCount = 0;
-      let matched = false;
-      const domainBase = (firmDomain || '').replace(/^www\./, '').toLowerCase();
-      const normalizedFirm = normalizeName(firmName);
+      for (let i = 0; i < lines.length; i++) {
+        if (!/\bSponsored\b/.test(lines[i])) continue;
 
-      // Approach 1: Find clickable advertiser links that match the firm
-      try {
-        const links = await page.locator('a').all();
-        console.log(`   📋 Scanning ${links.length} links for name/domain match...`);
-        for (const link of links) {
-          const linkText = await link.textContent().catch(() => '');
-          if (!linkText || linkText.length < 3) continue;
+        // Check surrounding lines (context window: 5 lines before and after)
+        const contextStart = Math.max(0, i - 5);
+        const contextEnd = Math.min(lines.length, i + 6);
+        const context = lines.slice(contextStart, contextEnd).join(' ').toLowerCase();
 
-          const isNameMatch = namesMatch(linkText, firmName);
-          const isDomainMatch = domainBase && linkText.toLowerCase().includes(domainBase);
-          if (!isNameMatch && !isDomainMatch) continue;
-
-          // Found a matching link — look for ad count in nearby context
-          const parentText = await link.evaluate(el => {
-            // Walk up to find a row/container with ad count info
-            let parent = el.parentElement;
-            for (let i = 0; i < 5 && parent; i++) {
-              const text = parent.textContent || '';
-              if (/\d+/.test(text) && text.length > 10 && text.length < 500) return text;
-              parent = parent.parentElement;
-            }
-            return el.parentElement?.textContent || '';
-          }).catch(() => '');
-
-          const countMatch = parentText.match(/(\d[\d,]*)\s+ads?/i) ||
-                             parentText.match(/(\d[\d,]*)\s+creatives?/i);
-          const cardAdCount = countMatch ? parseInt(countMatch[1].replace(/,/g, '')) : 1;
-
-          adCount = cardAdCount;
-          result.advertiserName = linkText.trim().substring(0, 80);
-          matched = true;
-          const matchType = isNameMatch ? 'Name' : `Domain (${domainBase})`;
-          console.log(`   🎯 ${matchType} match via link: "${result.advertiserName}" → ${adCount} ads`);
+        // Check if firm name or domain appears in the sponsored context
+        if (normalizeName(context).includes(normalizedFirm) ||
+            (domainBase && context.includes(domainBase))) {
+          firmInSponsored = true;
+          result.advertiserName = firmName;
+          console.log(`   🎯 Firm found in sponsored result context (line ${i})`);
           break;
         }
-      } catch (linkErr) {
-        console.log(`   ⚠️  Link extraction failed: ${linkErr.message}`);
       }
 
-      // Approach 2: Body text scan — check if firm name appears on page with ad counts
-      if (!matched) {
-        const normalizedBody = normalizeName(bodyText);
-        const firmInBody = normalizedBody.includes(normalizedFirm);
-        const domainInBody = domainBase && bodyText.toLowerCase().includes(domainBase);
-
-        if (firmInBody || domainInBody) {
-          console.log(`   📋 Firm ${firmInBody ? 'name' : 'domain'} found in page text, extracting ad count...`);
-          const adMatches = bodyText.match(/(\d[\d,]*)\s+ads?/gi) || [];
-          for (const match of adMatches) {
-            const num = parseInt(match.match(/(\d[\d,]*)/)[1].replace(/,/g, ''));
-            if (num > 0 && num < 10000) {
-              adCount = Math.max(adCount, num);
-            }
+      if (firmInSponsored) {
+        result.running = true;
+        result.adCount = sponsoredCount;
+        console.log(`   ✅ Google Ads: Running (firm appears in ${sponsoredCount} sponsored result(s))`);
+      } else {
+        // Sponsored results exist but not for this firm — firm is NOT running ads
+        console.log(`   ❌ Sponsored results found but not for "${firmName}"`);
+        // Log first sponsored context for debugging
+        for (let i = 0; i < lines.length; i++) {
+          if (/\bSponsored\b/.test(lines[i])) {
+            const ctx = lines.slice(Math.max(0, i - 2), i + 3).join(' ').replace(/\s+/g, ' ').substring(0, 200);
+            console.log(`   🔎 Sponsored context: "${ctx}"`);
+            break;
           }
-          if (adCount > 0) {
-            matched = true;
-            result.advertiserName = firmName;
-            console.log(`   🎯 Body text match: "${firmName}" → ${adCount} ads`);
-          } else {
-            // Firm name on page but no "N ads" pattern — still counts as running
-            adCount = 1;
-            matched = true;
-            result.advertiserName = firmName;
-            console.log(`   🎯 Firm found on page but no ad count extracted, marking as 1 ad`);
-          }
-        } else {
-          console.log(`   ❌ Firm name/domain not found in page text`);
         }
       }
-
-      // Sanity cap: most law firms run < 20 ads
-      adCount = Math.min(adCount, 50);
-
-      // Final determination
-      result.running = !hasNoResults && adCount > 0;
-      result.adCount = adCount;
-
-      if (result.running) {
-        console.log(`   ✅ Google Ads: Running (${result.adCount} ads detected${matched ? ', name-matched' : ''})`);
-      } else {
-        console.log(`   ❌ Google Ads: Not running`);
-      }
+    } else {
+      console.log(`   ❌ No sponsored results on Google Search for "${searchQuery}"`);
+    }
 
   } catch (error) {
     console.log(`   ⚠️  Google Ads check failed: ${error.message}`);
