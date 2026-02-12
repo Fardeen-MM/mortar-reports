@@ -75,66 +75,88 @@ async function detectGoogleAds(browser, firmName, firmDomain) {
       // Get page text
       const bodyText = await page.textContent('body');
 
+      // Debug: log a portion of the body text to understand page format
+      const cleanBody = bodyText.replace(/\s+/g, ' ').trim();
+      console.log(`   🔎 Body text (first 300 chars): "${cleanBody.substring(0, 300)}"`);
+
       // Check for "no results" indicators
       const hasNoResults = bodyText.includes('No ads found') ||
                            bodyText.includes('no ads to show') ||
                            bodyText.includes("hasn't advertised") ||
-                           bodyText.includes('No results');
+                           bodyText.includes('No results found');
 
-      // Try to extract individual advertiser result cards and match by name
       let adCount = 0;
       let matched = false;
       const domainBase = (firmDomain || '').replace(/^www\./, '').toLowerCase();
+      const normalizedFirm = normalizeName(firmName);
 
+      // Approach 1: Find clickable advertiser links that match the firm
       try {
-        // Each result card typically contains an advertiser name + "N ads" text
-        const cards = await page.locator('[class*="result"], [class*="card"], [class*="advertiser"], [role="listitem"]').all();
-        if (cards.length > 0) {
-          console.log(`   📋 Found ${cards.length} advertiser card(s), checking for name match...`);
-          // Debug: log first 3 cards' text to diagnose format
-          for (let i = 0; i < Math.min(3, cards.length); i++) {
-            const debugText = await cards[i].textContent().catch(() => '');
-            console.log(`   🔎 Card ${i}: "${(debugText || '').replace(/\s+/g, ' ').substring(0, 120)}"`);
-          }
-          for (const card of cards) {
-            const cardText = await card.textContent().catch(() => '');
-            if (!cardText) continue;
+        const links = await page.locator('a').all();
+        console.log(`   📋 Scanning ${links.length} links for name/domain match...`);
+        for (const link of links) {
+          const linkText = await link.textContent().catch(() => '');
+          if (!linkText || linkText.length < 3) continue;
 
-            // Check name/domain match FIRST, then extract ad count
-            const isNameMatch = namesMatch(cardText, firmName);
-            const isDomainMatch = domainBase && cardText.toLowerCase().includes(domainBase);
-            if (!isNameMatch && !isDomainMatch) continue;
+          const isNameMatch = namesMatch(linkText, firmName);
+          const isDomainMatch = domainBase && linkText.toLowerCase().includes(domainBase);
+          if (!isNameMatch && !isDomainMatch) continue;
 
-            // Extract ad count — try multiple formats
-            const countMatch = cardText.match(/(\d+)\s+ads?/i) ||
-                               cardText.match(/(\d+)\s+creatives?/i) ||
-                               cardText.match(/(\d+)\s+campaigns?/i);
-            // Even without a count match, if name/domain matched, mark as running with 1 ad
-            const cardAdCount = countMatch ? parseInt(countMatch[1]) : 1;
+          // Found a matching link — look for ad count in nearby context
+          const parentText = await link.evaluate(el => {
+            // Walk up to find a row/container with ad count info
+            let parent = el.parentElement;
+            for (let i = 0; i < 5 && parent; i++) {
+              const text = parent.textContent || '';
+              if (/\d+/.test(text) && text.length > 10 && text.length < 500) return text;
+              parent = parent.parentElement;
+            }
+            return el.parentElement?.textContent || '';
+          }).catch(() => '');
 
-            adCount = cardAdCount;
-            result.advertiserName = cardText.split('\n')[0]?.trim()?.substring(0, 80) || firmName;
-            matched = true;
-            const matchType = isNameMatch ? 'Name' : `Domain (${domainBase})`;
-            console.log(`   🎯 ${matchType} match: "${result.advertiserName}" → ${adCount} ads`);
-            break;
-          }
+          const countMatch = parentText.match(/(\d[\d,]*)\s+ads?/i) ||
+                             parentText.match(/(\d[\d,]*)\s+creatives?/i);
+          const cardAdCount = countMatch ? parseInt(countMatch[1].replace(/,/g, '')) : 1;
+
+          adCount = cardAdCount;
+          result.advertiserName = linkText.trim().substring(0, 80);
+          matched = true;
+          const matchType = isNameMatch ? 'Name' : `Domain (${domainBase})`;
+          console.log(`   🎯 ${matchType} match via link: "${result.advertiserName}" → ${adCount} ads`);
+          break;
         }
-      } catch (cardErr) {
-        console.log(`   ⚠️  Card extraction failed: ${cardErr.message}`);
+      } catch (linkErr) {
+        console.log(`   ⚠️  Link extraction failed: ${linkErr.message}`);
       }
 
-      // Fallback: if card extraction didn't find a match, use old regex approach
+      // Approach 2: Body text scan — check if firm name appears on page with ad counts
       if (!matched) {
-        const adMatches = bodyText.match(/(\d+)\s+ads?/gi) || [];
-        for (const match of adMatches) {
-          const num = parseInt(match.match(/(\d+)/)[1]);
-          if (num > 0 && num < 10000) {
-            adCount = Math.max(adCount, num);
+        const normalizedBody = normalizeName(bodyText);
+        const firmInBody = normalizedBody.includes(normalizedFirm);
+        const domainInBody = domainBase && bodyText.toLowerCase().includes(domainBase);
+
+        if (firmInBody || domainInBody) {
+          console.log(`   📋 Firm ${firmInBody ? 'name' : 'domain'} found in page text, extracting ad count...`);
+          const adMatches = bodyText.match(/(\d[\d,]*)\s+ads?/gi) || [];
+          for (const match of adMatches) {
+            const num = parseInt(match.match(/(\d[\d,]*)/)[1].replace(/,/g, ''));
+            if (num > 0 && num < 10000) {
+              adCount = Math.max(adCount, num);
+            }
           }
-        }
-        if (adCount > 0) {
-          console.log(`   ⚠️  No name/domain match found, using fallback max: ${adCount} ads`);
+          if (adCount > 0) {
+            matched = true;
+            result.advertiserName = firmName;
+            console.log(`   🎯 Body text match: "${firmName}" → ${adCount} ads`);
+          } else {
+            // Firm name on page but no "N ads" pattern — still counts as running
+            adCount = 1;
+            matched = true;
+            result.advertiserName = firmName;
+            console.log(`   🎯 Firm found on page but no ad count extracted, marking as 1 ad`);
+          }
+        } else {
+          console.log(`   ❌ Firm name/domain not found in page text`);
         }
       }
 
