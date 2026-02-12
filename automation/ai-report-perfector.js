@@ -1418,7 +1418,9 @@ function deterministicQC(html, research) {
   const requiredSections = [
     { name: 'hero', pattern: /class="hero"/i },
     { name: 'ROI box', pattern: /class="roi-box/i },
+    { name: 'glance strip', pattern: /class="glance-strip/i },
     { name: 'revenue card 1', pattern: /class="revenue-card/i },
+    { name: 'cost of inaction', pattern: /class="cost-inaction/i },
     { name: 'guarantee section', pattern: /class="guarantee-section/i },
     { name: 'case study', pattern: /class="case-study/i },
     { name: 'deliverables', pattern: /class="deliverables-group/i },
@@ -1755,6 +1757,29 @@ function deterministicQC(html, research) {
         break; // only flag once
       }
     }
+  }
+
+  // 31. GLANCE STRIP PRESENT
+  if (!/class="glance-strip/.test(html)) {
+    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing at-a-glance summary strip' });
+    score -= 0.5;
+  }
+
+  // 32. COST OF INACTION PRESENT
+  if (!/class="cost-inaction/.test(html)) {
+    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing cost-of-inaction section' });
+    score -= 0.5;
+  }
+
+  // 33. CASE STUDY TIMELINE
+  if (!/class="case-study-timeline/.test(html)) {
+    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing case study timeline milestones' });
+    score -= 0.5;
+  }
+
+  // 34. COMPETITOR TABLE PRESENT (inside Card 1)
+  if (!/class="competitor-table/.test(html)) {
+    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing competitor comparison table' });
   }
 
   // Clamp score

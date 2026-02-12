@@ -89,6 +89,7 @@ const CASE_VALUES_GBP = {
 // Feature flags (disable with env vars for A/B testing)
 const USE_POPULATION_SCALING = process.env.USE_POPULATION_SCALING !== 'false';
 const USE_PRACTICE_FLOORS = process.env.USE_PRACTICE_FLOORS !== 'false';
+const USE_TIGHT_RANGES = process.env.USE_TIGHT_RANGES !== 'false';
 
 // Population tiers - metro area sizes determine base search/audience/call volumes
 const POPULATION_TIERS = {
@@ -447,10 +448,11 @@ STYLE GUIDE:
 - Punchy, direct, no fluff. Write like a strategist, not a salesperson.
 - Bold the opening sentence of each card with <strong> tags.
 - Reference THEIR specific data (search volume, audience size, competitor names).
+- Wrap key numbers in <span class="stat-highlight"> tags, e.g. <span class="stat-highlight">~700 searches</span>.
+- Write 2-3 SHORT paragraphs per card (2-3 sentences each). Separate paragraphs with </p><p> tags.
 - DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
 - DO NOT use em dashes. Use periods or commas instead.
 - DO NOT fabricate statistics or case studies.
-- Each card body should be 3-5 sentences, one paragraph.
 
 Return ONLY valid JSON with these exact fields:
 
@@ -529,9 +531,9 @@ function generateFallbackProse(context) {
     : `We put your firm at the top.`;
 
   return {
-    card1Body: `<strong>~${gap1.searches.toLocaleString()} people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire. We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. Professional, fast, built to turn visitors into consultations. ${compRef}`,
-    card2Body: `<strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it. There are ~${(gap2.audience/1000).toFixed(0)}K reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels designed to build trust before they ever call: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}, and downloadable resources that exchange real value for their contact info. By the time they're ready to hire, they already know your name.`,
-    card3Body: `<strong>The first two channels drive leads. This is what makes sure none of them slip through the cracks.</strong> 35% of your leads come in outside business hours, and 60% of those won't leave a voicemail. Our AI answers every phone call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book immediately get dropped into automated SMS and email follow-up sequences inside your CRM. Nothing goes cold and every lead is tracked from first click to signed retainer.`,
+    card1Body: `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand. People ready to hire.</p><p>We put your firm at the top of Google with paid ads for immediate visibility, then build your organic rankings with SEO so you show up without paying for clicks long-term. When they click through, they land on a website we've redesigned to convert. ${compRef}</p>`,
+    card2Body: `<p><strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it.</p><p>There are <span class="stat-highlight">~${(gap2.audience/1000).toFixed(0)}K</span> reachable people in your area matching this profile. We run Facebook and Instagram ads that reach them first, then guide them through conversion funnels: free guides like <em>"${escapeHtml(funnel.guide)},"</em> webinar funnels on ${escapeHtml(funnel.topics)}. By the time they're ready to hire, they already know your name.</p>`,
+    card3Body: `<p><strong>The first two channels drive leads. This is what makes sure none slip through.</strong> <span class="stat-highlight">35%</span> of your leads come in outside business hours, and <span class="stat-highlight">60%</span> of those won't leave a voicemail.</p><p>Our AI answers every call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book get dropped into automated SMS and email follow-up sequences. Nothing goes cold.</p>`,
     card1Insight: '',
     card2Insight: '',
     card3Insight: ''
@@ -677,6 +679,11 @@ async function generateReport(researchData, prospectName) {
     prose = generateFallbackProse(proseContext);
   }
 
+  // Extract firm's own review/ads data for competitor table
+  const firmReviews = researchData.googleReviews || researchData.reviews || 0;
+  const gAdsForFirm = adsData.googleAds || adsData.summary || {};
+  const firmHasAds = gAdsForFirm.running === true || (gAdsForFirm.adCount > 0);
+
   // Generate HTML
   const html = generateHTML({
     firmName, prospectName, practiceArea, practiceLabel, practiceDescription,
@@ -687,7 +694,8 @@ async function generateReport(researchData, prospectName) {
     adSpend, annual,
     card1Cases, card2Cases, card3Cases, totalCases,
     competitors, city, state, country,
-    prose, proseSource, caseValues
+    prose, proseSource, caseValues,
+    firmReviews, firmHasAds
   });
 
   // Save report
@@ -776,6 +784,52 @@ ${rows}      </div>`;
 
 const CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
+// ============================================================================
+// COMPETITOR COMPARISON TABLE
+// ============================================================================
+
+function generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds) {
+  const topComps = (competitors || []).slice(0, 3);
+  if (topComps.length === 0) return '';
+
+  let rows = '';
+  for (const comp of topComps) {
+    const reviews = comp.reviews || comp.reviewCount || 0;
+    const hasAds = comp.hasGoogleAds === true;
+    const adsCell = hasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">No</span>';
+    rows += `          <tr>
+            <td>${escapeHtml(sanitizeCompetitorName(comp.name))}</td>
+            <td>${reviews > 0 ? reviews.toLocaleString() : 'Unknown'}</td>
+            <td>${adsCell}</td>
+          </tr>\n`;
+  }
+
+  // Firm's own row
+  const firmRevCount = firmReviews || 0;
+  const firmAdsCell = firmHasAds ? `<span class="ads-yes">${CHECK_SVG} Yes</span>` : '<span class="ads-no">Not yet</span>';
+  rows += `          <tr class="competitor-table-you">
+            <td>${escapeHtml(firmName)} (You)</td>
+            <td>${firmRevCount > 0 ? firmRevCount.toLocaleString() : 'Unknown'}</td>
+            <td>${firmAdsCell}</td>
+          </tr>`;
+
+  return `      <div class="competitor-table">
+        <div class="competitor-table-label">Who you're competing against right now</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Firm</th>
+              <th>Google Reviews</th>
+              <th>Running Google Ads</th>
+            </tr>
+          </thead>
+          <tbody>
+${rows}
+          </tbody>
+        </table>
+      </div>`;
+}
+
 function deliverableItem(title, desc) {
   return `        <div class="deliverable-item">
           <div class="deliverable-check">${CHECK_SVG}</div>
@@ -797,7 +851,8 @@ function generateHTML(data) {
     adSpend, annual,
     card1Cases, card2Cases, card3Cases, totalCases,
     competitors, city, state, country,
-    prose, caseValues
+    prose, caseValues,
+    firmReviews, firmHasAds
   } = data;
 
   const today = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -845,8 +900,8 @@ ${css}
       </div>
 
       <h1>
-        Here's how your firm adds<br>
-        <span class="highlight">${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)}/month.</span>
+        <span class="highlight">\u2248 ${totalCases} new signed cases</span><br>every month.
+        <span class="hero-revenue-sub">That's ${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)} in new revenue.</span>
       </h1>
 
       <p class="hero-sub">
@@ -883,6 +938,26 @@ ${css}
         <div class="roi-annual-number">${currency}${formatMoneyMillions(annual.low)} \u2013 ${currency}${formatMoneyMillions(annual.high)} in your first year</div>
         <div class="roi-annual-label">Across paid ads, SEO, funnels, and AI-powered intake</div>
         <div class="roi-cases">\u2248 ${totalCases} new signed cases every month</div>
+      </div>
+    </div>
+
+    <!-- AT A GLANCE -->
+    <div class="glance-strip fade-in">
+      <div class="glance-item">
+        <div class="glance-number">\u2248 ${totalCases}</div>
+        <div class="glance-label">Cases / month</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)}</div>
+        <div class="glance-label">Revenue range</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">~${currency}${formatMoney(adSpend)}</div>
+        <div class="glance-label">Ad spend</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">${Math.round(totalLow / (adSpend || 1))}x\u2013${Math.round(totalHigh / (adSpend || 1))}x</div>
+        <div class="glance-label">ROI</div>
       </div>
     </div>
 
@@ -948,6 +1023,7 @@ ${prose.card1Insight ? `        <div class="revenue-card-insight">\u2192 ${prose
           ${prose.card1Body}
         </div>
 ${generateSerpMockup(competitors, firmName, searchTerms)}
+${generateCompetitorTable(competitors, firmName, firmReviews, firmHasAds)}
       </div>
 
       <div class="card-connector">+</div>
@@ -1008,6 +1084,15 @@ ${prose.card3Insight ? `        <div class="revenue-card-insight">\u2192 ${prose
     </div>
 
 
+    <!-- COST OF INACTION -->
+    <div class="cost-inaction fade-in">
+      <div class="cost-inaction-label">The cost of staying the same</div>
+      <h2 class="cost-inaction-headline">Every month without this system, your firm leaves
+        <span class="cost-inaction-amount">${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)}</span> on the table.</h2>
+      <div class="cost-inaction-annual">That's ${currency}${formatMoneyMillions(annual.low)}\u2013${currency}${formatMoneyMillions(annual.high)} this year alone.</div>
+      <p class="cost-inaction-body">Your competitors are already running ads, answering calls after hours, and following up with every lead. The cases you're not getting aren't disappearing \u2014 they're going to firms that show up first.</p>
+    </div>
+
     <!-- GUARANTEE -->
     <div class="guarantee-section fade-in">
       <div class="guarantee-label">Our guarantee</div>
@@ -1020,6 +1105,7 @@ ${prose.card3Insight ? `        <div class="revenue-card-insight">\u2192 ${prose
       <div class="case-study-label">We've done this before</div>
       <div class="case-study-content">
         <div class="case-study-firm">Mandall Law</div>
+        <div class="case-study-context">Personal injury firm, mid-size market</div>
         <div class="case-study-stats">
           <div class="case-study-stat">
             <div class="case-study-number">${currency}4K</div>
@@ -1029,6 +1115,20 @@ ${prose.card3Insight ? `        <div class="revenue-card-insight">\u2192 ${prose
           <div class="case-study-stat">
             <div class="case-study-number">${currency}92K/mo</div>
             <div class="case-study-desc">in new signed cases</div>
+          </div>
+        </div>
+        <div class="case-study-timeline">
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Week 2</div>
+            <div class="case-study-milestone-text">Ads live, website launched, AI intake active</div>
+          </div>
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Month 1</div>
+            <div class="case-study-milestone-text">18 booked consultations, 6 signed cases</div>
+          </div>
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Month 3</div>
+            <div class="case-study-milestone-text">Full pipeline \u2014 ${currency}92K/month in signed cases</div>
           </div>
         </div>
       </div>
@@ -1427,6 +1527,16 @@ function getFirmSizeMultiplier(data) {
 // GAP CALCULATIONS - V7 BOOSTED FLOORS
 // ============================================================================
 
+// Tighten a range to ~30% band (midpoint +/- 15%) for more credible numbers
+function tightenRange(low, high) {
+  if (!USE_TIGHT_RANGES) return { low, high };
+  const mid = (low + high) / 2;
+  return {
+    low: Math.round(mid * 0.85 / 500) * 500,
+    high: Math.round(mid * 1.15 / 500) * 500
+  };
+}
+
 function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency, city, practiceArea) {
   const sym = currency || '$';
   const tier = getPopulationTier(city);
@@ -1447,8 +1557,10 @@ function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency, 
     minLow = Math.round(55000 * countryBaseline / 500) * 500 || 500;
     minHigh = Math.round(80000 * countryBaseline / 500) * 500 || 1000;
   }
+  const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
+  const tight = tightenRange(floored.low, floored.high);
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), searches, cases: casesPerMonth,
+    low: tight.low, high: tight.high, searches, cases: casesPerMonth,
     formula: `~${searches} monthly searches × 4.5% CTR × 15% inquiry rate × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
@@ -1473,8 +1585,10 @@ function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, curr
     minLow = Math.round(38000 * countryBaseline / 500) * 500 || 500;
     minHigh = Math.round(56000 * countryBaseline / 500) * 500 || 1000;
   }
+  const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
+  const tight = tightenRange(floored.low, floored.high);
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), audience, city: city || 'your area', cases: casesPerMonth,
+    low: tight.low, high: tight.high, audience, city: city || 'your area', cases: casesPerMonth,
     formula: `~${(audience/1000).toFixed(0)}K reachable audience in ${city || 'metro'} × 2.0% monthly ad reach × 1.2% conversion to inquiry × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
@@ -1499,8 +1613,10 @@ function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency
     minLow = Math.round(17000 * countryBaseline / 500) * 500 || 500;
     minHigh = Math.round(30000 * countryBaseline / 500) * 500 || 1000;
   }
+  const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
+  const tight = tightenRange(floored.low, floored.high);
   return {
-    low: Math.max(minLow, low), high: Math.max(minHigh, high), calls, cases: casesPerMonth,
+    low: tight.low, high: tight.high, calls, cases: casesPerMonth,
     formula: `~${calls} inbound calls/mo × 35% outside business hours × 60% that won't leave a voicemail × 70% recoverable with live intake × 25% close rate × ${sym}${caseValues.low.toLocaleString()}-${caseValues.high.toLocaleString()} avg case value`
   };
 }
@@ -1520,9 +1636,12 @@ function validateReportHTML(html, firmName) {
   const sections = [
     ['hero', /class="hero"/i],
     ['roi-box', /class="roi-box/i],
+    ['glance-strip', /class="glance-strip/i],
     ['revenue-card', /class="revenue-card/i],
+    ['cost-inaction', /class="cost-inaction/i],
     ['guarantee', /class="guarantee-section/i],
     ['case-study', /class="case-study/i],
+    ['case-study-timeline', /class="case-study-timeline/i],
     ['deliverables', /class="deliverables-group/i],
     ['only-job', /class="only-job/i],
     ['footer', /class="footer"/i]

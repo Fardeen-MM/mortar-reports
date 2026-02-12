@@ -289,12 +289,9 @@ module.exports = function getV3CSS() {
     font-size: 0.925rem; color: var(--slate); line-height: 1.7; margin-bottom: 14px;
   }
 
+  .revenue-card-body p { margin-bottom: 12px; }
+  .revenue-card-body p:last-child { margin-bottom: 0; }
   .revenue-card-body strong { color: var(--ink); font-weight: 600; }
-
-  .revenue-card-insight {
-    font-size: 0.85rem; font-style: italic; color: var(--primary);
-    margin-bottom: 12px; padding-left: 20px; text-indent: -20px;
-  }
 
   /* ========== SERP MOCKUP ========== */
   .serp-mockup {
@@ -548,6 +545,156 @@ module.exports = function getV3CSS() {
 
   .footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
 
+  /* ========== HERO REVENUE SUB ========== */
+  .hero-revenue-sub {
+    display: block; font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.3rem; font-weight: 500; color: var(--slate);
+    margin-top: 6px; letter-spacing: -0.01em;
+  }
+
+  /* ========== AT A GLANCE STRIP ========== */
+  .glance-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 24px; margin: 20px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+
+  .glance-item { text-align: center; flex: 1; }
+  .glance-item + .glance-item { border-left: 1px solid var(--border); }
+
+  .glance-number {
+    font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+
+  .glance-label {
+    font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-top: 2px;
+  }
+
+  /* ========== PULL-QUOTE (REVENUE CARD INSIGHT) ========== */
+  .revenue-card-insight {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1rem; font-style: italic; color: var(--primary);
+    margin-bottom: 14px; padding: 12px 18px;
+    border-left: 3px solid var(--primary);
+    background: rgba(79, 70, 229, 0.03);
+    border-radius: 0 8px 8px 0;
+    line-height: 1.55;
+  }
+
+  /* ========== STAT HIGHLIGHT ========== */
+  .stat-highlight {
+    font-weight: 700; color: var(--primary);
+    background: rgba(79, 70, 229, 0.06);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 0.975rem;
+  }
+
+  /* ========== COST OF INACTION ========== */
+  .cost-inaction {
+    background: #1a1a2e; color: white; border-radius: 16px;
+    padding: 40px 36px; margin: 32px 0; text-align: center;
+  }
+
+  .cost-inaction-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; opacity: 0.6; margin-bottom: 14px;
+  }
+
+  .cost-inaction-headline {
+    font-family: 'Fraunces', serif; font-size: 1.55rem; font-weight: 600;
+    color: white; line-height: 1.35; margin-bottom: 10px;
+    max-width: 580px; margin-left: auto; margin-right: auto;
+  }
+
+  .cost-inaction-amount { color: #f87171; font-weight: 700; }
+
+  .cost-inaction-annual {
+    font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600;
+    color: #f87171; margin-bottom: 16px; opacity: 0.9;
+  }
+
+  .cost-inaction-body {
+    font-size: 0.95rem; opacity: 0.75; max-width: 520px;
+    margin: 0 auto; line-height: 1.7;
+  }
+
+  /* ========== CASE STUDY TIMELINE ========== */
+  .case-study-context {
+    font-style: italic; font-size: 0.85rem; color: var(--slate-light);
+    margin-bottom: 16px;
+  }
+
+  .case-study-timeline {
+    display: flex; justify-content: center; gap: 0;
+    margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .case-study-milestone {
+    flex: 1; text-align: center; position: relative;
+    padding: 0 12px;
+  }
+
+  .case-study-milestone::before {
+    content: ''; display: block; width: 10px; height: 10px;
+    background: var(--primary); border-radius: 50%;
+    margin: 0 auto 10px; position: relative; z-index: 1;
+  }
+
+  .case-study-milestone::after {
+    content: ''; position: absolute; top: 4px; left: 50%; right: -50%;
+    height: 2px; background: var(--border); z-index: 0;
+  }
+
+  .case-study-milestone:last-child::after { display: none; }
+
+  .case-study-milestone-time {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--primary); margin-bottom: 4px;
+  }
+
+  .case-study-milestone-text {
+    font-size: 0.8rem; color: var(--slate); line-height: 1.4;
+  }
+
+  /* ========== COMPETITOR TABLE ========== */
+  .competitor-table { margin-top: 16px; }
+
+  .competitor-table-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--slate-light); margin-bottom: 10px;
+  }
+
+  .competitor-table table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.85rem; border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+
+  .competitor-table th {
+    background: var(--warm-white); padding: 8px 12px;
+    text-align: left; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-light);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .competitor-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--slate);
+  }
+
+  .competitor-table tr:last-child td { border-bottom: none; }
+
+  .competitor-table-you td {
+    background: rgba(79, 70, 229, 0.04); color: var(--primary); font-weight: 600;
+  }
+
+  .competitor-table .ads-yes { color: var(--success); font-weight: 600; }
+  .competitor-table .ads-no { color: var(--muted); }
+
   /* ========== MOBILE ========== */
   @media (max-width: 768px) {
     .container { padding: 28px 22px; }
@@ -586,6 +733,16 @@ module.exports = function getV3CSS() {
     .journey-v2-step::after { display: none; }
     .floating-cta { bottom: 16px; right: 16px; }
     .floating-cta a { padding: 12px 20px; font-size: 0.85rem; }
+    .glance-strip { flex-direction: column; gap: 12px; padding: 16px; }
+    .glance-item + .glance-item { border-left: none; border-top: 1px solid var(--border); padding-top: 12px; }
+    .cost-inaction { padding: 28px 22px; }
+    .cost-inaction-headline { font-size: 1.3rem; }
+    .case-study-timeline { flex-direction: column; gap: 16px; align-items: center; }
+    .case-study-milestone::after { display: none; }
+    .case-study-milestone { padding: 0; }
+    .competitor-table table { font-size: 0.78rem; }
+    .competitor-table th, .competitor-table td { padding: 8px 8px; }
+    .hero-revenue-sub { font-size: 1.1rem; }
   }
 
   @media (max-width: 480px) {
