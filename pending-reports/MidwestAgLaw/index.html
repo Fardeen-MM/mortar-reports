@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midwest Ag Law | Growth Report by Mortar Metrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --slate: #4a4a4a;
+    --slate-light: #6b6b6b;
+    --muted: #9a9a9a;
+    --border: #e8e8e8;
+    --warm-white: #f8f8f6;
+    --cream: #FDFCF9;
+    --primary: #4f46e5;
+    --primary-light: #6366f1;
+    --primary-subtle: rgba(79, 70, 229, 0.06);
+    --success: #059669;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cream);
+    color: var(--slate);
+    line-height: 1.7;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 820px; margin: 0 auto; padding: 40px; }
+
+  h1, h2, h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600; color: var(--ink); line-height: 1.15; letter-spacing: -0.02em;
+  }
+
+  /* ========== HEADER ========== */
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+
+  .logo { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+  .meta { font-size: 0.75rem; color: var(--slate-light); font-weight: 500; }
+
+  /* ========== HERO ========== */
+  .hero {
+    text-align: center; padding: 40px 0 28px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  .hero-context {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 4px; color: var(--primary); margin-bottom: 24px; opacity: 0.85;
+  }
+
+  .hero-setup {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.6rem; font-weight: 400; color: var(--slate); margin-bottom: 18px;
+  }
+
+  .search-bar {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 50px;
+    padding: 16px 28px; margin: 0 auto 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 40px rgba(0,0,0,0.08);
+    min-width: 420px;
+  }
+
+  .search-bar-inner {
+    display: flex; align-items: center; font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem; color: var(--ink); text-align: left; min-width: 280px;
+  }
+
+  .search-bar-inner .cursor-blink {
+    display: inline-block; width: 2px; height: 1.3em;
+    background: var(--primary); margin-left: 1px; vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .hero h1 { font-size: 3.25rem; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 18px; }
+  .hero h1 .highlight { color: var(--primary); }
+
+  .hero-sub {
+    font-size: 1.125rem; color: var(--slate);
+    max-width: 540px; margin: 0 auto; line-height: 1.75;
+  }
+
+  .scroll-hint {
+    margin-top: 28px; font-size: 0.75rem; color: var(--muted);
+    letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+  }
+
+  .scroll-hint span { display: block; margin-top: 6px; font-size: 1.1rem; animation: bounce 2s infinite; }
+
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+  /* ========== DIVIDER ========== */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  /* ========== NARRATIVE ========== */
+  .narrative h2 {
+    font-size: 1.875rem; margin-bottom: 14px; letter-spacing: -0.02em;
+    padding-left: 14px; border-left: 3px solid var(--primary);
+  }
+
+  .narrative p { margin-bottom: 14px; line-height: 1.75; }
+  .narrative p:last-child { margin-bottom: 0; }
+
+  /* ========== ROI BOX ========== */
+  .roi-box {
+    background: white; border: 2px solid var(--primary); border-radius: 16px;
+    padding: 36px 32px; margin: 28px 0; text-align: center;
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  }
+
+  .roi-hero-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--muted); margin-bottom: 8px;
+  }
+
+  .roi-hero-number {
+    font-family: 'Fraunces', serif; font-size: 2.75rem; font-weight: 700;
+    color: var(--success); letter-spacing: -0.03em; line-height: 1.1;
+  }
+
+  .roi-hero-number span {
+    font-size: 1.1rem; font-weight: 500; color: var(--slate-light);
+  }
+
+  .roi-breakdown {
+    display: flex; align-items: center; justify-content: center; gap: 24px;
+    margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
+  }
+
+  .roi-detail { text-align: center; }
+
+  .roi-detail-number {
+    font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+
+  .roi-detail-label {
+    font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-top: 2px;
+  }
+
+  .roi-detail-divider {
+    font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600;
+    color: var(--border);
+  }
+
+  .roi-bottom {
+    margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+
+  .roi-annual-number {
+    font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700;
+    color: var(--primary); letter-spacing: -0.02em;
+  }
+
+  .roi-annual-label {
+    font-size: 0.7rem; color: var(--slate-light); margin-top: 2px;
+  }
+
+  .roi-cases {
+    display: inline-block; margin-top: 10px; background: rgba(5, 150, 105, 0.08);
+    padding: 6px 16px; border-radius: 50px; font-size: 0.8rem;
+    font-weight: 600; color: var(--success);
+  }
+
+  /* ========== OMNICHANNEL INTRO ========== */
+  .omni-intro {
+    background: white; border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; margin: 24px 0 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.025);
+  }
+
+  .omni-intro p {
+    font-size: 0.95rem; color: var(--slate); line-height: 1.75; margin: 0;
+  }
+
+  .omni-intro strong { color: var(--ink); }
+
+  /* ========== JOURNEY V2 ========== */
+  .journey-v2 {
+    display: flex; align-items: stretch; gap: 0; margin: 20px 0 24px;
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .journey-v2-step {
+    flex: 1; padding: 16px 12px; text-align: center;
+    border-right: 1px solid var(--border); position: relative;
+  }
+
+  .journey-v2-step:last-child { border-right: none; }
+
+  .journey-v2-step::after {
+    content: '\2192'; position: absolute; right: -8px; top: 50%;
+    transform: translateY(-50%); font-size: 0.9rem; color: var(--muted);
+    background: white; padding: 2px 0; z-index: 1;
+  }
+
+  .journey-v2-step:last-child::after { display: none; }
+
+  .journey-v2-icon { font-size: 1.2rem; margin-bottom: 4px; }
+
+  .journey-v2-label {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--ink);
+  }
+
+  .journey-v2-sub {
+    font-size: 0.65rem; color: var(--muted); margin-top: 2px; line-height: 1.3;
+  }
+
+  .journey-v2-handled {
+    font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--success); margin-top: 6px;
+  }
+
+  /* ========== REVENUE CARDS ========== */
+  .revenue-cards { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
+
+  .revenue-card {
+    background: white; border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.025);
+  }
+
+  .revenue-card-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+  }
+
+  .revenue-card-badge {
+    display: inline-block; font-family: 'Outfit', sans-serif;
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; padding: 3px 10px; border-radius: 50px;
+  }
+
+  .revenue-card-badge.search { background: rgba(66, 133, 244, 0.1); color: #4285F4; }
+  .revenue-card-badge.social { background: rgba(59, 89, 152, 0.1); color: #3b5998; }
+  .revenue-card-badge.intake { background: rgba(5, 150, 105, 0.1); color: var(--success); }
+
+  .revenue-card-amount { text-align: right; }
+
+  .revenue-card-number {
+    font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 700;
+    letter-spacing: -0.02em; white-space: nowrap;
+  }
+
+  .revenue-card:nth-child(1) .revenue-card-number { color: #4285F4; }
+  .revenue-card:nth-child(2) .revenue-card-number { color: #3b5998; }
+  .revenue-card:nth-child(3) .revenue-card-number { color: var(--success); }
+
+  .revenue-card-sub {
+    font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-top: 1px; text-align: right;
+  }
+
+  .revenue-card-cases {
+    font-size: 0.75rem; font-weight: 600; color: var(--slate-light);
+    text-align: right; margin-top: 4px;
+  }
+
+  .revenue-card-body {
+    font-size: 0.925rem; color: var(--slate); line-height: 1.7; margin-bottom: 14px;
+  }
+
+  .revenue-card-body p { margin-bottom: 12px; }
+  .revenue-card-body p:last-child { margin-bottom: 0; }
+  .revenue-card-body strong { color: var(--ink); font-weight: 600; }
+
+  /* ========== SERP MOCKUP ========== */
+  .serp-mockup {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .serp-query {
+    display: flex; align-items: center; gap: 8px; padding-bottom: 10px;
+    margin-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--slate-light);
+  }
+
+  .serp-query span { font-style: italic; font-size: 0.875rem; color: var(--ink); }
+
+  .serp-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }
+  .serp-row + .serp-row { margin-top: 2px; }
+
+  .serp-tag {
+    display: inline-block; font-size: 0.5rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 2px 7px; border-radius: 3px; min-width: 28px;
+    text-align: center; flex-shrink: 0;
+  }
+
+  .serp-tag-ad { background: rgba(66, 133, 244, 0.12); color: #4285F4; }
+  .serp-tag-map { background: rgba(52, 168, 83, 0.12); color: #34A853; }
+  .serp-tag-you { background: rgba(79, 70, 229, 0.12); color: var(--primary); }
+
+  .serp-name {
+    font-weight: 600; font-size: 0.825rem; color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px;
+  }
+
+  .serp-note { margin-left: auto; font-size: 0.7rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+
+  .serp-you { background: rgba(79, 70, 229, 0.04); border: 1px solid rgba(79, 70, 229, 0.2); }
+  .serp-you .serp-name { color: var(--primary); }
+  .serp-you .serp-note { color: var(--primary); font-weight: 600; }
+
+  /* ========== MINI COMPARE ========== */
+  .mini-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .mini-compare-side {
+    padding: 14px 16px; border-radius: 10px; font-size: 0.85rem; line-height: 1.6;
+  }
+
+  .mini-compare-label {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; margin-bottom: 6px;
+  }
+
+  .mini-compare-side p { margin: 0; color: var(--slate); }
+
+  .mini-compare-a { background: var(--warm-white); border: 1px solid var(--border); }
+  .mini-compare-a .mini-compare-label { color: var(--slate-light); }
+
+  .mini-compare-b-social {
+    background: linear-gradient(135deg, rgba(59, 89, 152, 0.05), rgba(59, 89, 152, 0.02));
+    border: 1px solid rgba(59, 89, 152, 0.2);
+  }
+  .mini-compare-b-social .mini-compare-label { color: #3b5998; }
+
+  .mini-compare-b-intake {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.05), rgba(16, 185, 129, 0.02));
+    border: 1px solid rgba(5, 150, 105, 0.2);
+  }
+  .mini-compare-b-intake .mini-compare-label { color: var(--success); }
+
+  /* ========== CARD CONNECTOR ========== */
+  .card-connector {
+    width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto;
+    font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600; color: var(--muted);
+  }
+
+  /* ========== GUARANTEE ========== */
+  .guarantee-section {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white; border-radius: 16px; padding: 36px 32px; margin: 32px 0; text-align: center;
+  }
+
+  .guarantee-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; opacity: 0.8; margin-bottom: 12px;
+  }
+
+  .guarantee-headline {
+    font-family: 'Fraunces', serif; font-size: 1.65rem; font-weight: 700;
+    color: white; margin-bottom: 10px; letter-spacing: -0.02em;
+  }
+
+  .guarantee-sub {
+    font-size: 1rem; opacity: 0.9; max-width: 520px;
+    margin: 0 auto; line-height: 1.7;
+  }
+
+  /* ========== CASE STUDY ========== */
+  .case-study {
+    background: white; border: 1px solid var(--border); border-radius: 16px;
+    padding: 30px; margin: 24px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.025); text-align: center;
+  }
+
+  .case-study-label {
+    font-size: 0.625rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--success); margin-bottom: 12px;
+  }
+
+  .case-study-firm {
+    font-family: 'Fraunces', Georgia, serif; font-size: 1.3rem;
+    font-weight: 600; color: var(--ink); margin-bottom: 16px;
+  }
+
+  .case-study-stats { display: flex; align-items: center; justify-content: center; gap: 24px; }
+  .case-study-stat { display: flex; flex-direction: column; align-items: center; }
+
+  .case-study-number {
+    font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 700;
+    color: var(--primary); letter-spacing: -0.02em;
+  }
+
+  .case-study-desc {
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-top: 4px;
+  }
+
+  .case-study-arrow { font-size: 1.5rem; color: var(--success); font-weight: 700; }
+
+  /* ========== DELIVERABLES ========== */
+  .deliverables-group { margin-bottom: 28px; }
+
+  .deliverables-group-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--primary); margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+
+  .deliverables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .deliverable-item {
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: flex-start; gap: 10px;
+  }
+
+  .deliverable-check {
+    width: 20px; height: 20px; background: rgba(5, 150, 105, 0.1);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px; color: var(--success);
+  }
+
+  .deliverable-text strong { display: block; font-size: 0.85rem; color: var(--ink); }
+  .deliverable-text p { font-size: 0.75rem; color: var(--slate-light); margin: 2px 0 0; line-height: 1.45; }
+
+  /* ========== TIMELINE STRIP ========== */
+  .timeline-strip {
+    background: var(--ink); color: white; border-radius: 14px;
+    padding: 24px 32px; display: flex; justify-content: space-between;
+    align-items: center; margin: 28px 0;
+  }
+
+  .timeline-strip-text { font-size: 1rem; font-weight: 500; opacity: 0.85; }
+
+  .timeline-strip-number {
+    font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 700;
+  }
+
+  /* ========== YOUR ONLY JOB ========== */
+  .only-job {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.06), rgba(16, 185, 129, 0.03));
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: 16px; padding: 36px; text-align: center; margin: 28px 0;
+  }
+
+  .only-job-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--success); margin-bottom: 12px;
+  }
+
+  .only-job-big {
+    font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 600;
+    color: var(--ink); line-height: 1.4;
+  }
+
+  .only-job-sub {
+    font-size: 0.95rem; color: var(--slate); margin-top: 8px;
+  }
+
+  /* ========== CONFIDENCE ========== */
+  .confidence-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 24px 0; }
+
+  .confidence-item {
+    text-align: center; padding: 18px 14px; background: white;
+    border: 1px solid var(--border); border-radius: 12px;
+  }
+
+  .confidence-icon { font-size: 1.3rem; margin-bottom: 6px; }
+  .confidence-item strong { display: block; font-size: 0.875rem; color: var(--ink); margin-bottom: 3px; }
+  .confidence-item p { font-size: 0.75rem; color: var(--slate-light); margin: 0; line-height: 1.45; }
+
+  /* ========== CTA ========== */
+  .cta {
+    text-align: center; padding: 48px 36px;
+    background: linear-gradient(180deg, rgba(79,70,229,0.04), rgba(99,102,241,0.08));
+    border-radius: 20px; margin: 40px 0 36px;
+    border: 1px solid rgba(79,70,229,0.12); box-shadow: 0 4px 20px rgba(0,0,0,0.035);
+  }
+
+  .cta h2 {
+    font-size: 1.65rem; margin-bottom: 10px; letter-spacing: -0.02em;
+    max-width: 480px; margin-left: auto; margin-right: auto;
+  }
+
+  .cta > p { font-size: 1rem; color: var(--slate); margin-bottom: 28px; }
+
+  /* ========== FLOATING CTA ========== */
+  .floating-cta {
+    position: fixed; bottom: 24px; right: 24px; z-index: 100;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  .floating-cta.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+
+  .floating-cta a {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--primary); color: white; text-decoration: none;
+    padding: 14px 24px; border-radius: 50px; font-weight: 600; font-size: 0.925rem;
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+
+  .floating-cta a:hover {
+    background: var(--primary-light);
+    box-shadow: 0 6px 28px rgba(79, 70, 229, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* ========== FADE ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { opacity: 0; }
+  .fade-in.visible { animation: fadeUp 0.6s ease-out forwards; }
+
+  /* ========== FAQ / OBJECTION HANDLER ========== */
+  .faq-section { margin: 32px 0; }
+  .faq-label {
+    font-family: 'Outfit', sans-serif; font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .faq-list { display: flex; flex-direction: column; gap: 0; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-question {
+    width: 100%; background: none; border: none; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 0; font-size: 1rem; font-weight: 600;
+    color: var(--ink); text-align: left; font-family: 'Outfit', sans-serif;
+  }
+  .faq-question:hover { color: var(--primary); }
+  .faq-chevron { transition: transform 0.2s; font-size: 0.9rem; color: var(--muted); flex-shrink: 0; margin-left: 12px; }
+  .faq-item.open .faq-chevron { transform: rotate(90deg); }
+  .faq-answer {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+    padding: 0;
+  }
+  .faq-item.open .faq-answer { max-height: 200px; padding-bottom: 16px; }
+  .faq-answer p { color: var(--slate); font-size: 0.92rem; line-height: 1.6; margin: 0; }
+
+  /* ========== REVIEW BUILDING LABEL ========== */
+  .review-building {
+    color: var(--muted); font-style: italic; font-size: 0.85em;
+  }
+
+  /* ========== FOOTER ========== */
+  .footer {
+    text-align: center; padding: 32px 0 16px; color: var(--slate-light);
+    font-size: 0.8125rem; border-top: 1px solid var(--border);
+  }
+
+  .footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+
+  /* ========== HERO REVENUE SUB ========== */
+  .hero-revenue-sub {
+    display: block; font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.3rem; font-weight: 500; color: var(--slate);
+    margin-top: 6px; letter-spacing: -0.01em;
+  }
+
+  /* ========== AT A GLANCE STRIP ========== */
+  .glance-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 24px; margin: 20px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+
+  .glance-item { text-align: center; flex: 1; }
+  .glance-item + .glance-item { border-left: 1px solid var(--border); }
+
+  .glance-number {
+    font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+
+  .glance-label {
+    font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-top: 2px;
+  }
+
+  /* ========== PULL-QUOTE (REVENUE CARD INSIGHT) ========== */
+  .revenue-card-insight {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1rem; font-style: italic; color: var(--primary);
+    margin-bottom: 14px; padding: 12px 18px;
+    border-left: 3px solid var(--primary);
+    background: rgba(79, 70, 229, 0.03);
+    border-radius: 0 8px 8px 0;
+    line-height: 1.55;
+  }
+
+  /* ========== STAT HIGHLIGHT ========== */
+  .stat-highlight {
+    font-weight: 700; color: var(--primary);
+    background: rgba(79, 70, 229, 0.06);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 0.975rem;
+  }
+
+  /* ========== COST OF INACTION ========== */
+  .cost-inaction {
+    background: #1a1a2e; color: white; border-radius: 16px;
+    padding: 40px 36px; margin: 32px 0; text-align: center;
+  }
+
+  .cost-inaction-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; opacity: 0.6; margin-bottom: 14px;
+  }
+
+  .cost-inaction-headline {
+    font-family: 'Fraunces', serif; font-size: 1.55rem; font-weight: 600;
+    color: white; line-height: 1.35; margin-bottom: 10px;
+    max-width: 580px; margin-left: auto; margin-right: auto;
+  }
+
+  .cost-inaction-amount { color: #f87171; font-weight: 700; }
+
+  .cost-inaction-annual {
+    font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600;
+    color: #f87171; margin-bottom: 16px; opacity: 0.9;
+  }
+
+  .cost-inaction-body {
+    font-size: 0.95rem; opacity: 0.75; max-width: 520px;
+    margin: 0 auto; line-height: 1.7;
+  }
+
+  /* ========== CASE STUDY TIMELINE ========== */
+  .case-study-context {
+    font-style: italic; font-size: 0.85rem; color: var(--slate-light);
+    margin-bottom: 16px;
+  }
+
+  .case-study-timeline {
+    display: flex; justify-content: center; gap: 0;
+    margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .case-study-milestone {
+    flex: 1; text-align: center; position: relative;
+    padding: 0 12px;
+  }
+
+  .case-study-milestone::before {
+    content: ''; display: block; width: 10px; height: 10px;
+    background: var(--primary); border-radius: 50%;
+    margin: 0 auto 10px; position: relative; z-index: 1;
+  }
+
+  .case-study-milestone::after {
+    content: ''; position: absolute; top: 4px; left: 50%; right: -50%;
+    height: 2px; background: var(--border); z-index: 0;
+  }
+
+  .case-study-milestone:last-child::after { display: none; }
+
+  .case-study-milestone-time {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--primary); margin-bottom: 4px;
+  }
+
+  .case-study-milestone-text {
+    font-size: 0.8rem; color: var(--slate); line-height: 1.4;
+  }
+
+  /* ========== COMPETITOR TABLE ========== */
+  .competitor-table { margin-top: 16px; }
+
+  .competitor-table-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--slate-light); margin-bottom: 10px;
+  }
+
+  .competitor-table table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.85rem; border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+
+  .competitor-table th {
+    background: var(--warm-white); padding: 8px 12px;
+    text-align: left; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-light);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .competitor-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--slate);
+  }
+
+  .competitor-table tr:last-child td { border-bottom: none; }
+
+  .competitor-table-you td {
+    background: rgba(79, 70, 229, 0.04); color: var(--primary); font-weight: 600;
+  }
+
+  .competitor-table .ads-yes { color: var(--success); font-weight: 600; }
+  .competitor-table .ads-no { color: var(--muted); }
+
+  /* ========== MOBILE ========== */
+  @media (max-width: 768px) {
+    .container { padding: 28px 22px; }
+    .hero { padding: 48px 0 36px; }
+    .hero h1 { font-size: 2.125rem; }
+    .hero-setup { font-size: 1.3rem; }
+    .search-bar { min-width: auto; width: 100%; padding: 14px 22px; }
+    .search-bar-inner { min-width: auto; font-size: 1rem; }
+    .narrative h2 { font-size: 1.5rem; }
+    .header { flex-direction: column; gap: 10px; text-align: center; }
+    .cta { padding: 36px 22px; }
+    .cta h2 { font-size: 1.4rem; }
+    .divider { margin: 36px 0; }
+    .case-study { padding: 24px 20px; }
+    .case-study-number { font-size: 1.65rem; }
+    .case-study-stats { gap: 16px; }
+    .guarantee-section { padding: 28px 22px; }
+    .guarantee-headline { font-size: 1.4rem; }
+    .roi-box { padding: 28px 20px; }
+    .roi-hero-number { font-size: 2rem; }
+    .roi-breakdown { gap: 16px; }
+    .roi-detail-number { font-size: 1rem; }
+    .deliverables-grid { grid-template-columns: 1fr; }
+    .confidence-grid { grid-template-columns: 1fr; }
+    .timeline-strip { flex-direction: column; gap: 8px; text-align: center; padding: 20px; }
+    .revenue-card { padding: 20px; }
+    .revenue-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .revenue-card-amount { text-align: left; }
+    .revenue-card-sub { text-align: left; }
+    .revenue-card-cases { text-align: left; }
+    .mini-compare { grid-template-columns: 1fr; }
+    .serp-name { max-width: 180px; }
+    .journey-v2 { flex-direction: column; }
+    .journey-v2-step { border-right: none; border-bottom: 1px solid var(--border); padding: 12px 16px; }
+    .journey-v2-step:last-child { border-bottom: none; }
+    .journey-v2-step::after { display: none; }
+    .floating-cta { bottom: 16px; right: 16px; }
+    .floating-cta a { padding: 12px 20px; font-size: 0.85rem; }
+    .glance-strip { flex-direction: column; gap: 12px; padding: 16px; }
+    .glance-item + .glance-item { border-left: none; border-top: 1px solid var(--border); padding-top: 12px; }
+    .cost-inaction { padding: 28px 22px; }
+    .cost-inaction-headline { font-size: 1.3rem; }
+    .case-study-timeline { flex-direction: column; gap: 16px; align-items: center; }
+    .case-study-milestone::after { display: none; }
+    .case-study-milestone { padding: 0; }
+    .competitor-table table { font-size: 0.78rem; }
+    .competitor-table th, .competitor-table td { padding: 8px 8px; }
+    .hero-revenue-sub { font-size: 1.1rem; }
+    .faq-question { font-size: 0.92rem; padding: 14px 0; }
+    .faq-answer p { font-size: 0.85rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 1.75rem; }
+  }
+</style>
+  
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="logo">Mortar Metrics</div>
+      <div class="meta">Prepared for Kole Pederson at Midwest Ag Law · February 2026</div>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-context">AGRICULTURAL LAW · LINCOLN, NE</div>
+
+      <h2 class="hero-setup">Every month, people in Lincoln search for</h2>
+
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" width="22" height="22" style="flex-shrink:0">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <div class="search-bar-inner">
+          <span class="typed" id="typed-search">agricultural lawyer near me</span><span class="cursor-blink"></span>
+        </div>
+      </div>
+
+      <h1>
+        <span class="highlight">≈ 16 new signed cases</span><br>for Midwest Ag Law every month.
+        <span class="hero-revenue-sub">That's $95K–$129K in new revenue for your firm.</span>
+      </h1>
+
+      <p class="hero-sub">
+        We build your website, run your ads, create your funnels, answer every lead, and book consultations on your calendar. 30 qualified leads in 30 days or we work for free until you get them.
+      </p>
+
+      <div class="scroll-hint">
+        2 minute read
+        <span>↓</span>
+      </div>
+    </section>
+
+
+    <!-- THE NUMBERS -->
+    <div class="divider"></div>
+
+    <div class="roi-box fade-in">
+      <div class="roi-hero-label">Net new revenue to your firm</div>
+      <div class="roi-hero-number">$91K–$125K<span> /mo</span></div>
+
+      <div class="roi-breakdown">
+        <div class="roi-detail">
+          <div class="roi-detail-number">$95K–$129K</div>
+          <div class="roi-detail-label">Projected revenue</div>
+        </div>
+        <div class="roi-detail-divider">−</div>
+        <div class="roi-detail">
+          <div class="roi-detail-number">~$4K</div>
+          <div class="roi-detail-label">Ad spend</div>
+        </div>
+      </div>
+
+      <div class="roi-bottom">
+        <div class="roi-annual-number">$1.1M – $1.5M in your first year</div>
+        <div class="roi-annual-label">Across paid ads, SEO, funnels, and AI-powered intake</div>
+        <div class="roi-cases">≈ 16 new signed cases every month</div>
+      </div>
+    </div>
+
+    <!-- AT A GLANCE -->
+    <div class="glance-strip fade-in">
+      <div class="glance-item">
+        <div class="glance-number">≈ 16</div>
+        <div class="glance-label">Cases / month</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">$95K–$129K</div>
+        <div class="glance-label">Revenue range</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">~$4K</div>
+        <div class="glance-label">Ad spend</div>
+      </div>
+      <div class="glance-item">
+        <div class="glance-number">24x–32x</div>
+        <div class="glance-label">ROI</div>
+      </div>
+    </div>
+
+    <!-- OMNICHANNEL FRAMING -->
+    <div class="omni-intro fade-in">
+      <p><strong>A potential client doesn't just see one ad and call.</strong> They see your ad, then check your website. They read your reviews. They look at your social media. Maybe they download a guide or watch a webinar first. They check everything about you before they ever pick up the phone — and if any of those touchpoints looks off, they call someone else. We handle all of it. Every channel, every touchpoint, every follow-up. This is the full system.</p>
+    </div>
+
+    <!-- JOURNEY V2 -->
+    <div class="journey-v2 fade-in">
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">👀</div>
+        <div class="journey-v2-label">See your ad</div>
+        <div class="journey-v2-sub">Google, Facebook, Instagram</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">🔍</div>
+        <div class="journey-v2-label">Check you out</div>
+        <div class="journey-v2-sub">Website, reviews, socials</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">📥</div>
+        <div class="journey-v2-label">Engage</div>
+        <div class="journey-v2-sub">Guide, webinar, chat, DM</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">📞</div>
+        <div class="journey-v2-label">Reach out</div>
+        <div class="journey-v2-sub">Call, form, or message</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">📅</div>
+        <div class="journey-v2-label">Book</div>
+        <div class="journey-v2-sub">Consultation on your calendar</div>
+        <div class="journey-v2-handled">We handle this</div>
+      </div>
+      <div class="journey-v2-step">
+        <div class="journey-v2-icon">✍️</div>
+        <div class="journey-v2-label">Sign</div>
+        <div class="journey-v2-sub">New retained client</div>
+        <div class="journey-v2-handled" style="color: var(--primary);">You do this</div>
+      </div>
+    </div>
+
+    <!-- 3 REVENUE STREAMS -->
+    <div class="revenue-cards">
+      <!-- GOOGLE ADS + SEO + WEBSITE -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge search">Google Ads + SEO + Website</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">$47.5K–$64.5K</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">≈ 8 new signed cases</div>
+          </div>
+        </div>
+        <div class="revenue-card-insight">→ You're running one Google Ad, but Jim R. Titus and Knudsen Law Firm are outbidding you on high-value keywords like 'agricultural attorney Lincoln' — capturing cases that should be yours.</div>
+        <div class="revenue-card-body">
+          <strong>Your single Google Ad is a start, but local competitors like Jim R. Titus and Knudsen Law Firm are already capturing the ~450 monthly agricultural law searches in Lincoln.</strong> Performance Max campaigns could help Midwest Ag Law capture search, display, and Google Maps traffic more comprehensively. The midwestag.law domain shows strategic keyword thinking, but the current digital strategy needs refinement. Agricultural law's relatively thin local competition suggests potential for efficient ad spending and targeted client acquisition. SEO optimization for phrases like "agricultural attorney Lincoln" and "farm law Nebraska" could help establish organic search dominance.
+        </div>
+      <div class="serp-mockup">
+        <div class="serp-query">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span>"agricultural lawyer near me"</span>
+        </div>
+        <div class="serp-row serp-you">
+          <span class="serp-tag serp-tag-you">You</span>
+          <span class="serp-name">Midwest Ag Law</span>
+          <span class="serp-note">top of page</span>
+        </div>
+        <div class="serp-row">
+          <span class="serp-tag serp-tag-ad">Ad</span>
+          <span class="serp-name">Jim R. Titus</span>
+          <span class="serp-note">paying for clicks</span>
+        </div>
+        <div class="serp-row">
+          <span class="serp-tag serp-tag-ad">Ad</span>
+          <span class="serp-name">Knudsen</span>
+          <span class="serp-note">paying for clicks</span>
+        </div>
+        <div class="serp-row">
+          <span class="serp-tag serp-tag-map">Map</span>
+          <span class="serp-name">Johnson Flodman Guenzel &amp; Wasserburger</span>
+          <span class="serp-note">local result</span>
+        </div>
+      </div>
+      <div class="competitor-table">
+        <div class="competitor-table-label">Who you're competing against right now</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Firm</th>
+              <th>Google Ads</th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>Jim R. Titus</td>
+            <td><span class="ads-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Running ads</span></td>
+          </tr>
+          <tr>
+            <td>Knudsen</td>
+            <td><span class="ads-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Running ads</span></td>
+          </tr>
+          <tr>
+            <td>Johnson Flodman Guenzel &amp; Wasserburger</td>
+            <td><span class="ads-no">No ads detected</span></td>
+          </tr>
+          <tr class="competitor-table-you">
+            <td>Midwest Ag Law (You)</td>
+            <td><span class="ads-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Running ads</span></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+
+      <div class="card-connector">+</div>
+
+      <!-- META ADS + FUNNELS -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge social">Meta Ads + Funnels + Content</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">$28.5K–$38.5K</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">≈ 5 new signed cases</div>
+          </div>
+        </div>
+        <div class="revenue-card-insight">→ Your blog and video content show you can create authority-building material, but there's no conversion funnel capturing the audience that's not ready to call yet.</div>
+        <div class="revenue-card-body">
+          <strong>Google Ads only catch people actively searching, but there are thousands of Lincoln-area farmers dealing with estate planning, land transfers, and USDA compliance issues who don't realize they need legal help until it's too late.</strong> Midwest Ag Law's existing blog and video content show potential for authority-building material. We recommend developing webinar sequences on "Farm & Ranch Legal Planning in Lincoln" covering estate planning, land transfers, and USDA compliance. By creating targeted lead magnets like "The Family Farm Legacy Protection Guide" and using strategic retargeting, we can nurture potential clients who engage but don't immediately convert. Your years of local legal experience provides a credible foundation for positioning Midwest Ag Law as the regional agricultural legal authority.
+        </div>
+        <div class="mini-compare">
+          <div class="mini-compare-side mini-compare-a">
+            <div class="mini-compare-label">Traditional ads</div>
+            <p>See ad → not ready → scroll past → gone forever</p>
+          </div>
+          <div class="mini-compare-side mini-compare-b-social">
+            <div class="mini-compare-label">Our funnels</div>
+            <p>See ad → download guide → get nurtured → call when ready → already trust you</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-connector">+</div>
+
+      <!-- AI INTAKE + CRM -->
+      <div class="revenue-card fade-in">
+        <div class="revenue-card-header">
+          <div class="revenue-card-badge intake">AI Intake + CRM · The conversion engine</div>
+          <div class="revenue-card-amount">
+            <div class="revenue-card-number">$19K–$26K</div>
+            <div class="revenue-card-sub">per month</div>
+            <div class="revenue-card-cases">≈ 3 cases recovered</div>
+          </div>
+        </div>
+        <div class="revenue-card-insight">→ With 35% of calls coming after hours and 60% of prospects not leaving voicemail, you're losing potential clients who never get a chance to connect.</div>
+        <div class="revenue-card-body">
+          <strong>For Midwest Ag Law in Lincoln, social channels like Facebook and Instagram drive leads, but their current system risks losing potential clients.</strong> With 55 monthly calls and 35% arriving after hours, the firm faces a critical challenge: 60% of prospects won't leave voicemail. In agricultural law, first response often wins the case. An AI intake system with website chatbot and social media DM handling could capture contact information instantly, ensuring no potential client slips away. By routing every inquiry directly into a CRM, Midwest Ag Law can nurture leads through targeted SMS and email follow-up, bridging the gap between initial interest and first conversation.
+        </div>
+        <div class="mini-compare">
+          <div class="mini-compare-side mini-compare-a">
+            <div class="mini-compare-label">Without us</div>
+            <p>After-hours call → voicemail → website chat ignored → DM unseen → lead calls another firm</p>
+          </div>
+          <div class="mini-compare-side mini-compare-b-intake">
+            <div class="mini-compare-label">With us</div>
+            <p>Every call, chat, and DM answered instantly → qualified → booked or nurtured in CRM → nothing lost</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- COST OF INACTION -->
+    <div class="cost-inaction fade-in">
+      <div class="cost-inaction-label">The cost of staying the same</div>
+      <h2 class="cost-inaction-headline">Every month without this system, your firm leaves
+        <span class="cost-inaction-amount">$95K–$129K</span> on the table.</h2>
+      <div class="cost-inaction-annual">That's $1.1M–$1.5M this year alone.</div>
+      <p class="cost-inaction-body">Your competitors are already running ads, answering calls after hours, and following up with every lead. The cases you're not getting aren't disappearing — they're going to firms that show up first.</p>
+    </div>
+
+    <!-- GUARANTEE -->
+    <div class="guarantee-section fade-in">
+      <div class="guarantee-label">Our guarantee</div>
+      <div class="guarantee-headline">You risk nothing. We risk everything.</div>
+      <div class="guarantee-sub">30 qualified leads in 30 days or we work for free until you get them. If we don't deliver, we keep working at no cost until we hit it.</div>
+    </div>
+
+    <!-- CASE STUDY -->
+    <div class="case-study fade-in">
+      <div class="case-study-label">We've done this before</div>
+      <div class="case-study-content">
+        <div class="case-study-firm">Mandall Law</div>
+        <div class="case-study-context">Personal injury firm, mid-size market</div>
+        <div class="case-study-stats">
+          <div class="case-study-stat">
+            <div class="case-study-number">$4K</div>
+            <div class="case-study-desc">monthly ad spend</div>
+          </div>
+          <div class="case-study-arrow">→</div>
+          <div class="case-study-stat">
+            <div class="case-study-number">$92K/mo</div>
+            <div class="case-study-desc">in new signed cases</div>
+          </div>
+        </div>
+        <div class="case-study-timeline">
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Week 2</div>
+            <div class="case-study-milestone-text">Ads live, website launched, AI intake active</div>
+          </div>
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Month 1</div>
+            <div class="case-study-milestone-text">18 booked consultations, 6 signed cases</div>
+          </div>
+          <div class="case-study-milestone">
+            <div class="case-study-milestone-time">Month 3</div>
+            <div class="case-study-milestone-text">Full pipeline — $92K/month in signed cases</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- WHAT WE BUILD -->
+    <div class="divider"></div>
+
+    <div class="narrative">
+      <h2>Everything we build and manage for you</h2>
+      <p style="margin-top: 8px;">Ads, funnels, website, SEO, AI intake, CRM — the entire system. The last digital marketing agency your firm will ever need.</p>
+    </div>
+
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Drive leads</div>
+      <div class="deliverables-grid">
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Google Ads — full build + management</strong><p>Targeting, bid strategy, A/B testing, optimization</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Meta Ads — Facebook + Instagram</strong><p>Ad creative, audience targeting, retargeting</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>SEO + local search optimization</strong><p>Organic rankings so you show up without paying</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Website redesign</strong><p>Professional, fast, built to convert visitors into calls</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Lead magnet funnels</strong><p>Free guides and resources that capture contact info</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Webinar funnels</strong><p>Educational events that build trust and generate leads</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Dedicated landing pages</strong><p>Separate from your website, optimized for ad traffic</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Re-engage old leads</strong><p>Re-spark conversations with contacts that went cold</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Capture every lead</div>
+      <div class="deliverables-grid">
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>AI voice agent — 24/7</strong><p>Answers every call, qualifies, books consultations</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>AI website chatbot</strong><p>Engages every visitor, answers questions, captures leads</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Social media DM handling</strong><p>Auto-responds to Facebook &amp; Instagram messages</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Missed call text-back</strong><p>Instant text if a lead doesn't connect</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Speed-to-lead automation</strong><p>Every inquiry gets a response in seconds</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>After-hours coverage</strong><p>Nights, weekends, holidays — never miss a lead</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="deliverables-group fade-in">
+      <div class="deliverables-group-label">Convert &amp; track</div>
+      <div class="deliverables-grid">
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Automated follow-up sequences</strong><p>SMS + email nurture for leads that don't book</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>CRM + full pipeline</strong><p>Every lead tracked from click to signed retainer</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Calendar integration</strong><p>Consultations booked directly onto your calendar</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Call recording + analytics</strong><p>Every call recorded, tagged, tracked</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Reporting dashboard</strong><p>ROI, cost per lead, cost per case — full visibility</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Review generation</strong><p>Automated requests to build your Google reviews</p></div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="deliverable-text"><strong>Dedicated account manager</strong><p>One point of contact. Not a ticket system.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-strip">
+      <div class="timeline-strip-text">Everything above — built, live, and running in</div>
+      <div class="timeline-strip-number">14 days</div>
+    </div>
+
+    <!-- YOUR ONLY JOB -->
+    <div class="only-job fade-in">
+      <div class="only-job-label">Your only job</div>
+      <div class="only-job-big">Show up to consultations. Sign cases.</div>
+      <div class="only-job-sub">Ads, funnels, website, SEO, intake, follow-up, CRM — we handle all of it.</div>
+    </div>
+
+    <!-- CONFIDENCE -->
+    <div class="confidence-grid fade-in">
+      <div class="confidence-item">
+        <div class="confidence-icon">🤝</div>
+        <strong>Month to month</strong>
+        <p>No long-term contracts. Cancel anytime. Keep everything we built.</p>
+      </div>
+      <div class="confidence-item">
+        <div class="confidence-icon">🛡️</div>
+        <strong>One firm per area</strong>
+        <p>We never compete against our own clients. Your market is yours.</p>
+      </div>
+      <div class="confidence-item">
+        <div class="confidence-icon">⚡</div>
+        <strong>Results in 2 weeks</strong>
+        <p>Most firms see booked consultations within the first 14 days.</p>
+      </div>
+    </div>
+
+    <div class="faq-section fade-in">
+      <div class="faq-label">Questions firms ask us</div>
+      <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How long before I see results?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>Most firms see booked consultations within 14 days. Paid ads drive immediate traffic, while SEO and content compound over months. You'll have a full pipeline within 60-90 days.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        What if I've tried marketing before and it didn't work?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>Most firms we talk to had agencies that ran ads but didn't build the full system: landing pages, intake, follow-up, tracking. We build the entire pipeline so nothing leaks.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How do you know these numbers are realistic?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>Every number in this report comes from a formula with visible assumptions. We show our math and the conversion rates we use. If your market is smaller, the numbers adjust.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        What's the catch with month-to-month?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>No catch. We keep clients by delivering results, not by locking them in. You keep everything we build if you cancel.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Do I need to do anything?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>Show up to consultations and sign cases. We handle ads, website, funnels, intake, follow-up, reporting. Your team gets a weekly report and a Slack channel for questions.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        My practice area is niche. Is there enough search volume?
+        <span class="faq-chevron">&#9656;</span>
+      </button>
+      <div class="faq-answer">
+        <p>The report shows your exact local search volume. Niche areas have less competition, which means lower ad costs and higher conversion rates. Less volume, more quality.</p>
+      </div>
+    </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="divider"></div>
+
+    <div id="booking" class="cta fade-in">
+      <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
+      <p>15 minutes. We'll show you the exact ad campaigns, landing pages, and intake system that will deliver 16 new agricultural law cases to your firm every month. The firms we work with typically see $5–$10 back for every $1 they invest.</p>
+      <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
+      <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+    </div>
+
+    <div class="footer">
+      Mortar Metrics · Legal Growth Agency · Toronto, ON<br>
+      <a href="mailto:fardeen@mortarmetrics.com">fardeen@mortarmetrics.com</a>
+    </div>
+
+  </div>
+
+  <!-- FLOATING CTA -->
+  <div class="floating-cta" id="floatingCta">
+    <a href="#booking">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Book a call
+    </a>
+  </div>
+
+
+<script>
+class SearchTyper {
+  constructor(el, terms, opts = {}) {
+    this.el = document.getElementById(el);
+    if (!this.el) return;
+    this.terms = terms; this.i = 0; this.text = ''; this.del = false;
+    this.ts = opts.typeSpeed || 75; this.ds = opts.deleteSpeed || 35;
+    this.pd = opts.pauseDel || 2200; this.pt = opts.pauseType || 350;
+  }
+  tick() {
+    const t = this.terms[this.i];
+    this.text = this.del ? t.substring(0, this.text.length - 1) : t.substring(0, this.text.length + 1);
+    this.el.textContent = this.text || '\u200B';
+    let d = this.del ? this.ds : this.ts;
+    if (!this.del && this.text === t) { d = this.pd; this.del = true; }
+    else if (this.del && this.text === '') { this.del = false; this.i = (this.i + 1) % this.terms.length; d = this.pt; }
+    setTimeout(() => this.tick(), d);
+  }
+  start() { this.tick(); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('typed-search');
+  if (el) el.textContent = '';
+  new SearchTyper('typed-search', ["agricultural lawyer near me","farm attorney Lincoln NE","ranch law attorney","agricultural estate planning Lincoln NE","USDA compliance lawyer"]).start();
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+  const floatingCta = document.getElementById('floatingCta');
+  const bookingSection = document.getElementById('booking');
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const heroBottom = document.querySelector('.hero').getBoundingClientRect().bottom + window.scrollY;
+    const bookingTop = bookingSection.getBoundingClientRect().top + window.scrollY;
+    const windowBottom = scrollY + window.innerHeight;
+    if (scrollY > heroBottom && windowBottom < bookingTop + 200) {
+      floatingCta.classList.add('visible');
+    } else {
+      floatingCta.classList.remove('visible');
+    }
+  });
+});
+</script>
+
+<noscript><style>.fade-in { opacity: 1 !important; }</style></noscript>
+</body>
+</html>
