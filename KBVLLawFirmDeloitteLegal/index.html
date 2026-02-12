@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Gap Analysis | Vangelis Aidonis | KBVL Law Firm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--ink-soft:#1e293b;--slate:#475569;--slate-light:#64748b;--muted:#94a3b8;--border:#e2e8f0;--border-light:#f1f5f9;--warm-white:#f8fafc;--white:#fff;--brand-primary:#1e3a5f;--brand-blue:#2563eb;--brand-light:rgba(37,99,235,0.08);--accent:#3b82f6;--accent-light:#60a5fa;--success:#059669;--success-light:#d1fae5;--danger:#dc2626;--danger-light:#fef2f2;--gold:#f59e0b;--gold-light:#fef3c7;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:var(--warm-white);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:500}
+    .bg-grid{position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(37,99,235,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}.orbs{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:0}.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.1}.orb-1{width:600px;height:600px;left:-200px;top:-100px;background:var(--brand-blue)}.orb-2{width:400px;height:400px;right:-150px;bottom:10%;background:var(--accent)}.scroll-indicator{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand-blue),var(--accent));z-index:9999;width:0%}.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px}@media(max-width:600px){.container{padding:0 20px}}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:32px 0;border-bottom:1px solid var(--border);margin-bottom:50px;flex-wrap:wrap;gap:24px}.brand-mark{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;background:var(--brand-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:white;transition:all 0.4s var(--ease-out-expo)}.logo:hover{transform:scale(1.08) rotate(3deg);box-shadow:0 12px 40px rgba(37,99,235,0.3)}.brand-text{display:flex;flex-direction:column}.brand-name{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;color:var(--ink)}.brand-sub{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:2px;font-weight:600}.prepared-for{text-align:right}.prepared-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--slate-light);margin-bottom:6px;font-weight:500}.prepared-name{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);font-weight:500}.prepared-firm{font-size:0.9rem;color:var(--brand-blue);font-weight:500}.prepared-date{font-size:0.8rem;color:var(--slate-light);margin-top:6px}
+    .hero{text-align:center;padding:50px 0 70px}.hero-badge{display:inline-flex;align-items:center;gap:10px;padding:12px 26px;background:var(--white);border:1px solid var(--border);border-radius:100px;font-size:0.75rem;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}.hero-badge-dot{width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}.hero-title{font-size:clamp(2.2rem,5.5vw,3.6rem);font-weight:500;line-height:1.15;color:var(--ink);margin-bottom:26px}.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero-subtitle{font-size:1.15rem;color:var(--slate);max-width:720px;margin:0 auto 50px;line-height:1.75}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}@media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}.hero-stat{text-align:center;padding:24px 16px;background:var(--white);border:1px solid var(--border);border-radius:16px;transition:all 0.4s var(--ease-out-expo)}.hero-stat:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--accent)}.hero-stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600;line-height:1;margin-bottom:10px}.hero-stat-value.danger{color:var(--danger)}.hero-stat-value.success{color:var(--success)}.hero-stat-value.gold{color:var(--gold)}.hero-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+    .quick-cta{display:flex;justify-content:center;gap:16px;margin:32px 0;flex-wrap:wrap}.quick-cta-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;font-weight:600;font-size:0.95rem;text-decoration:none;transition:all 0.3s var(--ease-out-expo);cursor:pointer}.quick-cta-btn.primary{background:var(--ink);color:white}.quick-cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,0.2)}.quick-cta-btn.secondary{background:var(--white);color:var(--ink);border:2px solid var(--border)}.quick-cta-btn.secondary:hover{border-color:var(--accent);transform:translateY(-2px)}
+    section{padding:80px 0}.section-header{text-align:center;margin-bottom:50px}.section-label{display:inline-block;padding:10px 22px;background:var(--ink);color:var(--white);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-bottom:22px;font-weight:600}.section-title{font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink);margin-bottom:14px}.section-subtitle{font-size:1.05rem;color:var(--slate);max-width:650px;margin:0 auto;line-height:1.7}
+    .opportunity-box{background:linear-gradient(135deg,var(--success),#047857);border-radius:24px;padding:48px;text-align:center;margin:40px 0;position:relative;overflow:hidden}.opportunity-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.opportunity-label{font-size:0.85rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}.opportunity-value{font-family:'Fraunces',serif;font-size:clamp(3.5rem,10vw,6rem);font-weight:600;color:white;line-height:1;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,0.2)}.opportunity-context{font-size:1.2rem;color:rgba(255,255,255,0.9)}
+    .gap-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.gap-summary{grid-template-columns:1fr}}.gap-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.gap-card:hover{border-color:var(--danger);transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,0.06)}.gap-icon{font-size:2.5rem;margin-bottom:16px}.gap-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:8px}.gap-impact{font-size:1.4rem;font-weight:700;color:var(--danger);margin-bottom:8px}.gap-desc{font-size:0.85rem;color:var(--slate)}
+    .story-mini{background:var(--white);border-left:4px solid var(--danger);padding:24px 28px;margin:40px 0;border-radius:0 16px 16px 0}.story-mini-text{font-size:1.05rem;color:var(--ink);margin-bottom:8px}.story-mini-outcome{font-size:0.9rem;color:var(--slate);font-style:italic}
+    .speed-highlight{background:linear-gradient(135deg,var(--gold),#d97706);border-radius:20px;padding:32px;display:flex;align-items:center;gap:28px;margin:40px 0;color:white}@media(max-width:700px){.speed-highlight{flex-direction:column;text-align:center}}.speed-highlight-stat{font-family:'Fraunces',serif;font-size:3.5rem;font-weight:700;white-space:nowrap}.speed-highlight-text{font-size:1.05rem;line-height:1.6}
+    .market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}@media(max-width:768px){.market-stats{grid-template-columns:repeat(2,1fr)}}.market-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 16px;text-align:center}.market-stat-value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;color:var(--brand-blue);margin-bottom:6px}.market-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1px;font-weight:500}
+    .competitive-table{width:100%;border-collapse:collapse;margin:32px 0;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--border)}.competitive-table th{background:var(--ink);color:var(--white);padding:16px 18px;text-align:left;font-size:0.85rem;font-weight:600}.competitive-table td{padding:16px 18px;border-bottom:1px solid var(--border);font-size:0.9rem}.competitive-table tr:last-child td{border-bottom:none}.competitive-table tr:hover td{background:var(--warm-white)}.check{color:var(--success);font-weight:700}.cross{color:var(--danger);font-weight:700}.partial{color:var(--gold);font-weight:700}.insight-box{background:var(--warm-white);border-radius:16px;padding:24px;margin-top:24px;font-size:0.95rem;color:var(--ink);line-height:1.7}
+    .calculator-section{background:var(--white);border:2px solid var(--accent);border-radius:24px;padding:50px;margin:80px 0;box-shadow:0 20px 60px rgba(0,0,0,0.04)}@media(max-width:600px){.calculator-section{padding:30px 24px}}.calc-header{text-align:center;margin-bottom:50px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}@media(max-width:900px){.calc-grid{grid-template-columns:1fr}}.calc-inputs{display:flex;flex-direction:column;gap:24px}.calc-input-group{display:flex;flex-direction:column;gap:10px}.calc-input-label{font-size:0.85rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center}.calc-input-value{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--brand-blue);font-weight:600}.calc-slider{width:100%;height:8px;border-radius:4px;background:var(--border);-webkit-appearance:none;cursor:pointer}.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)}.calc-results{display:flex;flex-direction:column;gap:16px}.calc-result-card{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.calc-result-card:hover{border-color:var(--accent);transform:translateY(-3px)}.calc-result-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600}.calc-result-value.danger{color:var(--danger)}.calc-result-value.success{color:var(--success)}.calc-result-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:6px}.calc-total{background:linear-gradient(135deg,var(--success),#047857);border-radius:18px;padding:32px;text-align:center;margin-top:8px}.calc-total-value{font-family:'Fraunces',serif;font-size:2.8rem;font-weight:600;color:var(--white)}.calc-total-label{font-size:0.75rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+    .service-toggles{margin-top:36px;padding-top:36px;border-top:1px solid var(--border)}.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border-light)}.service-toggle:last-child{border-bottom:none}.service-toggle-info{display:flex;flex-direction:column;gap:4px}.service-toggle-name{font-weight:600;color:var(--ink);font-size:0.95rem}.service-toggle-desc{font-size:0.8rem;color:var(--slate)}.toggle-switch{position:relative;width:56px;height:30px;background:var(--border);border-radius:30px;cursor:pointer;transition:all 0.3s}.toggle-switch.active{background:var(--success)}.toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:white;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}.toggle-switch.active::after{left:29px}
+    .math-section{margin-top:40px;padding:32px;background:var(--warm-white);border-radius:16px;border:1px solid var(--border)}.math-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:24px;display:flex;align-items:center;gap:10px}.math-step{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}.math-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.math-step-title{font-weight:700;color:var(--brand-blue);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}.math-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.9rem}.math-line.total{font-weight:700;color:var(--ink);font-size:1rem;padding-top:12px;border-top:1px solid var(--border);margin-top:8px}.math-line.result{color:var(--success);font-weight:700}.math-line.loss{color:var(--danger)}
+    .ai-comparison{margin:50px 0;background:var(--white);border:2px solid var(--accent);border-radius:20px;padding:32px}.ai-comparison-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:24px;text-align:center}.ai-comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:800px){.ai-comparison-grid{grid-template-columns:1fr}}.ai-option{padding:24px;border-radius:16px;text-align:center}.ai-option.voicemail{background:var(--danger-light)}.ai-option.answering{background:var(--gold-light)}.ai-option.ai{background:var(--success-light);border:2px solid var(--success)}.ai-option-title{font-weight:700;font-size:0.95rem;margin-bottom:16px;color:var(--ink)}.ai-option-features{text-align:left;display:flex;flex-direction:column;gap:8px}.ai-option-feature{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:8px}
+    .playbook-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:28px;transition:all 0.4s var(--ease-out-expo)}.playbook-card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,0.06);border-color:var(--accent)}.playbook-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px}.playbook-number{width:48px;height:48px;min-width:48px;background:linear-gradient(135deg,var(--brand-primary),var(--accent));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}.playbook-title-group{flex:1}.playbook-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}.playbook-problem{font-size:0.9rem;color:var(--slate)}.playbook-content{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:800px){.playbook-content{grid-template-columns:1fr}}.playbook-diy{background:var(--warm-white);border-radius:14px;padding:22px}.playbook-done-for-you{background:var(--brand-light);border-radius:14px;padding:22px;border:1px solid rgba(37,99,235,0.15)}.playbook-column-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}.playbook-steps{display:flex;flex-direction:column;gap:8px}.playbook-step{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:10px;line-height:1.5}.playbook-step-num{width:18px;height:18px;min-width:18px;background:var(--brand-light);color:var(--brand-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;margin-top:2px}.playbook-time{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--slate);display:flex;flex-direction:column;gap:4px}.playbook-dfy-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px}.playbook-dfy-list{list-style:none;padding:0;margin:0 0 14px 0}.playbook-dfy-list li{padding:6px 0;font-size:0.8rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px;line-height:1.4}.playbook-dfy-list li::before{content:"✓";color:var(--success);font-weight:700}.playbook-dfy-result{font-size:0.85rem;font-weight:600;color:var(--brand-primary);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .vision-box{background:linear-gradient(135deg,var(--ink),var(--brand-primary));border-radius:24px;padding:44px;color:white;text-align:center;margin:50px 0;position:relative;overflow:hidden}.vision-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.05) 0%,transparent 50%);pointer-events:none}.vision-credential{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:20px;line-height:1.7}.vision-quote{font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;margin-bottom:28px;position:relative}.vision-list{display:flex;flex-direction:column;gap:10px;max-width:500px;margin:0 auto;text-align:left}.vision-list-item{display:flex;align-items:center;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.9)}
+    .cta-section{background:var(--ink);border-radius:24px;padding:70px 50px;text-align:center;margin:80px 0;position:relative;overflow:hidden}.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(96,165,250,0.1) 0%,transparent 40%);pointer-events:none}.cta-urgency{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--danger);background:var(--white);display:inline-block;padding:14px 28px;border-radius:12px;margin-bottom:28px}.cta-title{font-family:'Fraunces',serif;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--white);margin-bottom:16px}.cta-subtitle{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:36px;max-width:550px;margin-left:auto;margin-right:auto}.cta-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:36px;text-align:left;max-width:650px;margin-left:auto;margin-right:auto}@media(max-width:700px){.cta-columns{grid-template-columns:1fr}}.cta-column{background:rgba(255,255,255,0.05);border-radius:16px;padding:22px;border:1px solid rgba(255,255,255,0.1)}.cta-column-title{font-weight:700;font-size:0.8rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}.cta-column-list{display:flex;flex-direction:column;gap:8px}.cta-column-item{font-size:0.9rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px}.why-works{background:rgba(255,255,255,0.08);border-radius:16px;padding:28px;margin:36px 0;border:1px solid rgba(255,255,255,0.1)}.why-works-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--white);margin-bottom:20px}.why-works-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:600px){.why-works-grid{grid-template-columns:1fr}}.why-works-col-title{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}.why-works-col-list{display:flex;flex-direction:column;gap:8px}.why-works-col-item{font-size:0.9rem;color:rgba(255,255,255,0.85)}.cta-guarantee{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:24px}
+    .booking-widget-container{background:rgba(255,255,255,0.05);border-radius:20px;padding:32px;margin:32px 0;border:1px solid rgba(255,255,255,0.1)}
+    .footer{text-align:center;padding:50px 0 30px;border-top:1px solid var(--border);margin-top:80px}.footer-brand{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:20px}.footer-logo{width:40px;height:40px;background:var(--brand-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;color:var(--white);font-weight:600}.footer-name{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink)}
+    .reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+    .authority-flex{background:var(--warm-white);border-radius:12px;padding:18px 22px;font-size:0.85rem;color:var(--slate);font-style:italic;margin-top:24px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Vangelis Aidonis</div>
+        <div class="prepared-firm">KBVL Law Firm · Deloitte Legal</div>
+        <div class="prepared-date">February 2026</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-badge"><span class="hero-badge-dot"></span> Visibility Gap Identified</div>
+      <h1 class="hero-title">
+        <em>€312K/year</em> in HNWI engagements<br>going to competitors who show up first.
+      </h1>
+      <p class="hero-subtitle">
+        Your tax expertise for high-net-worth individuals is among the strongest in Athens. Chambers-ranked. Deloitte Legal network. But when a relocating investor Googles "Greece HNWI tax advisor," <strong>Bernitsas Law gets the click</strong>. Not KBVL.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value danger">€26K</div>
+          <div class="hero-stat-label">Lost / Month</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value success">€18K</div>
+          <div class="hero-stat-label">Recoverable / Month</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value gold">1,200</div>
+          <div class="hero-stat-label">HNWIs Relocating to Greece / Year</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" style="color:var(--brand-blue)">2,082</div>
+          <div class="hero-stat-label">Your LinkedIn vs 5,418 (Bernitsas)</div>
+        </div>
+      </div>
+      <div class="quick-cta">
+        <a class="quick-cta-btn primary" href="#calculator">See Your Numbers →</a>
+        <a class="quick-cta-btn secondary" href="#cta">Book a 15-Min Call</a>
+      </div>
+    </div>
+
+    <!-- OPPORTUNITY BOX -->
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Opportunity</div>
+      <div class="opportunity-value">€312K</div>
+      <div class="opportunity-context">In new HNWI engagements KBVL could capture with stronger digital visibility</div>
+    </div>
+
+    <!-- GAP SUMMARY -->
+    <div class="gap-summary reveal">
+      <div class="gap-card">
+        <div class="gap-icon">🔍</div>
+        <div class="gap-title">Get Found</div>
+        <div class="gap-impact">€0 in Paid Search</div>
+        <div class="gap-desc">No Google or LinkedIn Ads targeting HNWIs searching for Greek tax advisory. Competitors are bidding on your keywords right now.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">📱</div>
+        <div class="gap-title">Get Chosen</div>
+        <div class="gap-impact">2.6x Follower Gap</div>
+        <div class="gap-desc">Bernitsas has 5,418 LinkedIn followers to your 2,082. Their thought leadership content reaches more HNWI decision-makers monthly.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🤝</div>
+        <div class="gap-title">Get Engaged</div>
+        <div class="gap-impact">No Inbound Funnel</div>
+        <div class="gap-desc">No lead magnets, no automated nurture sequences, no digital pathway from "interested" to "booked consultation."</div>
+      </div>
+    </div>
+
+    <!-- STORY MINI -->
+    <div class="story-mini reveal">
+      <div class="story-mini-text">
+        Tuesday evening, London. A fund manager just learned the UK's non-dom regime is gone. He Googles "Greece HNWI tax advisor." Your name doesn't appear. Bernitsas Law does. Zepos & Yannopoulos does. He's their client by Friday.
+      </div>
+      <div class="story-mini-outcome">
+        "This happens every week. Greece attracted 1,200 millionaire relocations last year—and the pace is accelerating. Here's who's capturing that demand, and who's not."
+      </div>
+    </div>
+
+    <!-- SPEED HIGHLIGHT -->
+    <div class="speed-highlight reveal">
+      <div class="speed-highlight-stat">78%</div>
+      <div class="speed-highlight-text">
+        of HNWI advisors say their clients research firms online before making contact. The firm that appears first in search and LinkedIn is the firm that gets the shortlist. <strong>Vangelis, your expertise gets you retained—but digital visibility gets you discovered.</strong>
+      </div>
+    </div>
+
+    <!-- MARKET DATA -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Why Now</span>
+        <h2 class="section-title">Greece Is the #1 HNWI Destination in Southern Europe</h2>
+      </div>
+      <div class="market-stats">
+        <div class="market-stat">
+          <div class="market-stat-value">1,200</div>
+          <div class="market-stat-label">Millionaires Relocated to Greece (2024)</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">€100K</div>
+          <div class="market-stat-label">Flat Tax on Foreign Income</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">+14%</div>
+          <div class="market-stat-label">Growth in Millionaire Population (10yr)</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">3,506</div>
+          <div class="market-stat-label">Golden Visa Applications (Jan-Apr 2025)</div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--slate);max-width:700px;margin:24px auto 0;font-size:0.95rem;line-height:1.7;">
+        The UK abolished its non-dom regime in April 2025. Italy doubled its flat tax to €200K. Greece's €100K flat tax is now the most competitive in Europe. Demand for Greek HNWI tax advisors has never been higher—and it's growing.
+      </p>
+    </section>
+
+    <!-- COMPETITIVE TABLE -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Competitive Reality</span>
+        <h2 class="section-title">Who's Capturing HNWI Attention Right Now</h2>
+      </div>
+      <table class="competitive-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Bernitsas Law</th>
+            <th>Zepos & Yannopoulos</th>
+            <th>KBVL (You)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Chambers Private Wealth Ranking</td>
+            <td><span class="check">✓ Band 1</span></td>
+            <td><span class="check">✓ Ranked</span></td>
+            <td><span class="partial">◐ Not Listed</span></td>
+          </tr>
+          <tr>
+            <td>LinkedIn Followers</td>
+            <td><span class="check">✓ 5,418</span></td>
+            <td><span class="check">✓ ~4,000</span></td>
+            <td><span class="partial">◐ 2,082</span></td>
+          </tr>
+          <tr>
+            <td>English-Language HNWI Content</td>
+            <td><span class="check">✓ Regular</span></td>
+            <td><span class="check">✓ Regular</span></td>
+            <td><span class="cross">✗ Minimal</span></td>
+          </tr>
+          <tr>
+            <td>Google Ads (HNWI Keywords)</td>
+            <td><span class="cross">✗ None</span></td>
+            <td><span class="cross">✗ None</span></td>
+            <td><span class="cross">✗ None</span></td>
+          </tr>
+          <tr>
+            <td>LinkedIn Thought Leadership Ads</td>
+            <td><span class="cross">✗ None</span></td>
+            <td><span class="cross">✗ None</span></td>
+            <td><span class="cross">✗ None</span></td>
+          </tr>
+          <tr>
+            <td>Dedicated HNWI Landing Page (EN)</td>
+            <td><span class="check">✓ Yes</span></td>
+            <td><span class="partial">◐ Partial</span></td>
+            <td><span class="cross">✗ No</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="insight-box">
+        <strong>The opportunity:</strong> No Greek HNWI law firm is running paid digital campaigns yet. The first mover in this space—Google Ads targeting "Greece non-dom tax advisor," LinkedIn campaigns reaching UK/EU wealth managers—captures the entire digital channel. That window won't stay open. Vangelis, KBVL's Deloitte Legal backing gives you instant credibility. You just need to show up where the search is happening.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <div class="calculator-section reveal" id="calculator">
+      <div class="calc-header">
+        <span class="section-label">Your Numbers</span>
+        <h2 class="section-title">See the Opportunity for Yourself</h2>
+        <p class="section-subtitle">Adjust the sliders to match KBVL's practice. The math updates in real time.</p>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>HNWI Inquiries Per Month</span>
+              <span class="calc-input-value" id="inquiriesValue">6</span>
+            </div>
+            <input type="range" class="calc-slider" id="inquiries" min="2" max="20" value="6">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>% Lost to Competitors (No Digital Presence)</span>
+              <span class="calc-input-value" id="lostPctValue">40%</span>
+            </div>
+            <input type="range" class="calc-slider" id="lostPct" min="10" max="70" value="40">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Average Engagement Value (€)</span>
+              <span class="calc-input-value" id="caseValueValue">€15,000</span>
+            </div>
+            <input type="range" class="calc-slider" id="caseValue" min="5000" max="50000" value="15000" step="1000">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Engagement Close Rate</span>
+              <span class="calc-input-value" id="closeRateValue">30%</span>
+            </div>
+            <input type="range" class="calc-slider" id="closeRate" min="10" max="60" value="30">
+          </div>
+        </div>
+
+        <div class="calc-results">
+          <div class="calc-result-card">
+            <div class="calc-result-value danger" id="resultLost">€10,800</div>
+            <div class="calc-result-label">Currently Losing / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value success" id="resultRecover">€7,560</div>
+            <div class="calc-result-label">Could Recover / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value" style="color:var(--brand-blue)" id="resultClients">1.7</div>
+            <div class="calc-result-label">New HNWI Clients / Month</div>
+          </div>
+          <div class="calc-total">
+            <div class="calc-total-value" id="resultAnnual">€90,720</div>
+            <div class="calc-total-label">Annual Opportunity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICE TOGGLES -->
+      <div class="service-toggles">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:20px;">Recovery Channels (toggle to see impact)</h3>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">LinkedIn Thought Leadership + Ads</div>
+            <div class="service-toggle-desc">Targeted content reaching HNWI advisors, family offices & wealth managers across UK/EU</div>
+          </div>
+          <div class="toggle-switch active" id="toggleLinkedin" onclick="toggleService('linkedin')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">Google Ads (HNWI Keywords)</div>
+            <div class="service-toggle-desc">Capture "Greece non-dom tax," "Greek HNWI advisor," "relocate to Greece tax" searches</div>
+          </div>
+          <div class="toggle-switch active" id="toggleGoogle" onclick="toggleService('google')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">English-Language Content & SEO</div>
+            <div class="service-toggle-desc">Weekly articles positioning Vangelis as the go-to voice on Greek HNWI tax planning</div>
+          </div>
+          <div class="toggle-switch active" id="toggleContent" onclick="toggleService('content')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">CRM & Lead Nurture Automation</div>
+            <div class="service-toggle-desc">Automated follow-up sequences for HNWI leads—from inquiry to retained engagement</div>
+          </div>
+          <div class="toggle-switch active" id="toggleCrm" onclick="toggleService('crm')"></div>
+        </div>
+      </div>
+
+      <!-- MATH BREAKDOWN -->
+      <div class="math-section">
+        <div class="math-title">📊 How We Got These Numbers</div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 1: The Market Flowing Into Greece</div>
+          <div class="math-line"><span>HNWIs relocating to Greece annually</span><span>1,200</span></div>
+          <div class="math-line"><span>% requiring tax & succession advisory</span><span>× 85%</span></div>
+          <div class="math-line"><span>Addressable market (per year)</span><span>= 1,020 HNWIs</span></div>
+          <div class="math-line"><span>Top HNWI law firms competing in Athens</span><span>÷ 8 firms</span></div>
+          <div class="math-line total"><span>Fair-share monthly pipeline</span><span id="mathPipeline">~10.6 inquiries/mo</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 2: What You're Losing Without Digital Visibility</div>
+          <div class="math-line"><span>Monthly HNWI inquiries (your estimate)</span><span id="mathInquiries">6</span></div>
+          <div class="math-line"><span>% lost to digitally visible competitors</span><span id="mathLostPct">× 40%</span></div>
+          <div class="math-line loss"><span>Inquiries lost / month</span><span id="mathLost">= 2.4</span></div>
+          <div class="math-line"><span>× Average engagement value</span><span id="mathCaseVal">× €15,000</span></div>
+          <div class="math-line"><span>× Close rate</span><span id="mathCloseRate">× 30%</span></div>
+          <div class="math-line loss total"><span>Revenue walking out the door / month</span><span id="mathMonthlyLoss">= €10,800</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 3: What Digital Visibility Recovers</div>
+          <div class="math-line"><span>LinkedIn + Google Ads new pipeline</span><span id="mathNewLeads">+3.5 inquiries/mo</span></div>
+          <div class="math-line"><span>Content & SEO organic growth</span><span id="mathOrganic">+1.2 inquiries/mo</span></div>
+          <div class="math-line"><span>CRM close rate improvement</span><span id="mathCrmLift">+5% lift</span></div>
+          <div class="math-line result total"><span>Recoverable revenue / month</span><span id="mathMonthlyRecover">= €7,560</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 4: Annual Impact</div>
+          <div class="math-line"><span>Monthly recovery × 12</span><span id="mathAnnualCalc">€7,560 × 12</span></div>
+          <div class="math-line result total"><span>Annual opportunity</span><span id="mathAnnual">= €90,720</span></div>
+        </div>
+      </div>
+
+      <div class="authority-flex">
+        These projections use conservative benchmarks from professional services marketing across European HNWI advisory firms.
+      </div>
+    </div>
+
+    <!-- AI COMPARISON - adapted for B2B: Traditional vs Digital Visibility -->
+    <div class="ai-comparison reveal">
+      <div class="ai-comparison-title">Your Current Visibility Options</div>
+      <div class="ai-comparison-grid">
+        <div class="ai-option voicemail">
+          <div class="ai-option-title">Referrals Only (Current)</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature">❌ Limited to existing network</div>
+            <div class="ai-option-feature">❌ No control over pipeline volume</div>
+            <div class="ai-option-feature">❌ Invisible to new-to-Greece HNWIs</div>
+            <div class="ai-option-feature">❌ Dependent on intermediary timing</div>
+            <div class="ai-option-feature">❌ No international reach</div>
+            <div class="ai-option-feature">⚠️ Works—but doesn't scale</div>
+          </div>
+        </div>
+        <div class="ai-option answering">
+          <div class="ai-option-title">Conference & Directory Marketing</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature">⚠️ High cost per impression</div>
+            <div class="ai-option-feature">⚠️ Seasonal visibility only</div>
+            <div class="ai-option-feature">⚠️ Can't target specific HNWI segments</div>
+            <div class="ai-option-feature">✅ Good for brand prestige</div>
+            <div class="ai-option-feature">⚠️ Results hard to measure</div>
+            <div class="ai-option-feature">⚠️ Slow feedback loop</div>
+          </div>
+        </div>
+        <div class="ai-option ai">
+          <div class="ai-option-title">Digital Visibility Engine (Us)</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature">✅ 24/7 visibility to searching HNWIs</div>
+            <div class="ai-option-feature">✅ Target UK, EU, Middle East wealth</div>
+            <div class="ai-option-feature">✅ Measurable cost-per-engagement</div>
+            <div class="ai-option-feature">✅ LinkedIn + Google + Content flywheel</div>
+            <div class="ai-option-feature">✅ Builds compounding authority over time</div>
+            <div class="ai-option-feature">✅ Scales without adding headcount</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYBOOK -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">The Playbook</span>
+        <h2 class="section-title">How to Close Each Gap (Step by Step)</h2>
+        <p class="section-subtitle">Here's exactly how to fix each gap yourself — no gatekeeping. Fair warning: B2B digital marketing isn't a one-time project. These steps don't stop.</p>
+      </div>
+
+      <!-- GAP 1: GET FOUND -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">01</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Found — Targeted Digital Campaigns</div>
+            <div class="playbook-problem">The Problem: HNWIs searching for Greek tax advisors can't find KBVL online.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div><span>Set up Google Ads targeting "Greece HNWI tax advisor," "Greek non-dom tax," "relocate Greece tax planning" — English-language campaigns</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div><span>Create LinkedIn Ads targeting wealth managers, family office professionals, and HNWI advisors in UK, EU, and Middle East</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div><span>Build dedicated English-language landing pages for each audience segment (relocating individuals, family offices, corporate investors)</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div><span>Set up conversion tracking: form fills, consultation bookings, brochure downloads</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div><span>Weekly: review search terms, pause underperformers, test new ad copy</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">6</div><span>Monthly: analyze which keywords convert to actual HNWI engagements, not just clicks</span></div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 15-20 hours</span>
+              <span>🔄 Ongoing: 6-8 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Keyword research across 4 languages (EN, EL, DE, FR)</li>
+              <li>Google Ads campaign architecture for HNWI intent keywords</li>
+              <li>LinkedIn campaign targeting by job title, company size & geography</li>
+              <li>Landing page design & copy — tailored to HNWI decision-makers</li>
+              <li>Conversion tracking & attribution setup</li>
+              <li>Weekly bid optimization & budget reallocation</li>
+              <li>Fresh ad creative every week (platforms reward novelty)</li>
+              <li>A/B testing headlines, CTAs, audience segments</li>
+              <li>Competitor ad monitoring across both platforms</li>
+              <li>Monthly performance reporting with revenue attribution</li>
+              <li>Quarterly strategy reviews & campaign restructuring</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve the budget and take the consultations. That's it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 2: GET CHOSEN -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">02</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Chosen — LinkedIn Authority & Thought Leadership</div>
+            <div class="playbook-problem">The Problem: Bernitsas has 2.6× your LinkedIn following. Their content reaches HNWIs you never see.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div><span>Publish 2-3 LinkedIn posts per week: non-dom regime updates, case anonymized insights, regulatory commentary</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div><span>Write long-form articles on LinkedIn monthly: "Greece vs Italy flat tax" comparisons, family office structuring guides</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div><span>Engage strategically: comment on HNWI advisor posts, wealth management discussions, UK non-dom news</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div><span>Optimize Vangelis's personal LinkedIn: headline, about section, featured content — in English</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div><span>Cross-post KBVL firm content with personal commentary</span></div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 8-10 hours</span>
+              <span>🔄 Ongoing: 4-6 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>LinkedIn profile optimization (personal + firm page)</li>
+              <li>Content calendar: 3 posts/week + 1 long-form article/month</li>
+              <li>Ghostwriting in Vangelis's voice — tax insights, regulatory commentary</li>
+              <li>LinkedIn carousel & graphic design (branded templates)</li>
+              <li>Strategic engagement on target accounts (family offices, wealth managers)</li>
+              <li>LinkedIn newsletter setup & growth strategy</li>
+              <li>Hashtag research & algorithm optimization</li>
+              <li>Connection request campaigns targeting HNWI advisors</li>
+              <li>Monthly analytics: impressions, engagement rate, follower growth</li>
+              <li>Quarterly competitive benchmarking vs Bernitsas, Zepos & others</li>
+            </ul>
+            <div class="playbook-dfy-result">You review drafts for 10 minutes. We build your authority. That's it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 3: GET ENGAGED -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">03</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Engaged — Website & Inbound Funnel</div>
+            <div class="playbook-problem">The Problem: KBVL's website is strong — but there's no English HNWI landing page and no digital pathway from interest to consultation.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div><span>Create a dedicated English-language HNWI services page: non-dom regime, succession planning, family offices</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div><span>Build a lead magnet: downloadable "Guide to Greece's HNWI Tax Regime" — gate behind email capture</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div><span>Implement consultation booking widget on HNWI page</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div><span>SEO: optimize for "Greece tax advisor HNWI," "Greek non-dom advisor," "family office Greece"</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div><span>Weekly: publish English-language blog content targeting HNWI search queries</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">6</div><span>Monthly: analyze traffic sources, conversion rates, keyword rankings</span></div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 20-30 hours</span>
+              <span>🔄 Ongoing: 6-8 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>English HNWI landing page design & development</li>
+              <li>Lead magnet creation (downloadable tax guide, branded PDF)</li>
+              <li>Email capture & CRM integration</li>
+              <li>Consultation booking widget implementation</li>
+              <li>Technical SEO audit & fixes</li>
+              <li>Keyword strategy for international HNWI searches</li>
+              <li>Weekly English-language content publishing</li>
+              <li>Google Business Profile optimization</li>
+              <li>Backlink building from HNWI & wealth management publications</li>
+              <li>Monthly SEO reporting & ranking tracking</li>
+              <li>Conversion rate optimization (A/B testing CTAs, forms)</li>
+              <li>Quarterly content gap analysis vs competitors</li>
+            </ul>
+            <div class="playbook-dfy-result">Your website works 24/7 attracting HNWIs. You take the consultations.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 4: GET CLOSED -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">04</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Closed — CRM & Lead Nurture</div>
+            <div class="playbook-problem">The Problem: HNWI leads require longer nurture cycles. Without automation, warm prospects go cold between touchpoints.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div><span>Choose a CRM (HubSpot, Pipedrive, or similar) — map your HNWI intake workflow</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div><span>Build automated email sequences: immediate acknowledgment, 48hr follow-up, weekly value content</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div><span>Create segmented nurture tracks: relocating individuals, family offices, corporate clients</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div><span>Set up lead scoring: engagement level, inquiry type, timeline urgency</span></div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div><span>Weekly: review pipeline, follow up on warm leads, update statuses</span></div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 15-20 hours</span>
+              <span>🔄 Ongoing: 3-5 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-dfy-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>CRM setup & configuration (tailored to HNWI advisory)</li>
+              <li>Intake workflow mapping: inquiry → qualification → consultation → retained</li>
+              <li>Automated email sequences (immediate, 48hr, 7-day, monthly newsletter)</li>
+              <li>Lead scoring & prioritization logic</li>
+              <li>Segmented nurture tracks by client type</li>
+              <li>Lead source tracking & attribution</li>
+              <li>Pipeline reporting & analytics dashboard</li>
+              <li>Dead lead reactivation campaigns (quarterly)</li>
+              <li>Template creation & ongoing optimization</li>
+              <li>Monthly conversion analysis & sequence refinement</li>
+            </ul>
+            <div class="playbook-dfy-result">Leads are warmed up before they reach you. You just take qualified consultations.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="authority-flex">
+        You can absolutely do this yourself — many firms do. But be honest about the time: this is 15-25 hours/week of ongoing work, every week, on top of client-facing practice. If you'd rather spend that time advising HNWIs, that's exactly why we exist.
+      </div>
+    </section>
+
+    <!-- VISION -->
+    <div class="vision-box reveal">
+      <div class="vision-credential">
+        You earned your postgraduate diploma in Tax Law from Athens University of Economics and Business. You've built deep expertise advising HNWIs on Greek taxation, succession planning, and cross-border compliance at KBVL — the sole Greek member of Deloitte Legal. We've spent a decade perfecting digital visibility for professional services firms.
+      </div>
+      <div class="vision-quote">
+        "You do what you're known for. We do what we're known for."
+      </div>
+      <div class="vision-list">
+        <div class="vision-list-item">→ You won't manage LinkedIn campaigns.</div>
+        <div class="vision-list-item">→ You won't optimize Google Ads bids.</div>
+        <div class="vision-list-item">→ You won't write SEO content weekly.</div>
+        <div class="vision-list-item">→ You'll advise HNWIs. Your pipeline will grow.</div>
+      </div>
+      <p style="margin-top:28px;font-size:0.95rem;color:rgba(255,255,255,0.7);">That's the partnership.</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section reveal" id="cta">
+      <div class="cta-urgency" id="dailyLoss">€360/day walking out the door</div>
+      <h2 class="cta-title">15 Minutes. No Commitment. Just Clarity.</h2>
+      <p class="cta-subtitle">Let's look at your numbers together and see if digital visibility makes sense for KBVL's HNWI practice.</p>
+
+      <div class="cta-columns">
+        <div class="cta-column">
+          <div class="cta-column-title">What We Found</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">❌ No paid search or LinkedIn ads</div>
+            <div class="cta-column-item">❌ 2.6× LinkedIn follower gap vs Bernitsas</div>
+            <div class="cta-column-item">❌ No English HNWI landing page</div>
+            <div class="cta-column-item">❌ No inbound lead nurture system</div>
+          </div>
+        </div>
+        <div class="cta-column">
+          <div class="cta-column-title">What Changes</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">✅ First-mover advantage in HNWI digital</div>
+            <div class="cta-column-item">✅ LinkedIn authority rivaling top firms</div>
+            <div class="cta-column-item">✅ 24/7 visibility to relocating HNWIs</div>
+            <div class="cta-column-item">✅ Automated pipeline from search to signed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-works">
+        <div class="why-works-title">Why This Works</div>
+        <div class="why-works-grid">
+          <div>
+            <div class="why-works-col-title">Vangelis Focuses On</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">→ HNWI tax advisory</div>
+              <div class="why-works-col-item">→ Succession & wealth planning</div>
+              <div class="why-works-col-item">→ Client relationships</div>
+              <div class="why-works-col-item">→ Complex cross-border structures</div>
+            </div>
+          </div>
+          <div>
+            <div class="why-works-col-title">We Handle</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">→ LinkedIn thought leadership</div>
+              <div class="why-works-col-item">→ Google & LinkedIn Ads</div>
+              <div class="why-works-col-item">→ English content & SEO</div>
+              <div class="why-works-col-item">→ CRM & lead nurture automation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-widget-container">
+        <h3 style="font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 20px; color: var(--white);">Book Your Strategy Call — 15 Minutes</h3>
+        <iframe 
+          src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" 
+          style="width: 100%; border: none; overflow: hidden; min-height: 600px; border-radius: 12px;" 
+          scrolling="no" 
+          id="mortarmetrics-booking-widget">
+        </iframe>
+        <br>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 24px;">
+          No long-term contracts. Month-to-month. Results-focused.
+        </p>
+      </div>
+
+      <p class="cta-guarantee">No long-term contracts. Month-to-month. Results-focused.</p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color: var(--slate); font-size: 0.85rem;">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color: var(--brand-blue);">mortarmetrics.com</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll progress
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scrollIndicator').style.width = scrollPercent + '%';
+    });
+
+    // Reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Calculator
+    const services = { linkedin: true, google: true, content: true, crm: true };
+
+    function toggleService(s) {
+      services[s] = !services[s];
+      document.getElementById('toggle' + s.charAt(0).toUpperCase() + s.slice(1)).classList.toggle('active');
+      updateCalculations();
+    }
+
+    function updateCalculations() {
+      const inquiries = parseInt(document.getElementById('inquiries').value);
+      const lostPct = parseInt(document.getElementById('lostPct').value) / 100;
+      const caseValue = parseInt(document.getElementById('caseValue').value);
+      const closeRate = parseInt(document.getElementById('closeRate').value) / 100;
+
+      // Update display values
+      document.getElementById('inquiriesValue').textContent = inquiries;
+      document.getElementById('lostPctValue').textContent = (lostPct * 100) + '%';
+      document.getElementById('caseValueValue').textContent = '€' + caseValue.toLocaleString();
+      document.getElementById('closeRateValue').textContent = (closeRate * 100) + '%';
+
+      // Calculate losses
+      const lostLeads = inquiries * lostPct;
+      const monthlyLoss = lostLeads * caseValue * closeRate;
+
+      // Calculate recovery per service
+      let recoveryMultiplier = 0;
+      let newLeads = 0;
+      let closeRateBoost = 0;
+
+      if (services.linkedin) { recoveryMultiplier += 0.25; newLeads += 2.0; }
+      if (services.google) { recoveryMultiplier += 0.20; newLeads += 1.5; }
+      if (services.content) { recoveryMultiplier += 0.15; newLeads += 1.2; }
+      if (services.crm) { closeRateBoost += 0.05; }
+
+      const recoveredFromLost = lostLeads * recoveryMultiplier * caseValue * closeRate;
+      const revenueFromNew = newLeads * caseValue * (closeRate + closeRateBoost);
+      const totalRecovery = recoveredFromLost + revenueFromNew * 0.4; // conservative
+      const monthlyRecover = Math.round(totalRecovery);
+      const annualOpportunity = monthlyRecover * 12;
+      const newClients = (lostLeads * recoveryMultiplier + newLeads * 0.4) * (closeRate + closeRateBoost);
+
+      // Update results
+      document.getElementById('resultLost').textContent = '€' + Math.round(monthlyLoss).toLocaleString();
+      document.getElementById('resultRecover').textContent = '€' + monthlyRecover.toLocaleString();
+      document.getElementById('resultClients').textContent = newClients.toFixed(1);
+      document.getElementById('resultAnnual').textContent = '€' + annualOpportunity.toLocaleString();
+
+      // Update math section
+      document.getElementById('mathInquiries').textContent = inquiries;
+      document.getElementById('mathLostPct').textContent = '× ' + (lostPct * 100) + '%';
+      document.getElementById('mathLost').textContent = '= ' + lostLeads.toFixed(1);
+      document.getElementById('mathCaseVal').textContent = '× €' + caseValue.toLocaleString();
+      document.getElementById('mathCloseRate').textContent = '× ' + (closeRate * 100) + '%';
+      document.getElementById('mathMonthlyLoss').textContent = '= €' + Math.round(monthlyLoss).toLocaleString();
+      document.getElementById('mathNewLeads').textContent = '+' + (services.linkedin ? 2.0 : 0 + services.google ? 1.5 : 0).toFixed(1) + ' inquiries/mo';
+      document.getElementById('mathOrganic').textContent = '+' + (services.content ? 1.2 : 0).toFixed(1) + ' inquiries/mo';
+      document.getElementById('mathCrmLift').textContent = services.crm ? '+5% lift' : 'Off';
+      document.getElementById('mathMonthlyRecover').textContent = '= €' + monthlyRecover.toLocaleString();
+      document.getElementById('mathAnnualCalc').textContent = '€' + monthlyRecover.toLocaleString() + ' × 12';
+      document.getElementById('mathAnnual').textContent = '= €' + annualOpportunity.toLocaleString();
+
+      // Update daily loss in CTA
+      document.getElementById('dailyLoss').textContent = '€' + Math.round(monthlyLoss / 30).toLocaleString() + '/day walking out the door';
+    }
+
+    // Add slider listeners
+    ['inquiries', 'lostPct', 'caseValue', 'closeRate'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateCalculations);
+    });
+
+    // Initial calculation
+    updateCalculations();
+
+    // Add form embed script
+    const script = document.createElement('script');
+    script.src = 'https://api.mortarmetrics.com/js/form_embed.js';
+    script.type = 'text/javascript';
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
