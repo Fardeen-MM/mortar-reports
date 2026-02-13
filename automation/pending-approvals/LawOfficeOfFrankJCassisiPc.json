@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "",
   "created_at": "2026-02-13T19:49:50.494Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "1",
@@ -29,5 +29,6 @@
     "source": "instantly_webhook"
   },
   "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Fix the revenue calculation inconsistency between hero ($247K-$333.5K) and ROI box ($237K-$323.5K) - mathematical errors destroy credibility with lawyers"
+  "conversion_note": "Fix the revenue calculation inconsistency between hero ($247K-$333.5K) and ROI box ($237K-$323.5K) - mathematical errors destroy credibility with lawyers",
+  "approved_at": "2026-02-13T19:53:40.003Z"
 }
