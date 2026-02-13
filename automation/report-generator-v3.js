@@ -629,6 +629,49 @@ Return ONLY valid JSON with these exact fields:
     }
   }
 
+  // Replace firm name repetition in card bodies with "your firm" / "you"
+  // The firm name appears in header/SERP/competitor table already — cards should use "you"
+  if (firmName) {
+    const bodyKeys = ['card1Body', 'card2Body', 'card3Body'];
+    // Match the firm name and common variations (with/without suffixes, possessive)
+    const escaped = firmName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Also match without trailing suffixes like ", P.C." or ", LLC"
+    const baseName = firmName.replace(/,?\s*(P\.?C\.?|LLC|LLP|PLLC|PA|Inc\.?|Ltd\.?)\.?$/i, '').trim();
+    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const namePattern = new RegExp(`(The\\s+)?${escaped}('s)?|${escapedBase}('s)?`, 'gi');
+
+    for (const key of bodyKeys) {
+      if (typeof prose[key] === 'string') {
+        // Replace all occurrences: possessive → "your", standalone → "your firm"
+        prose[key] = prose[key].replace(namePattern, (match) => {
+          if (match.endsWith("'s")) return 'your';
+          return 'your firm';
+        });
+        // Clean up "At your firm," → "Your firm" at sentence start
+        prose[key] = prose[key].replace(/At your firm,/g, 'Your firm');
+        // Clean up double "your" from "your your firm"
+        prose[key] = prose[key].replace(/your your/gi, 'your');
+      }
+    }
+    console.log('   🔄 Firm name replaced with "your firm" in card bodies');
+  }
+
+  // Strip review count references from all prose fields
+  const allProseKeys = ['card1Body', 'card2Body', 'card3Body', 'card1Insight', 'card2Insight', 'card3Insight'];
+  for (const key of allProseKeys) {
+    if (typeof prose[key] === 'string') {
+      // Remove phrases like "81 reviews", "5-star Google rating", "their 4.8-star rating and 200+ reviews"
+      prose[key] = prose[key]
+        .replace(/,?\s*(with|and|their)\s+\d[\d,]*\+?\s*(Google\s+)?reviews?\b[^.]*?(?=[.,<])/gi, '')
+        .replace(/\d[\d,]*\+?\s*(Google\s+)?reviews?\b/gi, 'strong online presence')
+        .replace(/\d+(\.\d+)?-star\s+(Google\s+)?(rating|reputation)\s*(and\s+)?/gi, '')
+        .replace(/perfect\s+(Google\s+)?rating/gi, 'strong reputation')
+        .replace(/5-star\s+(Google\s+)?/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+  }
+
   const requiredFields = ['card1Body', 'card2Body', 'card3Body'];
   const missing = requiredFields.filter(f => !prose[f]);
   if (missing.length > 0) {
@@ -1506,7 +1549,10 @@ function normalizeFirmName(name) {
     .replace(/\bLlc\b/g, 'LLC')
     .replace(/\bPllc\b/g, 'PLLC')
     .replace(/\bPc\b/g, 'PC')
-    .replace(/\bPa\b/g, 'PA');
+    .replace(/\bP\.c\.\b/gi, 'P.C.')
+    .replace(/\bPa\b/g, 'PA')
+    // Fix title case: "Of" → "of", "And" → "and", etc. (but not at start)
+    .replace(/(?<=\s)(Of|And|The|In|At|For|By|To|A|An|Or)\b/g, m => m.toLowerCase());
 }
 
 function isFakeCompetitor(name) {
