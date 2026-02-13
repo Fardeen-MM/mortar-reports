@@ -147,16 +147,10 @@ async function handleTelegramCallback(env, update) {
   let approvalData = parseMessageForApprovalData(callback_query.message);
 
   // Try to fetch full approval JSON from GitHub (has email personalization data)
+  // approvalId is the firm_folder name directly (e.g. "LawOfficeOfFrankJCassisiPc")
   if (approvalId) {
     try {
-      const firmName = atob(approvalId);
-      const firmFolder = firmName
-        .replace(/[^a-zA-Z0-9\s&]/g, '')
-        .split(/\s+/)
-        .filter(w => w.length > 0)
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join('');
-      const fetchedData = await fetchApprovalData(env.GITHUB_TOKEN, firmFolder);
+      const fetchedData = await fetchApprovalData(env.GITHUB_TOKEN, approvalId);
       if (fetchedData) {
         if (approvalData) {
           // Merge: fetched JSON has email data fields that message parsing doesn't
@@ -227,11 +221,15 @@ async function handleTelegramCallback(env, update) {
   } else if (action === 'edit_email') {
     await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening email editor...', false);
 
-    // Extract email preview from the approval message (between last ``` blocks)
+    // Extract email preview from the approval message
+    // Telegram strips ``` from text and stores code blocks as "pre" entities
     const msgText = callback_query.message.text || '';
-    const codeBlocks = msgText.match(/```[\s\S]*?```/g) || [];
-    const lastBlock = codeBlocks[codeBlocks.length - 1] || '';
-    const emailBody = lastBlock.replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
+    const entities = callback_query.message.entities || [];
+    const preEntities = entities.filter(e => e.type === 'pre');
+    const lastPre = preEntities[preEntities.length - 1];
+    const emailBody = lastPre
+      ? msgText.substring(lastPre.offset, lastPre.offset + lastPre.length).trim()
+      : '';
 
     if (!emailBody) {
       await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,

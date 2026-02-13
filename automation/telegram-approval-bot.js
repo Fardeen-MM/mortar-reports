@@ -210,8 +210,8 @@ ${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${em
 
 *Please review the report and email, then choose an action below:*`;
 
-// Build approval ID for callback buttons
-const approvalId = Buffer.from(approvalData.firm_name).toString('base64').substring(0, 20);
+// Build approval ID for callback buttons — use firm_folder directly (exact filename match)
+const approvalId = approvalData.firm_folder;
 
 // Inline keyboard with Approve/Reject buttons (using short callback_data)
 // Manual builds only get Deploy + Reject (no email sending option)
