@@ -1,0 +1,33 @@
+{
+  "firm_name": "Rhd Legal",
+  "firm_folder": "RhdLegal",
+  "lead_email": "rdingus@rhdlegal.com",
+  "contact_name": "Richard Dingus",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/RhdLegal/",
+  "job_title": "Founder | Attorney At Law",
+  "linkedin": "https://www.linkedin.com/in/richard-dingus-765606165",
+  "country": "United States",
+  "reply_text": "Sure, send over any info you got.  On Fri, Feb 13, 2026 at 9:06 AM Yaseer Choudhury < qadiryaseer@mortarmetricsbuild.com> wrote:  > Richard > > Mandall Law was getting cases through referrals and word of mouth. Good, > but inconsistent. > > We plugged in our system and they signed $92K in new cases their first > month. > They're still with us. > > Reply \"send it\" and I'll send your report. > > On Wed, February 11, 2026 3:21 PM, Yaseer Choudhury < > qadiryaseer@mortarmetricsbuild.com> > > wrote: ",
+  "campaign_name": "Lawyer Campaign 021026",
+  "phone": "",
+  "created_at": "2026-02-13T14:42:14.341Z",
+  "status": "pending_approval",
+  "report_version": "V3",
+  "qc_passed": "true",
+  "qc_issues": "1",
+  "qc_would_book": "true",
+  "qc_biggest_issue": "Card prose contains unreferenced statistic: 40%",
+  "qc_score": "9.5",
+  "total_range": "$247K-333.5K",
+  "total_cases": "17-31",
+  "practice_label": "personal injury",
+  "lead_intelligence": {
+    "name": "Richard Dingus",
+    "title": "Founder | Attorney At Law",
+    "seniority": "senior",
+    "is_decision_maker": true,
+    "source": "instantly_webhook"
+  },
+  "conversion_verdict": "SHIP_IT",
+  "conversion_note": "Add brief math explanation to the hero headline so the big promise feels immediately credible"
+}
