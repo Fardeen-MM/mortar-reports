@@ -504,7 +504,18 @@ function scoreCompetitorRelevance(placeName, practiceArea, reviews) {
 async function findCompetitors(firmName, city, state, practiceAreas, country) {
   console.log(`   🔍 Finding real competitors via Google Places API...`);
   console.log(`   📍 Location: ${city}, ${state} (${country || 'US'})`);
+
   console.log(`   ⚖️  Practice: ${practiceAreas.slice(0, 3).join(', ')}`);
+
+  // Detect if this is a UK/international search
+  const isUK = country && (
+    country.toLowerCase() === 'uk' ||
+    country.toLowerCase() === 'gb' ||
+    country.toLowerCase() === 'united kingdom' ||
+    country.toLowerCase().includes('england') ||
+    country.toLowerCase().includes('scotland') ||
+    country.toLowerCase().includes('wales')
+  );
 
   const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
 
@@ -533,6 +544,7 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
   let query = modifier
     ? `${practiceArea} ${modifier} lawyer ${location}`
     : `${practiceArea} lawyer ${location}`;
+
 
   // Append country name for non-US countries to disambiguate (e.g. Malmesbury UK vs South Africa)
   if (countryName) {
@@ -575,6 +587,32 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
         if (practiceAreaLower.includes('real estate')) {
           if (placeName.includes('probate') || placeName.includes('trust') ||
               placeName.includes('wills') || placeName.includes('estate planning')) {
+            return false;
+          }
+        }
+
+        // GEOGRAPHIC FILTERING: Exclude US firms from UK searches and vice versa
+        const address = (place.formatted_address || '').toLowerCase();
+        if (isUK) {
+          // For UK searches, exclude obvious US indicators
+          const usIndicators = ['llc', 'pllc', 'p.c.', 'p.c', 'pc,', ', pc', 'esq.'];
+          const usStates = ['california', 'new york', 'texas', 'florida', 'illinois', 'arizona',
+                           'nevada', 'ohio', 'georgia', ', ca', ', ny', ', tx', ', fl', ', az'];
+          const hasUSIndicator = usIndicators.some(ind => placeName.includes(ind)) ||
+                                 usStates.some(st => address.includes(st));
+          if (hasUSIndicator) {
+            console.log(`      ⏭️  Filtering out (US firm): ${place.name}`);
+            return false;
+          }
+        } else {
+          // For US searches, exclude obvious UK indicators
+          const ukIndicators = ['limited', 'ltd', 'llp', 'solicitors', 'barristers'];
+          const ukLocations = ['london', 'manchester', 'birmingham', 'liverpool', 'glasgow',
+                              'edinburgh', 'cardiff', 'belfast', ', uk', 'united kingdom'];
+          const hasUKIndicator = ukIndicators.some(ind => placeName.includes(ind)) ||
+                                ukLocations.some(loc => address.includes(loc));
+          if (hasUKIndicator) {
+            console.log(`      ⏭️  Filtering out (UK firm): ${place.name}`);
             return false;
           }
         }

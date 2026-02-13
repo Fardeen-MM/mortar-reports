@@ -774,6 +774,7 @@ async function generateReport(researchData, prospectName) {
   const gap2 = calculateGap2(marketMultiplier, caseValues, city, countryBaseline, currency, practiceArea);
   const gap3 = calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency, city, practiceArea);
 
+
   const totalLow = gap1.low + gap2.low + gap3.low;
   const totalHigh = gap1.high + gap2.high + gap3.high;
 
