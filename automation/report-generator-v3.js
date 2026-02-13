@@ -587,6 +587,7 @@ STYLE GUIDE:
 - Wrap key numbers in <span class="stat-highlight"> tags, e.g. <span class="stat-highlight">~700 searches</span>.
 - Write 2-3 SHORT paragraphs per card (2-3 sentences each). Separate paragraphs with </p><p> tags.
 - Weave in 1-2 subtle experience signals per card. Show you've done this before for similar firms. Don't brag, just casually reference patterns you've seen. Example: "One of the biggest mistakes we see ${practiceDescription} firms make is..." or "We typically see firms like yours..."
+- DO NOT repeat the firm name in every card. Use it ONCE across all 3 cards max. Say "your firm", "you", "your team" instead. Repeating the name in every paragraph sounds like a mail merge.
 - DO NOT use: "In today's", "leverage", "utilize", "cutting-edge", "game-changer", "robust", "landscape", "unlock", "empower"
 - DO NOT use em dashes. Use periods or commas instead.
 - DO NOT fabricate statistics or case studies.
@@ -1390,7 +1391,7 @@ ${generateFaqSection(practiceArea)}
 
     <div id="booking" class="cta fade-in">
       <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
-      <p>15 minutes. We'll walk you through the numbers and show you exactly how we deliver ${totalCases} new cases to ${escapeHtml(firmName)} every month. The firms we work with typically see ${currency}5\u2013${currency}10 back for every ${currency}1 they invest.</p>
+      <p>15 minutes. We'll walk you through the numbers and show you exactly how we'd deliver ${totalCases} new cases to your firm every month. Our clients typically see ${currency}5\u2013${currency}10 back for every ${currency}1 they invest.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>

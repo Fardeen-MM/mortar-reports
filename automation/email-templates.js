@@ -37,51 +37,51 @@ function buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, pr
   let textBody, htmlBody;
 
   if (cleanRange && totalCases && practiceLabel) {
-    // Personalized email with guarantee + case study proof
+    // Personalized email with case study proof
     textBody = `Hey ${firstName},
 
-${openingLine} We ran the numbers on ${firm} and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now. We guarantee it.
+${openingLine} We ran the numbers and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now.
 
-One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases. We do the same thing for every firm we work with.
+Mandall Law was in a similar spot — we plugged in and they signed $92K in new cases their first month.
 
 Here's your full breakdown:
 ${reportUrl}
 
-15 minutes and I'll show you exactly how we'd do this for ${firm}. We guarantee results. Does ${day1} or ${day2} work?`;
+15 minutes and I'll walk you through it. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} We ran the numbers on ${firm} and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now. We guarantee it.</div>
+<div>${openingLine} We ran the numbers and there's ${cleanRange}/mo in ${practiceLabel} cases you're not getting right now.</div>
 <div><br /></div>
-<div>One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases. We do the same thing for every firm we work with.</div>
+<div>Mandall Law was in a similar spot — we plugged in and they signed $92K in new cases their first month.</div>
 <div><br /></div>
 <div>Here's your full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>15 minutes and I'll show you exactly how we'd do this for ${firm}. We guarantee results. Does ${day1} or ${day2} work?</div>`;
+<div>15 minutes and I'll walk you through it. Does ${day1} or ${day2} work?</div>`;
   } else {
-    // Fallback with guarantee + case study proof
+    // Fallback with case study proof
     textBody = `Hey ${firstName},
 
-${openingLine} We ran the numbers on ${firm} and found serious gaps. Other firms in your area are getting cases that should be yours. We guarantee we can fix that.
+${openingLine} We ran the numbers and found some serious gaps — other firms in your area are getting cases that should be yours.
 
-One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases.
+Mandall Law was in a similar spot — we plugged in and they signed $92K in new cases their first month.
 
 Here's your full breakdown:
 ${reportUrl}
 
-15 minutes and I'll show you exactly how. We guarantee results. Does ${day1} or ${day2} work?`;
+15 minutes and I'll walk you through it. Does ${day1} or ${day2} work?`;
 
     htmlBody = `<div>Hey ${firstName},</div>
 <div><br /></div>
-<div>${openingLine} We ran the numbers on ${firm} and found serious gaps. Other firms in your area are getting cases that should be yours. We guarantee we can fix that.</div>
+<div>${openingLine} We ran the numbers and found some serious gaps — other firms in your area are getting cases that should be yours.</div>
 <div><br /></div>
-<div>One of our clients (Mandall Law) went from $4K/mo in ad spend to $92K/mo in signed cases.</div>
+<div>Mandall Law was in a similar spot — we plugged in and they signed $92K in new cases their first month.</div>
 <div><br /></div>
 <div>Here's your full breakdown:</div>
 <div><a href="${reportUrl}">${reportUrl}</a></div>
 <div><br /></div>
-<div>15 minutes and I'll show you exactly how. We guarantee results. Does ${day1} or ${day2} work?</div>`;
+<div>15 minutes and I'll walk you through it. Does ${day1} or ${day2} work?</div>`;
   }
 
   return {
