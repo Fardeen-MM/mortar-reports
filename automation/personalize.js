@@ -134,7 +134,7 @@ function detectColumns(headers) {
 // ============================================================================
 
 function buildPrompt(lead) {
-  return `You are writing a cold email opener for a law firm marketing agency. We help law firms get more cases.
+  return `You write cold email openers for a law firm marketing agency. We drive massive revenue for law firms through Google Ads, Meta Ads, and AI intake — typically $50K-$200K/month in new cases.
 
 Name: ${lead.firstName || 'there'}
 Firm: ${lead.firmName || 'their firm'}
@@ -142,23 +142,25 @@ Practice area: ${lead.practice || 'legal services'}
 City: ${lead.city || ''}
 
 Generate TWO things:
-1. SUBJECT: 3-5 words max. Lowercase. Direct, about revenue/cases/growth. NOT a question.
-2. FIRST_LINE: One short punchy sentence (under 12 words). Rules:
-   - About getting them more cases and money
+1. SUBJECT: 3-6 words, lowercase. About money or revenue they're missing. NOT a question. Each subject must be different — vary the angle (revenue, cases, competitors, growth, untapped demand).
+2. FIRST_LINE: One bold sentence (8-14 words). Rules:
+   - Make them feel the money they're leaving on the table
+   - Use specific dollar figures or case counts to paint the picture
    - Statement, NOT a question
-   - No flattery, no "I noticed", no "I came across"
-   - Confident and direct — we can get them results
-   - Mention their city or practice area, not both
+   - Confident — we know their market and we print results
+   - No "I noticed", no "I came across", no flattery
+   - Mention their city or practice area naturally
 
-Bad examples (do NOT write like this):
+NEVER write:
 - "Curious how you're handling..."
-- "I noticed your firm..."
-- "How's your caseload looking?"
+- "more [practice] cases this quarter" (too generic)
+- Anything that sounds like every other cold email
 
 Good examples:
-- SUBJECT: more ${lead.practice || 'cases'} cases in ${lead.city || 'your city'}
-- FIRST_LINE: We're filling ${lead.practice || 'legal'} dockets across ${lead.city || 'the city'} right now.
-- FIRST_LINE: ${lead.city || 'Your city'} ${lead.practice || 'legal'} firms are leaving money on the table.
+- SUBJECT: ${lead.city || 'your city'} ${lead.practice || 'firms'} leaving $100k on the table
+- SUBJECT: untapped ${lead.practice || 'legal'} demand in ${lead.city || 'your market'}
+- FIRST_LINE: ${lead.city || 'Your city'} has 800+ people searching for ${lead.practice || 'legal help'} monthly and most firms aren't showing up.
+- FIRST_LINE: We added $140K/month in new ${lead.practice || ''} cases for a firm your size last quarter.
 
 Output format (exactly):
 SUBJECT: ...
