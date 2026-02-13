@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Gap Analysis | Finis Tatum IV | Gordon Rees Scully Mansukhani</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--ink-soft:#1e293b;--slate:#475569;--slate-light:#64748b;--muted:#94a3b8;--border:#e2e8f0;--border-light:#f1f5f9;--warm-white:#f8fafc;--white:#fff;--brand-primary:#1e3a5f;--brand-blue:#2563eb;--brand-light:rgba(37,99,235,0.08);--accent:#3b82f6;--accent-light:#60a5fa;--success:#059669;--success-light:#d1fae5;--danger:#dc2626;--danger-light:#fef2f2;--gold:#f59e0b;--gold-light:#fef3c7;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:var(--warm-white);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:500}
+    .bg-grid{position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(37,99,235,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}.orbs{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:0}.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.1}.orb-1{width:600px;height:600px;left:-200px;top:-100px;background:var(--brand-blue)}.orb-2{width:400px;height:400px;right:-150px;bottom:10%;background:var(--accent)}.scroll-indicator{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand-blue),var(--accent));z-index:9999;width:0%}.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px}@media(max-width:600px){.container{padding:0 20px}}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:32px 0;border-bottom:1px solid var(--border);margin-bottom:50px;flex-wrap:wrap;gap:24px}.brand-mark{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;background:var(--brand-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:white;transition:all 0.4s var(--ease-out-expo)}.logo:hover{transform:scale(1.08) rotate(3deg);box-shadow:0 12px 40px rgba(37,99,235,0.3)}.brand-text{display:flex;flex-direction:column}.brand-name{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;color:var(--ink)}.brand-sub{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:2px;font-weight:600}.prepared-for{text-align:right}.prepared-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--slate-light);margin-bottom:6px;font-weight:500}.prepared-name{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);font-weight:500}.prepared-firm{font-size:0.9rem;color:var(--brand-blue);font-weight:500}.prepared-date{font-size:0.8rem;color:var(--slate-light);margin-top:6px}
+    .hero{text-align:center;padding:50px 0 70px}.hero-title{font-size:clamp(2.2rem,5.5vw,3.6rem);font-weight:500;line-height:1.15;color:var(--ink);margin-bottom:26px}.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero-subtitle{font-size:1.15rem;color:var(--slate);max-width:720px;margin:0 auto 50px;line-height:1.75}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}@media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}.hero-stat{text-align:center;padding:24px 16px;background:var(--white);border:1px solid var(--border);border-radius:16px;transition:all 0.4s var(--ease-out-expo)}.hero-stat:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--accent)}.hero-stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600;line-height:1;margin-bottom:10px}.hero-stat-value.danger{color:var(--danger)}.hero-stat-value.success{color:var(--success)}.hero-stat-value.gold{color:var(--gold)}.hero-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+    section{padding:80px 0}.section-header{text-align:center;margin-bottom:50px}.section-label{display:inline-block;padding:10px 22px;background:var(--ink);color:var(--white);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-bottom:22px;font-weight:600}.section-title{font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink);margin-bottom:14px}.section-subtitle{font-size:1.05rem;color:var(--slate);max-width:650px;margin:0 auto;line-height:1.7}
+    .opportunity-box{background:linear-gradient(135deg,var(--success),#047857);border-radius:24px;padding:48px;text-align:center;margin:40px 0;position:relative;overflow:hidden}.opportunity-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.opportunity-label{font-size:0.85rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}.opportunity-value{font-family:'Fraunces',serif;font-size:clamp(3.5rem,10vw,6rem);font-weight:600;color:white;line-height:1;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,0.2)}.opportunity-context{font-size:1.2rem;color:rgba(255,255,255,0.9)}
+    .gap-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.gap-summary{grid-template-columns:1fr}}.gap-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.gap-card:hover{border-color:var(--danger);transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,0.06)}.gap-icon{font-size:2.5rem;margin-bottom:16px}.gap-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:8px}.gap-impact{font-size:1.4rem;font-weight:700;color:var(--danger);margin-bottom:8px}.gap-desc{font-size:0.85rem;color:var(--slate)}
+    .story-mini{background:var(--white);border-left:4px solid var(--danger);padding:24px 28px;margin:40px 0;border-radius:0 16px 16px 0}.story-mini-text{font-size:1.05rem;color:var(--ink);margin-bottom:8px}.story-mini-outcome{font-size:0.9rem;color:var(--slate);font-style:italic}
+    .speed-highlight{background:linear-gradient(135deg,var(--gold),#d97706);border-radius:20px;padding:32px;display:flex;align-items:center;gap:28px;margin:40px 0;color:white}@media(max-width:700px){.speed-highlight{flex-direction:column;text-align:center}}.speed-highlight-stat{font-family:'Fraunces',serif;font-size:3.5rem;font-weight:700;white-space:nowrap}.speed-highlight-text{font-size:1.05rem;line-height:1.6}
+    .market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}@media(max-width:768px){.market-stats{grid-template-columns:repeat(2,1fr)}}.market-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 16px;text-align:center}.market-stat-value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;color:var(--brand-blue);margin-bottom:6px}.market-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1px;font-weight:500}
+    .competitive-table{width:100%;border-collapse:collapse;margin:32px 0;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--border)}.competitive-table th{background:var(--ink);color:var(--white);padding:16px 18px;text-align:left;font-size:0.85rem;font-weight:600}.competitive-table td{padding:16px 18px;border-bottom:1px solid var(--border);font-size:0.9rem}.competitive-table tr:last-child td{border-bottom:none}.competitive-table tr:hover td{background:var(--warm-white)}.check{color:var(--success);font-weight:700}.cross{color:var(--danger);font-weight:700}.partial{color:var(--gold);font-weight:700}.insight-box{background:var(--warm-white);border-radius:16px;padding:24px;margin-top:24px;font-size:0.95rem;color:var(--ink);line-height:1.7}
+    .calculator-section{background:var(--white);border:2px solid var(--accent);border-radius:24px;padding:40px;margin:60px 0;box-shadow:0 20px 60px rgba(0,0,0,0.04)}@media(max-width:600px){.calculator-section{padding:28px 20px}}.calc-header{text-align:center;margin-bottom:40px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}@media(max-width:900px){.calc-grid{grid-template-columns:1fr}}.calc-inputs{display:flex;flex-direction:column;gap:24px}.calc-input-group{display:flex;flex-direction:column;gap:10px}.calc-input-label{font-size:0.85rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center}.calc-input-value{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--brand-blue);font-weight:600}.calc-slider{width:100%;height:8px;border-radius:4px;background:var(--border);-webkit-appearance:none;cursor:pointer}.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)}.calc-results{display:flex;flex-direction:column;gap:16px}.calc-result-card{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.calc-result-card:hover{border-color:var(--accent);transform:translateY(-3px)}.calc-result-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:600}.calc-result-value.danger{color:var(--danger)}.calc-result-value.success{color:var(--success)}.calc-result-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:6px}.calc-total{background:linear-gradient(135deg,var(--success),#047857);border-radius:18px;padding:28px;text-align:center;margin-top:8px}.calc-total-value{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:600;color:var(--white)}.calc-total-label{font-size:0.75rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+    .service-toggles{margin-top:36px;padding-top:36px;border-top:1px solid var(--border)}.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border-light)}.service-toggle:last-child{border-bottom:none}.service-toggle-info{display:flex;flex-direction:column;gap:4px}.service-toggle-name{font-weight:600;color:var(--ink);font-size:0.95rem}.service-toggle-desc{font-size:0.8rem;color:var(--slate)}.toggle-switch{position:relative;width:56px;height:30px;background:var(--border);border-radius:30px;cursor:pointer;transition:all 0.3s}.toggle-switch.active{background:var(--success)}.toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:white;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}.toggle-switch.active::after{left:29px}
+    .math-section{margin-top:40px;padding:32px;background:var(--warm-white);border-radius:16px;border:1px solid var(--border)}.math-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:24px;display:flex;align-items:center;gap:10px}.math-step{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}.math-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.math-step-title{font-weight:700;color:var(--brand-blue);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}.math-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.9rem}.math-line.total{font-weight:700;color:var(--ink);font-size:1rem;padding-top:12px;border-top:1px solid var(--border);margin-top:8px}.math-line.result{color:var(--success);font-weight:700}.math-line.loss{color:var(--danger)}
+    .comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.comparison-grid{grid-template-columns:1fr}}.comparison-option{padding:24px;border-radius:16px;text-align:center}.comparison-option.weak{background:var(--danger-light)}.comparison-option.medium{background:var(--gold-light)}.comparison-option.strong{background:var(--success-light);border:2px solid var(--success)}.comparison-option-title{font-weight:700;font-size:0.95rem;margin-bottom:16px;color:var(--ink)}.comparison-option-features{text-align:left;display:flex;flex-direction:column;gap:8px}.comparison-option-feature{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:8px}
+    .playbook-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:28px;transition:all 0.4s var(--ease-out-expo)}.playbook-card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,0.06);border-color:var(--accent)}.playbook-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px}.playbook-number{width:48px;height:48px;min-width:48px;background:linear-gradient(135deg,var(--brand-primary),var(--accent));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}.playbook-title-group{flex:1}.playbook-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}.playbook-problem{font-size:0.9rem;color:var(--slate)}.playbook-content{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:800px){.playbook-content{grid-template-columns:1fr}}.playbook-diy{background:var(--warm-white);border-radius:14px;padding:22px}.playbook-done-for-you{background:var(--brand-light);border-radius:14px;padding:22px;border:1px solid rgba(37,99,235,0.15)}.playbook-column-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}.playbook-steps{display:flex;flex-direction:column;gap:8px}.playbook-step{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:10px;line-height:1.5}.playbook-step-num{width:18px;height:18px;min-width:18px;background:var(--brand-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;margin-top:2px}.playbook-time{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--slate);display:flex;flex-direction:column;gap:4px}.playbook-dfy-list{list-style:none;padding:0;margin:0 0 14px 0}.playbook-dfy-list li{padding:6px 0;font-size:0.8rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px;line-height:1.4}.playbook-dfy-list li::before{content:"✓";color:var(--success);font-weight:700}.playbook-dfy-result{font-size:0.85rem;font-weight:600;color:var(--brand-primary);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .vision-box{background:linear-gradient(135deg,var(--ink),var(--brand-primary));border-radius:24px;padding:44px;color:white;text-align:center;margin:50px 0;position:relative;overflow:hidden}.vision-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.05) 0%,transparent 50%);pointer-events:none}.vision-credential{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:20px;line-height:1.7}.vision-quote{font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;margin-bottom:28px;position:relative}.vision-list{display:flex;flex-direction:column;gap:10px;max-width:500px;margin:0 auto;text-align:left}.vision-list-item{display:flex;align-items:center;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.9)}
+    .cta-section{background:var(--ink);border-radius:24px;padding:60px 44px;text-align:center;margin:60px 0;position:relative;overflow:hidden}.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(96,165,250,0.1) 0%,transparent 40%);pointer-events:none}.cta-urgency{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--danger);background:var(--white);display:inline-block;padding:14px 28px;border-radius:12px;margin-bottom:28px}.cta-title{font-family:'Fraunces',serif;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--white);margin-bottom:14px}.cta-subtitle{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:36px;max-width:550px;margin-left:auto;margin-right:auto}.cta-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:36px;text-align:left;max-width:650px;margin-left:auto;margin-right:auto}@media(max-width:700px){.cta-columns{grid-template-columns:1fr}}.cta-column{background:rgba(255,255,255,0.05);border-radius:16px;padding:22px;border:1px solid rgba(255,255,255,0.1)}.cta-column-title{font-weight:700;font-size:0.8rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}.cta-column-list{display:flex;flex-direction:column;gap:8px}.cta-column-item{font-size:0.9rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px}.why-works{background:rgba(255,255,255,0.08);border-radius:16px;padding:28px;margin:36px 0;border:1px solid rgba(255,255,255,0.1)}.why-works-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--white);margin-bottom:20px}.why-works-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:600px){.why-works-grid{grid-template-columns:1fr}}.why-works-col-title{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}.why-works-col-list{display:flex;flex-direction:column;gap:8px}.why-works-col-item{font-size:0.9rem;color:rgba(255,255,255,0.85)}.cta-guarantee{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:24px}
+    .booking-widget-container{background:rgba(255,255,255,0.05);border-radius:20px;padding:32px;margin:32px 0;border:1px solid rgba(255,255,255,0.1)}
+    .footer{text-align:center;padding:50px 0 30px;border-top:1px solid var(--border);margin-top:80px}.footer-brand{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:20px}.footer-logo{width:40px;height:40px;background:var(--brand-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;color:var(--white);font-weight:600}.footer-name{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink)}
+    .reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Finis Tatum IV</div>
+        <div class="prepared-firm">Gordon Rees Scully Mansukhani, LLP</div>
+        <div class="prepared-date">February 2026</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero reveal">
+      <h1 class="hero-title">
+        <em>$312K/year</em><br>
+        in corporate engagements you're not seeing.
+      </h1>
+      <p class="hero-subtitle">
+        Rising Stars. Top 10 Under 40. Former Supreme Court clerk. IU McKinney. Purdue. <strong>None of it matters if Indianapolis GCs can't find you when they need commercial litigation counsel at 11 PM.</strong>
+      </p>
+      
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value danger">$26K</div>
+          <div class="hero-stat-label">Lost/Month</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value success">$18K</div>
+          <div class="hero-stat-label">Recoverable</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value gold">3</div>
+          <div class="hero-stat-label">Fortune 500 HQs</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">$134B</div>
+          <div class="hero-stat-label">Indy GDP</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPPORTUNITY BOX -->
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Opportunity</div>
+      <div class="opportunity-value">$312K</div>
+      <div class="opportunity-context">In corporate engagements currently going to Barnes & Thornburg, Ice Miller, and Taft.</div>
+    </div>
+
+    <!-- GAP SUMMARY -->
+    <div class="gap-summary reveal">
+      <div class="gap-card">
+        <div class="gap-icon">🔍</div>
+        <div class="gap-title">Executive Visibility Gap</div>
+        <div class="gap-impact">~$156K/yr</div>
+        <div class="gap-desc">Indianapolis GCs and CEOs don't see GRSM Indy when researching litigation counsel</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">📝</div>
+        <div class="gap-title">Thought Leadership Gap</div>
+        <div class="gap-impact">~$78K/yr</div>
+        <div class="gap-desc">Competitors publish insights monthly. Your last article visibility: minimal</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🤝</div>
+        <div class="gap-title">Referral Pipeline Gap</div>
+        <div class="gap-impact">~$78K/yr</div>
+        <div class="gap-desc">CPAs, investment bankers, and other referral sources aren't seeing systematic touchpoints</div>
+      </div>
+    </div>
+
+    <!-- STORY -->
+    <div class="story-mini reveal">
+      <p class="story-mini-text">Last Tuesday, 10:47 PM. A CFO at a mid-market Indianapolis manufacturing company just discovered potential fraud in their supply chain. She Googled "commercial litigation attorney Indianapolis white collar." Your name didn't appear. Barnes & Thornburg did.</p>
+      <p class="story-mini-outcome">That's a $75K engagement that went to someone else. It happens more than you'd think.</p>
+    </div>
+
+    <!-- SPEED HIGHLIGHT -->
+    <div class="speed-highlight reveal">
+      <div class="speed-highlight-stat">78%</div>
+      <div class="speed-highlight-text">of corporate legal decisions start with online research before any referral call. When a GC faces a bet-the-company moment, they don't wait until Monday morning—they start Googling immediately. If you're not visible in that search, you're not on the shortlist.</div>
+    </div>
+
+    <!-- MARKET DATA -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">The Indianapolis Opportunity</span>
+        <h2 class="section-title">A Corporate Legal Hub Hiding in Plain Sight</h2>
+      </div>
+      
+      <div class="market-stats">
+        <div class="market-stat">
+          <div class="market-stat-value">3</div>
+          <div class="market-stat-label">Fortune 500 HQs</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">$134B</div>
+          <div class="market-stat-label">Metro GDP</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">40%</div>
+          <div class="market-stat-label">F500 Served by Ice Miller</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">$397B</div>
+          <div class="market-stat-label">US Legal Market</div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; color: var(--slate); max-width: 700px; margin: 24px auto 0;">Eli Lilly, Elevance Health, and Corteva all headquartered here. Manufacturing, life sciences, finance. Corporate litigation demand is surging—but the same 4-5 firms keep winning the work.</p>
+    </section>
+
+    <!-- COMPETITIVE TABLE -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Competitive Reality</span>
+        <h2 class="section-title">Who's Winning the Visibility War</h2>
+      </div>
+      
+      <table class="competitive-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Barnes & Thornburg</th>
+            <th>Ice Miller</th>
+            <th>GRSM Indy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LinkedIn Thought Leadership</td>
+            <td><span class="check">✓ Weekly posts</span></td>
+            <td><span class="check">✓ Weekly posts</span></td>
+            <td><span class="cross">✗ Minimal</span></td>
+          </tr>
+          <tr>
+            <td>Speaking Engagements (2024-25)</td>
+            <td><span class="check">✓ 15+ events</span></td>
+            <td><span class="check">✓ 12+ events</span></td>
+            <td><span class="partial">◐ 3 events</span></td>
+          </tr>
+          <tr>
+            <td>Google Visibility (B2B terms)</td>
+            <td><span class="check">✓ Page 1</span></td>
+            <td><span class="check">✓ Page 1</span></td>
+            <td><span class="cross">✗ Not ranking</span></td>
+          </tr>
+          <tr>
+            <td>Content Marketing</td>
+            <td><span class="check">✓ Blog + Newsletter</span></td>
+            <td><span class="check">✓ Alerts + Webinars</span></td>
+            <td><span class="partial">◐ Firm-wide only</span></td>
+          </tr>
+          <tr>
+            <td>Local Attorney Count</td>
+            <td><span class="check">✓ 100+ attorneys</span></td>
+            <td><span class="check">✓ 200+ attorneys</span></td>
+            <td><span class="partial">◐ Small team</span></td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="insight-box">
+        <strong>What you have that they don't:</strong> 50-state platform, competitive rates, and a rising star leading the Indy office.<br><br>
+        <strong>What they have that you don't:</strong> Local visibility dominance. They're not better litigators—they just show up first when executives search.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <div class="calculator-section reveal">
+      <div class="calc-header">
+        <span class="section-label">Your Numbers</span>
+        <h2 class="section-title">See the Math for Yourself</h2>
+        <p class="section-subtitle">Adjust the sliders to match your practice reality</p>
+      </div>
+      
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Monthly Referral Opportunities</span>
+              <span class="calc-input-value" id="referralsValue">4</span>
+            </div>
+            <input type="range" class="calc-slider" id="referrals" min="1" max="12" value="4">
+          </div>
+          
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Missed Due to Low Visibility (%)</span>
+              <span class="calc-input-value" id="missedValue">40%</span>
+            </div>
+            <input type="range" class="calc-slider" id="missed" min="20" max="70" value="40">
+          </div>
+          
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Average Engagement Value</span>
+              <span class="calc-input-value" id="engagementValue">$65,000</span>
+            </div>
+            <input type="range" class="calc-slider" id="engagement" min="25000" max="150000" value="65000" step="5000">
+          </div>
+          
+          <div class="calc-input-group">
+            <div class="calc-input-label">
+              <span>Conversion Rate (Pitch to Engagement)</span>
+              <span class="calc-input-value" id="conversionValue">25%</span>
+            </div>
+            <input type="range" class="calc-slider" id="conversion" min="15" max="50" value="25">
+          </div>
+        </div>
+        
+        <div class="calc-results">
+          <div class="calc-result-card">
+            <div class="calc-result-value danger" id="lostMonthly">$26,000</div>
+            <div class="calc-result-label">Currently Losing / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value success" id="recoverMonthly">$18,200</div>
+            <div class="calc-result-label">Could Recover / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value gold" id="newClients">0.7</div>
+            <div class="calc-result-label">New Engagements / Month</div>
+          </div>
+          <div class="calc-total">
+            <div class="calc-total-value" id="annualOpportunity">$312,000</div>
+            <div class="calc-total-label">Annual Opportunity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Toggles -->
+      <div class="service-toggles">
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">LinkedIn Visibility Campaign</span>
+            <span class="service-toggle-desc">Targeted executive outreach + thought leadership</span>
+          </div>
+          <div class="toggle-switch active" id="toggleLinkedin" onclick="toggleService('linkedin')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Content Marketing</span>
+            <span class="service-toggle-desc">Articles, case studies, and industry insights</span>
+          </div>
+          <div class="toggle-switch active" id="toggleContent" onclick="toggleService('content')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">SEO & Digital Presence</span>
+            <span class="service-toggle-desc">Rank for B2B commercial litigation searches</span>
+          </div>
+          <div class="toggle-switch active" id="toggleSeo" onclick="toggleService('seo')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <span class="service-toggle-name">Referral Network Automation</span>
+            <span class="service-toggle-desc">CRM + touchpoint system for CPAs, bankers, etc.</span>
+          </div>
+          <div class="toggle-switch active" id="toggleCrm" onclick="toggleService('crm')"></div>
+        </div>
+      </div>
+
+      <!-- Math Breakdown -->
+      <div class="math-section">
+        <h3 class="math-title">📊 The Math (Visible by Default)</h3>
+        
+        <div class="math-step">
+          <div class="math-step-title">Step 1: Opportunity Flow</div>
+          <div class="math-line">
+            <span>Monthly referral opportunities:</span>
+            <span id="mathReferrals">4</span>
+          </div>
+          <div class="math-line">
+            <span>× Missed due to visibility gap:</span>
+            <span id="mathMissedPct">40%</span>
+          </div>
+          <div class="math-line total">
+            <span>= Opportunities lost/month:</span>
+            <span id="mathLostOpps">1.6</span>
+          </div>
+        </div>
+        
+        <div class="math-step">
+          <div class="math-step-title">Step 2: Revenue Impact</div>
+          <div class="math-line">
+            <span>Lost opportunities:</span>
+            <span id="mathLostOpps2">1.6</span>
+          </div>
+          <div class="math-line">
+            <span>× Conversion rate:</span>
+            <span id="mathConversion">25%</span>
+          </div>
+          <div class="math-line">
+            <span>× Average engagement value:</span>
+            <span id="mathEngagement">$65,000</span>
+          </div>
+          <div class="math-line total loss">
+            <span>= Monthly revenue lost:</span>
+            <span id="mathMonthlyLost">$26,000</span>
+          </div>
+        </div>
+        
+        <div class="math-step">
+          <div class="math-step-title">Step 3: Recovery Potential</div>
+          <div class="math-line">
+            <span>Monthly revenue lost:</span>
+            <span id="mathMonthlyLost2">$26,000</span>
+          </div>
+          <div class="math-line">
+            <span>× Recoverable with full visibility:</span>
+            <span>70%</span>
+          </div>
+          <div class="math-line total result">
+            <span>= Monthly recovery potential:</span>
+            <span id="mathMonthlyRecover">$18,200</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISIBILITY COMPARISON -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Your Options</span>
+        <h2 class="section-title">Three Paths to Executive Visibility</h2>
+      </div>
+      
+      <div class="comparison-grid">
+        <div class="comparison-option weak">
+          <div class="comparison-option-title">❌ Status Quo</div>
+          <div class="comparison-option-features">
+            <div class="comparison-option-feature">• Rely on firm-wide marketing</div>
+            <div class="comparison-option-feature">• Wait for referrals to find you</div>
+            <div class="comparison-option-feature">• Minimal local visibility</div>
+            <div class="comparison-option-feature">• Competitors dominate search</div>
+            <div class="comparison-option-feature">• $312K/yr walking to other firms</div>
+          </div>
+        </div>
+        <div class="comparison-option medium">
+          <div class="comparison-option-title">⚠️ DIY Marketing</div>
+          <div class="comparison-option-features">
+            <div class="comparison-option-feature">• Write your own content</div>
+            <div class="comparison-option-feature">• Manage LinkedIn yourself</div>
+            <div class="comparison-option-feature">• Track referral sources manually</div>
+            <div class="comparison-option-feature">• 8-12 hours/week ongoing</div>
+            <div class="comparison-option-feature">• Inconsistent execution</div>
+          </div>
+        </div>
+        <div class="comparison-option strong">
+          <div class="comparison-option-title">✅ Done-For-You Visibility</div>
+          <div class="comparison-option-features">
+            <div class="comparison-option-feature">• Targeted LinkedIn campaigns</div>
+            <div class="comparison-option-feature">• Professional content creation</div>
+            <div class="comparison-option-feature">• SEO for B2B searches</div>
+            <div class="comparison-option-feature">• Automated referral nurturing</div>
+            <div class="comparison-option-feature">• You focus on practicing law</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYBOOK -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">The Playbook</span>
+        <h2 class="section-title">How to Close Each Gap</h2>
+        <p class="section-subtitle">DIY steps + done-for-you option for each gap</p>
+      </div>
+
+      <!-- Gap 1: Executive Visibility -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">01</div>
+          <div class="playbook-title-group">
+            <h3 class="playbook-title">Executive Visibility — LinkedIn + Search</h3>
+            <p class="playbook-problem">Indianapolis GCs and executives don't see you when researching counsel.</p>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span> Optimize LinkedIn profile with keywords (commercial litigation Indianapolis)</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span> Identify 50 target GCs and executives at Indy companies</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span> Send personalized connection requests weekly</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span> Post thought leadership content 2-3x/week</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span> Engage on target executives' posts daily</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span> Monitor for job changes and trigger events</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 8-12 hours</span>
+              <span>🔄 Ongoing: 6-8 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Profile optimization for B2B visibility</li>
+              <li>Target executive list building (GCs, CEOs, CFOs)</li>
+              <li>Automated connection campaigns</li>
+              <li>Content calendar + ghostwritten posts</li>
+              <li>Engagement strategy execution</li>
+              <li>Trigger event monitoring (new hires, M&A)</li>
+              <li>SEO for attorney bio pages</li>
+              <li>Google Business Profile optimization</li>
+              <li>Monthly analytics and adjustments</li>
+            </ul>
+            <p class="playbook-dfy-result">You approve connections and take meetings. That's it.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gap 2: Thought Leadership -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">02</div>
+          <div class="playbook-title-group">
+            <h3 class="playbook-title">Thought Leadership — Content & Speaking</h3>
+            <p class="playbook-problem">Competitors publish insights monthly. Your visibility is minimal.</p>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span> Identify trending topics in commercial litigation</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span> Write 1-2 articles per month (800-1,200 words)</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span> Pitch speaking opportunities to IBJ, IBA, local conferences</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span> Repurpose content for LinkedIn, firm blog, newsletter</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span> Track engagement and refine topics</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 6-10 hours</span>
+              <span>🔄 Ongoing: 4-6 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Content strategy aligned to client acquisition goals</li>
+              <li>Ghostwritten articles under your byline</li>
+              <li>Speaking opportunity identification and pitches</li>
+              <li>Slide deck and talking points creation</li>
+              <li>Content repurposing across channels</li>
+              <li>Newsletter setup and management</li>
+              <li>Media and podcast pitching</li>
+              <li>Award submission assistance</li>
+            </ul>
+            <p class="playbook-dfy-result">You review final drafts and show up to speak. That's it.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gap 3: Referral Pipeline -->
+      <div class="playbook-card">
+        <div class="playbook-header">
+          <div class="playbook-number">03</div>
+          <div class="playbook-title-group">
+            <h3 class="playbook-title">Referral Pipeline — CRM & Nurturing</h3>
+            <p class="playbook-problem">CPAs, investment bankers, and referral sources aren't getting systematic touchpoints.</p>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><span class="playbook-step-num">1</span> List all referral sources (CPAs, bankers, other attorneys)</div>
+              <div class="playbook-step"><span class="playbook-step-num">2</span> Set up a CRM (HubSpot, Clio, even a spreadsheet)</div>
+              <div class="playbook-step"><span class="playbook-step-num">3</span> Create touchpoint schedule (quarterly coffee, monthly email)</div>
+              <div class="playbook-step"><span class="playbook-step-num">4</span> Send personalized check-ins and value-add content</div>
+              <div class="playbook-step"><span class="playbook-step-num">5</span> Track referrals and send thank-you notes</div>
+              <div class="playbook-step"><span class="playbook-step-num">6</span> Host annual appreciation event</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 10-15 hours</span>
+              <span>🔄 Ongoing: 3-5 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>CRM setup and configuration</li>
+              <li>Referral source database building</li>
+              <li>Automated nurture sequences</li>
+              <li>Personalized touchpoint templates</li>
+              <li>Quarterly check-in scheduling</li>
+              <li>Thank-you and follow-up automation</li>
+              <li>Referral tracking and attribution</li>
+              <li>Co-marketing opportunities with CPAs/bankers</li>
+              <li>Event coordination assistance</li>
+            </ul>
+            <p class="playbook-dfy-result">You show up to coffees and take the referrals. That's it.</p>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: center; color: var(--slate); margin-top: 40px; font-style: italic;">
+        "These are the same frameworks we use with every B2B professional services client. No secrets, no gatekeeping—just the reality of what it takes."
+      </p>
+    </section>
+
+    <!-- VISION -->
+    <div class="vision-box reveal">
+      <p class="vision-credential">You spent years earning Rising Stars, Top 10 Under 40, and a Supreme Court clerkship. You built your reputation through meticulous case work and courtroom victories.</p>
+      <p class="vision-quote">"You do what you're known for. We do what we're known for."</p>
+      <div class="vision-list">
+        <div class="vision-list-item">→ You won't learn LinkedIn marketing</div>
+        <div class="vision-list-item">→ You won't manage content calendars</div>
+        <div class="vision-list-item">→ You won't obsess over SEO rankings</div>
+        <div class="vision-list-item">→ You'll practice law. Your pipeline will fill.</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <section class="cta-section reveal">
+      <div class="cta-urgency">$850/day walking to Barnes & Thornburg</div>
+      
+      <h2 class="cta-title">15 Minutes. Let's See If This Fits.</h2>
+      <p class="cta-subtitle">No long pitch. Just a quick conversation about whether visibility marketing makes sense for GRSM Indianapolis.</p>
+      
+      <div class="cta-columns">
+        <div class="cta-column">
+          <div class="cta-column-title">What We Found</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">❌ Low LinkedIn visibility to executives</div>
+            <div class="cta-column-item">❌ Minimal thought leadership content</div>
+            <div class="cta-column-item">❌ Referral sources not systematically nurtured</div>
+            <div class="cta-column-item">❌ Competitors dominating local search</div>
+          </div>
+        </div>
+        <div class="cta-column">
+          <div class="cta-column-title">What Changes</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">✓ GCs see you when researching</div>
+            <div class="cta-column-item">✓ Thought leadership positions you as the expert</div>
+            <div class="cta-column-item">✓ Referrals flow through automated pipeline</div>
+            <div class="cta-column-item">✓ Your pipeline grows while you practice law</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-works">
+        <h3 class="why-works-title">Why This Works</h3>
+        <div class="why-works-grid">
+          <div>
+            <div class="why-works-col-title">You Focus On</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">• Litigation strategy</div>
+              <div class="why-works-col-item">• Client relationships</div>
+              <div class="why-works-col-item">• Courtroom victories</div>
+              <div class="why-works-col-item">• Growing the Indy office</div>
+            </div>
+          </div>
+          <div>
+            <div class="why-works-col-title">We Handle</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">• LinkedIn visibility</div>
+              <div class="why-works-col-item">• Content creation</div>
+              <div class="why-works-col-item">• SEO & digital presence</div>
+              <div class="why-works-col-item">• Referral automation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-widget-container">
+        <h3 style="font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 20px; color: var(--white);">Book Your Strategy Call — 15 Minutes</h3>
+        <iframe 
+          src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" 
+          style="width: 100%; border: none; overflow: hidden; min-height: 600px; border-radius: 12px;" 
+          scrolling="no" 
+          id="mortarmetrics-booking-widget">
+        </iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+      </div>
+
+      <p class="cta-guarantee">No long-term contracts. Month-to-month. Results-focused.</p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color: var(--slate); font-size: 0.85rem;">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color: var(--brand-blue);">mortarmetrics.com</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll progress
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      document.getElementById('scrollIndicator').style.width = scrollPercent + '%';
+    });
+
+    // Reveal on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Calculator
+    const services = { linkedin: true, content: true, seo: true, crm: true };
+    
+    function toggleService(service) {
+      services[service] = !services[service];
+      const toggle = document.getElementById('toggle' + service.charAt(0).toUpperCase() + service.slice(1));
+      toggle.classList.toggle('active');
+      updateCalculations();
+    }
+
+    function updateCalculations() {
+      const referrals = parseInt(document.getElementById('referrals').value);
+      const missed = parseInt(document.getElementById('missed').value) / 100;
+      const engagement = parseInt(document.getElementById('engagement').value);
+      const conversion = parseInt(document.getElementById('conversion').value) / 100;
+
+      // Update display values
+      document.getElementById('referralsValue').textContent = referrals;
+      document.getElementById('missedValue').textContent = Math.round(missed * 100) + '%';
+      document.getElementById('engagementValue').textContent = '$' + engagement.toLocaleString();
+      document.getElementById('conversionValue').textContent = Math.round(conversion * 100) + '%';
+
+      // Calculate
+      const lostOpps = referrals * missed;
+      const monthlyLost = lostOpps * conversion * engagement;
+      
+      // Recovery based on active services
+      let recoveryRate = 0;
+      if (services.linkedin) recoveryRate += 0.25;
+      if (services.content) recoveryRate += 0.20;
+      if (services.seo) recoveryRate += 0.15;
+      if (services.crm) recoveryRate += 0.10;
+      
+      const monthlyRecover = monthlyLost * recoveryRate;
+      const newClients = (lostOpps * recoveryRate * conversion).toFixed(1);
+      const annualOpportunity = monthlyRecover * 12;
+
+      // Update results
+      document.getElementById('lostMonthly').textContent = '$' + Math.round(monthlyLost).toLocaleString();
+      document.getElementById('recoverMonthly').textContent = '$' + Math.round(monthlyRecover).toLocaleString();
+      document.getElementById('newClients').textContent = newClients;
+      document.getElementById('annualOpportunity').textContent = '$' + Math.round(annualOpportunity).toLocaleString();
+
+      // Update math section
+      document.getElementById('mathReferrals').textContent = referrals;
+      document.getElementById('mathMissedPct').textContent = Math.round(missed * 100) + '%';
+      document.getElementById('mathLostOpps').textContent = lostOpps.toFixed(1);
+      document.getElementById('mathLostOpps2').textContent = lostOpps.toFixed(1);
+      document.getElementById('mathConversion').textContent = Math.round(conversion * 100) + '%';
+      document.getElementById('mathEngagement').textContent = '$' + engagement.toLocaleString();
+      document.getElementById('mathMonthlyLost').textContent = '$' + Math.round(monthlyLost).toLocaleString();
+      document.getElementById('mathMonthlyLost2').textContent = '$' + Math.round(monthlyLost).toLocaleString();
+      document.getElementById('mathMonthlyRecover').textContent = '$' + Math.round(monthlyRecover).toLocaleString();
+    }
+
+    // Add event listeners to sliders
+    ['referrals', 'missed', 'engagement', 'conversion'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateCalculations);
+    });
+
+    // Initialize
+    updateCalculations();
+  </script>
+</body>
+</html>
