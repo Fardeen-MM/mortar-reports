@@ -1,0 +1,36 @@
+name: Personalize Leads CSV
+
+on:
+  workflow_dispatch:
+    inputs:
+      csv_file:
+        description: 'CSV filename in leads/ folder (e.g. apollo-export.csv)'
+        required: true
+        type: string
+
+jobs:
+  personalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: cd automation && npm ci
+
+      - name: Run personalizer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+        run: node automation/personalize.js "leads/${{ inputs.csv_file }}"
+
+      - name: Upload personalized CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: personalized-leads
+          path: leads/*_personalized*.csv
+          retention-days: 30
