@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "16177971998",
   "created_at": "2026-02-13T18:37:33.033Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -29,5 +29,6 @@
     "source": "instantly_webhook"
   },
   "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Make the hero section immediately firm-specific by mentioning their existing Google Ads and Boston competitors in the opening paragraph"
+  "conversion_note": "Make the hero section immediately firm-specific by mentioning their existing Google Ads and Boston competitors in the opening paragraph",
+  "approved_at": "2026-02-13T19:32:20.972Z"
 }
