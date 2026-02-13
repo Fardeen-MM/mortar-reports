@@ -1,0 +1,33 @@
+{
+  "firm_name": "Law Office Of Frank J. Cassisi, P.c.",
+  "firm_folder": "LawOfficeOfFrankJCassisiPc",
+  "lead_email": "fcassisi@ccpclaw.net",
+  "contact_name": "Frank Cassisi",
+  "report_url": "https://reports.mortarmetrics.com/pending-reports/LawOfficeOfFrankJCassisiPc/",
+  "job_title": "Principal Owner",
+  "linkedin": "https://www.linkedin.com/in/frank-cassisi-83b29611",
+  "country": "United States",
+  "reply_text": "Sure. Send me what you got.  Regards, Frank J. Cassisi  Law Office of Frank J. Cassisi 155 First Street, Suite 101 Mineola, NY 11501 Tel: (516) 294-5050 Fax: (516) 294-0711  > On Feb 13, 2026, at 9:13 AM, Yaseer Choudhury <c_yaseer@mortarmetricsgrow.com> wrote: >  > ﻿Frank  >  > Mandall Law was getting cases through referrals and word of mouth. Good, but inconsistent.  >  > We plugged in our system and they signed $92K in new cases their first month. > They're still with us. >  > Reply \"send it\"",
+  "campaign_name": "Lawyer Campaign 021026",
+  "phone": "",
+  "created_at": "2026-02-13T19:49:50.494Z",
+  "status": "pending_approval",
+  "report_version": "V3",
+  "qc_passed": "false",
+  "qc_issues": "1",
+  "qc_would_book": "unknown",
+  "qc_biggest_issue": "Firm name looks like a scraped headline (7 words): \"Law Office Of Frank J. Cassisi, P.c.\"",
+  "qc_score": "7",
+  "total_range": "$247K-333.5K",
+  "total_cases": "17-31",
+  "practice_label": "personal injury",
+  "lead_intelligence": {
+    "name": "Frank Cassisi",
+    "title": "Principal Owner",
+    "seniority": "senior",
+    "is_decision_maker": true,
+    "source": "instantly_webhook"
+  },
+  "conversion_verdict": "NEEDS_WORK",
+  "conversion_note": "Fix the revenue calculation inconsistency between hero ($247K-$333.5K) and ROI box ($237K-$323.5K) - mathematical errors destroy credibility with lawyers"
+}
