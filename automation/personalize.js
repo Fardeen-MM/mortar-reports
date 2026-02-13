@@ -134,7 +134,7 @@ function detectColumns(headers) {
 // ============================================================================
 
 function buildPrompt(lead) {
-  return `You are writing a personalized cold email opener for a law firm. Details:
+  return `You are writing a cold email opener for a law firm marketing agency. We help law firms get more cases.
 
 Name: ${lead.firstName || 'there'}
 Firm: ${lead.firmName || 'their firm'}
@@ -142,13 +142,23 @@ Practice area: ${lead.practice || 'legal services'}
 City: ${lead.city || ''}
 
 Generate TWO things:
-1. SUBJECT: A short email subject line (5-8 words). Personalized, no clickbait.
-2. FIRST_LINE: One opening sentence (<20 words). Rules:
-   - Reference their practice area and city naturally
-   - Sound human, not a bot
-   - No flattery, no "I came across your firm"
-   - About THEM and their market, not about us
-   - Casual, direct, peer-to-peer
+1. SUBJECT: 3-5 words max. Lowercase. Direct, about revenue/cases/growth. NOT a question.
+2. FIRST_LINE: One short punchy sentence (under 12 words). Rules:
+   - About getting them more cases and money
+   - Statement, NOT a question
+   - No flattery, no "I noticed", no "I came across"
+   - Confident and direct — we can get them results
+   - Mention their city or practice area, not both
+
+Bad examples (do NOT write like this):
+- "Curious how you're handling..."
+- "I noticed your firm..."
+- "How's your caseload looking?"
+
+Good examples:
+- SUBJECT: more ${lead.practice || 'cases'} cases in ${lead.city || 'your city'}
+- FIRST_LINE: We're filling ${lead.practice || 'legal'} dockets across ${lead.city || 'the city'} right now.
+- FIRST_LINE: ${lead.city || 'Your city'} ${lead.practice || 'legal'} firms are leaving money on the table.
 
 Output format (exactly):
 SUBJECT: ...
