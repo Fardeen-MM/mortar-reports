@@ -629,28 +629,32 @@ Return ONLY valid JSON with these exact fields:
     }
   }
 
-  // Replace firm name repetition in card bodies with "your firm" / "you"
+  // Replace firm name repetition in card bodies/insights with "your firm" / "your"
   // The firm name appears in header/SERP/competitor table already — cards should use "you"
   if (firmName) {
-    const bodyKeys = ['card1Body', 'card2Body', 'card3Body'];
-    // Match the firm name and common variations (with/without suffixes, possessive)
-    const escaped = firmName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // Also match without trailing suffixes like ", P.C." or ", LLC"
+    const allKeys = ['card1Body', 'card2Body', 'card3Body', 'card1Insight', 'card2Insight', 'card3Insight'];
+    // Build patterns for both normalized and raw firm name variations
     const baseName = firmName.replace(/,?\s*(P\.?C\.?|LLC|LLP|PLLC|PA|Inc\.?|Ltd\.?)\.?$/i, '').trim();
-    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const namePattern = new RegExp(`(The\\s+)?${escaped}('s)?|${escapedBase}('s)?`, 'gi');
+    // Escape for regex but allow flexible whitespace and punctuation between words
+    const words = baseName.split(/[\s,]+/).filter(w => w.length > 1);
+    // Build a flexible pattern: "Law" + ws + "Office" + ws + "of" + ws + "Frank" ...
+    const flexPattern = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s,]+');
+    // Match with optional "The" prefix, optional suffixes, optional possessive
+    const namePattern = new RegExp(
+      `(The\\s+)?${flexPattern}(,?\\s*(P\\.?C\\.?|LLC|LLP|PLLC|PA|Inc\\.?|Ltd\\.?)\\.?)?('s)?`,
+      'gi'
+    );
 
-    for (const key of bodyKeys) {
+    for (const key of allKeys) {
       if (typeof prose[key] === 'string') {
-        // Replace all occurrences: possessive → "your", standalone → "your firm"
         prose[key] = prose[key].replace(namePattern, (match) => {
           if (match.endsWith("'s")) return 'your';
           return 'your firm';
         });
-        // Clean up "At your firm," → "Your firm" at sentence start
         prose[key] = prose[key].replace(/At your firm,/g, 'Your firm');
-        // Clean up double "your" from "your your firm"
         prose[key] = prose[key].replace(/your your/gi, 'your');
+        // Fix "With a strong your firm" → "With a strong reputation, your firm"
+        prose[key] = prose[key].replace(/a strong your firm/gi, 'strong credibility, your firm');
       }
     }
     console.log('   🔄 Firm name replaced with "your firm" in card bodies');
@@ -660,14 +664,27 @@ Return ONLY valid JSON with these exact fields:
   const allProseKeys = ['card1Body', 'card2Body', 'card3Body', 'card1Insight', 'card2Insight', 'card3Insight'];
   for (const key of allProseKeys) {
     if (typeof prose[key] === 'string') {
-      // Remove phrases like "81 reviews", "5-star Google rating", "their 4.8-star rating and 200+ reviews"
       prose[key] = prose[key]
-        .replace(/,?\s*(with|and|their)\s+\d[\d,]*\+?\s*(Google\s+)?reviews?\b[^.]*?(?=[.,<])/gi, '')
-        .replace(/\d[\d,]*\+?\s*(Google\s+)?reviews?\b/gi, 'strong online presence')
-        .replace(/\d+(\.\d+)?-star\s+(Google\s+)?(rating|reputation)\s*(and\s+)?/gi, '')
+        // Remove "X reviews" in parentheses: "(49 reviews)"
+        .replace(/\s*\(\d[\d,]*\+?\s*(Google\s+)?reviews?\)/gi, '')
+        // Remove "with/and X reviews" mid-sentence
+        .replace(/,?\s*(with|and)\s+(a\s+)?(strong\s+)?\d[\d,]*\+?\s*(Google\s+)?reviews?(\s+and\s+a\s+\d[\d.]*-star\s+(Google\s+)?rating)?/gi, '')
+        // Remove "X Google reviews" standalone
+        .replace(/\d[\d,]*\+?\s*(Google\s+)?reviews?/gi, 'strong online presence')
+        // Remove "5-star rating/reputation" phrases
+        .replace(/(a\s+)?(strong\s+)?\d[\d.]*-star\s+(Google\s+)?(rating|reputation)(\s*(and|with)\s+)?/gi, '')
+        // Remove "perfect rating"
         .replace(/perfect\s+(Google\s+)?rating/gi, 'strong reputation')
-        .replace(/5-star\s+(Google\s+)?/gi, '')
+        // Remove standalone "5-star"
+        .replace(/\b5-star\s+(Google\s+)?/gi, '')
+        // Remove "your X reviews give you" patterns
+        .replace(/your\s+\d[\d,]*\+?\s*(Google\s+)?reviews?\s+(give|provide)\s+you/gi, 'you have')
+        // Clean double spaces
         .replace(/\s{2,}/g, ' ')
+        // Clean ", ," or ",," artifacts
+        .replace(/,\s*,/g, ',')
+        // Clean ". ." artifacts
+        .replace(/\.\s*\./g, '.')
         .trim();
     }
   }
