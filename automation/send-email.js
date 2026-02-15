@@ -291,13 +291,19 @@ function plainTextToHtml(text) {
   console.log(`📊 Report URL: ${reportUrl}`);
   if (country) console.log(`🌍 Country: ${country}`);
 
-  // Look up the latest email for this lead to get UUID + eaccount for threading
-  const latestEmail = await fetchLatestEmail(recipientEmail);
+  const isDryRun = process.env.DRY_RUN === 'true';
 
-  if (!latestEmail) {
-    console.error('❌ Could not find an email thread for this lead - cannot send');
-    console.error('   The lead must have an existing email thread in Instantly');
-    process.exit(1);
+  // In DRY_RUN mode, skip Instantly thread lookup (lead may not exist in Instantly)
+  let latestEmail = null;
+  if (!isDryRun) {
+    latestEmail = await fetchLatestEmail(recipientEmail);
+    if (!latestEmail) {
+      console.error('❌ Could not find an email thread for this lead - cannot send');
+      console.error('   The lead must have an existing email thread in Instantly');
+      process.exit(1);
+    }
+  } else {
+    console.log('🏜️  DRY RUN — skipping Instantly thread lookup');
   }
 
   let emailContent;
@@ -312,7 +318,8 @@ function plainTextToHtml(text) {
     };
   } else {
     // Generate AI opener from the lead's reply
-    const opener = await generateOpener(latestEmail.leadReply, country, practiceLabel);
+    const leadReply = latestEmail ? latestEmail.leadReply : '';
+    const opener = await generateOpener(leadReply, country, practiceLabel);
     // Build email with personalization data + AI opener
     emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
   }
@@ -343,7 +350,7 @@ function plainTextToHtml(text) {
     console.log('✅ Email QC passed');
   }
 
-  if (process.env.DRY_RUN === 'true') {
+  if (isDryRun) {
     console.log('🏜️  DRY RUN — email NOT sent');
     console.log(`   To: ${recipientEmail}`);
     console.log(`   Subject: Re: ${emailContent.subject || 'Your marketing analysis'}`);
