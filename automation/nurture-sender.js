@@ -47,6 +47,8 @@ THE POINT OF EVERY EMAIL: Make them feel like they're losing money every day the
 
 ROI MINDSET: Every firm you work with pays you and makes way more back. That's the deal. A firm pays you, their phone rings, people walk in, they sign clients, they make money. Paint that picture with their specific numbers.
 
+COMPETITOR MENTIONS: Only mention their competitor by name ONCE per email max, and only when it makes a point. Don't repeat it. Don't poke at them about it. Just state the fact once and move on. The email is about THEM and what they could be making, not about their competitor.
+
 HOW TO WRITE:
 - Use their name, their city, their competitor, their dollar numbers. Be specific to THEM.
 - Talk about money. How much they're losing, how much they could make, what other firms made.
@@ -67,19 +69,18 @@ const EMAIL_ANGLES = [
   {
     name: 'competitor_insight',
     buildPrompt: (lead, dates) => {
-      const comp = lead.top_competitor || 'your top competitor';
-      const reviews = lead.competitor_reviews || '';
+      const comp = lead.top_competitor || 'other firms';
       const city = lead.city || 'your area';
       const practice = lead.practice_label || 'legal';
       const range = lead.total_range || '';
       const firm = lead.firm_name || 'your firm';
-      return `Email 1. Use THEIR data from the breakdown.
+      return `Email 1. Use THEIR data.
 
-THEIR NUMBERS: ${comp}${reviews ? ` (${reviews} reviews)` : ''} in ${city}. ${range ? `${range} every 30 days going to other firms instead of ${firm}.` : `People searching for ${practice} lawyers in ${city} are finding ${comp} instead of ${firm}.`}
+THEIR SITUATION: People in ${city} are searching for a ${practice} lawyer right now. ${comp} is showing up, ${firm} isn't. ${range ? `Their breakdown shows ${range} every 30 days that should be going to them.` : ''}
 
-We did this for a similar ${practice} firm. They went from invisible to their phone ringing every day. 12 new clients in 30 days.
+We did this for a similar ${practice} firm. 12 new clients in 30 days. Phone ringing every day.
 
-Use their specific competitor name, city, and dollar range. Meeting dates: ${dates[0]} or ${dates[1]}`;
+Mention competitor once max. Focus on what ${firm} could be making. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -100,18 +101,17 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
   {
     name: 'cost_of_waiting',
     buildPrompt: (lead, dates) => {
-      const comp = lead.top_competitor || 'their competitors';
       const range = lead.total_range || '';
       const city = lead.city || 'their area';
       const practice = lead.practice_label || 'legal';
       const firm = lead.firm_name || 'your firm';
       return `Email 3. Make the cost of doing nothing obvious.
 
-THEIR NUMBERS: ${range ? `${range} every 30 days is going to ${comp} instead of ${firm}.` : `Every 30 days, ${comp} in ${city} is signing the people who should be hiring ${firm}.`} That's not a guess, it's in their breakdown.
+THEIR NUMBERS: ${range ? `Every 30 days ${firm} waits, that's ${range} going to other firms in ${city} instead of them.` : `Every 30 days ${firm} waits, other firms in ${city} are signing the people who should be their clients.`} That's in their breakdown.
 
 We did this for a similar firm. $109K in new clients in their first 30 days. Same kind of market as ${city}.
 
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Don't mention competitor name here. Focus on what THEY are losing. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -119,16 +119,14 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
     buildPrompt: (lead, dates) => {
       const practice = lead.practice_label || 'legal';
       const city = lead.city || 'their market';
-      const comp = lead.top_competitor || 'their competitor';
-      const reviews = lead.competitor_reviews || '';
       const firm = lead.firm_name || 'your firm';
-      return `Email 4. Use their competitor data.
+      return `Email 4. Reviews and trust.
 
-THEIR SITUATION: People Google "${practice} lawyer ${city}" and see ${comp}${reviews ? ` with ${reviews} reviews` : ''}. Then they see ${firm}. They pick whoever looks more legit.
+THEIR SITUATION: When people Google "${practice} lawyer ${city}" they pick whoever looks the most trusted. Right now that's not ${firm}.
 
-We made a ${practice} firm the most reviewed in their area. People started picking them over everyone else. $92K in new clients in 30 days.
+We made a ${practice} firm the most reviewed in their city. People started calling them first because they looked like the obvious choice. $92K in new clients in 30 days.
 
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Don't name the competitor here. Focus on what ${firm} could look like. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -156,13 +154,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
       const firm = lead.firm_name || 'your firm';
       return `Email 6. Straight ask. Sum up everything.
 
-WE HANDLE IT ALL: We make ${firm} show up when people in ${city} search. We put them on social media. We make sure every call gets answered. We get them more reviews than ${lead.top_competitor || 'their competitors'}. They just show up to meetings and sign clients.
+WE HANDLE IT ALL: We make ${firm} show up when people in ${city} search. We put them on social media. We make sure every call gets answered. We get them more reviews. They just show up to meetings and sign clients.
 
 ${range ? `Their breakdown shows ${range} every 30 days. That's what's on the table for ${firm}.` : ''}
 
 A ${practice} firm we do this for just shows up to meetings now. Calendar full every week.
 
-If it makes sense, great. If not, no hard feelings. Meeting dates: ${dates[0]} or ${dates[1]}`;
+No competitor name. This is about THEM. If it makes sense, great. If not, no hard feelings. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -272,6 +270,50 @@ function cleanEmail(text) {
   return lines.join('\n\n');
 }
 
+/**
+ * QC check: flag emails that won't convert.
+ */
+function qcEmail(text, lead) {
+  const issues = [];
+  const lower = text.toLowerCase();
+  const words = text.split(/\s+/).length;
+
+  // Length check
+  if (words > 80) issues.push(`too long (${words} words)`);
+  if (words < 20) issues.push(`too short (${words} words)`);
+
+  // Banned jargon
+  const jargon = ['leverage','optimize','capture','convert','visibility','intake',
+    'high-intent','pipeline','engagement','retainers','consultations','compelling',
+    'robust','utilize','facilitate','comprehensive','streamline','innovative',
+    'strategy','solution','approach','playbook'];
+  for (const word of jargon) {
+    if (lower.includes(word)) issues.push(`jargon: "${word}"`);
+  }
+
+  // Competitor name mentioned more than once
+  if (lead.top_competitor) {
+    const compName = lead.top_competitor.toLowerCase();
+    const matches = lower.split(compName).length - 1;
+    if (matches > 1) issues.push(`competitor name "${lead.top_competitor}" used ${matches}x (max 1)`);
+  }
+
+  // Has money/ROI reference
+  if (!text.includes('$') && !lower.includes('client') && !lower.includes('money')) {
+    issues.push('no money/ROI reference');
+  }
+
+  // Has their city or firm name (personalization check)
+  const hasCity = lead.city && lower.includes(lead.city.toLowerCase());
+  const hasFirm = lead.firm_name && lower.includes(lead.firm_name.toLowerCase());
+  if (!hasCity && !hasFirm) issues.push('missing personalization (no city or firm name)');
+
+  // Em dashes snuck through
+  if (text.includes('\u2014') || text.includes('\u2013')) issues.push('em dash found');
+
+  return issues;
+}
+
 function daysSince(dateStr) {
   const start = new Date(dateStr);
   const now = new Date();
@@ -339,6 +381,14 @@ function daysSince(dateStr) {
 
       // Post-process: kill em dashes, enforce spacing
       emailBody = cleanEmail(emailBody);
+
+      // QC check: score the email
+      const qcIssues = qcEmail(emailBody, lead);
+      if (qcIssues.length > 0) {
+        console.log(`  ⚠️  QC issues: ${qcIssues.join(', ')}`);
+      } else {
+        console.log(`  ✅ QC passed`);
+      }
 
       // Queue via Worker (no subject line needed, these are thread replies)
       await workerAPI('/queue-email', {
