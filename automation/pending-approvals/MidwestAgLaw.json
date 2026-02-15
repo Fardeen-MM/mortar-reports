@@ -10,13 +10,13 @@
   "reply_text": "Okay, I'll listen to your pitch. Run it by me and I will see if I am interested.  On Thu, Jan 29, 2026, 10:27 AM Jessica Mitchell < jessica_m@mortarmetricsplan.com> wrote:  > Kole – We made a Marketing Gap Analysis for your firm. > > It’s basically a checklist of what’s missing across your marketing, plus > how to solve each item yourself so you can get more consults without > guessing. > > Want me to send it? > > On Tue, January 27, 2026 6:17 PM, Jessica Mitchell < > jessica_m@mortarmetricsplan",
   "campaign_name": "Lawyer Campaign (bard)",
   "phone": "",
-  "created_at": "2026-02-15T14:31:01.224Z",
-  "status": "approved",
+  "created_at": "2026-02-15T14:58:54.725Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "true",
-  "qc_issues": "0",
+  "qc_issues": "1",
   "qc_would_book": "true",
-  "qc_biggest_issue": "",
+  "qc_biggest_issue": "Report uses fallback template prose (3 fingerprint phrases found)",
   "qc_score": "10",
   "total_range": "$95K-129K",
   "total_cases": "11-21",
@@ -28,7 +28,6 @@
     "is_decision_maker": true,
     "source": "instantly_webhook"
   },
-  "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Personalize the hero headline to clearly show this is specifically about Midwest Ag Law's opportunity",
-  "approved_at": "2026-02-15T14:31:55.979Z"
+  "conversion_verdict": "",
+  "conversion_note": ""
 }
