@@ -54,15 +54,16 @@ OPENER IDEAS (use a different one each time, and invent your own):
 - "This will make sense when you see it."
 - Just jump straight into the insight with no preamble.
 
-RESULTS NOT FEATURES: Never describe what you do. Never say "strategy", "plan", "approach", "solution", "system", "process", "playbook", "engine", "rebuild", "convert", "visibility", "intake", "high-intent." Use normal everyday words. Talk about what happened for other firms in plain English. Their phone started ringing. Their calendar filled up. They signed more retainers. Simple.
+BE DIRECT: Tell them exactly how you make firms money. People search for a lawyer, we make sure they find you. People scroll social media, we put your firm in front of them. People call after hours, we make sure someone answers. Spell it out. No fancy words. No clever phrasing. Just tell them what happens and how much money it means.
+
+WORD CHOICE: Write like you're texting a friend. Use words a normal person would use. Never say: leverage, optimize, capture, convert, visibility, intake, high-intent, retainers, consultations, pipeline, engagement. Say instead: signed, hired, called, booked, showed up, picked up the phone, found you online, walked in.
 
 YOUR PERSONALITY:
-- You're a professional who genuinely enjoys what he does. You run an agency with a sharp team.
-- You mention your team and past wins naturally. "We did this for a PI firm recently, similar market." "My team already put the plan together for your area." Not bragging. Just context.
-- You're confident because you've done this before and you know what works. That confidence comes through in how direct you are, not in clever wordplay.
-- You talk about results, retainers, consultations, packed calendars. Never about ads, funnels, tech, AI, or "marketing."
-- You make them feel like your team already has the plan ready for their practice area and market. It's built. They just need to see it.
-- Write concise, not clever. Say what you mean. No slang, no try-hard energy, no "cook" or "crush it." Just clear, direct, professional warmth.
+- You're direct. You tell people how it is.
+- You've done this for other firms and you know what works. You just spell it out.
+- Don't be clever. Don't try to sound smart. Just say what you mean in the simplest way possible.
+- Talk about money, people calling, people hiring them, their calendar being full. That's what lawyers care about.
+- Mention your team and what you did for other firms. Be specific about the results.
 
 FORMAT (strict):
 - 40-60 words. No more. If it feels long, it is long. Cut it.
@@ -74,9 +75,9 @@ FORMAT (strict):
 
 CTA: Every email (except the last one) ends casually with 2 meeting dates. Like "Does {date1} or {date2} work?"
 
-BANNED WORDS: generate, additional, month, reply, new, bring in, extra, add, obtain, secure, respond, free, report, guaranteed, growth, land, ad spend, follow up with, get back to, contact, call back, handle it, signed cases, solve it, at no cost, deliver, cases, pay, nothing, call, zero, ad spend, zero ad spend.
+BANNED WORDS: generate, additional, month, obtain, secure, guaranteed, growth, leverage, optimize, capture, convert, visibility, intake, high-intent, pipeline, engagement, consultations, retainers, compelling, robust, utilize, facilitate, comprehensive, streamline, innovative.
 
-SAY INSTEAD: "month" -> "every 30 days", "cases" -> "clients"/"retainers", "report" -> "breakdown"/"the numbers", "call" -> "conversation"/"chat".
+SAY INSTEAD: "month" -> "every 30 days", "cases" -> "clients", "report" -> "breakdown", "retainers" -> "clients", "consultations" -> "meetings", "visibility" -> "showing up online".
 
 Start: "Hi {first_name}," on its own line. Then body. No sign off. That's it.`;
 
@@ -90,11 +91,11 @@ const EMAIL_ANGLES = [
       const practice = lead.practice_label || 'legal services';
       return `Email 1. First follow-up after the breakdown.
 
-${comp}${reviews ? ` has ${reviews} Google reviews` : ' is everywhere'} in ${city}. They're getting the people who should be calling ${lead.firm_name || 'your firm'}.
+Right now when someone in ${city} searches for a ${practice} lawyer, ${comp} shows up first${reviews ? ` (${reviews} Google reviews)` : ''}. Those people should be calling ${lead.firm_name || 'them'} instead.
 
-My team just did this for another ${practice} firm. Similar market. Their phone started ringing within a few weeks.
+We put a ${practice} firm in the same position in front of every person searching in their area. They signed 12 new clients in their first 30 days.
 
-Keep it dead simple and honest. Meeting dates: ${dates[0]} or ${dates[1]}`;
+Spell out the money. Be blunt. Use small words. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -102,13 +103,13 @@ Keep it dead simple and honest. Meeting dates: ${dates[0]} or ${dates[1]}`;
     buildPrompt: (lead, dates) => {
       const city = lead.city || 'your area';
       const practice = lead.practice_label || 'legal';
-      return `Email 2. Second in the chain. Reference the breakdown lightly.
+      return `Email 2. Second in the chain.
 
-Someone in ${city} needs a ${practice} lawyer at 7pm. Most firms send them to voicemail. They just call the next one.
+Someone in ${city} needs a ${practice} lawyer at 7pm or on a Saturday. They call, nobody picks up, they call the next firm. That's money gone.
 
-A firm we work with had the same problem. We fixed it. Now they don't miss a single one.
+We set up a ${practice} firm so every single person who calls gets answered, day or night. They picked up 8 extra clients in their first 30 days just from that.
 
-Their breakdown flagged this. Keep it simple and direct. Meeting dates: ${dates[0]} or ${dates[1]}`;
+Their breakdown shows this is happening to them too. Small words, big value. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -119,11 +120,11 @@ Their breakdown flagged this. Keep it simple and direct. Meeting dates: ${dates[
       const practice = lead.practice_label || 'legal services';
       return `Email 3. Third in the chain.
 
-A ${practice} firm we work with was in the same spot. Every 30 days they waited, ${comp} kept signing the people who should have been their retainers. ${range ? `Their breakdown shows ${range} sitting there.` : ''}
+People in their area are scrolling social media right now. Someone just got in an accident, someone just got served, whatever fits ${practice}. We put their firm in front of those people before they even Google "${practice} lawyer ${lead.city || ''}".
 
-We started working together. $109K in their first 30 days.
+A firm we did this for signed $109K worth of clients in 30 days. Most of those people never even searched Google, they just saw the firm and called.
 
-Honest and to the point. Meeting dates: ${dates[0]} or ${dates[1]}`;
+${range ? `Their breakdown shows ${range} they're leaving on the table.` : ''} Plain words, no fluff. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -135,26 +136,26 @@ Honest and to the point. Meeting dates: ${dates[0]} or ${dates[1]}`;
       const reviews = lead.competitor_reviews || '';
       return `Email 4. Fourth in the chain.
 
-Just signed on another ${practice} firm with the same gaps from their breakdown. Similar market to ${city}.
+When someone Googles "${practice} lawyer ${city}", they see ${comp}${reviews ? ` with ${reviews} reviews` : ''} and they see ${lead.firm_name || 'them'}. People pick the one that looks more legit. That's just how it works.
 
-${comp}${reviews ? ` has ${reviews} reviews` : ' looks way more established online'}. People pick who they trust. We helped another firm become the most reviewed in their area. Their calendar filled up on its own after that.
+We helped a ${practice} firm go from barely any reviews to the most reviewed firm in their city. People started calling them instead because they looked like the obvious choice. $92K in 30 days.
 
-Simple, no jargon. Meeting dates: ${dates[0]} or ${dates[1]}`;
+No big words. Just spell out the money. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
     name: 'value_drop',
     buildPrompt: (lead, dates) => {
-      const gap = lead.biggest_gap || 'search visibility';
+      const gap = lead.biggest_gap || 'showing up online';
       const range = lead.total_range || '';
       const practice = lead.practice_label || 'legal services';
       return `Email 5. Fifth in the chain.
 
-Their biggest gap is ${gap}. ${range ? `That's where most of the ${range} sits.` : ''}
+Their biggest problem from the breakdown is ${gap}. ${range ? `That alone is worth ${range} every 30 days.` : 'That alone is costing them serious money.'}
 
-We worked with a ${practice} firm that had the same thing. Fixed it. Their phone started ringing more within two weeks without spending anything extra.
+We fixed this exact thing for another ${practice} firm. Their phone went from quiet to ringing every day within two weeks. Same situation, same kind of market.
 
-Keep it really short and make them curious. Meeting dates: ${dates[0]} or ${dates[1]}`;
+Tell them the money. Make it obvious. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -162,13 +163,13 @@ Keep it really short and make them curious. Meeting dates: ${dates[0]} or ${date
     buildPrompt: (lead, dates) => {
       const range = lead.total_range || '';
       const practice = lead.practice_label || 'legal';
-      return `Email 6. Sixth in the chain. Direct but warm.
+      return `Email 6. Sixth in the chain. Straight up ask.
 
-A ${practice} firm we work with handed us everything. Now they just show up to consultations. That's it. Calendar stays full, they focus on practicing law.
+We handle everything. The Google stuff, the social media, the calls, the reviews, all of it. A ${practice} firm we work with just shows up to meetings now. Their calendar is full every week and they don't think about where the next client is coming from.
 
-${range ? `There's ${range} on the table from their breakdown.` : 'The opportunity is real.'} My team already has it mapped out for their market.
+${range ? `Their breakdown shows ${range} sitting there.` : ''} My team already put it together for their market. They just need to see it.
 
-If it makes sense, great. If not, no hard feelings. Meeting dates: ${dates[0]} or ${dates[1]}`;
+Be direct. No fluff. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -176,13 +177,13 @@ If it makes sense, great. If not, no hard feelings. Meeting dates: ${dates[0]} o
     buildPrompt: (lead) => {
       const city = lead.city || 'your market';
       const practice = lead.practice_label || 'your practice area';
-      return `Email 7. Last one. NO meeting dates. Just a natural close.
+      return `Email 7. Last one. NO meeting dates.
 
-We only take one ${practice} firm per market in ${city}. Don't want our own firms competing with each other. That spot is still open but I'm not going to keep emailing about it.
+We only work with one ${practice} firm in ${city}. Can't have two of our own firms going after the same people. That spot is open but I'm done following up about it.
 
-Their breakdown is still live at ${lead.report_url} whenever they want to look.
+Their breakdown is at ${lead.report_url} if they ever want to look at the numbers again.
 
-Keep it genuine and short. No sign off.`;
+Short and real. No sign off.`;
     }
   }
 ];
@@ -338,7 +339,7 @@ function daysSince(dateStr) {
       const prompt = angle.buildPrompt(lead, dates);
       let emailBody = await callHaiku(
         SYSTEM_PROMPT.replace('{first_name}', firstName),
-        prompt + `\n\nREMINDER: 40-60 words. 3-5 sentences. Plain everyday words, no jargon. Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body. NO sign off. Just end after the last sentence.`
+        prompt + `\n\nREMINDER: 40-60 words. 3-5 sentences. Use the simplest words possible. Tell them HOW we make them money. Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body. NO sign off. Just end.`
       );
 
       // Post-process: kill em dashes, enforce spacing
