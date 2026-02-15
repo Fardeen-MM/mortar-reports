@@ -110,8 +110,16 @@ jobs:
             if echo "$COMPANY_LOWER" | grep -qi "$FIRST_LOWER" 2>/dev/null || echo "$EMAIL_DOMAIN" | grep -qi "$FIRST_LOWER" 2>/dev/null; then
               echo "  ✅ first_name '$FIRST_NAME' matches email but also in company/domain - keeping as real name"
             else
-              echo "  ⚠️  first_name '$FIRST_NAME' matches email local part and not in company/domain - treating as no name"
-              FIRST_NAME=""
+              # Only clear if it looks like garbage — real names with vowels are kept
+              IS_GENERIC=$(echo "$EMAIL_LOCAL" | grep -qiE '^(info|contact|admin|office|support|hello|team|legal|law|mail|enquiries|help)$' && echo "true" || echo "false")
+              HAS_VOWELS=$(echo "$EMAIL_LOCAL" | grep -qiE '[aeiou]' && echo "true" || echo "false")
+              NAME_LEN=${#EMAIL_LOCAL}
+              if [ "$IS_GENERIC" = "true" ] || [ "$NAME_LEN" -le 2 ] || ([ "$NAME_LEN" -le 5 ] && [ "$HAS_VOWELS" = "false" ]); then
+                echo "  ⚠️  first_name '$FIRST_NAME' matches email local part and looks like garbage - clearing"
+                FIRST_NAME=""
+              else
+                echo "  ✅ first_name '$FIRST_NAME' matches email local part but has vowels - keeping as real name"
+              fi
             fi
           fi
 
@@ -427,6 +435,7 @@ jobs:
         if: steps.check_existing.outputs.skip != 'true' && steps.validate.outputs.valid == 'true' && steps.report.outputs.blocked != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           RESEARCH_FILE=$(find reports -name "*-maximal-research.json" -type f | head -1)
           REPORT_FILE=$(find reports -name "*-report-v3.html" -type f | head -1)
