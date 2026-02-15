@@ -301,7 +301,7 @@ function quickQC(text, lead) {
   const lower = text.toLowerCase();
   const words = text.split(/\s+/).length;
 
-  if (words > 90) issues.push(`too long (${words} words)`);
+  if (words > 75) issues.push(`too long (${words} words, max 70)`);
   if (words < 20) issues.push(`too short (${words} words)`);
 
   const jargon = ['leverage','optimize','capture','convert','visibility','intake',
