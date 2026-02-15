@@ -54,9 +54,7 @@ OPENER IDEAS (use a different one each time, and invent your own):
 - "This will make sense when you see it."
 - Just jump straight into the insight with no preamble.
 
-RESULTS NOT FEATURES: Never describe what you do directly. Never say "strategy", "plan", "approach", "solution", "system", "process", "playbook." Instead, tell a quick story about what happened for another firm. Let the feature sell itself through the result. "A PI firm we work with was losing 40% of their inquiries after 6pm. Two weeks later their calendar was packed." The reader should think "I want that" without you ever explaining the product.
-
-STORYTELLING: Each email tells a tiny story. A firm you worked with. A problem they had. What happened next. Keep it casual, like you're telling a friend over coffee. The story always ties back to something in their breakdown.
+RESULTS NOT FEATURES: Never describe what you do. Never say "strategy", "plan", "approach", "solution", "system", "process", "playbook", "engine", "rebuild", "convert", "visibility", "intake", "high-intent." Use normal everyday words. Talk about what happened for other firms in plain English. Their phone started ringing. Their calendar filled up. They signed more retainers. Simple.
 
 YOUR PERSONALITY:
 - You're a professional who genuinely enjoys what he does. You run an agency with a sharp team.
@@ -67,11 +65,12 @@ YOUR PERSONALITY:
 - Write concise, not clever. Say what you mean. No slang, no try-hard energy, no "cook" or "crush it." Just clear, direct, professional warmth.
 
 FORMAT (strict):
-- 50-70 words in the body (not counting "Hi name,"). Enough to tell a quick story, not enough to ramble.
-- 4-6 sentences max.
+- 40-60 words. No more. If it feels long, it is long. Cut it.
+- 3-5 sentences. Each one short and punchy.
 - Each sentence on its own line. Blank line between every line. Never a paragraph.
-- Never use the em dash character. Not the long one, not the medium one. Period or comma only.
-- NO sign off. No "Fardeen", no "Best", no "Cheers." Just end after the last sentence.
+- Never use the em dash character. Period or comma only.
+- NO sign off. No name, no "Best", no "Cheers." Just end after the last sentence.
+- Use simple, everyday words. Write like you talk. No jargon, no marketing words, no corporate speak.
 
 CTA: Every email (except the last one) ends casually with 2 meeting dates. Like "Does {date1} or {date2} work?"
 
@@ -89,15 +88,13 @@ const EMAIL_ANGLES = [
       const reviews = lead.competitor_reviews || '';
       const city = lead.city || 'your area';
       const practice = lead.practice_label || 'legal services';
-      return `Email 1. First follow-up. SUBTLY SELLS: search visibility / showing up when people search for a lawyer.
+      return `Email 1. First follow-up after the breakdown.
 
-Tell a quick story: ${comp}${reviews ? ` has ${reviews} Google reviews` : ' is showing up everywhere'} in ${city}. Every time someone in ${city} searches for a ${practice} lawyer, ${comp} is right there.
+${comp}${reviews ? ` has ${reviews} Google reviews` : ' is everywhere'} in ${city}. They're getting the people who should be calling ${lead.firm_name || 'your firm'}.
 
-Your team worked with a ${practice} firm in a similar position. Within 30 days they were showing up for every high-intent search in their area. Calendar went from empty to packed.
+My team just did this for another ${practice} firm. Similar market. Their phone started ringing within a few weeks.
 
-Their breakdown shows the same opportunity. Tie it back naturally.
-
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Keep it dead simple and honest. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -105,15 +102,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
     buildPrompt: (lead, dates) => {
       const city = lead.city || 'your area';
       const practice = lead.practice_label || 'legal';
-      return `Email 2. Second in the chain. SUBTLY SELLS: after-hours call capture (never miss an inquiry, even at 7pm).
+      return `Email 2. Second in the chain. Reference the breakdown lightly.
 
-Tell a quick story: A ${practice} firm your team works with was losing inquiries every evening and weekend. People would search, hit voicemail, and just dial the next firm. 60% gone.
+Someone in ${city} needs a ${practice} lawyer at 7pm. Most firms send them to voicemail. They just call the next one.
 
-Your team set something up for them. Two weeks later they were capturing every single one of those inquiries. Consultations they never even knew they were missing.
+A firm we work with had the same problem. We fixed it. Now they don't miss a single one.
 
-Their breakdown flagged this same gap. Reference it lightly.
-
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Their breakdown flagged this. Keep it simple and direct. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -122,13 +117,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
       const comp = lead.top_competitor || 'their competitors';
       const range = lead.total_range || '';
       const practice = lead.practice_label || 'legal services';
-      return `Email 3. Third in the chain. SUBTLY SELLS: social media / reaching people before they even search for a lawyer.
+      return `Email 3. Third in the chain.
 
-Tell a quick story: A ${practice} firm your team works with started reaching people in their area before they ever typed "${practice} lawyer" into Google. People who just had an accident, just got served papers, whatever fits ${practice}. By the time those people needed a lawyer, this firm was already the name they remembered.
+A ${practice} firm we work with was in the same spot. Every 30 days they waited, ${comp} kept signing the people who should have been their retainers. ${range ? `Their breakdown shows ${range} sitting there.` : ''}
 
-$109K in retainers in their first 30 days. Meanwhile ${comp} is only catching people who are already searching. ${range ? `Their breakdown shows ${range} in opportunity.` : ''}
+We started working together. $109K in their first 30 days.
 
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Honest and to the point. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -138,15 +133,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
       const city = lead.city || 'their market';
       const comp = lead.top_competitor || 'their competitors';
       const reviews = lead.competitor_reviews || '';
-      return `Email 4. Fourth in the chain. SUBTLY SELLS: Google reviews / reputation building that makes people pick you over competitors.
+      return `Email 4. Fourth in the chain.
 
-Tell a quick story: A ${practice} firm your team works with had barely any Google reviews. ${comp}${reviews ? ` had ${reviews}` : ' had way more'}. People were choosing ${comp} just because they looked more established online.
+Just signed on another ${practice} firm with the same gaps from their breakdown. Similar market to ${city}.
 
-Your team helped them build a review engine. Within 60 days they went from invisible to the most reviewed ${practice} firm in their area. Consultations doubled because people trusted them before even picking up the phone.
+${comp}${reviews ? ` has ${reviews} reviews` : ' looks way more established online'}. People pick who they trust. We helped another firm become the most reviewed in their area. Their calendar filled up on its own after that.
 
-Their breakdown shows the same gap in ${city}. Reference it.
-
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Simple, no jargon. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -155,16 +148,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
       const gap = lead.biggest_gap || 'search visibility';
       const range = lead.total_range || '';
       const practice = lead.practice_label || 'legal services';
-      const city = lead.city || 'their area';
-      return `Email 5. Fifth in the chain. SUBTLY SELLS: website conversion / turning visitors into actual consultations.
+      return `Email 5. Fifth in the chain.
 
-Tell a quick story: A ${practice} firm your team works with was getting plenty of website visitors but barely any of them were picking up the phone or filling out a form. Turns out their site was leaking potential retainers everywhere.
+Their biggest gap is ${gap}. ${range ? `That's where most of the ${range} sits.` : ''}
 
-Your team rebuilt the way their site converts visitors. Same traffic, but now every visitor has a clear path to booking a consultation. Their intake doubled without spending a dollar more on visibility.
+We worked with a ${practice} firm that had the same thing. Fixed it. Their phone started ringing more within two weeks without spending anything extra.
 
-Their biggest gap is ${gap}. ${range ? `${range} in opportunity, and a lot of that comes down to converting the people already looking at them in ${city}.` : `That's the kind of thing that compounds fast in ${city}.`}
-
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+Keep it really short and make them curious. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -172,16 +162,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
     buildPrompt: (lead, dates) => {
       const range = lead.total_range || '';
       const practice = lead.practice_label || 'legal';
-      const city = lead.city || 'their area';
-      return `Email 6. Sixth in the chain. SUBTLY SELLS: full-service ("we handle everything so you just practice law").
+      return `Email 6. Sixth in the chain. Direct but warm.
 
-Tell a quick story: A ${practice} firm your team works with handed everything off. The visibility, the inquiries, the follow-up, the reputation. All of it. The partner told you he forgot what it was like to worry about where the next retainer was coming from. His calendar just stays full now.
+A ${practice} firm we work with handed us everything. Now they just show up to consultations. That's it. Calendar stays full, they focus on practicing law.
 
-${range ? `Their breakdown shows ${range} in ${city}.` : `The opportunity in ${city} is real.`} Your team already has everything mapped out for their market. They'd just need to show up to the consultations.
+${range ? `There's ${range} on the table from their breakdown.` : 'The opportunity is real.'} My team already has it mapped out for their market.
 
-Direct and warm. Not pushy. If it makes sense, great. If not, genuinely no hard feelings.
-
-Meeting dates: ${dates[0]} or ${dates[1]}`;
+If it makes sense, great. If not, no hard feelings. Meeting dates: ${dates[0]} or ${dates[1]}`;
     }
   },
   {
@@ -189,15 +176,13 @@ Meeting dates: ${dates[0]} or ${dates[1]}`;
     buildPrompt: (lead) => {
       const city = lead.city || 'your market';
       const practice = lead.practice_label || 'your practice area';
-      return `Email 7. Last one in the chain. NO meeting CTA. SUBTLY SELLS: exclusivity (one firm per market, no conflicts).
+      return `Email 7. Last one. NO meeting dates. Just a natural close.
 
-Tell a quick story about why you only work with one ${practice} firm per market in ${city}. You don't want two of your firms competing against each other. The spot for ${city} is still open but you're not going to keep circling back.
+We only take one ${practice} firm per market in ${city}. Don't want our own firms competing with each other. That spot is still open but I'm not going to keep emailing about it.
 
-Their breakdown stays live at ${lead.report_url} whenever they want to revisit it.
+Their breakdown is still live at ${lead.report_url} whenever they want to look.
 
-Genuine and professional. Feels like the end of a real email chain between two people. Not a marketing sequence.
-
-No sign off. Just end after the last sentence.`;
+Keep it genuine and short. No sign off.`;
     }
   }
 ];
@@ -353,7 +338,7 @@ function daysSince(dateStr) {
       const prompt = angle.buildPrompt(lead, dates);
       let emailBody = await callHaiku(
         SYSTEM_PROMPT.replace('{first_name}', firstName),
-        prompt + `\n\nREMINDER: 50-70 words in the body. 4-6 sentences. Tell a quick story, let the result sell itself. Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body. NO sign off, no signature. Just end after the last sentence.`
+        prompt + `\n\nREMINDER: 40-60 words. 3-5 sentences. Plain everyday words, no jargon. Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body. NO sign off. Just end after the last sentence.`
       );
 
       // Post-process: kill em dashes, enforce spacing
