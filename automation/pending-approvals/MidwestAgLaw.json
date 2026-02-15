@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign (bard)",
   "phone": "",
   "created_at": "2026-02-15T14:31:01.224Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -29,5 +29,6 @@
     "source": "instantly_webhook"
   },
   "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Personalize the hero headline to clearly show this is specifically about Midwest Ag Law's opportunity"
+  "conversion_note": "Personalize the hero headline to clearly show this is specifically about Midwest Ag Law's opportunity",
+  "approved_at": "2026-02-15T14:31:55.979Z"
 }
