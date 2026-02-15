@@ -268,6 +268,62 @@ jobs:
             "$COUNTRY"
         working-directory: ./automation
 
+      - name: Extract report data for nurture emails
+        id: report_data
+        run: |
+          FIRM_FOLDER="${{ steps.deploy.outputs.firm_folder }}"
+          REPORT_FILE="$FIRM_FOLDER/index.html"
+
+          if [ ! -f "$REPORT_FILE" ]; then
+            echo "⚠️ No report file found, using defaults"
+            echo "city=" >> $GITHUB_OUTPUT
+            echo "top_competitor=" >> $GITHUB_OUTPUT
+            echo "competitor_reviews=" >> $GITHUB_OUTPUT
+            echo "biggest_gap=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract city, competitor, reviews, and biggest gap from report HTML
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('$REPORT_FILE', 'utf8');
+
+            // City from hero setup heading
+            const cityMatch = html.match(/Every (?:30 days|month), people in ([^<]+?) search/i);
+            const city = cityMatch ? cityMatch[1].trim() : '';
+            console.log('city=' + city);
+
+            // Competitors from table (rows without 'competitor-table-you' class)
+            const tableMatch = html.match(/<div class=\"competitor-table\">[\\s\\S]*?<\\/table>/);
+            let topComp = '', compReviews = '';
+            if (tableMatch) {
+              const rows = tableMatch[0].match(/<tr(?! class=\"competitor-table-you\")>([\\s\\S]*?)<\\/tr>/g) || [];
+              if (rows.length > 0) {
+                const nameMatch = rows[0].match(/<td>([^<]+)<\\/td>/);
+                topComp = nameMatch ? nameMatch[1].trim() : '';
+                // Try to get review count from review bars section
+                const reviewPattern = new RegExp(topComp.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\\\$&') + '[\\\\s\\\\S]*?(\\\\d+)\\\\s*reviews', 'i');
+                const revMatch = html.match(reviewPattern);
+                compReviews = revMatch ? revMatch[1] : '';
+              }
+            }
+            console.log('top_competitor=' + topComp);
+            console.log('competitor_reviews=' + compReviews);
+
+            // Biggest gap from revenue cards
+            const gapCards = html.match(/<div class=\"revenue-card[^\"]*\">[\\s\\S]*?<div class=\"revenue-card-number\">([^<]+)<\\/div>/g) || [];
+            const gaps = gapCards.map((card, i) => {
+              const numMatch = card.match(/revenue-card-number\">([^<]+)/);
+              const val = numMatch ? numMatch[1].replace(/[^0-9]/g, '') : '0';
+              const labelMatch = card.match(/revenue-card-badge\">([^<]+)/);
+              const label = labelMatch ? labelMatch[1].trim() : ['Search visibility', 'Social advertising', 'After-hours intake'][i];
+              return { label, val: parseInt(val) || 0 };
+            });
+            const biggest = gaps.sort((a, b) => b.val - a.val)[0];
+            const biggestGap = biggest ? biggest.label.toLowerCase() : '';
+            console.log('biggest_gap=' + biggestGap);
+          " >> $GITHUB_OUTPUT
+
       - name: Add lead to nurture queue
         if: steps.inputs.outputs.skip_email != 'true'
         env:
@@ -277,10 +333,17 @@ jobs:
           CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
           COUNTRY: ${{ steps.inputs.outputs.country }}
+          TOTAL_RANGE: ${{ steps.inputs.outputs.total_range }}
+          TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
+          CITY: ${{ steps.report_data.outputs.city }}
+          TOP_COMPETITOR: ${{ steps.report_data.outputs.top_competitor }}
+          COMPETITOR_REVIEWS: ${{ steps.report_data.outputs.competitor_reviews }}
+          BIGGEST_GAP: ${{ steps.report_data.outputs.biggest_gap }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
           echo "📬 Adding $LEAD_EMAIL to nurture queue..."
+          echo "   City: $CITY | Competitor: $TOP_COMPETITOR ($COMPETITOR_REVIEWS reviews) | Gap: $BIGGEST_GAP"
 
           curl -sf -X POST "$WORKER/nurture-check" \
             -H "Content-Type: application/json" \
@@ -293,6 +356,12 @@ jobs:
                 \"report_url\": \"$LIVE_URL\",
                 \"practice_label\": \"$PRACTICE_LABEL\",
                 \"country\": \"$COUNTRY\",
+                \"total_range\": \"$TOTAL_RANGE\",
+                \"total_cases\": \"$TOTAL_CASES\",
+                \"city\": \"$CITY\",
+                \"top_competitor\": \"$TOP_COMPETITOR\",
+                \"competitor_reviews\": \"$COMPETITOR_REVIEWS\",
+                \"biggest_gap\": \"$BIGGEST_GAP\",
                 \"start_date\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
                 \"emails_sent\": 0,
                 \"last_sent\": \"\",

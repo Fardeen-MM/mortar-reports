@@ -4,7 +4,8 @@
  * follow-up emails via Claude Haiku, and queues them for Telegram approval.
  *
  * Schedule: days 2, 4, 6, 8, 10, 12, 14 after start_date
- * 7 email angles: social proof, case study, ROI, competitor, FAQ, scarcity, final
+ * 7 email angles: competitor, after-hours, cost of waiting, social proof,
+ *                 value drop, direct ask, breakup
  *
  * Usage: node nurture-sender.js
  * Env: ANTHROPIC_API_KEY, WORKER_URL (optional, defaults to production)
@@ -17,52 +18,190 @@ const WORKER_URL = process.env.WORKER_URL || 'https://instantly-webhook-proxy.fa
 
 const SEND_DAYS = [2, 4, 6, 8, 10, 12, 14];
 
+/**
+ * Generate two upcoming weekday date options like "Tuesday at 2pm" and "Thursday at 11am"
+ */
+function getDateOptions() {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const times = ['10am', '11am', '2pm', '3pm'];
+  const now = new Date();
+  const options = [];
+
+  // Find next two weekdays that are 2+ days out
+  for (let offset = 2; options.length < 2 && offset < 10; offset++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + offset);
+    const dow = d.getDay();
+    if (dow >= 1 && dow <= 5) {
+      const time = times[options.length % times.length];
+      options.push(`${days[dow]} at ${time}`);
+    }
+  }
+  return options;
+}
+
+// System prompt - establishes personality
+const SYSTEM_PROMPT = `You are Fardeen. You run Mortar Metrics, a legal marketing agency. You're following up with a law firm partner who you already sent a personalized breakdown to. They showed interest but haven't booked in yet.
+
+CRITICAL CONTEXT: You already sent them a breakdown (a personalized analysis of their market and competitors). These emails are replies on that same thread. Each one should feel like a natural continuation, not a fresh start. Reference the breakdown or previous emails lightly but VARY HOW YOU DO IT every time. Never open two emails the same way.
+
+OPENER IDEAS (use a different one each time, and invent your own):
+- "Had a reason to think about your firm today."
+- "Something came up with another firm that reminded me of your situation."
+- "My team was working on something and your numbers came up."
+- "Funny timing on this one."
+- "Was talking to my team about your market today."
+- "This will make sense when you see it."
+- Just jump straight into the insight with no preamble.
+
+RESULTS NOT FEATURES: Never describe what you do. Never say "strategy", "plan", "approach", "solution", "system", "process", "playbook." Talk about what happened for other firms. Packed calendars, retainers coming in, consultations booked, phones ringing. Paint the picture of the result, never the method.
+
+YOUR PERSONALITY:
+- You're a professional who genuinely enjoys what he does. You run an agency with a sharp team.
+- You mention your team and past wins naturally. "We did this for a PI firm recently, similar market." "My team already put the plan together for your area." Not bragging. Just context.
+- You're confident because you've done this before and you know what works. That confidence comes through in how direct you are, not in clever wordplay.
+- You talk about results, retainers, consultations, packed calendars. Never about ads, funnels, tech, AI, or "marketing."
+- You make them feel like your team already has the plan ready for their practice area and market. It's built. They just need to see it.
+- Write concise, not clever. Say what you mean. No slang, no try-hard energy, no "cook" or "crush it." Just clear, direct, professional warmth.
+
+FORMAT (strict):
+- 30-50 words. Short.
+- Each sentence on its own line. Blank line between every line. Never a paragraph.
+- Never use the em dash character. Not the long one, not the medium one. Period or comma only.
+- Sign off: just "Fardeen" on its own line. No "Best" or "Cheers."
+
+CTA: Every email (except the last one) ends casually with 2 meeting dates. Like "Does {date1} or {date2} work?"
+
+BANNED WORDS: generate, additional, month, reply, new, bring in, extra, add, obtain, secure, respond, free, report, guaranteed, growth, land, ad spend, follow up with, get back to, contact, call back, handle it, signed cases, solve it, at no cost, deliver, cases, pay, nothing, call, zero, ad spend, zero ad spend.
+
+SAY INSTEAD: "month" -> "every 30 days", "cases" -> "clients"/"retainers", "report" -> "breakdown"/"the numbers", "call" -> "conversation"/"chat".
+
+Start: "Hi {first_name}," on its own line. Then body. Then "Fardeen". That's it.`;
+
 const EMAIL_ANGLES = [
   {
+    name: 'competitor_insight',
+    buildPrompt: (lead, dates) => {
+      const comp = lead.top_competitor || 'your top competitor';
+      const reviews = lead.competitor_reviews || '';
+      const city = lead.city || 'your area';
+      const practice = lead.practice_label || 'legal services';
+      return `Email 1. First follow-up. Competitor data from their breakdown.
+
+DO NOT open with "one thing that stood out" or "been looking at your numbers." Instead open by jumping straight into the competitor fact or with something like "Had a reason to pull up your numbers today."
+
+${comp}${reviews ? ` has ${reviews} Google reviews` : ' is showing up everywhere'} in ${city}. They're covering a lot of ground right now.
+
+Mention your team is working with another ${practice} firm in a similar position. Similar market, and they're already seeing their phones ring more.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
+  },
+  {
+    name: 'after_hours_leak',
+    buildPrompt: (lead, dates) => {
+      const city = lead.city || 'your area';
+      const practice = lead.practice_label || 'legal';
+      return `Email 2. Second follow-up on the same thread. They got the breakdown and the first follow-up.
+
+DO NOT open with "one more thing" or "something else I noticed." Instead try something like "Something came up with another firm that reminded me of your situation." or "My team was working on something and your numbers came up." Or just jump straight into the insight.
+
+When someone in ${city} needs a ${practice} lawyer at 7pm, most firms send it to voicemail. 60% of those people just dial the next firm. That's retainers walking out the door every week.
+
+Mention your team fixed this exact problem for another ${practice} firm recently. Two weeks in and their calendar was filling up with consultations they used to miss entirely.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
+  },
+  {
+    name: 'cost_of_waiting',
+    buildPrompt: (lead, dates) => {
+      const comp = lead.top_competitor || 'their competitors';
+      const range = lead.total_range || '';
+      const practice = lead.practice_label || 'legal services';
+      return `Email 3. Third in the chain. By now they've seen the breakdown and two follow-ups.
+
+DO NOT open with "keep coming back to your numbers" or "was looking at your breakdown again." Instead try something like "Funny timing on this one." or "Was talking to my team about your market today." or just lead with the result.
+
+Your team just wrapped up with a ${practice} firm in a similar position. $109K in retainers in their first 30 days. Same kind of gaps that showed up in their breakdown.
+
+Every 30 days they wait, ${comp} keeps collecting those retainers. ${range ? `Their breakdown shows ${range} sitting there.` : ''}
+
+Your team already built the same thing for their market. It's ready.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
+  },
+  {
     name: 'social_proof',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics to a law firm lead.
-Mention that other firms in their practice area are seeing results from similar analysis.
-Reference their personalized report. No specific numbers or names — keep it general but credible.
-End with a soft CTA to review the report or book a call.`
+    buildPrompt: (lead, dates) => {
+      const practice = lead.practice_label || 'legal services';
+      const city = lead.city || 'their market';
+      return `Email 4. Fourth in the chain. Feel like you had a genuine reason to reach out again.
+
+DO NOT open with "quick update" or "thought you'd want to know." Instead try something like "This will make sense when you see it." or "Had a reason to think about your firm today." Something that makes them curious.
+
+Your team just signed on another ${practice} firm that had the exact same gaps in their breakdown. Similar market, similar position. $92K in retainers, packed calendar, within 30 days.
+
+Your team already built the same thing for ${practice} in ${city}. It's sitting there ready.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
   },
   {
-    name: 'case_study',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics.
-Share a brief story about how a firm (don't name them) went from invisible on Google to signing cases monthly.
-Tie it back to the lead's own report. Soft CTA.`
+    name: 'value_drop',
+    buildPrompt: (lead, dates) => {
+      const gap = lead.biggest_gap || 'search visibility';
+      const range = lead.total_range || '';
+      const practice = lead.practice_label || 'legal services';
+      return `Email 5. Fifth in the chain. Zero in on the single biggest thing from their breakdown.
+
+DO NOT open with "pulled up your breakdown again" or "one number that keeps jumping out." Instead try something like "My team flagged something in your numbers I think you should see." or just lead straight into the insight with no preamble.
+
+Their biggest gap is ${gap}. ${range ? `That's where most of the ${range} opportunity sits.` : 'That alone is worth a conversation.'}
+
+Your team ran the exact same ${practice} play for another firm in a similar position. Their phones started ringing within two weeks.
+
+Make them curious. Don't explain what you'd do. Just hint at the result.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
   },
   {
-    name: 'roi',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics.
-Focus on ROI — frame the cost of NOT acting (cases going to competitors each month).
-Reference their report's competitor data. Make it about money left on the table, not marketing spend.`
+    name: 'direct_ask',
+    buildPrompt: (lead, dates) => {
+      const range = lead.total_range || '';
+      const practice = lead.practice_label || 'legal';
+      return `Email 6. Sixth in the chain. Direct but warm. This is the straight ask.
+
+DO NOT open with "I've sent over your breakdown" or recap what you've shared. Instead try something like "I'll keep this short." or "Wanted to be upfront with you." Something that signals directness.
+
+Between the breakdown and everything you've shared, ${range ? `there's ${range} on the table.` : 'the opportunity is real.'} Your team already built the ${practice} plan for their market. Same play that's filling calendars for firms you're already working with.
+
+Everything is ready. If it makes sense, you'll walk them through it. If not, genuinely no hard feelings.
+
+Confident and respectful. Not pushy.
+
+Meeting dates: ${dates[0]} or ${dates[1]}`;
+    }
   },
   {
-    name: 'competitor',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics.
-Focus on what their competitors are doing right now — running ads, collecting reviews, showing up in maps.
-The report has the real data. Create urgency without being pushy.`
-  },
-  {
-    name: 'faq',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics.
-Address a common concern: "We've tried marketing before and it didn't work."
-Explain why this is different (real competitor data, specific to their market, measurable gaps).
-Low pressure — just offering to walk through the numbers.`
-  },
-  {
-    name: 'scarcity',
-    prompt: `Write a short follow-up email (4-5 sentences) from Fardeen at Mortar Metrics.
-Mention that you can only take on a limited number of firms per market (to avoid conflicts).
-Their report is ready but the window to act on it narrows as competitors move.
-Not fake urgency — genuine capacity constraint.`
-  },
-  {
-    name: 'final',
-    prompt: `Write a final follow-up email (3-4 sentences) from Fardeen at Mortar Metrics.
-This is the last email. Keep it short and genuine. Say you won't follow up again.
-Leave the door open — if they ever want to look at the data, the report is still available.
-No guilt trip. Just professional closure.`
+    name: 'breakup',
+    buildPrompt: (lead) => {
+      const city = lead.city || 'your market';
+      const practice = lead.practice_label || 'your practice area';
+      return `Email 7. Last one in the chain. NO meeting CTA. Natural close.
+
+DO NOT open with "last note on this." Instead try something like "Won't keep clogging your inbox." or "Figured I'd leave this here and let you decide." Something that feels genuinely final.
+
+Their breakdown stays live at ${lead.report_url} whenever they want to revisit it.
+
+Mention your team only takes one ${practice} firm per market in ${city} to avoid conflicts. That spot is still open but you won't keep circling back.
+
+Genuine and professional. Feels like the end of a real email chain between two people. Not a marketing sequence.
+
+End with just "Fardeen".`;
+    }
   }
 ];
 
@@ -101,7 +240,7 @@ async function callHaiku(systemPrompt, userPrompt) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
       model: 'claude-3-5-haiku-20241022',
-      max_tokens: 400,
+      max_tokens: 300,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     });
@@ -140,6 +279,21 @@ async function callHaiku(systemPrompt, userPrompt) {
   });
 }
 
+/**
+ * Post-process: strip em dashes, ensure line spacing.
+ */
+function cleanEmail(text) {
+  let cleaned = text;
+  // Kill em dashes (all variants)
+  cleaned = cleaned.replace(/\u2014/g, '.'); // —
+  cleaned = cleaned.replace(/\u2013/g, ','); // –
+  cleaned = cleaned.replace(/ - /g, '. ');   // spaced hyphens used as dashes
+  // Ensure blank lines between sentences (if Haiku didn't)
+  // Split into lines, remove empty dupes, rejoin with double newlines
+  const lines = cleaned.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  return lines.join('\n\n');
+}
+
 function daysSince(dateStr) {
   const start = new Date(dateStr);
   const now = new Date();
@@ -173,6 +327,7 @@ function daysSince(dateStr) {
   }
 
   let queued = 0;
+  const dates = getDateOptions();
 
   for (const lead of active) {
     const days = daysSince(lead.start_date);
@@ -181,7 +336,6 @@ function daysSince(dateStr) {
     // Find the next send day
     const nextSendDay = SEND_DAYS[emailsSent];
     if (!nextSendDay) {
-      // All 7 emails sent — mark complete
       console.log(`✅ ${lead.email}: All 7 emails sent, marking complete`);
       lead.status = 'completed';
       await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
@@ -193,45 +347,32 @@ function daysSince(dateStr) {
       continue;
     }
 
-    // Due for next email
-    console.log(`📧 ${lead.email}: Day ${days}, sending email #${emailsSent + 1} (${EMAIL_ANGLES[emailsSent].name})`);
-
     const angle = EMAIL_ANGLES[emailsSent];
-    const practiceContext = lead.practice_label ? ` Their practice area is ${lead.practice_label}.` : '';
-    const countryContext = lead.country && lead.country !== 'US' ? ` They are based in ${lead.country}.` : '';
+    console.log(`📧 ${lead.email}: Day ${days}, sending email #${emailsSent + 1} (${angle.name})`);
+
+    const firstName = lead.contact_name?.split(' ')[0] || 'there';
 
     try {
-      const emailBody = await callHaiku(
-        'You write short, conversational follow-up emails for a legal marketing agency. No exclamation marks. No corporate speak. Sound like a real person.',
-        `${angle.prompt}
-
-Context:
-- Lead name: ${lead.contact_name || 'Partner'}
-- Firm: ${lead.firm_name || 'their firm'}${practiceContext}${countryContext}
-- Their personalized report: ${lead.report_url || 'available on request'}
-- This is email ${emailsSent + 1} of 7 in a follow-up sequence.
-- Sign off as Fardeen, Mortar Metrics.
-
-Write the email body only (no subject line, no "Subject:" prefix). Start with "Hi ${lead.contact_name?.split(' ')[0] || 'there'},".`
+      const prompt = angle.buildPrompt(lead, dates);
+      let emailBody = await callHaiku(
+        SYSTEM_PROMPT.replace('{first_name}', firstName),
+        prompt + `\n\nREMINDER: Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body, then "Fardeen". Nothing else.`
       );
 
-      // Generate subject line
-      const subjectLine = await callHaiku(
-        'Generate a short email subject line (under 50 chars). No quotes in output.',
-        `Write a subject line for this follow-up email to a law firm lead. Angle: ${angle.name}. Email #${emailsSent + 1} of 7. Firm: ${lead.firm_name || 'a law firm'}. Return ONLY the subject line text.`
-      );
+      // Post-process: kill em dashes, enforce spacing
+      emailBody = cleanEmail(emailBody);
 
-      // Queue via Worker
+      // Queue via Worker (no subject line needed, these are thread replies)
       await workerAPI('/queue-email', {
         type: 'nurture',
         to: lead.email,
-        subject: subjectLine || `Following up — ${lead.firm_name || 'your firm'}`,
-        html: emailBody.replace(/\n/g, '<br>'),
+        subject: '',
+        html: emailBody.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>'),
         text: emailBody,
         lead_email: lead.email,
         firm_name: lead.firm_name,
         contact_name: lead.contact_name,
-        context: `Nurture ${emailsSent + 1}/7 (${angle.name}) — Day ${days}`
+        context: `Nurture ${emailsSent + 1}/7 (${angle.name}) - Day ${days}`
       });
 
       // Update nurture entry
