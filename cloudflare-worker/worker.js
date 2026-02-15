@@ -365,11 +365,10 @@ async function handleTelegramCallback(env, update) {
 // ============ INSTANTLY HANDLER ============
 
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
-// One has lead data (website, company, city), the other has email data (email_id, from_email).
+// One has lead data (website, company, city), the other has email data.
 // Each webhook stores to a unique slot key (wh:<email>|<random>), then does KV.list()
-// to find+merge all slots. If 2+ found, dispatch merged immediately. Otherwise:
-//   1. A 20s waitUntil fallback tries to dispatch (best-effort)
-//   2. A cron trigger runs every minute as a safety net for orphaned slots
+// to find+merge all slots. If 2+ found, dispatch merged immediately.
+// Otherwise a 20s waitUntil fallback dispatches whatever we have.
 
 // Helper: dig into nested objects (payload.lead, payload.contact, etc.)
 function dig(payload, ...keys) {
@@ -387,8 +386,6 @@ function dig(payload, ...keys) {
 }
 
 function buildGithubPayload(payload) {
-  console.log('Payload keys:', Object.keys(payload).join(', '));
-  console.log('Name fields:', JSON.stringify({ first_name: payload.first_name, firstName: payload.firstName, last_name: payload.last_name, lastName: payload.lastName, fullName: payload.fullName, full_name: payload.full_name, name: payload.name, 'Full Name': payload['Full Name'] }));
   // Combine city + state into single `location` field (pipe-separated) to free a payload slot for _meta
   const city = dig(payload, 'city', 'City', 'lead_city', 'location_city');
   const state = dig(payload, 'state', 'State', 'lead_state', 'location_state', 'province', 'Province', 'region');
@@ -412,22 +409,23 @@ function buildGithubPayload(payload) {
     }
   };
 
-  // Guard: if first_name is just the email local part, Instantly has no real name - clear it
-  // But don't clear if the name appears in company or domain (e.g., chad@chadgrahamlaw.com - "Chad" is real)
+  // Guard: if first_name is just the email local part AND looks like garbage, clear it
+  // Real names (kole, chad, emma) should be kept even if they match the email prefix
   let clearedByGuard = false;
   if (built.client_payload.first_name && built.client_payload.email) {
     const local = built.client_payload.email.split('@')[0].toLowerCase();
     if (built.client_payload.first_name.toLowerCase() === local) {
-      const domain = built.client_payload.email.split('@')[1]?.toLowerCase() || '';
-      const company = (built.client_payload.company || '').toLowerCase().replace(/\s+/g, '');
-      const nameInContext = domain.includes(local) || company.includes(local);
-      if (nameInContext) {
-        console.log(`first_name "${built.client_payload.first_name}" matches email but found in company/domain - keeping`);
-      } else {
-        console.log(`first_name "${built.client_payload.first_name}" matches email local part - clearing`);
+      const hasVowels = /[aeiou]/i.test(local);
+      const isGeneric = /^(info|contact|admin|office|support|hello|team|legal|law|mail|enquiries|help)$/.test(local);
+      const isTooShort = local.length <= 2;
+      const isInitials = local.length <= 5 && !hasVowels;
+      if (isGeneric || isTooShort || isInitials) {
+        console.log(`first_name "${built.client_payload.first_name}" matches email local part and looks like garbage - clearing`);
         built.client_payload.first_name = '';
         built.client_payload.last_name = '';
         clearedByGuard = true;
+      } else {
+        console.log(`first_name "${built.client_payload.first_name}" matches email local part but looks like a real name - keeping`);
       }
     }
   }
@@ -774,9 +772,7 @@ async function handleInstantlyWebhook(env, payload, ctx) {
     _timestamp: payload.timestamp || payload.created_at || new Date().toISOString()
   };
 
-  console.log('RAW INSTANTLY PAYLOAD:', JSON.stringify(payload));
-  console.log('BUILT GITHUB PAYLOAD:', JSON.stringify(githubPayload));
-  console.log('EXTRA FIELDS:', JSON.stringify(extraFields));
+  console.log(`Instantly webhook for ${email}: website=${githubPayload.client_payload.website || 'none'}, company=${githubPayload.client_payload.company || 'none'}`);
 
   // Already dispatched for this email? (from a previous webhook pair)
   const dispatched = await env.WEBHOOK_KV.get(`done:${email}`);
@@ -822,41 +818,6 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 // ============ MAIN HANDLER ============
 
 export default {
-  // Cron safety net: dispatch any orphaned webhook slots that the waitUntil fallback missed
-  async scheduled(event, env, ctx) {
-    try {
-      const allKeys = await env.WEBHOOK_KV.list({ prefix: 'wh:' });
-      if (allKeys.keys.length === 0) return;
-
-      // Group slot keys by email
-      const byEmail = {};
-      for (const key of allKeys.keys) {
-        const match = key.name.match(/^wh:([^|]+)\|/);
-        if (match) {
-          const email = match[1];
-          if (!byEmail[email]) byEmail[email] = [];
-          byEmail[email].push(key);
-        }
-      }
-
-      for (const email of Object.keys(byEmail)) {
-        const done = await env.WEBHOOK_KV.get(`done:${email}`);
-        if (done) {
-          // Already dispatched — clean up stale slots
-          for (const key of byEmail[email]) {
-            await env.WEBHOOK_KV.delete(key.name);
-          }
-          continue;
-        }
-
-        console.log(`Cron: dispatching orphaned slot(s) for ${email}`);
-        await listMergeDispatch(env, email, 1);
-      }
-    } catch (e) {
-      console.error('Cron sweep error:', e.message);
-    }
-  },
-
   async fetch(request, env, ctx) {
     // GET endpoints
     if (request.method === 'GET') {

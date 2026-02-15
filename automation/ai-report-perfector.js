@@ -61,7 +61,11 @@ const fs = require('fs');
 const https = require('https');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyD5L9ILLVBw3nBg8cI5_a14KmtJhAqLZ9fM';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+if (!GOOGLE_API_KEY) {
+  console.error('ERROR: GOOGLE_API_KEY environment variable is required');
+  process.exit(1);
+}
 
 const researchFile = process.argv[2];
 const reportFile = process.argv[3];

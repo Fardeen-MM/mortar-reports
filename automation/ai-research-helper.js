@@ -517,7 +517,11 @@ async function findCompetitors(firmName, city, state, practiceAreas, country) {
     country.toLowerCase().includes('wales')
   );
 
-  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.error('ERROR: GOOGLE_PLACES_API_KEY environment variable is required');
+    return [];
+  }
 
   // Map country code to region bias for Google Places API
   const region = (country || 'US').toLowerCase();
@@ -672,7 +676,11 @@ async function fetchFirmGoogleData(firmName, city, state, country) {
 
   console.log(`   🔍 Fetching Google Business data for "${firmName}"...`);
 
-  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyA2ZN122gLi2zNGI5dckM88BMyP8Ni4obc';
+  const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.error('ERROR: GOOGLE_PLACES_API_KEY environment variable is required');
+    return { reviews: 0, rating: 0 };
+  }
   const region = (country || 'US').toLowerCase();
   const location = state ? `${city}, ${state}` : city;
   const query = `${firmName} ${location}`;
@@ -775,17 +783,6 @@ function searchGooglePlaces(query, apiKey, region) {
 }
 
 /**
- * DEPRECATED - NO LONGER USED
- * Fallback function removed to prevent fake competitor names.
- * AI must return real firms or empty array.
- */
-// function generateFallbackCompetitors() {
-//   // This function is intentionally disabled
-//   // We never use fake/placeholder competitor names
-//   return [];
-// }
-
-/**
  * AI-powered location inference from firm name, website domain, or any context
  * Use as LAST RESORT when location extraction completely fails
  */
@@ -851,45 +848,6 @@ If you CANNOT make a confident inference (confidence < 5), return:
     console.log(`   ⚠️  AI location inference failed: ${e.message}`);
     return null;
   }
-}
-
-/**
- * Check if a competitor is running Google Ads
- * Uses Google Ads Transparency Center (best-effort, may not always work)
- */
-async function checkGoogleAds(companyName) {
-  // Google Ads Transparency Center doesn't have a public API
-  // This is a placeholder that returns null (unknown)
-  // In production, you'd need to either:
-  // 1. Use a third-party service like SpyFu, SEMrush API
-  // 2. Manually check during research phase
-  // 3. Use Playwright to scrape (complex, rate-limited)
-  return { detected: null, adCount: null };
-}
-
-/**
- * Check if a competitor is running Meta Ads
- * Uses Meta Ad Library API
- */
-async function checkMetaAds(companyName) {
-  // Meta Ad Library doesn't have a public API for programmatic access
-  // Would need to use their official Ad Library API (requires approval)
-  // or scrape with Playwright (against ToS)
-  return { detected: null, activeCount: null };
-}
-
-/**
- * Enrich competitors with ad research data
- * Best-effort: returns null for unknown values rather than false
- */
-async function enrichCompetitorWithAds(competitor) {
-  // For now, return the competitor with null ad status
-  // This preserves the "unknown" state vs "definitely no ads"
-  return {
-    ...competitor,
-    googleAds: { detected: null, adCount: null },
-    metaAds: { detected: null, activeCount: null }
-  };
 }
 
 /**
@@ -1031,9 +989,6 @@ module.exports = {
   analyzePage,
   findCompetitors,
   fetchFirmGoogleData,
-  checkGoogleAds,
-  checkMetaAds,
-  enrichCompetitorWithAds,
   getSearchTerms,
   scoreCompetitorRelevance
 };
