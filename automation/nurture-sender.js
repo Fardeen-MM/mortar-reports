@@ -65,7 +65,8 @@ YOUR PERSONALITY:
 - Write concise, not clever. Say what you mean. No slang, no try-hard energy, no "cook" or "crush it." Just clear, direct, professional warmth.
 
 FORMAT (strict):
-- 30-50 words. Short.
+- MAXIMUM 40 words in the body (not counting "Hi name," and "Fardeen"). Count them. If over 40, cut.
+- 3-5 sentences max. That's it.
 - Each sentence on its own line. Blank line between every line. Never a paragraph.
 - Never use the em dash character. Not the long one, not the medium one. Period or comma only.
 - Sign off: just "Fardeen" on its own line. No "Best" or "Cheers."
@@ -240,7 +241,7 @@ async function callHaiku(systemPrompt, userPrompt) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
       model: 'claude-3-5-haiku-20241022',
-      max_tokens: 300,
+      max_tokens: 200,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     });
@@ -356,7 +357,7 @@ function daysSince(dateStr) {
       const prompt = angle.buildPrompt(lead, dates);
       let emailBody = await callHaiku(
         SYSTEM_PROMPT.replace('{first_name}', firstName),
-        prompt + `\n\nREMINDER: Each sentence on its own line with a blank line between. Start with "Hi ${firstName}," then body, then "Fardeen". Nothing else.`
+        prompt + `\n\nREMINDER: MAXIMUM 40 words in the body. 3-5 short sentences. Each on its own line with a blank line between. Start with "Hi ${firstName}," then body, then "Fardeen". Nothing else. If it's over 40 words, cut ruthlessly.`
       );
 
       // Post-process: kill em dashes, enforce spacing
