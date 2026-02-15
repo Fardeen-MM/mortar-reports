@@ -1,4 +1,5 @@
 .env
+.DS_Store
 cloudflare-worker/.wrangler/
 cloudflare-worker/node_modules/
 automation/node_modules/
