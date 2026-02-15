@@ -343,10 +343,18 @@ function plainTextToHtml(text) {
     console.log('✅ Email QC passed');
   }
 
-  try {
-    await sendEmail(latestEmail.id, latestEmail.eaccount, emailContent);
-  } catch (err) {
-    console.error('❌ Failed to send reply:', err.message);
-    process.exit(1);
+  if (process.env.DRY_RUN === 'true') {
+    console.log('🏜️  DRY RUN — email NOT sent');
+    console.log(`   To: ${recipientEmail}`);
+    console.log(`   Subject: Re: ${emailContent.subject || 'Your marketing analysis'}`);
+    console.log(`   Body preview: ${(emailContent.body || '').slice(0, 200)}...`);
+    console.log('✅ Dry run complete — would have sent successfully');
+  } else {
+    try {
+      await sendEmail(latestEmail.id, latestEmail.eaccount, emailContent);
+    } catch (err) {
+      console.error('❌ Failed to send reply:', err.message);
+      process.exit(1);
+    }
   }
 })();
