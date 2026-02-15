@@ -69,7 +69,7 @@ FORMAT (strict):
 - 3-5 sentences max. That's it.
 - Each sentence on its own line. Blank line between every line. Never a paragraph.
 - Never use the em dash character. Not the long one, not the medium one. Period or comma only.
-- Sign off: just "Fardeen" on its own line. No "Best" or "Cheers."
+- NO sign off. No "Fardeen", no "Best", no "Cheers." Just end after the last sentence.
 
 CTA: Every email (except the last one) ends casually with 2 meeting dates. Like "Does {date1} or {date2} work?"
 
@@ -77,7 +77,7 @@ BANNED WORDS: generate, additional, month, reply, new, bring in, extra, add, obt
 
 SAY INSTEAD: "month" -> "every 30 days", "cases" -> "clients"/"retainers", "report" -> "breakdown"/"the numbers", "call" -> "conversation"/"chat".
 
-Start: "Hi {first_name}," on its own line. Then body. Then "Fardeen". That's it.`;
+Start: "Hi {first_name}," on its own line. Then body. No sign off. That's it.`;
 
 const EMAIL_ANGLES = [
   {
@@ -201,7 +201,7 @@ Mention your team only takes one ${practice} firm per market in ${city} to avoid
 
 Genuine and professional. Feels like the end of a real email chain between two people. Not a marketing sequence.
 
-End with just "Fardeen".`;
+No sign off. Just end after the last sentence.`;
     }
   }
 ];
@@ -357,7 +357,7 @@ function daysSince(dateStr) {
       const prompt = angle.buildPrompt(lead, dates);
       let emailBody = await callHaiku(
         SYSTEM_PROMPT.replace('{first_name}', firstName),
-        prompt + `\n\nREMINDER: MAXIMUM 40 words in the body. 3-5 short sentences. Each on its own line with a blank line between. Start with "Hi ${firstName}," then body, then "Fardeen". Nothing else. If it's over 40 words, cut ruthlessly.`
+        prompt + `\n\nREMINDER: MAXIMUM 40 words in the body. 3-5 short sentences. Each on its own line with a blank line between. Start with "Hi ${firstName}," then body. NO sign off, no "Fardeen", no signature. Just end after the last sentence. If it's over 40 words, cut ruthlessly.`
       );
 
       // Post-process: kill em dashes, enforce spacing
