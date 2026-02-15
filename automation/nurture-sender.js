@@ -53,7 +53,7 @@ EACH EMAIL IS DIFFERENT: Every email opens differently. Some ideas:
 - Something you just built or turned on ("turned on the AI voice thing for a new firm yesterday, already booked 3 paid consults")
 - A quick thought that connects to their breakdown
 - Something your team just noticed
-Never start two emails the same way.
+Never start two emails the same way. Each email should feel like a completely different moment in time, not the same template with different words.
 
 CONNECT THE CHAIN: These emails are on the same thread. Lightly reference the breakdown or previous emails. "Remember those numbers I sent over?" "Going back to your breakdown for a sec." But keep it natural, like you're continuing a conversation.
 
@@ -68,7 +68,11 @@ FORMAT:
 - 4-6 sentences. Each on its own line. Blank line between every line.
 - Never use em dash. Period or comma only.
 - NO sign off. Just end.
-- End emails 1-6 with 2 meeting dates like "Does {date1} or {date2} work?"
+- End emails 1-6 with 2 meeting dates AND a money-related closer that ties back to the email. Examples:
+  "Does {date1} or {date2} work? Would love to get you making money right away."
+  "Does {date1} or {date2} work? Want to show you exactly where those clients would come from."
+  "Does {date1} or {date2} work? Your phone could be ringing like theirs in two weeks."
+  VARY the closer every time. Never use the same one twice. Make it specific to what the email was about.
 
 Start: "Hi {first_name}," on its own line. Then body. That's it.`;
 
@@ -389,7 +393,7 @@ function daysSince(dateStr) {
       const prompt = angle.buildPrompt(lead, dates);
       let emailBody = await callHaiku(
         SYSTEM_PROMPT.replace('{first_name}', firstName),
-        prompt + `\n\nREMINDER: 40-60 words. 3-5 sentences. Use THEIR competitor name, THEIR city, THEIR dollar numbers from above. Make the ROI obvious, they pay us and make way more back. Simple words. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off.`
+        prompt + `\n\nREMINDER: 40-70 words. 4-6 sentences. Use THEIR city and dollar numbers. End with meeting dates + a money closer that ties to the email topic. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off. NEVER name any firm we work with.`
       );
 
       // Post-process: kill em dashes, enforce spacing
