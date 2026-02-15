@@ -1473,6 +1473,7 @@ ${generateFaqSection(practiceArea)}
   </div>
 
 ${generateTypingScript(searchTerms)}
+${generateTrackingSnippet(firmName)}
 <noscript><style>.fade-in { opacity: 1 !important; }</style></noscript>
 </body>
 </html>`;
@@ -1531,6 +1532,63 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 `;
+}
+
+// ============================================================================
+// VIEW TRACKING SNIPPET
+// ============================================================================
+
+function generateTrackingSnippet(firmName) {
+  // Clean firm name to match the folder name used in KV keys
+  const firmSlug = firmName
+    .replace(/[^a-zA-Z0-9\s&]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 0)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('');
+
+  return `
+<script>
+(function() {
+  if (sessionStorage.getItem('mm_tracked')) return;
+  var engaged = false;
+  var scrolled = false;
+  var activeTime = 0;
+  var interval = null;
+  var firm = ${JSON.stringify(firmSlug)};
+
+  function track() {
+    if (engaged) return;
+    if (!scrolled && !activeTime >= 8) return;
+    engaged = true;
+    sessionStorage.setItem('mm_tracked', '1');
+    if (interval) clearInterval(interval);
+    var data = JSON.stringify({ firm: firm, ts: Date.now() });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('https://instantly-webhook-proxy.fardeen-729.workers.dev/view', data);
+    } else {
+      fetch('https://instantly-webhook-proxy.fardeen-729.workers.dev/view', {
+        method: 'POST', body: data, headers: { 'Content-Type': 'application/json' }, keepalive: true
+      }).catch(function() {});
+    }
+  }
+
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 150) { scrolled = true; track(); }
+  }, { passive: true });
+
+  var lastActive = 0;
+  function onActivity() { lastActive = Date.now(); }
+  ['mousemove','touchstart','keydown','click'].forEach(function(e) {
+    document.addEventListener(e, onActivity, { passive: true });
+  });
+
+  interval = setInterval(function() {
+    if (Date.now() - lastActive < 2000) activeTime++;
+    if (activeTime >= 8) track();
+  }, 1000);
+})();
+</script>`;
 }
 
 // ============================================================================

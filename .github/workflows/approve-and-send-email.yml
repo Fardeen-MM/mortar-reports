@@ -202,6 +202,32 @@ jobs:
           echo "$CUSTOM_BODY" > /tmp/custom-email-body.txt
           echo "has_custom=true" >> $GITHUB_OUTPUT
 
+      - name: Store lead metadata in Worker KV
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          FIRM_FOLDER: ${{ steps.deploy.outputs.firm_folder }}
+          FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
+          LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
+          CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
+          PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
+          COUNTRY: ${{ steps.inputs.outputs.country }}
+        run: |
+          LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
+          WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
+          echo "📡 Storing lead metadata for $FIRM_FOLDER in Worker KV..."
+
+          curl -sf -X POST "$WORKER/store-lead" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"email\": \"$LEAD_EMAIL\",
+              \"firm_name\": \"$FIRM_NAME\",
+              \"contact_name\": \"$CONTACT_NAME\",
+              \"report_url\": \"$LIVE_URL\",
+              \"practice_label\": \"$PRACTICE_LABEL\",
+              \"country\": \"$COUNTRY\",
+              \"firm_folder\": \"$FIRM_FOLDER\"
+            }" && echo "✅ Lead metadata stored" || echo "⚠️ Failed to store lead metadata (non-critical)"
+
       - name: Send approved email
         if: steps.inputs.outputs.skip_email != 'true'
         env:
@@ -240,3 +266,35 @@ jobs:
             "$PRACTICE_LABEL" \
             "$COUNTRY"
         working-directory: ./automation
+
+      - name: Add lead to nurture queue
+        if: steps.inputs.outputs.skip_email != 'true'
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
+          FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
+          CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
+          PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
+          COUNTRY: ${{ steps.inputs.outputs.country }}
+        run: |
+          LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
+          WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
+          echo "📬 Adding $LEAD_EMAIL to nurture queue..."
+
+          curl -sf -X POST "$WORKER/nurture-check" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action\": \"set\",
+              \"email\": \"$LEAD_EMAIL\",
+              \"data\": {
+                \"firm_name\": \"$FIRM_NAME\",
+                \"contact_name\": \"$CONTACT_NAME\",
+                \"report_url\": \"$LIVE_URL\",
+                \"practice_label\": \"$PRACTICE_LABEL\",
+                \"country\": \"$COUNTRY\",
+                \"start_date\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+                \"emails_sent\": 0,
+                \"last_sent\": \"\",
+                \"status\": \"active\"
+              }
+            }" && echo "✅ Added to nurture queue" || echo "⚠️ Failed to add to nurture queue (non-critical)"

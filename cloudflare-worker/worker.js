@@ -1,12 +1,17 @@
 /**
  * Cloudflare Worker: Instantly Webhook + Telegram Approval Handler
  *
- * Handles three types of webhooks:
+ * Handles:
  * 1. Instantly webhooks → forwards to GitHub Actions
  * 2. Telegram callbacks → triggers email approval workflow
  * 3. Telegram /build commands → manually trigger report pipeline
+ * 4. POST /view → report view tracking + follow-up triggers
+ * 5. POST /store-lead → store lead metadata for view-triggered emails
+ * 6. POST /queue-email → queue any email for Telegram approval
+ * 7. AI reply classification (QUESTION/OBJECTION auto-responses)
  *
  * Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+ * Optional secrets: INSTANTLY_API_KEY, ANTHROPIC_API_KEY
  */
 
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
@@ -143,7 +148,98 @@ async function handleTelegramCallback(env, update) {
 
   console.log('Telegram callback:', action, approvalId);
 
-  // Parse approval data from message
+  const chatId = callback_query.message.chat.id;
+  const messageId = callback_query.message.message_id;
+
+  // Handle queued email callbacks first (they don't need approval data from GitHub)
+  const queuedActions = ['approve_queued', 'edit_queued', 'skip_queued', 'send_queued_custom', 'cancel_queued_edit'];
+  if (queuedActions.includes(action)) {
+    if (action === 'approve_queued') {
+      const queuedRaw = await env.WEBHOOK_KV.get(`queued_email:${approvalId}`);
+      if (!queuedRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Email expired', true);
+        return { ok: true };
+      }
+      const queued = JSON.parse(queuedRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending...', false);
+
+      try {
+        if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, queued.html, queued.text);
+        await env.WEBHOOK_KV.delete(`queued_email:${approvalId}`);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ *SENT* (${queued.type || 'email'})\n\n📧 *To:* ${queued.to}\n📝 *Subject:* ${queued.subject}`);
+      } catch (err) {
+        console.error('Failed to send queued email:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `❌ *SEND FAILED*\n\n${err.message}\n\n📧 *To:* ${queued.to}`);
+      }
+
+    } else if (action === 'edit_queued') {
+      const queuedRaw = await env.WEBHOOK_KV.get(`queued_email:${approvalId}`);
+      if (!queuedRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Email expired', true);
+        return { ok: true };
+      }
+      const queued = JSON.parse(queuedRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening editor...', false);
+
+      const editMsg = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `✏️ *Edit the email below*\nCopy this text, edit it, and reply with your version:\n\n\`\`\`\n${(queued.text || '').slice(0, 600)}\n\`\`\``,
+        { reply_markup: { force_reply: true, selective: true } }
+      );
+
+      if (editMsg.ok && editMsg.result) {
+        await env.WEBHOOK_KV.put(
+          `edit_queued_reply:${editMsg.result.message_id}`,
+          JSON.stringify({ queueId: approvalId, originalMessageId: messageId }),
+          { expirationTtl: 1800 }
+        );
+      }
+
+    } else if (action === 'skip_queued') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Skipped', false);
+      const queuedRaw = await env.WEBHOOK_KV.get(`queued_email:${approvalId}`);
+      const queued = queuedRaw ? JSON.parse(queuedRaw) : {};
+      await env.WEBHOOK_KV.delete(`queued_email:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `⏭️ *SKIPPED*\n\nEmail to ${queued.to || 'lead'} was not sent.`);
+
+    } else if (action === 'send_queued_custom') {
+      const queuedRaw = await env.WEBHOOK_KV.get(`queued_email:${approvalId}`);
+      const customText = await env.WEBHOOK_KV.get(`custom_queued:${approvalId}`);
+      if (!queuedRaw || !customText) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Email expired', true);
+        return { ok: true };
+      }
+      const queued = JSON.parse(queuedRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending custom...', false);
+
+      try {
+        if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
+        const customHtml = customText.replace(/\n/g, '<br>');
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, customHtml, customText);
+        await env.WEBHOOK_KV.delete(`queued_email:${approvalId}`);
+        await env.WEBHOOK_KV.delete(`custom_queued:${approvalId}`);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ *SENT (Custom)* (${queued.type || 'email'})\n\n📧 *To:* ${queued.to}`);
+      } catch (err) {
+        console.error('Failed to send custom queued email:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `❌ *SEND FAILED*\n\n${err.message}`);
+      }
+
+    } else if (action === 'cancel_queued_edit') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Cancelled', false);
+      await env.WEBHOOK_KV.delete(`custom_queued:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        '❌ *Edit cancelled.* Use the original message to approve or edit again.');
+    }
+
+    return { ok: true };
+  }
+
+  // Parse approval data from message (for report email callbacks)
   let approvalData = parseMessageForApprovalData(callback_query.message);
 
   // Try to fetch full approval JSON from GitHub (has email personalization data)
@@ -168,9 +264,6 @@ async function handleTelegramCallback(env, update) {
     await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Approval data not found', true);
     return { ok: true, error: 'Approval data not found' };
   }
-
-  const chatId = callback_query.message.chat.id;
-  const messageId = callback_query.message.message_id;
 
   if (action === 'approve' || action === 'approve_no_email') {
     const skipEmail = action === 'approve_no_email';
@@ -362,6 +455,383 @@ async function handleTelegramCallback(env, update) {
   return { ok: true };
 }
 
+// ============ CORS HELPERS ============
+
+const ALLOWED_ORIGIN = 'https://reports.mortarmetrics.com';
+
+function corsHeaders(origin) {
+  return {
+    'Access-Control-Allow-Origin': origin === ALLOWED_ORIGIN ? ALLOWED_ORIGIN : '',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400'
+  };
+}
+
+// ============ INSTANTLY SEND HELPER ============
+
+/**
+ * Send a reply email via Instantly API v2 directly from the Worker.
+ * Looks up the lead's latest email UUID, then sends a threaded reply.
+ */
+async function sendInstantlyReply(apiKey, leadEmail, subject, html, text) {
+  // Step 1: Look up lead's latest email for threading
+  const lookupUrl = `https://api.instantly.ai/api/v2/emails?lead=${encodeURIComponent(leadEmail)}`;
+  const lookupResp = await fetch(lookupUrl, {
+    headers: { 'Authorization': `Bearer ${apiKey}` }
+  });
+
+  if (!lookupResp.ok) {
+    const errText = await lookupResp.text();
+    throw new Error(`Instantly email lookup failed: ${lookupResp.status} ${errText}`);
+  }
+
+  const lookupData = await lookupResp.json();
+  const emails = lookupData.items || lookupData.data || (Array.isArray(lookupData) ? lookupData : []);
+
+  if (!emails.length || !emails[0].id) {
+    throw new Error(`No email thread found for ${leadEmail}`);
+  }
+
+  const replyToUuid = emails[0].id;
+  const eaccount = emails[0].eaccount;
+
+  // Step 2: Send threaded reply
+  const replyResp = await fetch('https://api.instantly.ai/api/v2/emails/reply', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      eaccount,
+      reply_to_uuid: replyToUuid,
+      subject: subject.startsWith('Re:') ? subject : `Re: ${subject}`,
+      body: { html, text }
+    })
+  });
+
+  if (!replyResp.ok) {
+    const errText = await replyResp.text();
+    throw new Error(`Instantly send failed: ${replyResp.status} ${errText}`);
+  }
+
+  return replyResp.json();
+}
+
+// ============ QUEUED EMAIL INFRASTRUCTURE ============
+
+/**
+ * Queue an email for Telegram approval.
+ * Stores in KV and sends Telegram message with Approve/Edit/Skip buttons.
+ */
+async function queueEmail(env, { type, to, subject, html, text, lead_email, firm_name, contact_name, context }) {
+  const queueId = crypto.randomUUID();
+
+  // Store email data in KV with 24hr TTL
+  await env.WEBHOOK_KV.put(`queued_email:${queueId}`, JSON.stringify({
+    type, to, subject, html, text, lead_email, firm_name, contact_name, context,
+    queued_at: new Date().toISOString()
+  }), { expirationTtl: 86400 });
+
+  // Type-specific headers
+  const typeHeaders = {
+    'follow-up': '👀 VIEW FOLLOW-UP',
+    'auto-reply': '🤖 AUTO-REPLY',
+    'nurture': '📬 NURTURE EMAIL'
+  };
+  const header = typeHeaders[type] || '📧 QUEUED EMAIL';
+
+  // Build preview — strip backticks to avoid breaking Telegram code block
+  const preview = (text || '').slice(0, 400).replace(/`/g, "'");
+
+  // Escape markdown special chars in dynamic fields (but not our formatting)
+  // Only strip chars that actually break Telegram Markdown v1: * _ ` [ ]
+  const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+
+  const msg = `${header}
+
+📊 *Firm:* ${esc(firm_name) || 'Unknown'}
+👤 *To:* ${esc(contact_name) || to}
+📧 *Email:* ${to}
+📝 *Subject:* ${esc(subject)}
+${context ? `ℹ️ *Context:* ${esc(context)}` : ''}
+
+\`\`\`
+${preview}
+\`\`\``;
+
+  const result = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '✅ Approve & Send', callback_data: `approve_queued:${queueId}` },
+          { text: '✏️ Edit', callback_data: `edit_queued:${queueId}` },
+          { text: '⏭️ Skip', callback_data: `skip_queued:${queueId}` }
+        ]
+      ]
+    }
+  });
+
+  if (!result.ok) {
+    console.error('Telegram send failed for queued email:', result.description || JSON.stringify(result));
+  }
+
+  return { ok: true, queue_id: queueId };
+}
+
+// ============ AI HELPERS ============
+
+/**
+ * Call Claude Haiku for classification or generation.
+ */
+async function callHaiku(anthropicKey, systemPrompt, userPrompt, maxTokens = 300) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': anthropicKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-haiku-20241022',
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Haiku API error: ${resp.status} ${errText}`);
+  }
+
+  const data = await resp.json();
+  return data.content?.[0]?.text?.trim() || '';
+}
+
+/**
+ * Classify a reply using Claude Haiku. Falls back to pattern matching on failure.
+ */
+async function classifyReplyAI(text, anthropicKey) {
+  if (!text || !text.trim()) {
+    return { category: 'INTERESTED', confidence: 0.5, summary: 'Empty reply — treated as interested' };
+  }
+
+  // Strip quoted text first
+  const stripped = text
+    .split('\n')
+    .filter(line => !line.trim().startsWith('>') && !/^On .+ wrote:$/i.test(line.trim()))
+    .join('\n')
+    .trim();
+
+  if (!stripped) {
+    return { category: 'INTERESTED', confidence: 0.5, summary: 'Only quoted text — treated as interested' };
+  }
+
+  if (!anthropicKey) {
+    // Fallback to pattern matching
+    return classifyReplyFallback(stripped);
+  }
+
+  try {
+    const result = await callHaiku(
+      anthropicKey,
+      `You classify email replies to cold outreach from a legal marketing agency. Reply with ONLY a JSON object.`,
+      `Classify this reply into exactly one category. Reply with JSON only, no other text.
+
+Categories:
+- INTERESTED: Wants to learn more, positive reply, "tell me more", "sounds good"
+- QUESTION: Asks a specific question about services, pricing, process
+- OBJECTION: Pushes back but hasn't said no — "we already have a marketing company", "not sure we need this"
+- NOT_INTERESTED: Polite decline — "not interested", "no thanks"
+- UNSUBSCRIBE: Wants off the list — "unsubscribe", "remove me", "stop emailing"
+- OOO: Out of office auto-reply
+- IRRELEVANT: Spam, wrong person, completely unrelated
+
+Reply text:
+"""
+${stripped.slice(0, 500)}
+"""
+
+Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary"}`,
+      150
+    );
+
+    const parsed = JSON.parse(result);
+    if (parsed.category && ['INTERESTED','QUESTION','OBJECTION','NOT_INTERESTED','UNSUBSCRIBE','OOO','IRRELEVANT'].includes(parsed.category)) {
+      return parsed;
+    }
+    return classifyReplyFallback(stripped);
+  } catch (e) {
+    console.error('AI classification failed, using fallback:', e.message);
+    return classifyReplyFallback(stripped);
+  }
+}
+
+/**
+ * Pattern-matching fallback classifier (original logic expanded to 7 categories).
+ */
+function classifyReplyFallback(text) {
+  const lower = text.toLowerCase();
+
+  const unsubPatterns = ['unsubscribe', 'remove me from', 'stop emailing', 'opt out', 'opt-out',
+    'take me off', 'remove my email', 'stop contacting', 'remove from list',
+    'remove from your list', 'cease and desist'];
+  if (unsubPatterns.some(p => lower.includes(p))) {
+    return { category: 'UNSUBSCRIBE', confidence: 0.9, summary: 'Unsubscribe request' };
+  }
+
+  const notIntPatterns = ['not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
+    'do not contact'];
+  if (notIntPatterns.some(p => lower.includes(p))) {
+    return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Not interested' };
+  }
+
+  if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return/i.test(lower)) {
+    return { category: 'OOO', confidence: 0.9, summary: 'Out of office' };
+  }
+
+  if (text.includes('?')) {
+    return { category: 'QUESTION', confidence: 0.6, summary: 'Contains question' };
+  }
+
+  if (/already have|already work|not sure|not the right|maybe later|bad time/i.test(lower)) {
+    return { category: 'OBJECTION', confidence: 0.6, summary: 'Possible objection' };
+  }
+
+  return { category: 'INTERESTED', confidence: 0.5, summary: 'Default positive classification' };
+}
+
+/**
+ * Generate an auto-response for QUESTION or OBJECTION replies.
+ */
+async function generateAutoResponse(category, replyText, firmName, contactName, anthropicKey) {
+  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You write short, conversational emails to law firm leads. No marketing speak. No exclamation marks. Sound like a real person.`;
+
+  let userPrompt;
+  if (category === 'QUESTION') {
+    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with a question:
+
+"${replyText.slice(0, 500)}"
+
+Write a short reply (3-5 sentences) that:
+1. Answers their question directly
+2. Mentions the personalized report I built for their firm
+3. Suggests a quick call to walk through it
+
+Keep it casual and helpful. No corporate speak.`;
+  } else {
+    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with an objection:
+
+"${replyText.slice(0, 500)}"
+
+Write a short reply (3-5 sentences) that:
+1. Acknowledges their concern genuinely
+2. Reframes it as an opportunity (e.g., "that's actually why we built this")
+3. Mentions the personalized report showing real competitor data
+4. Low-pressure — just offering a look at the data
+
+Keep it casual. No pressure. No marketing speak.`;
+  }
+
+  try {
+    return await callHaiku(anthropicKey, systemPrompt, userPrompt, 400);
+  } catch (e) {
+    console.error('Auto-response generation failed:', e.message);
+    return null;
+  }
+}
+
+// ============ VIEW TRACKING ============
+
+async function handleViewTrack(env, body) {
+  const { email, firm, ts } = body;
+  if (!firm) return { ok: false, error: 'missing firm' };
+
+  // Rate limit: skip if last view < 5 minutes ago
+  const lastView = await env.WEBHOOK_KV.get(`view_last:${firm}`);
+  if (lastView) {
+    const elapsed = Date.now() - parseInt(lastView, 10);
+    if (elapsed < 300000) {
+      return { ok: true, message: 'rate limited' };
+    }
+  }
+
+  // Record timestamp
+  await env.WEBHOOK_KV.put(`view_last:${firm}`, String(Date.now()), { expirationTtl: 600 });
+
+  // Increment view counter
+  const countRaw = await env.WEBHOOK_KV.get(`views:${firm}`);
+  const count = (parseInt(countRaw, 10) || 0) + 1;
+  await env.WEBHOOK_KV.put(`views:${firm}`, String(count));
+
+  console.log(`View tracked for ${firm}: view #${count}`);
+
+  // Look up lead metadata
+  const leadRaw = await env.WEBHOOK_KV.get(`lead:${firm}`);
+  const lead = leadRaw ? JSON.parse(leadRaw) : null;
+
+  if (count === 1 && lead) {
+    // First view: queue a follow-up email (value-add, not sales)
+    const followUpText = `Hi ${lead.contact_name || 'there'},
+
+Just noticed you had a chance to look at the report we put together for ${lead.firm_name || 'your firm'}.
+
+Happy to walk through any of the numbers — the competitor data and the gap estimates are the parts most firms find most useful.
+
+No pitch, just context. Let me know if you want 15 minutes this week.
+
+Fardeen
+Mortar Metrics`;
+
+    await queueEmail(env, {
+      type: 'follow-up',
+      to: lead.email,
+      subject: 'Re: Your marketing analysis',
+      html: followUpText.replace(/\n/g, '<br>'),
+      text: followUpText,
+      lead_email: lead.email,
+      firm_name: lead.firm_name,
+      contact_name: lead.contact_name,
+      context: `First report view detected`
+    });
+  } else if ((count === 3 || count === 5 || count === 10) && lead) {
+    // Hot lead alert — no email, just Telegram notification
+    const emoji = count >= 10 ? '🔥🔥🔥' : count >= 5 ? '🔥🔥' : '🔥';
+    const msg = `${emoji} *HOT LEAD ALERT*
+
+📊 *Firm:* ${lead.firm_name || firm}
+👤 *Contact:* ${lead.contact_name || 'Unknown'}
+📧 *Email:* ${lead.email || 'Unknown'}
+👁️ *Report views:* ${count}
+
+This lead keeps coming back to their report. Consider reaching out.`;
+
+    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg);
+  }
+
+  return { ok: true, views: count };
+}
+
+// ============ STORE LEAD METADATA ============
+
+async function handleStoreLead(env, body) {
+  const { email, firm_name, contact_name, report_url, practice_label, country, firm_folder } = body;
+  if (!firm_folder) return { ok: false, error: 'missing firm_folder' };
+
+  const data = { email, firm_name, contact_name, report_url, practice_label, country, stored_at: new Date().toISOString() };
+  await env.WEBHOOK_KV.put(`lead:${firm_folder}`, JSON.stringify(data), { expirationTtl: 2592000 }); // 30 days
+
+  // Also index by email for nurture lookups
+  if (email) {
+    await env.WEBHOOK_KV.put(`lead_by_email:${email}`, JSON.stringify(data), { expirationTtl: 2592000 });
+  }
+
+  console.log(`Stored lead metadata for ${firm_folder} (${email})`);
+  return { ok: true };
+}
+
 // ============ INSTANTLY HANDLER ============
 
 // Instantly sends TWO webhooks per lead reply (campaign-level and workspace-level).
@@ -485,29 +955,14 @@ function mergePayloads(a, b) {
   return merged;
 }
 
-// Classify reply text: returns 'negative' for opt-outs, 'positive' otherwise.
-// Strips quoted text before checking.
+// Legacy sync classifier — kept as bridge. AI classifier is used in listMergeDispatch.
 function classifyReply(replyText) {
-  if (!replyText) return 'positive';
-  // Strip quoted reply chains (lines starting with > or "On ... wrote:")
-  const stripped = replyText
-    .split('\n')
-    .filter(line => !line.trim().startsWith('>') && !/^On .+ wrote:$/i.test(line.trim()))
-    .join('\n')
-    .trim();
-  if (!stripped) return 'positive';
-  const lower = stripped.toLowerCase();
-  const negativePatterns = [
-    'unsubscribe', 'remove me from', 'stop emailing', 'opt out', 'opt-out',
-    'do not contact', 'take me off', 'remove my email', 'stop contacting',
-    'not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
-    'remove from list', 'remove from your list', 'cease and desist'
-  ];
-  if (negativePatterns.some(p => lower.includes(p))) return 'negative';
+  const result = classifyReplyFallback(replyText || '');
+  if (['NOT_INTERESTED', 'UNSUBSCRIBE'].includes(result.category)) return 'negative';
   return 'positive';
 }
 
-// Send a Telegram notification (used for negative replies instead of dispatching)
+// Send a Telegram notification with classification badge
 async function sendTelegramNotification(env, email, replyText, classification) {
   const botToken = env.TELEGRAM_BOT_TOKEN;
   const chatId = env.TELEGRAM_CHAT_ID;
@@ -515,13 +970,33 @@ async function sendTelegramNotification(env, email, replyText, classification) {
     console.log('No Telegram credentials, skipping notification');
     return;
   }
-  const msg = `🔴 *Auto-skipped lead*\n\n*Email:* ${email}\n*Classification:* ${classification}\n\n\`\`\`\n${(replyText || '').slice(0, 300)}\n\`\`\``;
+
+  // Classification badge mapping
+  const badges = {
+    INTERESTED: '🟢 INTERESTED',
+    QUESTION: '❓ QUESTION',
+    OBJECTION: '🟡 OBJECTION',
+    NOT_INTERESTED: '🔴 NOT INTERESTED',
+    UNSUBSCRIBE: '⛔ UNSUBSCRIBE',
+    OOO: '✈️ OUT OF OFFICE',
+    IRRELEVANT: '⚪ IRRELEVANT'
+  };
+
+  const cat = typeof classification === 'object' ? classification.category : classification;
+  const badge = badges[cat] || `🔴 ${cat}`;
+  const summary = typeof classification === 'object' ? classification.summary : '';
+  const confidence = typeof classification === 'object' ? ` (${Math.round((classification.confidence || 0) * 100)}%)` : '';
+
+  const msg = `${badge}${confidence}
+
+*Email:* ${email}
+${summary ? `*Summary:* ${summary}\n` : ''}
+\`\`\`
+${(replyText || '').slice(0, 400)}
+\`\`\``;
+
   try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
-    });
+    await sendTelegramMsg(botToken, chatId, msg);
   } catch (e) {
     console.error('Telegram notification failed:', e.message);
   }
@@ -586,9 +1061,48 @@ async function handleTelegramMessage(env, payload) {
     return { ok: true };
   }
 
-  // Check if this is a reply to an edit_email prompt
+  // Check if this is a reply to a queued email edit prompt
   if (message.reply_to_message) {
     const replyToId = message.reply_to_message.message_id;
+
+    // Check for queued email edit first
+    const queuedEditRaw = await env.WEBHOOK_KV.get(`edit_queued_reply:${replyToId}`);
+    if (queuedEditRaw) {
+      const { queueId, originalMessageId } = JSON.parse(queuedEditRaw);
+      const customText = text.trim();
+
+      if (!customText) {
+        await sendTelegramReply(env, chatId, messageId, '⚠️ Empty reply. Please try again.');
+        return { ok: true };
+      }
+
+      // Store custom text
+      await env.WEBHOOK_KV.put(`custom_queued:${queueId}`, customText, { expirationTtl: 3600 });
+      await env.WEBHOOK_KV.delete(`edit_queued_reply:${replyToId}`);
+
+      const preview = customText.length > 300 ? customText.slice(0, 300) + '...' : customText;
+      const queuedRaw = await env.WEBHOOK_KV.get(`queued_email:${queueId}`);
+      const queued = queuedRaw ? JSON.parse(queuedRaw) : {};
+
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `📧 *Custom email preview:*\n\n\`\`\`\n${preview}\n\`\`\`\n\nSend this to *${queued.to || 'lead'}*?`,
+        {
+          reply_to_message_id: messageId,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '✅ Send Now', callback_data: `send_queued_custom:${queueId}` },
+                { text: '❌ Cancel', callback_data: `cancel_queued_edit:${queueId}` }
+              ]
+            ]
+          }
+        }
+      );
+
+      return { ok: true };
+    }
+
+    // Check for report email edit prompt
     const sessionRaw = await env.WEBHOOK_KV.get(`edit_reply:${replyToId}`);
     if (sessionRaw) {
       const session = JSON.parse(sessionRaw);
@@ -636,6 +1150,52 @@ async function handleTelegramMessage(env, payload) {
 
       return { ok: true };
     }
+  }
+
+  // Handle /nurture commands
+  if (text.startsWith('/nurture')) {
+    const parts = text.split(/\s+/);
+    const subCommand = parts[1] || 'status';
+
+    if (subCommand === 'status') {
+      // List active nurture leads from KV
+      const keys = await env.WEBHOOK_KV.list({ prefix: 'nurture:' });
+      if (keys.keys.length === 0) {
+        await sendTelegramReply(env, chatId, messageId, '📬 No active nurture sequences.');
+        return { ok: true };
+      }
+
+      let statusLines = [];
+      for (const key of keys.keys.slice(0, 20)) {
+        const raw = await env.WEBHOOK_KV.get(key.name);
+        if (!raw) continue;
+        const data = JSON.parse(raw);
+        if (data.status !== 'active') continue;
+        const email = key.name.replace('nurture:', '');
+        statusLines.push(`• ${email} — ${data.emails_sent || 0}/7 sent (${data.firm_name || '?'})`);
+      }
+
+      const msg = statusLines.length > 0
+        ? `📬 *Active Nurture Sequences*\n\n${statusLines.join('\n')}`
+        : '📬 No active nurture sequences.';
+      await sendTelegramReply(env, chatId, messageId, msg);
+    } else if (subCommand === 'stop' && parts[2]) {
+      const targetEmail = parts[2];
+      const nurture = await env.WEBHOOK_KV.get(`nurture:${targetEmail}`);
+      if (nurture) {
+        const data = JSON.parse(nurture);
+        data.status = 'completed';
+        await env.WEBHOOK_KV.put(`nurture:${targetEmail}`, JSON.stringify(data), { expirationTtl: 2592000 });
+        await sendTelegramReply(env, chatId, messageId, `✅ Stopped nurture for ${targetEmail}`);
+      } else {
+        await sendTelegramReply(env, chatId, messageId, `⚠️ No nurture sequence found for ${targetEmail}`);
+      }
+    } else {
+      await sendTelegramReply(env, chatId, messageId,
+        `📬 *Nurture Commands:*\n\n\`/nurture status\` — Show active sequences\n\`/nurture stop email@firm.com\` — Stop a sequence`);
+    }
+
+    return { ok: true };
   }
 
   // Only handle /build commands — ignore everything else
@@ -741,14 +1301,61 @@ async function listMergeDispatch(env, email, minSlots) {
   };
   merged.client_payload._meta = JSON.stringify(meta);
 
-  // Classify reply — skip negative replies (unsubscribe, opt out, etc.)
-  const replyClass = classifyReply(replyText);
-  if (replyClass === 'negative') {
-    console.log(`NEGATIVE REPLY from ${email}, skipping dispatch`);
-    await sendTelegramNotification(env, email, replyText, replyClass);
-    return true; // Return true so slots get cleaned up
+  // AI-powered reply classification
+  const classification = await classifyReplyAI(replyText, env.ANTHROPIC_API_KEY);
+  console.log(`Classification for ${email}: ${classification.category} (${classification.confidence})`);
+
+  if (classification.category === 'UNSUBSCRIBE' || classification.category === 'NOT_INTERESTED') {
+    console.log(`${classification.category} from ${email}, skipping dispatch`);
+    await sendTelegramNotification(env, email, replyText, classification);
+    return true;
   }
 
+  if (classification.category === 'OOO') {
+    console.log(`OOO from ${email}, notifying only`);
+    await sendTelegramNotification(env, email, replyText, classification);
+    // Store OOO flag for potential re-check later
+    await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
+    return true;
+  }
+
+  if (classification.category === 'IRRELEVANT') {
+    console.log(`IRRELEVANT from ${email}, logging only`);
+    return true;
+  }
+
+  // QUESTION or OBJECTION: generate auto-reply + queue for approval + ALSO dispatch report
+  if ((classification.category === 'QUESTION' || classification.category === 'OBJECTION') && env.ANTHROPIC_API_KEY) {
+    const contactName = merged.client_payload.first_name || '';
+    const company = merged.client_payload.company || '';
+
+    const autoReply = await generateAutoResponse(
+      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY
+    );
+
+    if (autoReply && env.INSTANTLY_API_KEY) {
+      await queueEmail(env, {
+        type: 'auto-reply',
+        to: email,
+        subject: 'Re: Your marketing analysis',
+        html: autoReply.replace(/\n/g, '<br>'),
+        text: autoReply,
+        lead_email: email,
+        firm_name: company,
+        contact_name: contactName,
+        context: `${classification.category}: ${classification.summary}`
+      });
+    }
+
+    // Send classification notification with auto-reply status
+    await sendTelegramNotification(env, email, replyText, classification);
+    if (autoReply) {
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+        `↳ Auto-response queued for approval (${classification.category})`);
+    }
+  }
+
+  // INTERESTED, QUESTION, OBJECTION all dispatch to GitHub for report generation
   console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
   await forwardToGitHub(env, merged);
 
@@ -819,9 +1426,19 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // CORS preflight for /view endpoint
+    if (request.method === 'OPTIONS') {
+      const origin = request.headers.get('Origin') || '';
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders(origin)
+      });
+    }
+
     // GET endpoints
     if (request.method === 'GET') {
-      const url = new URL(request.url);
 
       // Debug endpoint: GET /debug - shows last raw Instantly payloads stored in KV
       if (url.pathname === '/debug') {
@@ -854,6 +1471,88 @@ export default {
 
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
+    }
+
+    // Route-specific POST endpoints (before JSON parse for non-webhook routes)
+    if (url.pathname === '/view') {
+      try {
+        const body = await request.json();
+        const result = await handleViewTrack(env, body);
+        const origin = request.headers.get('Origin') || '';
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders(request.headers.get('Origin') || '') }
+        });
+      }
+    }
+
+    if (url.pathname === '/store-lead') {
+      try {
+        const body = await request.json();
+        const result = await handleStoreLead(env, body);
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (url.pathname === '/queue-email') {
+      try {
+        const body = await request.json();
+        const result = await queueEmail(env, body);
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (url.pathname === '/nurture-check') {
+      // Called by nurture-sender.js to check/update nurture status in KV
+      try {
+        const body = await request.json();
+        const { action, email, data } = body;
+
+        if (action === 'get') {
+          const raw = await env.WEBHOOK_KV.get(`nurture:${email}`);
+          return new Response(JSON.stringify({ ok: true, data: raw ? JSON.parse(raw) : null }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'set') {
+          await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(data), { expirationTtl: 2592000 });
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'list') {
+          const keys = await env.WEBHOOK_KV.list({ prefix: 'nurture:' });
+          const items = [];
+          for (const key of keys.keys) {
+            const raw = await env.WEBHOOK_KV.get(key.name);
+            if (raw) items.push({ email: key.name.replace('nurture:', ''), ...JSON.parse(raw) });
+          }
+          return new Response(JSON.stringify({ ok: true, items }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ ok: false, error: 'unknown action' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     try {

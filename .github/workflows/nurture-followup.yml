@@ -1,0 +1,32 @@
+name: Nurture Follow-up Emails
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  nurture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./automation
+
+      - name: Run nurture sender
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+        run: node nurture-sender.js
+        working-directory: ./automation
