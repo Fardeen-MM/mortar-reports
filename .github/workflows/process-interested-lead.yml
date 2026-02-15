@@ -231,6 +231,7 @@ jobs:
         if: steps.check_existing.outputs.skip != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
         run: |
           node maximal-research-v2.js \
             "${{ steps.parse.outputs.website }}" \
