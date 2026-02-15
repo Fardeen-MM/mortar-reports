@@ -240,7 +240,7 @@ jobs:
           TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
           COUNTRY: ${{ steps.inputs.outputs.country }}
-          DRY_RUN: 'true'
+          DRY_RUN: 'false'
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📧 Sending approved email to $LEAD_EMAIL"
