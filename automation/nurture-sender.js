@@ -388,7 +388,15 @@ function daysSince(dateStr) {
   }
 
   const active = items.filter(i => i.status === 'active');
-  console.log(`Found ${items.length} total entries, ${active.length} active\n`);
+  const paused = items.filter(i => i.status === 'paused');
+  console.log(`Found ${items.length} total entries, ${active.length} active, ${paused.length} paused\n`);
+
+  if (paused.length > 0) {
+    for (const p of paused) {
+      console.log(`⏸️  ${p.email}: PAUSED (${p.pause_reason || 'unknown'}) — ${p.emails_sent || 0}/7 sent (${p.firm_name || '?'})`);
+    }
+    console.log('');
+  }
 
   if (active.length === 0) {
     console.log('No leads due for nurture. Done.');
@@ -424,7 +432,14 @@ function daysSince(dateStr) {
     try {
       const basePrompt = angle.buildPrompt(lead, dates);
       const systemPrompt = SYSTEM_PROMPT.replace('{first_name}', firstName);
-      const reminder = `\n\nREMINDER: 40-70 words. 4-6 sentences. Use THEIR city and dollar numbers. End with meeting dates + a money closer that ties to the email topic. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off. NEVER name any firm we work with.`;
+      let reminder = `\n\nREMINDER: 40-70 words. 4-6 sentences. Use THEIR city and dollar numbers. End with meeting dates + a money closer that ties to the email topic. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off. NEVER name any firm we work with.`;
+
+      // If this lead previously replied, inject context so the email acknowledges it
+      if (lead.last_reply_text) {
+        const daysAgo = lead.last_reply_at ? daysSince(lead.last_reply_at) : 'a few';
+        reminder += `\n\nIMPORTANT CONTEXT: This lead replied ${daysAgo} days ago. Their reply was: "${lead.last_reply_text.slice(0, 300)}". You MUST naturally acknowledge that they replied. Something like "Glad you wrote back" or "Saw your note" or "Good to hear from you." Then continue with the email angle. Don't dwell on it, just a quick nod and move on.`;
+        console.log(`  💬 Injecting reply context (replied ${daysAgo} days ago, category: ${lead.last_reply_category || '?'})`);
+      }
 
       let emailBody = '';
       let bestScore = 0;
@@ -487,9 +502,15 @@ function daysSince(dateStr) {
         context: `Nurture ${emailsSent + 1}/7 (${angle.name}) - Day ${days}`
       });
 
-      // Update nurture entry
+      // Update nurture entry — clear reply context after first use
       lead.emails_sent = emailsSent + 1;
       lead.last_sent = new Date().toISOString();
+      if (lead.last_reply_text) {
+        console.log(`  🧹 Clearing reply context (used in this email)`);
+        delete lead.last_reply_text;
+        delete lead.last_reply_category;
+        delete lead.last_reply_at;
+      }
       await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
 
       queued++;

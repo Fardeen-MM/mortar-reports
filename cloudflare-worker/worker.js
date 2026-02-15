@@ -239,6 +239,163 @@ async function handleTelegramCallback(env, update) {
     return { ok: true };
   }
 
+  // Handle nurture reply callbacks (nr_* actions)
+  const nurtureActions = ['nr_send_stop', 'nr_send_continue', 'nr_edit', 'nr_skip',
+    'nr_stop_only', 'nr_resume', 'nr_send_custom_stop', 'nr_send_custom_continue', 'nr_cancel_edit'];
+  if (nurtureActions.includes(action)) {
+    const nrRaw = await env.WEBHOOK_KV.get(`nurture_reply:${approvalId}`);
+
+    if (action === 'nr_send_stop' || action === 'nr_send_continue') {
+      if (!nrRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending...', false);
+
+      try {
+        if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
+        const replyHtml = nr.autoReply.replace(/\n/g, '<br>');
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', replyHtml, nr.autoReply);
+
+        // Update nurture status
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          if (action === 'nr_send_stop') {
+            nurtureData.status = 'completed';
+            nurtureData.stopped_reason = 'replied_engaged';
+          } else {
+            nurtureData.status = 'active';
+          }
+          await env.WEBHOOK_KV.put(`nurture:${nr.email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+
+        await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+        const statusLabel = action === 'nr_send_stop' ? 'STOPPED' : 'RESUMED';
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ *REPLY SENT* — Nurture ${statusLabel}\n\n📧 *To:* ${nr.email}\n📊 *Firm:* ${nr.firmName}\n📬 ${nr.emailsSent}/7 sent`);
+      } catch (err) {
+        console.error('Failed to send nurture reply:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `❌ *SEND FAILED*\n\n${err.message}\n\n📧 *To:* ${nr.email}`);
+      }
+
+    } else if (action === 'nr_edit') {
+      if (!nrRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening editor...', false);
+
+      const preview = (nr.autoReply || 'Write your reply here...').slice(0, 600).replace(/`/g, "'");
+      const editMsg = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `✏️ *Edit the reply below*\nCopy this text, edit it, and reply with your version:\n\n\`\`\`\n${preview}\n\`\`\``,
+        { reply_markup: { force_reply: true, selective: true } }
+      );
+
+      if (editMsg.ok && editMsg.result) {
+        await env.WEBHOOK_KV.put(
+          `edit_nr_reply:${editMsg.result.message_id}`,
+          JSON.stringify({ queueId: approvalId }),
+          { expirationTtl: 1800 }
+        );
+      }
+
+    } else if (action === 'nr_skip') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Skipped reply', false);
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `⏭️ *REPLY SKIPPED* — Nurture still PAUSED\n\n📧 ${nr.email || 'lead'}\n📊 ${nr.firmName || ''}\n📬 ${nr.emailsSent || '?'}/7 sent`,
+        {
+          inline_keyboard: [
+            [
+              { text: '🛑 Stop Nurture', callback_data: `nr_stop_only:${approvalId}` },
+              { text: '▶️ Resume Nurture', callback_data: `nr_resume:${approvalId}` }
+            ]
+          ]
+        }
+      );
+
+    } else if (action === 'nr_stop_only') {
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      if (nr.email) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          nurtureData.status = 'completed';
+          nurtureData.stopped_reason = 'manual_after_reply';
+          await env.WEBHOOK_KV.put(`nurture:${nr.email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Nurture stopped', false);
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `🛑 *NURTURE STOPPED*\n\n📧 ${nr.email || 'lead'}\n📊 ${nr.firmName || ''}\nNo reply sent. Sequence terminated.`);
+
+    } else if (action === 'nr_resume') {
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      if (nr.email) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          nurtureData.status = 'active';
+          await env.WEBHOOK_KV.put(`nurture:${nr.email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Nurture resumed', false);
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `▶️ *NURTURE RESUMED*\n\n📧 ${nr.email || 'lead'}\n📊 ${nr.firmName || ''}\nNo reply sent. Next nurture email will continue.`);
+
+    } else if (action === 'nr_send_custom_stop' || action === 'nr_send_custom_continue') {
+      const customText = await env.WEBHOOK_KV.get(`custom_nr:${approvalId}`);
+      if (!nrRaw || !customText) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending custom...', false);
+
+      try {
+        if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
+        const customHtml = customText.replace(/\n/g, '<br>');
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', customHtml, customText);
+
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          if (action === 'nr_send_custom_stop') {
+            nurtureData.status = 'completed';
+            nurtureData.stopped_reason = 'replied_engaged';
+          } else {
+            nurtureData.status = 'active';
+          }
+          await env.WEBHOOK_KV.put(`nurture:${nr.email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+
+        await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+        await env.WEBHOOK_KV.delete(`custom_nr:${approvalId}`);
+        const statusLabel = action === 'nr_send_custom_stop' ? 'STOPPED' : 'RESUMED';
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ *CUSTOM REPLY SENT* — Nurture ${statusLabel}\n\n📧 *To:* ${nr.email}\n📊 *Firm:* ${nr.firmName}`);
+      } catch (err) {
+        console.error('Failed to send custom nurture reply:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `❌ *SEND FAILED*\n\n${err.message}`);
+      }
+
+    } else if (action === 'nr_cancel_edit') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Cancelled', false);
+      await env.WEBHOOK_KV.delete(`custom_nr:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        '❌ *Edit cancelled.* Use the original message buttons to respond.');
+    }
+
+    return { ok: true };
+  }
+
   // Parse approval data from message (for report email callbacks)
   let approvalData = parseMessageForApprovalData(callback_query.message);
 
@@ -710,7 +867,19 @@ async function generateAutoResponse(category, replyText, firmName, contactName, 
   const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You write short, conversational emails to law firm leads. No marketing speak. No exclamation marks. Sound like a real person.`;
 
   let userPrompt;
-  if (category === 'QUESTION') {
+  if (category === 'INTERESTED') {
+    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied positively to my email:
+
+"${replyText.slice(0, 500)}"
+
+Write a short reply (3-5 sentences) that:
+1. Matches their energy — if they're excited, be excited back
+2. References the personalized breakdown I already sent them
+3. Suggests 2 specific call times (say "Tuesday at 2pm or Thursday at 11am" as placeholders)
+4. Makes it feel like the next step is easy and obvious
+
+Keep it casual and warm. No corporate speak.`;
+  } else if (category === 'QUESTION') {
     userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with a question:
 
 "${replyText.slice(0, 500)}"
@@ -721,7 +890,7 @@ Write a short reply (3-5 sentences) that:
 3. Suggests a quick call to walk through it
 
 Keep it casual and helpful. No corporate speak.`;
-  } else {
+  } else if (category === 'OBJECTION') {
     userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with an objection:
 
 "${replyText.slice(0, 500)}"
@@ -733,6 +902,19 @@ Write a short reply (3-5 sentences) that:
 4. Low-pressure — just offering a look at the data
 
 Keep it casual. No pressure. No marketing speak.`;
+  } else if (category === 'NOT_INTERESTED') {
+    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied saying they're not interested:
+
+"${replyText.slice(0, 500)}"
+
+Write a short reply (2-3 sentences) that:
+1. Respects their decision genuinely — no guilt, no pushback
+2. Leaves the door open casually ("if anything changes, the breakdown is still there")
+3. Ends warmly
+
+Keep it short and gracious. No pressure at all.`;
+  } else {
+    return null;
   }
 
   try {
@@ -741,6 +923,99 @@ Keep it casual. No pressure. No marketing speak.`;
     console.error('Auto-response generation failed:', e.message);
     return null;
   }
+}
+
+// ============ NURTURE REPLY HANDLER ============
+
+/**
+ * Handle a reply from a lead who is in the nurture sequence.
+ * Pauses nurture, generates auto-reply, sends Telegram with action buttons.
+ */
+async function handleNurtureReply(env, email, replyText, classification, nurtureData, leadData) {
+  const cat = classification.category;
+  const firmName = nurtureData.firm_name || leadData?.firm_name || '';
+  const contactName = nurtureData.contact_name || leadData?.contact_name || '';
+  const emailsSent = nurtureData.emails_sent || 0;
+
+  // UNSUBSCRIBE → hard stop immediately
+  if (cat === 'UNSUBSCRIBE') {
+    nurtureData.status = 'completed';
+    nurtureData.stopped_reason = 'unsubscribe';
+    await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+      `⛔ *NURTURE STOPPED — Unsubscribe*\n\n📧 *Email:* ${email}\n📊 *Firm:* ${firmName}\n📬 Progress: ${emailsSent}/7 sent\n\nLead unsubscribed. Nurture sequence terminated.`);
+    return;
+  }
+
+  // OOO → pause silently, no auto-reply
+  if (cat === 'OOO') {
+    nurtureData.status = 'paused';
+    nurtureData.paused_at = new Date().toISOString();
+    nurtureData.pause_reason = 'ooo';
+    await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+      `✈️ *NURTURE PAUSED — Out of Office*\n\n📧 *Email:* ${email}\n📊 *Firm:* ${firmName}\n📬 Progress: ${emailsSent}/7 sent, now PAUSED\n\nResume with \`/nurture resume ${email}\``);
+    return;
+  }
+
+  // Everything else: pause nurture + generate auto-reply + Telegram buttons
+  nurtureData.status = 'paused';
+  nurtureData.paused_at = new Date().toISOString();
+  nurtureData.pause_reason = 'lead_replied';
+  nurtureData.last_reply_text = (replyText || '').slice(0, 500);
+  nurtureData.last_reply_category = cat;
+  nurtureData.last_reply_at = new Date().toISOString();
+  await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+
+  // Generate auto-reply
+  let autoReply = null;
+  if (env.ANTHROPIC_API_KEY) {
+    autoReply = await generateAutoResponse(cat, replyText, firmName, contactName, env.ANTHROPIC_API_KEY);
+  }
+
+  const queueId = crypto.randomUUID();
+
+  // Store auto-reply context for button handlers
+  await env.WEBHOOK_KV.put(`nurture_reply:${queueId}`, JSON.stringify({
+    email, firmName, contactName, replyText: (replyText || '').slice(0, 500),
+    category: cat, autoReply, emailsSent
+  }), { expirationTtl: 86400 });
+
+  // Classification badge
+  const badges = {
+    INTERESTED: '🟢 INTERESTED',
+    QUESTION: '❓ QUESTION',
+    OBJECTION: '🟡 OBJECTION',
+    NOT_INTERESTED: '🔴 NOT INTERESTED',
+    IRRELEVANT: '⚪ IRRELEVANT'
+  };
+  const badge = badges[cat] || cat;
+  const confidence = Math.round((classification.confidence || 0) * 100);
+  const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+
+  let msg = `🔔 *NURTURE LEAD REPLIED*\n\n${badge} (${confidence}%)\n📊 *Firm:* ${esc(firmName)}\n📧 *Email:* ${email}\n📬 *Progress:* ${emailsSent}/7 sent, now PAUSED`;
+
+  msg += `\n\n*Their reply:*\n\`\`\`\n${(replyText || '').slice(0, 400).replace(/`/g, "'")}\n\`\`\``;
+
+  if (autoReply) {
+    msg += `\n\n*Suggested response:*\n\`\`\`\n${autoReply.slice(0, 600).replace(/`/g, "'")}\n\`\`\``;
+  }
+
+  const buttons = [];
+  if (autoReply) {
+    buttons.push([
+      { text: '✅ Send + Stop Nurture', callback_data: `nr_send_stop:${queueId}` },
+      { text: '✅ Send + Continue', callback_data: `nr_send_continue:${queueId}` }
+    ]);
+  }
+  buttons.push([
+    { text: '✏️ Edit Reply', callback_data: `nr_edit:${queueId}` },
+    { text: '⏭️ Skip Reply', callback_data: `nr_skip:${queueId}` }
+  ]);
+
+  await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
+    reply_markup: { inline_keyboard: buttons }
+  });
 }
 
 // ============ VIEW TRACKING ============
@@ -1102,6 +1377,45 @@ async function handleTelegramMessage(env, payload) {
       return { ok: true };
     }
 
+    // Check for nurture reply edit prompt
+    const nrEditRaw = await env.WEBHOOK_KV.get(`edit_nr_reply:${replyToId}`);
+    if (nrEditRaw) {
+      const { queueId } = JSON.parse(nrEditRaw);
+      const customText = text.trim();
+
+      if (!customText) {
+        await sendTelegramReply(env, chatId, messageId, '⚠️ Empty reply. Please try again.');
+        return { ok: true };
+      }
+
+      await env.WEBHOOK_KV.put(`custom_nr:${queueId}`, customText, { expirationTtl: 3600 });
+      await env.WEBHOOK_KV.delete(`edit_nr_reply:${replyToId}`);
+
+      const nrRaw = await env.WEBHOOK_KV.get(`nurture_reply:${queueId}`);
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      const preview = customText.length > 300 ? customText.slice(0, 300) + '...' : customText;
+
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `📧 *Custom nurture reply preview:*\n\n\`\`\`\n${preview}\n\`\`\`\n\nSend this to *${nr.email || 'lead'}*?`,
+        {
+          reply_to_message_id: messageId,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '✅ Send + Stop', callback_data: `nr_send_custom_stop:${queueId}` },
+                { text: '✅ Send + Continue', callback_data: `nr_send_custom_continue:${queueId}` }
+              ],
+              [
+                { text: '❌ Cancel', callback_data: `nr_cancel_edit:${queueId}` }
+              ]
+            ]
+          }
+        }
+      );
+
+      return { ok: true };
+    }
+
     // Check for report email edit prompt
     const sessionRaw = await env.WEBHOOK_KV.get(`edit_reply:${replyToId}`);
     if (sessionRaw) {
@@ -1158,10 +1472,10 @@ async function handleTelegramMessage(env, payload) {
     const subCommand = parts[1] || 'status';
 
     if (subCommand === 'status') {
-      // List active nurture leads from KV
+      // List active + paused nurture leads from KV
       const keys = await env.WEBHOOK_KV.list({ prefix: 'nurture:' });
       if (keys.keys.length === 0) {
-        await sendTelegramReply(env, chatId, messageId, '📬 No active nurture sequences.');
+        await sendTelegramReply(env, chatId, messageId, '📬 No nurture sequences.');
         return { ok: true };
       }
 
@@ -1170,13 +1484,15 @@ async function handleTelegramMessage(env, payload) {
         const raw = await env.WEBHOOK_KV.get(key.name);
         if (!raw) continue;
         const data = JSON.parse(raw);
-        if (data.status !== 'active') continue;
-        const email = key.name.replace('nurture:', '');
-        statusLines.push(`• ${email} — ${data.emails_sent || 0}/7 sent (${data.firm_name || '?'})`);
+        if (data.status !== 'active' && data.status !== 'paused') continue;
+        const nurEmail = key.name.replace('nurture:', '');
+        const badge = data.status === 'paused' ? '⏸️' : '▶️';
+        const reason = data.pause_reason ? ` (${data.pause_reason})` : '';
+        statusLines.push(`${badge} ${nurEmail} — ${data.emails_sent || 0}/7 sent (${data.firm_name || '?'})${data.status === 'paused' ? reason : ''}`);
       }
 
       const msg = statusLines.length > 0
-        ? `📬 *Active Nurture Sequences*\n\n${statusLines.join('\n')}`
+        ? `📬 *Nurture Sequences*\n\n${statusLines.join('\n')}`
         : '📬 No active nurture sequences.';
       await sendTelegramReply(env, chatId, messageId, msg);
     } else if (subCommand === 'stop' && parts[2]) {
@@ -1190,9 +1506,28 @@ async function handleTelegramMessage(env, payload) {
       } else {
         await sendTelegramReply(env, chatId, messageId, `⚠️ No nurture sequence found for ${targetEmail}`);
       }
+    } else if (subCommand === 'resume' && parts[2]) {
+      const targetEmail = parts[2];
+      const nurture = await env.WEBHOOK_KV.get(`nurture:${targetEmail}`);
+      if (nurture) {
+        const data = JSON.parse(nurture);
+        if (data.status === 'paused') {
+          data.status = 'active';
+          delete data.paused_at;
+          delete data.pause_reason;
+          await env.WEBHOOK_KV.put(`nurture:${targetEmail}`, JSON.stringify(data), { expirationTtl: 2592000 });
+          await sendTelegramReply(env, chatId, messageId, `▶️ Resumed nurture for ${targetEmail} (${data.emails_sent || 0}/7 sent)`);
+        } else if (data.status === 'active') {
+          await sendTelegramReply(env, chatId, messageId, `ℹ️ Nurture for ${targetEmail} is already active`);
+        } else {
+          await sendTelegramReply(env, chatId, messageId, `⚠️ Nurture for ${targetEmail} is ${data.status}, cannot resume`);
+        }
+      } else {
+        await sendTelegramReply(env, chatId, messageId, `⚠️ No nurture sequence found for ${targetEmail}`);
+      }
     } else {
       await sendTelegramReply(env, chatId, messageId,
-        `📬 *Nurture Commands:*\n\n\`/nurture status\` — Show active sequences\n\`/nurture stop email@firm.com\` — Stop a sequence`);
+        `📬 *Nurture Commands:*\n\n\`/nurture status\` — Show active/paused sequences\n\`/nurture stop email@firm.com\` — Stop a sequence\n\`/nurture resume email@firm.com\` — Resume a paused sequence`);
     }
 
     return { ok: true };
@@ -1304,6 +1639,20 @@ async function listMergeDispatch(env, email, minSlots) {
   // AI-powered reply classification
   const classification = await classifyReplyAI(replyText, env.ANTHROPIC_API_KEY);
   console.log(`Classification for ${email}: ${classification.category} (${classification.confidence})`);
+
+  // Check if lead is in a nurture sequence — if so, route to nurture reply handler
+  const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${email}`);
+  if (nurtureRaw) {
+    const nurtureData = JSON.parse(nurtureRaw);
+    if (nurtureData.status === 'active' || nurtureData.status === 'paused') {
+      console.log(`Nurture lead replied: ${email} (status=${nurtureData.status}, ${nurtureData.emails_sent || 0}/7 sent)`);
+      const leadRaw = await env.WEBHOOK_KV.get(`lead_by_email:${email}`);
+      const leadData = leadRaw ? JSON.parse(leadRaw) : null;
+      await handleNurtureReply(env, email, replyText, classification, nurtureData, leadData);
+      // Don't dispatch to GitHub for report generation — they already have a report
+      return true;
+    }
+  }
 
   if (classification.category === 'UNSUBSCRIBE' || classification.category === 'NOT_INTERESTED') {
     console.log(`${classification.category} from ${email}, skipping dispatch`);
