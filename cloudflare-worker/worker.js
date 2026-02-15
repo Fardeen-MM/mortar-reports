@@ -542,8 +542,8 @@ async function queueEmail(env, { type, to, subject, html, text, lead_email, firm
   };
   const header = typeHeaders[type] || '📧 QUEUED EMAIL';
 
-  // Build preview — strip backticks to avoid breaking Telegram code block
-  const preview = (text || '').slice(0, 400).replace(/`/g, "'");
+  // Build preview — show full email (Telegram limit is 4096 chars)
+  const preview = (text || '').slice(0, 2000).replace(/`/g, "'");
 
   // Escape markdown special chars in dynamic fields (but not our formatting)
   // Only strip chars that actually break Telegram Markdown v1: * _ ` [ ]
