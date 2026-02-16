@@ -320,6 +320,7 @@ async function handleTelegramCallback(env, update) {
         }
       }
 
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
         `⏭️ *REPLY SKIPPED* — Nurture still PAUSED\n\n📧 ${nr.email || 'lead'}\n📊 ${nr.firmName || ''}\n📬 ${nr.emailsSent || '?'}/7 sent`,
         {
@@ -1671,6 +1672,13 @@ async function listMergeDispatch(env, email, minSlots) {
   const classification = await classifyReplyAI(replyText, env.ANTHROPIC_API_KEY);
   console.log(`Classification for ${email}: ${classification.category} (${classification.confidence})`);
 
+  // Helper: clean up webhook slot keys before returning
+  async function cleanupSlots() {
+    for (const key of keys.keys) {
+      await env.WEBHOOK_KV.delete(key.name);
+    }
+  }
+
   // Check if lead is in a nurture sequence — if so, route to nurture reply handler
   const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${email}`);
   if (nurtureRaw) {
@@ -1681,6 +1689,7 @@ async function listMergeDispatch(env, email, minSlots) {
       const leadData = leadRaw ? JSON.parse(leadRaw) : null;
       await handleNurtureReply(env, email, replyText, classification, nurtureData, leadData);
       // Don't dispatch to GitHub for report generation — they already have a report
+      await cleanupSlots();
       return true;
     }
   }
@@ -1688,6 +1697,7 @@ async function listMergeDispatch(env, email, minSlots) {
   if (classification.category === 'UNSUBSCRIBE' || classification.category === 'NOT_INTERESTED') {
     console.log(`${classification.category} from ${email}, skipping dispatch`);
     await sendTelegramNotification(env, email, replyText, classification);
+    await cleanupSlots();
     return true;
   }
 
@@ -1696,11 +1706,13 @@ async function listMergeDispatch(env, email, minSlots) {
     await sendTelegramNotification(env, email, replyText, classification);
     // Store OOO flag for potential re-check later
     await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
+    await cleanupSlots();
     return true;
   }
 
   if (classification.category === 'IRRELEVANT') {
     console.log(`IRRELEVANT from ${email}, logging only`);
+    await cleanupSlots();
     return true;
   }
 
@@ -1740,9 +1752,7 @@ async function listMergeDispatch(env, email, minSlots) {
   await forwardToGitHub(env, merged);
 
   // Clean up slot keys
-  for (const key of keys.keys) {
-    await env.WEBHOOK_KV.delete(key.name);
-  }
+  await cleanupSlots();
 
   return true;
 }

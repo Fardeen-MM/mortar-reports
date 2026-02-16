@@ -195,7 +195,7 @@ If it makes sense, great. If not, no hard feelings. NEVER name any firm. Meeting
 
 VIBE: Genuine close. You only take one ${practice} firm per market in ${city}. Can't have two of your firms going after the same people. ${range ? `${range} every 30 days is sitting there.` : ''} That spot is open but you're done following up.
 
-Their breakdown is at ${lead.report_url} if they want to look.
+Their breakdown is at ${lead.report_url || 'the link I sent over'} if they want to look.
 
 Keep it short. Real. No BS. Make them feel the door closing gently.
 
