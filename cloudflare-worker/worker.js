@@ -255,6 +255,7 @@ async function handleTelegramCallback(env, update) {
 
       try {
         if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
+        if (!nr.autoReply) throw new Error('No auto-reply text available');
         const replyHtml = nr.autoReply.replace(/\n/g, '<br>');
         await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', replyHtml, nr.autoReply);
 
@@ -306,6 +307,19 @@ async function handleTelegramCallback(env, update) {
     } else if (action === 'nr_skip') {
       await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Skipped reply', false);
       const nr = nrRaw ? JSON.parse(nrRaw) : {};
+
+      // Clear reply context so future nurture emails don't reference the skipped reply
+      if (nr.email) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          delete nurtureData.last_reply_text;
+          delete nurtureData.last_reply_category;
+          delete nurtureData.last_reply_at;
+          await env.WEBHOOK_KV.put(`nurture:${nr.email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
         `⏭️ *REPLY SKIPPED* — Nurture still PAUSED\n\n📧 ${nr.email || 'lead'}\n📊 ${nr.firmName || ''}\n📬 ${nr.emailsSent || '?'}/7 sent`,
         {
@@ -320,6 +334,11 @@ async function handleTelegramCallback(env, update) {
 
     } else if (action === 'nr_stop_only') {
       const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      // Fallback: extract email from Telegram message text if KV expired
+      if (!nr.email && callback_query.message?.text) {
+        const m = callback_query.message.text.match(/📧\s*(\S+@\S+)/);
+        if (m) nr.email = m[1];
+      }
       if (nr.email) {
         const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
         if (nurtureRaw) {
@@ -336,6 +355,11 @@ async function handleTelegramCallback(env, update) {
 
     } else if (action === 'nr_resume') {
       const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      // Fallback: extract email from Telegram message text if KV expired
+      if (!nr.email && callback_query.message?.text) {
+        const m = callback_query.message.text.match(/📧\s*(\S+@\S+)/);
+        if (m) nr.email = m[1];
+      }
       if (nr.email) {
         const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
         if (nurtureRaw) {
@@ -1013,9 +1037,13 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
     { text: '⏭️ Skip Reply', callback_data: `nr_skip:${queueId}` }
   ]);
 
-  await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
-    reply_markup: { inline_keyboard: buttons }
-  });
+  try {
+    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
+      reply_markup: { inline_keyboard: buttons }
+    });
+  } catch (tgErr) {
+    console.error(`Failed to send nurture reply Telegram msg for ${email}:`, tgErr.message);
+  }
 }
 
 // ============ VIEW TRACKING ============
@@ -1515,6 +1543,9 @@ async function handleTelegramMessage(env, payload) {
           data.status = 'active';
           delete data.paused_at;
           delete data.pause_reason;
+          delete data.last_reply_text;
+          delete data.last_reply_category;
+          delete data.last_reply_at;
           await env.WEBHOOK_KV.put(`nurture:${targetEmail}`, JSON.stringify(data), { expirationTtl: 2592000 });
           await sendTelegramReply(env, chatId, messageId, `▶️ Resumed nurture for ${targetEmail} (${data.emails_sent || 0}/7 sent)`);
         } else if (data.status === 'active') {
