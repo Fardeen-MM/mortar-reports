@@ -125,9 +125,9 @@ jobs:
             # Update approval status
             if [ -f "automation/pending-approvals/$FIRM_FOLDER.json" ]; then
               # Update status to approved
-              node -e "
+              FIRM_FOLDER_ENV="$FIRM_FOLDER" node -e "
                 const fs = require('fs');
-                const file = 'automation/pending-approvals/$FIRM_FOLDER.json';
+                const file = 'automation/pending-approvals/' + process.env.FIRM_FOLDER_ENV + '.json';
                 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
                 data.status = 'approved';
                 data.approved_at = new Date().toISOString();
@@ -216,17 +216,19 @@ jobs:
           WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
           echo "📡 Storing lead metadata for $FIRM_FOLDER in Worker KV..."
 
-          curl -sf -X POST "$WORKER/store-lead" \
+          REPORT_URL_ENV="$LIVE_URL" node -e "
+            console.log(JSON.stringify({
+              email: process.env.LEAD_EMAIL,
+              firm_name: process.env.FIRM_NAME,
+              contact_name: process.env.CONTACT_NAME,
+              report_url: process.env.REPORT_URL_ENV,
+              practice_label: process.env.PRACTICE_LABEL,
+              country: process.env.COUNTRY,
+              firm_folder: process.env.FIRM_FOLDER
+            }));
+          " | curl -sf -X POST "$WORKER/store-lead" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"email\": \"$LEAD_EMAIL\",
-              \"firm_name\": \"$FIRM_NAME\",
-              \"contact_name\": \"$CONTACT_NAME\",
-              \"report_url\": \"$LIVE_URL\",
-              \"practice_label\": \"$PRACTICE_LABEL\",
-              \"country\": \"$COUNTRY\",
-              \"firm_folder\": \"$FIRM_FOLDER\"
-            }" && echo "✅ Lead metadata stored" || echo "⚠️ Failed to store lead metadata (non-critical)"
+            -d @- && echo "✅ Lead metadata stored" || echo "⚠️ Failed to store lead metadata (non-critical)"
 
       - name: Send approved email
         if: steps.inputs.outputs.skip_email != 'true'
@@ -284,9 +286,9 @@ jobs:
           fi
 
           # Extract city, competitor, reviews, and biggest gap from report HTML
-          node -e "
+          REPORT_FILE_ENV="$REPORT_FILE" node -e "
             const fs = require('fs');
-            const html = fs.readFileSync('$REPORT_FILE', 'utf8');
+            const html = fs.readFileSync(process.env.REPORT_FILE_ENV, 'utf8');
 
             // City from hero setup heading
             const cityMatch = html.match(/Every (?:30 days|month), people in ([^<]+?) search/i);
@@ -345,26 +347,28 @@ jobs:
           echo "📬 Adding $LEAD_EMAIL to nurture queue..."
           echo "   City: $CITY | Competitor: $TOP_COMPETITOR ($COMPETITOR_REVIEWS reviews) | Gap: $BIGGEST_GAP"
 
-          curl -sf -X POST "$WORKER/nurture-check" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"action\": \"set\",
-              \"email\": \"$LEAD_EMAIL\",
-              \"data\": {
-                \"firm_name\": \"$FIRM_NAME\",
-                \"contact_name\": \"$CONTACT_NAME\",
-                \"report_url\": \"$LIVE_URL\",
-                \"practice_label\": \"$PRACTICE_LABEL\",
-                \"country\": \"$COUNTRY\",
-                \"total_range\": \"$TOTAL_RANGE\",
-                \"total_cases\": \"$TOTAL_CASES\",
-                \"city\": \"$CITY\",
-                \"top_competitor\": \"$TOP_COMPETITOR\",
-                \"competitor_reviews\": \"$COMPETITOR_REVIEWS\",
-                \"biggest_gap\": \"$BIGGEST_GAP\",
-                \"start_date\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
-                \"emails_sent\": 0,
-                \"last_sent\": \"\",
-                \"status\": \"active\"
+          REPORT_URL_ENV="$LIVE_URL" START_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" node -e "
+            console.log(JSON.stringify({
+              action: 'set',
+              email: process.env.LEAD_EMAIL,
+              data: {
+                firm_name: process.env.FIRM_NAME,
+                contact_name: process.env.CONTACT_NAME,
+                report_url: process.env.REPORT_URL_ENV,
+                practice_label: process.env.PRACTICE_LABEL,
+                country: process.env.COUNTRY,
+                total_range: process.env.TOTAL_RANGE,
+                total_cases: process.env.TOTAL_CASES,
+                city: process.env.CITY,
+                top_competitor: process.env.TOP_COMPETITOR,
+                competitor_reviews: process.env.COMPETITOR_REVIEWS,
+                biggest_gap: process.env.BIGGEST_GAP,
+                start_date: process.env.START_DATE,
+                emails_sent: 0,
+                last_sent: '',
+                status: 'active'
               }
-            }" && echo "✅ Added to nurture queue" || echo "⚠️ Failed to add to nurture queue (non-critical)"
+            }));
+          " | curl -sf -X POST "$WORKER/nurture-check" \
+            -H "Content-Type: application/json" \
+            -d @- && echo "✅ Added to nurture queue" || echo "⚠️ Failed to add to nurture queue (non-critical)"

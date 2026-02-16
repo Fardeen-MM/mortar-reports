@@ -381,7 +381,11 @@ function daysSince(dateStr) {
   let items;
   try {
     const resp = await workerAPI('/nurture-check', { action: 'list' });
-    items = resp.items || [];
+    if (!resp.items) {
+      console.error('Worker returned no items:', JSON.stringify(resp).slice(0, 200));
+      process.exit(1);
+    }
+    items = resp.items;
   } catch (e) {
     console.error('Failed to fetch nurture queue:', e.message);
     process.exit(1);
@@ -415,7 +419,8 @@ function daysSince(dateStr) {
     if (!nextSendDay) {
       console.log(`✅ ${lead.email}: All 7 emails sent, marking complete`);
       lead.status = 'completed';
-      await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
+      const completeResp = await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
+      if (completeResp.ok === false) console.error(`  ⚠️  Failed to mark complete: ${completeResp.error || 'unknown'}`);
       continue;
     }
 
@@ -489,6 +494,11 @@ function daysSince(dateStr) {
 
       emailBody = bestBody || emailBody;
 
+      if (!emailBody || emailBody.trim().length < 20) {
+        console.log(`  ❌ Email body too short or empty, skipping this lead`);
+        continue;
+      }
+
       // Queue via Worker (no subject line needed, these are thread replies)
       await workerAPI('/queue-email', {
         type: 'nurture',
@@ -511,7 +521,10 @@ function daysSince(dateStr) {
         delete lead.last_reply_category;
         delete lead.last_reply_at;
       }
-      await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
+      const updateResp = await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
+      if (updateResp.ok === false) {
+        console.error(`  ⚠️  Failed to update nurture data: ${updateResp.error || 'unknown'}`);
+      }
 
       queued++;
       console.log(`  ✅ Queued for Telegram approval`);

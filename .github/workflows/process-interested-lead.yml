@@ -494,8 +494,8 @@ jobs:
               LEAD_NAME="$WEBHOOK_CONTACT"
               LEAD_TITLE="$WEBHOOK_JOB_TITLE"
               # Determine seniority from job title
-              LEAD_SENIORITY=$(node -e "
-                const t = '$WEBHOOK_JOB_TITLE'.toLowerCase();
+              LEAD_SENIORITY=$(TITLE_INPUT="$WEBHOOK_JOB_TITLE" node -e "
+                const t = (process.env.TITLE_INPUT || '').toLowerCase();
                 const senior = ['partner','director','founder','owner','principal','ceo','president','managing','of counsel','shareholder'];
                 const mid = ['associate','attorney','solicitor','counsel','lawyer','manager'];
                 if (senior.some(s => t.includes(s))) { console.log('senior'); }
@@ -769,7 +769,7 @@ jobs:
           FIRM_NAME: ${{ steps.deploy.outputs.firm_name }}
         run: |
           # Contact name comes from the approval JSON (already corrected if QC fixed it)
-          CONTACT_NAME=$(node -e "console.log(JSON.parse(require('fs').readFileSync('pending-approvals/${FIRM_FOLDER}.json','utf8')).contact_name)")
+          CONTACT_NAME=$(node -e "console.log(JSON.parse(require('fs').readFileSync('pending-approvals/' + process.env.FIRM_FOLDER + '.json','utf8')).contact_name)")
           echo "Sending Telegram approval for $FIRM_NAME (contact: $CONTACT_NAME)"
           node telegram-approval-bot.js "pending-approvals/${FIRM_FOLDER}.json"
         working-directory: ./automation
