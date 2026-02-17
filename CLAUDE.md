@@ -2,15 +2,14 @@
 
 ## What This Project Is
 
-Mortar Reports is an automated marketing report system for Mortar Metrics, a legal marketing agency. When a law firm lead replies "interested" to a cold email, the system:
+Mortar Reports is an automated marketing report system for Mortar Metrics, a legal marketing agency. The full pipeline:
 
-1. **Instantly.ai** sends webhook → **Cloudflare Worker** (`cloudflare-worker/worker.js`) forwards to GitHub
-2. **GitHub Actions** (`process-interested-lead.yml`) triggers the pipeline
-3. **Research engine** (`automation/maximal-research-v2.js`) scrapes firm's website with Playwright + Claude Sonnet 4
-4. **Report generator** (`automation/report-generator-v3.js`) fetches real competitors via Google Places API and produces HTML
-5. Report saves to `pending-reports/{FirmName}/` (NOT live until approved)
-6. **Telegram bot** sends approval request with inline buttons
-7. On approve: **email workflow** moves report to live folder + sends email via Instantly API
+1. **Instantly.ai** sends webhook on lead reply
+2. **Cloudflare Worker** (`cloudflare-worker/worker.js`) merges duplicate webhooks, classifies replies with AI, routes to GitHub
+3. **GitHub Actions** (`process-interested-lead.yml`) runs the pipeline: scrape → research → report → QC → Telegram approval
+4. On approve (`approve-and-send-email.yml`): deploy report to GitHub Pages → send email via Instantly → store lead in Worker KV → add to nurture queue
+5. **Nurture sequence** (`nurture-followup.yml`, every 6h): AI generates follow-up emails (7 angles over 14 days) → Telegram approval → send via Instantly
+6. **Reply handling** (Worker): AI classifies replies into 7 categories → auto-generates contextual responses → pauses nurture on reply → Telegram controls
 
 ## The Owner
 
@@ -25,65 +24,97 @@ Fardeen  -  runs Mortar Metrics. Not a developer. Wants reports that sell outcom
 
 ---
 
-## System Status: ✅ PRODUCTION READY
+## Key Files
 
-Last verified: 2026-02-04
+### Automation Scripts
 
-All components working:
-- Cloudflare Worker receiving webhooks ✅
-- Research engine scraping + AI extraction ✅
-- V3 Report generator with real competitors ✅
-- Telegram approval flow ✅
-- Email sending via Instantly ✅
+| File | Purpose |
+|------|---------|
+| `automation/maximal-research-v2.js` | Scrapes firm website with Playwright + Claude Sonnet 4. Calls extract-firm-info, ai-research-helper, ads-detector. |
+| `automation/extract-firm-info.js` | Claude AI extracts firm details (practice areas, team, locations) from scraped pages |
+| `automation/ai-research-helper.js` | Google Places API for real competitors + search terms |
+| `automation/ads-detector.js` | Detects Google Ads presence for firm and competitors |
+| `automation/report-generator-v3.js` | Generates V3 HTML report with gap cards, competitor bars, math boxes |
+| `automation/report-v3-css.js` | V3 CSS module (820px container, gap cards, horizontal bars) |
+| `automation/ai-report-perfector.js` | 10-step QC: 28 deterministic checks + skeptic AI review + conversion critic. Auto-fixes issues. |
+| `automation/telegram-approval-bot.js` | Builds Telegram approval message with inline buttons and email preview |
+| `automation/send-email.js` | Sends email via Instantly API v2 (lookup thread → reply) |
+| `automation/email-templates.js` | `buildEmail()` — personalized email subject/body with report data |
+| `automation/email-qc.js` | `validateEmail()` — email content validation |
+| `automation/nurture-sender.js` | Reads nurture queue from Worker KV, generates follow-up emails via Claude Haiku with QC loop, queues for Telegram approval |
+| `automation/personalize.js` | CSV lead personalizer — generates personalized subject/opening lines via Claude Haiku (manual workflow) |
+
+### Cloudflare Worker
+
+| File | Purpose |
+|------|---------|
+| `cloudflare-worker/worker.js` | ~2000-line Worker handling: webhook dedup/merge, AI reply classification (7 categories), auto-response generation, Telegram callbacks, view tracking, email queue with Telegram approval, nurture reply handling, `/build` and `/nurture` commands |
+| `cloudflare-worker/wrangler.toml` | Deployment config (KV namespace binding) |
+
+### GitHub Workflows
+
+| File | Trigger | Purpose |
+|------|---------|---------|
+| `process-interested-lead.yml` | `repository_dispatch` from Worker | Research → report → QC → staging → Telegram approval |
+| `approve-and-send-email.yml` | `repository_dispatch` + `workflow_dispatch` | Deploy report → send email → store lead metadata → add to nurture queue |
+| `nurture-followup.yml` | Cron every 6 hours | Run nurture-sender.js to generate + queue follow-up emails |
+| `personalize-leads.yml` | Manual `workflow_dispatch` | Run personalize.js on a CSV of leads |
+
+---
+
+## Cloudflare Worker Details
+
+The Worker does much more than proxy webhooks:
+
+- **Webhook merge**: Instantly sends 2 webhooks per lead (campaign + workspace level). Worker merges them using KV slot keys with `KV.list()` + 20s `waitUntil` fallback.
+- **AI reply classification**: Claude Haiku classifies into 7 categories: INTERESTED, QUESTION, OBJECTION, NOT_INTERESTED, UNSUBSCRIBE, OOO, IRRELEVANT. Fallback to pattern matching if API fails.
+- **Auto-response generation**: Generates contextual replies for INTERESTED, QUESTION, OBJECTION, NOT_INTERESTED. Queued for Telegram approval (never auto-sent).
+- **View tracking**: Reports fire `POST /view` on real engagement (scroll > 150px OR 8s activity). Worker tracks views per firm, queues follow-up on 1st view, alerts on 3rd/5th/10th.
+- **Nurture reply handling**: When a nurture lead replies, auto-pauses sequence, generates reply, shows Telegram buttons (Send+Stop / Send+Continue / Edit / Skip).
+- **Email queue**: `POST /queue-email` stores email in KV, sends Telegram with Approve/Edit/Skip buttons. Worker sends via Instantly directly on approve.
+- **Telegram commands**: `/build email@firm.com [website] [name]`, `/nurture status`, `/nurture stop`, `/nurture resume`
+
+### Worker Secrets (5)
+`GITHUB_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `INSTANTLY_API_KEY`, `ANTHROPIC_API_KEY`
+
+---
+
+## Nurture System
+
+7 follow-up emails over 14 days (days 2, 4, 6, 8, 10, 12, 14):
+
+1. **Market observation** — what's happening in their city right now
+2. **Something we built** — behind-the-scenes peek at a tool
+3. **Their numbers** — deep dive into their specific breakdown data
+4. **Result just came in** — one testimonial email (the only one)
+5. **What we noticed** — industry insight or pattern
+6. **The full picture** — straight talk, what working together looks like
+7. **Breakup** — last email, professional closure, no CTA
+
+**Flow**: Cron runs `nurture-sender.js` every 6h → reads Worker KV queue → generates email via Claude Haiku → QC scores it (quick checks + AI scoring, up to 3 attempts) → queues for Telegram approval → on approve, Worker sends via Instantly.
+
+**Reply handling**: If a nurture lead replies, Worker auto-pauses sequence, classifies reply, generates response, shows Telegram buttons. Next nurture email (if continued) naturally references their reply.
+
+**KV storage**: `nurture:{email}` stores lead data, progress (emails_sent, last_sent), status (active/paused/completed), and reply context.
+
+---
+
+## View Tracking
+
+Reports embed a tracking snippet that detects real engagement (scroll > 150px OR 8+ seconds of mouse/touch activity). Fires one `POST /view` per browser session via `sendBeacon`.
+
+- 1st view: queues a value-add follow-up email
+- 3rd/5th/10th view: Telegram HOT LEAD alert
+- Lead metadata stored in KV `lead:{firm_folder}` (via `/store-lead` endpoint, called by approve workflow)
 
 ---
 
 ## Report V3 Structure
 
 ```
-┌────────────────────────────────────────┐
-│ HEADER: Mortar Metrics · Prepared for  │
-├────────────────────────────────────────┤
-│ HERO: Typing animation search bar      │
-│ "They find other firms. Not yours."    │
-│ 2 minute read ↓                        │
-├────────────────────────────────────────┤
-│ GAP 1: Google Ads (badge, math box)    │
-│ GAP 2: Meta Ads (badge, math box)      │
-│ GAP 3: Voice AI (before/after)         │
-├────────────────────────────────────────┤
-│ TOTAL STRIP: Black bar with range      │
-├────────────────────────────────────────┤
-│ COMPETITOR BARS: Horizontal review chart│
-├────────────────────────────────────────┤
-│ BUILD LIST: Numbered 1-4 with timelines│
-├────────────────────────────────────────┤
-│ CTA: Booking widget                    │
-│ FOOTER                                 │
-└────────────────────────────────────────┘
+HEADER → HERO (typing animation) → GAP 1 (Google Ads) → GAP 2 (Meta Ads)
+→ GAP 3 (Voice AI) → TOTAL STRIP → COMPETITOR BARS → BUILD LIST → CTA → FOOTER
 ```
-
-**V3 Removed:** TLDR boxes, section labels ("GAP #1"), flow diagrams, proof grid, two-options guilt trip, fake case studies, exact numbers
-
-**V3 Added:** Gap cards with badges, horizontal bar chart, total strip, numbered build list, math boxes with RANGES and CAVEATS, practice-area-specific client labels
-
----
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `cloudflare-worker/worker.js` | Receives Instantly webhook + Telegram callbacks, forwards to GitHub |
-| `.github/workflows/process-interested-lead.yml` | Main pipeline: research → report → staging → Telegram |
-| `.github/workflows/approve-and-send-email.yml` | On approval: deploy → email |
-| `automation/maximal-research-v2.js` | Scrapes firm website with Playwright + Claude Sonnet 4 |
-| `automation/extract-firm-info.js` | Claude AI extracts firm details from scraped pages |
-| `automation/report-generator-v3.js` | Generates V3 HTML report from research data |
-| `automation/report-v3-css.js` | V3 styling (820px container, gap cards, horizontal bars) |
-| `automation/ai-research-helper.js` | Google Places API for real competitors + search terms |
-| `automation/telegram-approval-bot.js` | Sends Telegram approval request with buttons |
-| `automation/send-email.js` | Sends email via Instantly API |
-| `automation/email-templates.js` | Email subject/body templates |
 
 ---
 
@@ -91,17 +122,17 @@ All components working:
 
 ### Gap 1 (Google Ads)
 ```
-~searches × 3.5% CTR × 12% inquiry × 25% close × case value
+~searches x 3.5% CTR x 12% inquiry x 25% close x case value
 ```
 
 ### Gap 2 (Meta Ads)
 ```
-~audience × 1.5% ad reach × 0.8% conversion × 25% close × case value
+~audience x 1.5% ad reach x 0.8% conversion x 25% close x case value
 ```
 
 ### Gap 3 (Voice AI)
 ```
-~calls × 35% after-hours × 60% won't voicemail × 70% recoverable × case value
+~calls x 35% after-hours x 60% won't voicemail x 70% recoverable x case value
 ```
 
 ### Market Multipliers
@@ -125,26 +156,44 @@ All components working:
 ```bash
 # Generate V3 report locally
 cd /Users/fardeenchoudhury/mortar-reports/automation
-node report-generator-v3.js ../speed-to-lead/reports/doss-law-research.json "Test User"
-
-# Open generated HTML
+node report-generator-v3.js test-fixtures/doss-law-research.json "Test User"
 open reports/doss-law-report-v3.html
 
 # Test research engine (requires ANTHROPIC_API_KEY)
 node maximal-research-v2.js "https://www.example-law.com" "John Smith" "Chicago" "IL" "US" "Example Law Firm"
+
+# Test nurture email generation
+ANTHROPIC_API_KEY=sk-ant-... node nurture-sender.js
+
+# Check nurture queue
+curl -s -X POST "https://instantly-webhook-proxy.fardeen-729.workers.dev/nurture-check" \
+  -H "Content-Type: application/json" -d '{"action":"list"}' | jq .
+
+# Deploy worker
+cd /Users/fardeenchoudhury/mortar-reports/cloudflare-worker && npx wrangler deploy
+
+# Check recent GitHub Actions runs
+gh run list --repo Fardeen-MM/mortar-reports --limit 5
 ```
 
 ---
 
-## API Keys
+## Secrets
 
-| Key | Location | Purpose |
-|-----|----------|---------|
-| Google Places API | Hardcoded in `ai-research-helper.js` | Real competitor data |
-| Anthropic | GitHub secret `ANTHROPIC` | Claude AI for research |
-| Telegram Bot | GitHub secrets `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Approval notifications |
-| Instantly | GitHub secret `INSTANTLY_API_KEY` | Email sending |
-| GitHub PAT | GitHub secret `GH_PAT` | Workflow commits |
+### GitHub Secrets (8)
+| Secret | Purpose |
+|--------|---------|
+| `ANTHROPIC` | Claude AI for research, report generation, QC, nurture emails |
+| `GOOGLE_PLACES_API_KEY` | Real competitor data via Google Places |
+| `GOOGLE_API_KEY` | Google search verification in QC |
+| `INSTANTLY_API_KEY` | Email sending via Instantly API v2 |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot for approval flow |
+| `TELEGRAM_CHAT_ID` | Telegram chat for notifications |
+| `GH_PAT` | GitHub PAT for workflow commits |
+| `WORKER_URL` | Cloudflare Worker URL for nurture-sender.js |
+
+### Cloudflare Worker Secrets (5)
+`GITHUB_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `INSTANTLY_API_KEY`, `ANTHROPIC_API_KEY`
 
 ---
 
@@ -153,97 +202,47 @@ node maximal-research-v2.js "https://www.example-law.com" "John Smith" "Chicago"
 ```
 mortar-reports/
 ├── automation/
-│   ├── reports/           # Generated reports (local testing)
-│   ├── pending-approvals/ # Approval JSON files
+│   ├── test-fixtures/        # Research JSONs for local testing
+│   ├── pending-approvals/    # Approval JSONs (pending leads)
+│   ├── approved-archive/     # Archived approved JSONs (for analytics)
+│   ├── reports/              # Generated reports (local, gitignored)
 │   ├── maximal-research-v2.js
 │   ├── report-generator-v3.js
+│   ├── ai-report-perfector.js
+│   ├── nurture-sender.js
+│   ├── personalize.js
 │   └── ...
-├── pending-reports/       # Reports awaiting approval (staging)
-│   └── {FirmName}/
-│       └── index.html
-├── {FirmName}/            # LIVE reports (after approval)
+├── pending-reports/          # Reports awaiting approval
+│   └── {FirmName}/index.html
+├── {FirmName}/               # LIVE reports (82 deployed, GitHub Pages)
 │   └── index.html
 ├── cloudflare-worker/
-│   └── worker.js
-├── .github/workflows/
-│   ├── process-interested-lead.yml
-│   └── approve-and-send-email.yml
-└── speed-to-lead/reports/ # Historical research JSONs
+│   ├── worker.js
+│   └── wrangler.toml
+└── .github/workflows/
+    ├── process-interested-lead.yml
+    ├── approve-and-send-email.yml
+    ├── nurture-followup.yml
+    └── personalize-leads.yml
 ```
 
 ---
 
 ## Known Limitations
 
-- **LinkedIn scraping fails**  -  blocked by LinkedIn, accept limitation
-- **Cloudflare Worker dedup**  -  uses in-memory Map, resets on cold start
-- **Cloudflare Worker auth**  -  no authentication (relies on obscurity)
-- **Google Places API**  -  may fail from certain IPs, returns empty array gracefully
+- **LinkedIn scraping fails** - blocked by LinkedIn, accept limitation
+- **Cloudflare Worker dedup** - uses KV slot keys + in-memory Map, resets on cold start
+- **Cloudflare Worker auth** - no authentication (relies on obscurity)
+- **Google Places API** - may fail from certain IPs, returns empty array gracefully
+- **Instantly API** - reply-only (no new-email endpoint), requires existing thread
+- **All emails gated by Telegram** - nothing auto-sends, every email needs approval
 
 ---
 
 ## Working With Fardeen
 
-- Not a developer  -  explain in plain English
+- Not a developer - explain in plain English
 - Wants reports that sell outcomes
-- Gives brutal honest feedback  -  iterate on it
+- Gives brutal honest feedback - iterate on it
 - Always test against real research JSON before pushing
-- Research JSONs are in `speed-to-lead/reports/`
-
----
-
-## Previous Fix Log (2026-02-03/04)
-
-All issues from previous sessions have been resolved:
-
-1. ✅ Competitor data  -  now uses Google Places API (real firms)
-2. ✅ "You" column  -  shows firm's actual capabilities
-3. ✅ Case studies  -  removed all fabricated claims
-4. ✅ Gap math  -  honest calculations with ranges, no rigging
-5. ✅ Hero total  -  calculated from gaps, no $19K default
-6. ✅ Gap assumptions  -  checks firm's actual capabilities
-7. ✅ Pipeline order  -  pending folder until approved
-8. ✅ Validation  -  rejects "Unknown Firm" and garbage names
-9. ✅ Statistics  -  removed unsourced percentage claims
-10. ✅ Attack-style titles  -  reframed as opportunities
-11. ✅ Normalizer fallbacks  -  no fake competitors
-
----
-
-## Fix Log (2026-02-05): AI Report Perfector Verbose Labels
-
-**Problem:** AI Report Perfector failing with score 3/10. Root cause was `clientLabel` being set to verbose phrases like "individual going through a divorce" instead of concise labels like "spouse" or "divorcing client". This created awkward sentences appearing 4+ times in reports.
-
-**Why perfector couldn't fix it:**
-- 3 iterations wasn't enough for complex phrasing issues
-- Whole-HTML replacement is fragile for 800+ line files
-- The source (report generator) was creating bad content
-
-**Solution implemented (two-part fix):**
-
-### Part 1: `report-generator-v3.js` (lines 154-162)
-Added clientLabel length validation after AI content generation:
-```javascript
-if (clientLabel && clientLabel.split(' ').length > 3) {
-  console.log(`⚠️  Client label too verbose: "${clientLabel}", using fallback`);
-  const fallback = CLIENT_LABELS[practiceArea] || CLIENT_LABELS['default'];
-  clientLabel = fallback.singular;
-  clientLabelPlural = fallback.plural;
-  articleForClient = getArticle(clientLabel);
-}
-```
-
-### Part 2: `ai-report-perfector.js`
-1. **Increased MAX_ITERATIONS** from 3 to 5 (line 21)
-2. **Added `preFixCommonIssues()` function** (lines 504-569)  -  direct string replacement for known verbose phrases before AI QC runs
-3. **Integrated pre-pass** into perfection loop (lines 846-849)
-
-**Verbose phrases now auto-fixed:**
-- "individual going through a divorce" → "divorcing client"
-- "person going through divorce" → "divorcing client"
-- "family member dealing with estate" → "someone planning their estate"
-- "individual facing immigration issues" → "immigration client"
-- "individual injured in an accident" → "accident victim"
-- + many more patterns
-
-**Result:** Reports now generate with concise client labels. Perfector has safety net for any that slip through.
+- Test fixtures in `automation/test-fixtures/`
