@@ -889,7 +889,7 @@ function classifyReplyFallback(text) {
  * Generate an auto-response for QUESTION or OBJECTION replies.
  */
 async function generateAutoResponse(category, replyText, firmName, contactName, anthropicKey) {
-  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You write short, conversational emails to law firm leads. No marketing speak. No exclamation marks. Sound like a real person.`;
+  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You write short, conversational emails to law firm leads. No marketing speak. No exclamation marks. Sound like a real person. Never include a sign-off or signature at the end.`;
 
   let userPrompt;
   if (category === 'INTERESTED') {
@@ -1084,10 +1084,7 @@ Just noticed you had a chance to look at the report we put together for ${lead.f
 
 Happy to walk through any of the numbers — the competitor data and the gap estimates are the parts most firms find most useful.
 
-No pitch, just context. Let me know if you want 15 minutes this week.
-
-Fardeen
-Mortar Metrics`;
+No pitch, just context. Let me know if you want 15 minutes this week.`;
 
     await queueEmail(env, {
       type: 'follow-up',
