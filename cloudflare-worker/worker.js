@@ -888,62 +888,45 @@ function classifyReplyFallback(text) {
 /**
  * Generate an auto-response for QUESTION or OBJECTION replies.
  */
-async function generateAutoResponse(category, replyText, firmName, contactName, anthropicKey) {
-  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You write short, conversational emails to law firm leads. No marketing speak. No exclamation marks. Sound like a real person. Never include a sign-off or signature at the end.`;
+async function generateAutoResponse(category, replyText, firmName, contactName, anthropicKey, pipelineContext) {
+  const ctx = pipelineContext || {};
+  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You're a pro salesman who genuinely cares about helping law firms grow. You write short, conversational emails. No marketing speak. No exclamation marks. No em dashes. Sound like a real person. Never include a sign-off or signature at the end. Every reply should move toward booking a meeting.`;
 
-  let userPrompt;
-  if (category === 'INTERESTED') {
-    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied positively to my email:
+  // Build situation context for the AI
+  const lead = contactName || 'the partner';
+  const firm = firmName || 'a law firm';
+  const reply = replyText.slice(0, 500);
 
-"${replyText.slice(0, 500)}"
-
-Write a short reply (3-5 sentences) that:
-1. Matches their energy — if they're excited, be excited back
-2. References the personalized breakdown I already sent them
-3. Suggests 2 specific call times (say "Tuesday at 2pm or Thursday at 11am" as placeholders)
-4. Makes it feel like the next step is easy and obvious
-
-Keep it casual and warm. No corporate speak.`;
-  } else if (category === 'QUESTION') {
-    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with a question:
-
-"${replyText.slice(0, 500)}"
-
-Write a short reply (3-5 sentences) that:
-1. Answers their question directly
-2. Mentions the personalized report I built for their firm
-3. Suggests a quick call to walk through it
-
-Keep it casual and helpful. No corporate speak.`;
-  } else if (category === 'OBJECTION') {
-    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied to my cold email with an objection:
-
-"${replyText.slice(0, 500)}"
-
-Write a short reply (3-5 sentences) that:
-1. Acknowledges their concern genuinely
-2. Reframes it as an opportunity (e.g., "that's actually why we built this")
-3. Mentions the personalized report showing real competitor data
-4. Low-pressure — just offering a look at the data
-
-Keep it casual. No pressure. No marketing speak.`;
-  } else if (category === 'NOT_INTERESTED') {
-    userPrompt = `A lead from ${firmName || 'a law firm'} (${contactName || 'the partner'}) replied saying they're not interested:
-
-"${replyText.slice(0, 500)}"
-
-Write a short reply (3-5 sentences) that:
-1. Thanks them for the honest response — show you genuinely hear their concern
-2. Reference that we've helped a lot of firms in similar positions and market sizes and know we can make them more money
-3. Frame their smaller/tougher market as an ADVANTAGE — it takes very little to dominate all ad platforms and incoming searches when there's less competition
-4. Push for a specific 15-minute meeting — suggest "tomorrow or Friday" as options and say you'll show them exactly how you'd do it for their firm
-5. Keep the ask low-pressure — "no commitment, just a look"
-
-IMPORTANT: Do NOT reference the report or breakdown we already sent. They've already seen it. This is about getting a meeting.
-Sound like a caring, confident salesman who genuinely believes in the results. Short, warm, and direct.`;
+  let situation = '';
+  if (ctx.isNurtureLead) {
+    situation = `This is an ENGAGED lead who was originally interested. They received a personalized marketing report for their firm and ${ctx.emailsSent ? ctx.emailsSent + ' nurture emails' : 'follow-up emails'} from us. They are replying to one of those emails. This is NOT a cold rejection.`;
+  } else if (ctx.hasReport) {
+    situation = `This lead was originally interested and already received a personalized marketing report. They are replying after seeing the report. This is NOT a cold rejection.`;
   } else {
-    return null;
+    situation = `This lead is replying to our cold outreach email. This is our first interaction.`;
   }
+
+  const userPrompt = `SITUATION: ${situation}
+
+LEAD: ${lead} from ${firm}
+${ctx.city ? `MARKET: ${ctx.city}` : ''}
+${ctx.practiceLabel ? `PRACTICE: ${ctx.practiceLabel}` : ''}
+AI CLASSIFICATION: ${category}
+
+THEIR REPLY:
+"${reply}"
+
+Write a short reply (2-5 sentences). Read their message carefully and respond like a smart, caring salesman would. Your goal is always to get them on a 15-minute call.
+
+Guidelines:
+- Genuinely acknowledge what they said first
+- Be confident in the results we deliver. We've helped many firms in similar positions
+- If they raise concerns about their market, costs, or viability, reframe it as an advantage (less competition = easier to dominate)
+- Always push for a specific meeting. Suggest 2 days (like "tomorrow or Friday") and keep the ask easy
+- If they're positive/interested, match their energy and make booking feel like the obvious next step
+- If they ask a question, answer it directly then pivot to the call
+- Never reference a report or breakdown if they've already seen it
+- Sound warm, direct, and human. Short sentences. No fluff.`;
 
   try {
     return await callHaiku(anthropicKey, systemPrompt, userPrompt, 400);
@@ -995,10 +978,16 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
   nurtureData.last_reply_at = new Date().toISOString();
   await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
 
-  // Generate auto-reply
+  // Generate auto-reply with full pipeline context
   let autoReply = null;
   if (env.ANTHROPIC_API_KEY) {
-    autoReply = await generateAutoResponse(cat, replyText, firmName, contactName, env.ANTHROPIC_API_KEY);
+    autoReply = await generateAutoResponse(cat, replyText, firmName, contactName, env.ANTHROPIC_API_KEY, {
+      isNurtureLead: true,
+      hasReport: true,
+      emailsSent: emailsSent,
+      city: nurtureData.city || '',
+      practiceLabel: nurtureData.practice_label || ''
+    });
   }
 
   const queueId = crypto.randomUUID();
@@ -1710,7 +1699,7 @@ async function listMergeDispatch(env, email, minSlots) {
       const contactName = merged.client_payload.first_name || '';
       const company = merged.client_payload.company || '';
       const autoReply = await generateAutoResponse(
-        'NOT_INTERESTED', replyText, company, contactName, env.ANTHROPIC_API_KEY
+        'NOT_INTERESTED', replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
       );
       if (autoReply && env.INSTANTLY_API_KEY) {
         await queueEmail(env, {
@@ -1754,7 +1743,7 @@ async function listMergeDispatch(env, email, minSlots) {
     const company = merged.client_payload.company || '';
 
     const autoReply = await generateAutoResponse(
-      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY
+      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
     );
 
     if (autoReply && env.INSTANTLY_API_KEY) {
