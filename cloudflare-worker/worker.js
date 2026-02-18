@@ -1688,10 +1688,9 @@ async function listMergeDispatch(env, email, minSlots) {
     return true;
   }
 
-  // NOT_INTERESTED: objection handle — generate auto-reply + queue for approval
+  // NOT_INTERESTED: objection handle — generate auto-reply + queue for approval (no separate ping)
   if (classification.category === 'NOT_INTERESTED') {
     console.log(`NOT_INTERESTED from ${email}, generating objection response`);
-    await sendTelegramNotification(env, email, replyText, classification);
 
     if (env.ANTHROPIC_API_KEY) {
       const contactName = merged.client_payload.first_name || '';
@@ -1711,8 +1710,6 @@ async function listMergeDispatch(env, email, minSlots) {
           contact_name: contactName,
           context: `NOT_INTERESTED objection handle: ${classification.summary || ''}`
         });
-        await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-          `↳ Objection response queued for approval (NOT_INTERESTED)`);
       }
     }
 
@@ -1721,9 +1718,7 @@ async function listMergeDispatch(env, email, minSlots) {
   }
 
   if (classification.category === 'OOO') {
-    console.log(`OOO from ${email}, notifying only`);
-    await sendTelegramNotification(env, email, replyText, classification);
-    // Store OOO flag for potential re-check later
+    console.log(`OOO from ${email}, handled silently`);
     await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
     await cleanupSlots();
     return true;
@@ -1758,12 +1753,7 @@ async function listMergeDispatch(env, email, minSlots) {
       });
     }
 
-    // Send classification notification with auto-reply status
-    await sendTelegramNotification(env, email, replyText, classification);
-    if (autoReply) {
-      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-        `↳ Auto-response queued for approval (${classification.category})`);
-    }
+    // queueEmail already sends its own Telegram approval message — no extra ping needed
   }
 
   // INTERESTED, QUESTION, OBJECTION all dispatch to GitHub for report generation
