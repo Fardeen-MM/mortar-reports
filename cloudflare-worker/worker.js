@@ -932,12 +932,13 @@ Keep it casual. No pressure. No marketing speak.`;
 
 "${replyText.slice(0, 500)}"
 
-Write a short reply (2-3 sentences) that:
-1. Respects their decision genuinely — no guilt, no pushback
-2. Leaves the door open casually ("if anything changes, the breakdown is still there")
-3. Ends warmly
+Write a short reply (2-4 sentences) that:
+1. Acknowledges what they said without being defensive
+2. Pivots to RESULTS — there are real cases in their market that their competitors are signing right now and they're missing
+3. Pushes for a 15-minute meeting to show them exactly where the money is coming from
+4. Makes it sound like they'd be leaving money on the table by not at least looking
 
-Keep it short and gracious. No pressure at all.`;
+Be direct and results-focused. This is a pitch. We believe in the numbers. Sound confident, not desperate.`;
   } else {
     return null;
   }
@@ -1691,9 +1692,41 @@ async function listMergeDispatch(env, email, minSlots) {
     }
   }
 
-  if (classification.category === 'UNSUBSCRIBE' || classification.category === 'NOT_INTERESTED') {
-    console.log(`${classification.category} from ${email}, skipping dispatch`);
+  if (classification.category === 'UNSUBSCRIBE') {
+    console.log(`UNSUBSCRIBE from ${email}, skipping dispatch`);
     await sendTelegramNotification(env, email, replyText, classification);
+    await cleanupSlots();
+    return true;
+  }
+
+  // NOT_INTERESTED: objection handle — generate auto-reply + queue for approval
+  if (classification.category === 'NOT_INTERESTED') {
+    console.log(`NOT_INTERESTED from ${email}, generating objection response`);
+    await sendTelegramNotification(env, email, replyText, classification);
+
+    if (env.ANTHROPIC_API_KEY) {
+      const contactName = merged.client_payload.first_name || '';
+      const company = merged.client_payload.company || '';
+      const autoReply = await generateAutoResponse(
+        'NOT_INTERESTED', replyText, company, contactName, env.ANTHROPIC_API_KEY
+      );
+      if (autoReply && env.INSTANTLY_API_KEY) {
+        await queueEmail(env, {
+          type: 'auto-reply',
+          to: email,
+          subject: 'Re: Your marketing analysis',
+          html: autoReply.replace(/\n/g, '<br>'),
+          text: autoReply,
+          lead_email: email,
+          firm_name: company,
+          contact_name: contactName,
+          context: `NOT_INTERESTED objection handle: ${classification.summary || ''}`
+        });
+        await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+          `↳ Objection response queued for approval (NOT_INTERESTED)`);
+      }
+    }
+
     await cleanupSlots();
     return true;
   }

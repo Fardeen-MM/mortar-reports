@@ -149,6 +149,15 @@ const PRACTICE_ECONOMICS = {
 // Floor base cases per gap channel (used with floorMultiplier)
 const GAP_FLOOR_BASE_CASES = { gap1: 10, gap2: 6, gap3: 4 };
 
+// Population-based floor scaling — prevents mega-city floors from inflating small-market reports
+const FLOOR_POPULATION_SCALE = {
+  mega:  1.0,    // 10/6/4 floor cases (unchanged)
+  major: 0.7,    // 7/4.2/2.8 floor cases
+  mid:   0.45,   // 4.5/2.7/1.8 floor cases
+  small: 0.25,   // 2.5/1.5/1 floor cases
+  micro: 0.12,   // 1.2/0.72/0.48 floor cases
+};
+
 // Client labels by practice area (used in fallback prose)
 const CLIENT_LABELS = {
   'landlord': { singular: 'landlord', plural: 'landlords' },
@@ -1841,14 +1850,16 @@ function calculateGap1(marketMultiplier, caseValues, countryBaseline, currency, 
   if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // Practice-area-aware floors (replace universal $55K/$80K)
+  // Practice-area-aware floors scaled by population (replace universal $55K/$80K)
+  const tierName = CITY_POPULATION_TIER[(city || '').toLowerCase().trim()] || 'small';
+  const floorScale = FLOOR_POPULATION_SCALE[tierName] || 0.25;
   let minLow, minHigh;
   if (USE_PRACTICE_FLOORS) {
-    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap1 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap1 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap1 * floorScale * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap1 * floorScale * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
   } else {
-    minLow = Math.round(55000 * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(80000 * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(55000 * floorScale * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(80000 * floorScale * countryBaseline / 500) * 500 || 1000;
   }
   const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
   const tight = tightenRange(floored.low, floored.high);
@@ -1869,14 +1880,16 @@ function calculateGap2(marketMultiplier, caseValues, city, countryBaseline, curr
   if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // Practice-area-aware floors (replace universal $38K/$56K)
+  // Practice-area-aware floors scaled by population (replace universal $38K/$56K)
+  const tierName = CITY_POPULATION_TIER[(city || '').toLowerCase().trim()] || 'small';
+  const floorScale = FLOOR_POPULATION_SCALE[tierName] || 0.25;
   let minLow, minHigh;
   if (USE_PRACTICE_FLOORS) {
-    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap2 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap2 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap2 * floorScale * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap2 * floorScale * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
   } else {
-    minLow = Math.round(38000 * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(56000 * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(38000 * floorScale * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(56000 * floorScale * countryBaseline / 500) * 500 || 1000;
   }
   const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
   const tight = tightenRange(floored.low, floored.high);
@@ -1897,14 +1910,16 @@ function calculateGap3(firmSizeMultiplier, caseValues, countryBaseline, currency
   if (USE_PRACTICE_FLOORS) casesPerMonth = Math.min(casesPerMonth, econ.maxCasesPerGap);
   const low = Math.round(casesPerMonth * caseValues.low / 500) * 500;
   const high = Math.round(casesPerMonth * caseValues.high / 500) * 500;
-  // Practice-area-aware floors (replace universal $17K/$30K)
+  // Practice-area-aware floors scaled by population (replace universal $17K/$30K)
+  const tierName = CITY_POPULATION_TIER[(city || '').toLowerCase().trim()] || 'small';
+  const floorScale = FLOOR_POPULATION_SCALE[tierName] || 0.25;
   let minLow, minHigh;
   if (USE_PRACTICE_FLOORS) {
-    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap3 * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap3 * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(GAP_FLOOR_BASE_CASES.gap3 * floorScale * caseValues.low * econ.floorMultiplier * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(GAP_FLOOR_BASE_CASES.gap3 * floorScale * caseValues.high * econ.floorMultiplier * countryBaseline / 500) * 500 || 1000;
   } else {
-    minLow = Math.round(17000 * countryBaseline / 500) * 500 || 500;
-    minHigh = Math.round(30000 * countryBaseline / 500) * 500 || 1000;
+    minLow = Math.round(17000 * floorScale * countryBaseline / 500) * 500 || 500;
+    minHigh = Math.round(30000 * floorScale * countryBaseline / 500) * 500 || 1000;
   }
   const floored = { low: Math.max(minLow, low), high: Math.max(minHigh, high) };
   const tight = tightenRange(floored.low, floored.high);
