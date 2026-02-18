@@ -948,13 +948,12 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
   const contactName = nurtureData.contact_name || leadData?.contact_name || '';
   const emailsSent = nurtureData.emails_sent || 0;
 
-  // UNSUBSCRIBE → hard stop immediately
+  // UNSUBSCRIBE → hard stop immediately, no Telegram ping
   if (cat === 'UNSUBSCRIBE') {
     nurtureData.status = 'completed';
     nurtureData.stopped_reason = 'unsubscribe';
     await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
-    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-      `⛔ *NURTURE STOPPED — Unsubscribe*\n\n📧 *Email:* ${email}\n📊 *Firm:* ${firmName}\n📬 Progress: ${emailsSent}/7 sent\n\nLead unsubscribed. Nurture sequence terminated.`);
+    console.log(`UNSUBSCRIBE from nurture lead ${email}, stopped silently`);
     return;
   }
 
@@ -1684,8 +1683,7 @@ async function listMergeDispatch(env, email, minSlots) {
   }
 
   if (classification.category === 'UNSUBSCRIBE') {
-    console.log(`UNSUBSCRIBE from ${email}, skipping dispatch`);
-    await sendTelegramNotification(env, email, replyText, classification);
+    console.log(`UNSUBSCRIBE from ${email}, handled silently`);
     await cleanupSlots();
     return true;
   }
