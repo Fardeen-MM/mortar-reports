@@ -932,13 +932,15 @@ Keep it casual. No pressure. No marketing speak.`;
 
 "${replyText.slice(0, 500)}"
 
-Write a short reply (2-4 sentences) that:
-1. Acknowledges what they said without being defensive
-2. Pivots to RESULTS — there are real cases in their market that their competitors are signing right now and they're missing
-3. Pushes for a 15-minute meeting to show them exactly where the money is coming from
-4. Makes it sound like they'd be leaving money on the table by not at least looking
+Write a short reply (3-5 sentences) that:
+1. Thanks them for the honest response — show you genuinely hear their concern
+2. Reference that we've helped a lot of firms in similar positions and market sizes and know we can make them more money
+3. Frame their smaller/tougher market as an ADVANTAGE — it takes very little to dominate all ad platforms and incoming searches when there's less competition
+4. Push for a specific 15-minute meeting — suggest "tomorrow or Friday" as options and say you'll show them exactly how you'd do it for their firm
+5. Keep the ask low-pressure — "no commitment, just a look"
 
-Be direct and results-focused. This is a pitch. We believe in the numbers. Sound confident, not desperate.`;
+IMPORTANT: Do NOT reference the report or breakdown we already sent. They've already seen it. This is about getting a meeting.
+Sound like a caring, confident salesman who genuinely believes in the results. Short, warm, and direct.`;
   } else {
     return null;
   }
