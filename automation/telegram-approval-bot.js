@@ -204,7 +204,27 @@ if (approvalData.phone) {
   campaignPhoneLine += `\n📞 *Phone:* ${escMd(approvalData.phone)}`;
 }
 
-const message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
+const isOOO = approvalData.classification === 'OOO';
+const oooReturnDate = approvalData.ooo_return_date || '';
+
+let message;
+if (isOOO) {
+  // OOO-specific message — no email preview (welcome-back email generated later)
+  message = `✈️ *OOO REPORT — DEPLOY NOW, EMAIL WHEN BACK*${qcWarning}
+
+📊 *Firm:* ${escMd(displayName)}
+👤 *Contact:* ${escMd(approvalData.contact_name)}
+📧 *Email:* ${escMd(approvalData.lead_email)}${replySection}${campaignPhoneLine}
+📅 *Return date:* ${oooReturnDate || 'unknown (defaulted to 5 days)'} (email will queue then)${qcStatus}${aiVerdict}${leadIntelSection}
+${contextSection}
+🔗 *Review Report:*
+${escMd(approvalData.report_url)}
+
+⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
+
+*Soft reply already auto-sent. Deploy report now — welcome-back email will be generated when they return.*`;
+} else {
+  message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
 📊 *Firm:* ${escMd(displayName)}
 👤 *Contact:* ${escMd(approvalData.contact_name)}
@@ -222,38 +242,57 @@ ${emailPreview.body}
 ${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${emailQC.errors.map(e => `  - ${escMd(e)}`).join('\n')}\n` : ''}${emailQC.warnings.length > 0 ? `\n🟡 *EMAIL QC WARNINGS:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : ''}${emailQC.errors.length === 0 && emailQC.warnings.length === 0 ? '✅ Email QC passed' : ''}
 
 *Please review the report and email, then choose an action below:*`;
+}
 
 // Build approval ID for callback buttons — use firm_folder directly (exact filename match)
 const approvalId = approvalData.firm_folder;
 
 // Inline keyboard with Approve/Reject buttons (using short callback_data)
 // Manual builds only get Deploy + Reject (no email sending option)
+// OOO leads get Deploy (Send When Back) + Reject
 const isManualBuild = approvalData.campaign_name === 'manual_build';
-const keyboard = {
-  inline_keyboard: isManualBuild
-    ? [
-        [
-          { text: '✅ Deploy Report', callback_data: `approve_no_email:${approvalId}` },
-          { text: '❌ Reject', callback_data: `reject:${approvalId}` }
-        ],
-        [
-          { text: '🔗 Open Report', url: approvalData.report_url }
-        ]
+let keyboard;
+if (isOOO) {
+  keyboard = {
+    inline_keyboard: [
+      [
+        { text: '✅ Deploy (Send When Back)', callback_data: `approve_no_email:${approvalId}` },
+        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+      ],
+      [
+        { text: '🔗 Open Report', url: approvalData.report_url }
       ]
-    : [
-        [
-          { text: '✅ Approve & Send', callback_data: `approve:${approvalId}` },
-          { text: '❌ Reject', callback_data: `reject:${approvalId}` }
-        ],
-        [
-          { text: '✏️ Edit Email', callback_data: `edit_email:${approvalId}` },
-          { text: '📄 No Email', callback_data: `approve_no_email:${approvalId}` }
-        ],
-        [
-          { text: '🔗 Open Report', url: approvalData.report_url }
-        ]
+    ]
+  };
+} else if (isManualBuild) {
+  keyboard = {
+    inline_keyboard: [
+      [
+        { text: '✅ Deploy Report', callback_data: `approve_no_email:${approvalId}` },
+        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+      ],
+      [
+        { text: '🔗 Open Report', url: approvalData.report_url }
       ]
-};
+    ]
+  };
+} else {
+  keyboard = {
+    inline_keyboard: [
+      [
+        { text: '✅ Approve & Send', callback_data: `approve:${approvalId}` },
+        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+      ],
+      [
+        { text: '✏️ Edit Email', callback_data: `edit_email:${approvalId}` },
+        { text: '📄 No Email', callback_data: `approve_no_email:${approvalId}` }
+      ],
+      [
+        { text: '🔗 Open Report', url: approvalData.report_url }
+      ]
+    ]
+  };
+}
 
 // Send message to Telegram
 function sendTelegramMessage(text, replyMarkup) {

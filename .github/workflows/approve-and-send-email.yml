@@ -58,6 +58,7 @@ jobs:
           RD_COUNTRY: ${{ github.event.client_payload.country }}
           RD_SKIP_EMAIL: ${{ github.event.client_payload.skip_email }}
           RD_CLASSIFICATION: ${{ github.event.client_payload.classification }}
+          RD_OOO_RETURN_DATE: ${{ github.event.client_payload.ooo_return_date }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -72,6 +73,7 @@ jobs:
             echo "country=" >> $GITHUB_OUTPUT
             echo "skip_email=" >> $GITHUB_OUTPUT
             echo "classification=INTERESTED" >> $GITHUB_OUTPUT
+            echo "ooo_return_date=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -85,6 +87,7 @@ jobs:
             echo "country=$RD_COUNTRY" >> $GITHUB_OUTPUT
             echo "skip_email=$RD_SKIP_EMAIL" >> $GITHUB_OUTPUT
             echo "classification=$RD_CLASSIFICATION" >> $GITHUB_OUTPUT
+            echo "ooo_return_date=$RD_OOO_RETURN_DATE" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -331,7 +334,7 @@ jobs:
           " >> $GITHUB_OUTPUT
 
       - name: Add lead to nurture queue
-        if: steps.inputs.outputs.skip_email != 'true'
+        if: steps.inputs.outputs.skip_email != 'true' && steps.inputs.outputs.classification != 'OOO'
         env:
           WORKER_URL: ${{ secrets.WORKER_URL }}
           LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
@@ -376,3 +379,46 @@ jobs:
           " | curl -sf -X POST "$WORKER/nurture-check" \
             -H "Content-Type: application/json" \
             -d @- && echo "✅ Added to nurture queue" || echo "⚠️ Failed to add to nurture queue (non-critical)"
+
+      - name: Store OOO pending for delayed send
+        if: steps.inputs.outputs.classification == 'OOO'
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
+          FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
+          CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
+          PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
+          COUNTRY: ${{ steps.inputs.outputs.country }}
+          TOTAL_RANGE: ${{ steps.inputs.outputs.total_range }}
+          OOO_RETURN_DATE: ${{ steps.inputs.outputs.ooo_return_date }}
+          CITY: ${{ steps.report_data.outputs.city }}
+          BIGGEST_GAP: ${{ steps.report_data.outputs.biggest_gap }}
+          FIRM_FOLDER: ${{ steps.deploy.outputs.firm_folder }}
+        run: |
+          LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
+          WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
+          echo "✈️ Storing OOO pending for $LEAD_EMAIL (return: $OOO_RETURN_DATE)..."
+
+          REPORT_URL_ENV="$LIVE_URL" node -e "
+            console.log(JSON.stringify({
+              action: 'set',
+              email: process.env.LEAD_EMAIL,
+              data: {
+                email: process.env.LEAD_EMAIL,
+                firm_name: process.env.FIRM_NAME,
+                contact_name: process.env.CONTACT_NAME,
+                report_url: process.env.REPORT_URL_ENV,
+                practice_label: process.env.PRACTICE_LABEL,
+                country: process.env.COUNTRY,
+                total_range: process.env.TOTAL_RANGE,
+                city: process.env.CITY,
+                biggest_gap: process.env.BIGGEST_GAP,
+                firm_folder: process.env.FIRM_FOLDER,
+                return_date: process.env.OOO_RETURN_DATE,
+                status: 'pending',
+                stored_at: new Date().toISOString()
+              }
+            }));
+          " | curl -sf -X POST "$WORKER/ooo-check" \
+            -H "Content-Type: application/json" \
+            -d @- && echo "✅ OOO pending stored" || echo "⚠️ Failed to store OOO pending (non-critical)"

@@ -400,6 +400,26 @@ function daysSince(dateStr) {
       console.log(`⏸️  ${p.email}: PAUSED (${p.pause_reason || 'unknown'}) — ${p.emails_sent || 0}/7 sent (${p.firm_name || '?'})`);
     }
     console.log('');
+
+    // Auto-resume OOO-paused nurture leads whose return date has passed
+    let oooResumed = 0;
+    for (const p of paused) {
+      if (p.pause_reason === 'ooo' && p.ooo_return_date) {
+        if (new Date() >= new Date(p.ooo_return_date)) {
+          console.log(`✈️ OOO return date passed for ${p.email} (${p.ooo_return_date}) — auto-resuming nurture`);
+          p.status = 'active';
+          delete p.ooo_return_date;
+          delete p.paused_at;
+          delete p.pause_reason;
+          await workerAPI('/nurture-check', { action: 'set', email: p.email, data: p });
+          active.push({ ...p, email: p.email });
+          oooResumed++;
+        }
+      }
+    }
+    if (oooResumed > 0) {
+      console.log(`  ✅ Auto-resumed ${oooResumed} OOO-paused lead(s)\n`);
+    }
   }
 
   if (active.length === 0) {
@@ -534,5 +554,95 @@ function daysSince(dateStr) {
     }
   }
 
-  console.log(`\n📬 Done. Queued ${queued} email(s) for approval.`);
+  // ========== OOO PENDING: Welcome-back emails ==========
+  console.log('\n✈️ Checking OOO pending entries...');
+  let oooQueued = 0;
+  try {
+    const oooResp = await workerAPI('/ooo-check', { action: 'list' });
+    const oooPending = (oooResp.items || []).filter(i => i.status === 'pending');
+
+    if (oooPending.length === 0) {
+      console.log('  No OOO pending entries.');
+    }
+
+    for (const ooo of oooPending) {
+      const returnDate = new Date(ooo.return_date);
+      const now = new Date();
+
+      if (now < returnDate) {
+        const daysLeft = Math.ceil((returnDate - now) / (1000 * 60 * 60 * 24));
+        console.log(`  ⏳ ${ooo.email}: Returns ${ooo.return_date} (${daysLeft} day(s) away)`);
+        continue;
+      }
+
+      console.log(`  ✈️ ${ooo.email}: Return date passed (${ooo.return_date}) — generating welcome-back email`);
+
+      const firstName = (ooo.contact_name || '').split(' ')[0] || 'there';
+      const firmName = ooo.firm_name || 'your firm';
+      const reportUrl = ooo.report_url || '';
+      const city = ooo.city || 'your area';
+      const practice = ooo.practice_label || 'legal';
+      const range = ooo.total_range || '';
+
+      const welcomePrompt = `Write a warm, short welcome-back email for a lawyer who was out of office. We already sent them a soft reply while they were away, and we've prepared a personalized marketing report for their firm.
+
+LEAD: ${firstName} from ${firmName}
+CITY: ${city}
+PRACTICE: ${practice}
+${range ? `REPORT SHOWS: ${range} every 30 days in opportunity` : ''}
+REPORT LINK: ${reportUrl}
+
+Guidelines:
+- Acknowledge they were away (quick, not creepy)
+- Mention the personalized report we put together for their firm
+- Include the report link naturally
+- Soft ask for 15 minutes to walk through it
+- Suggest 2 meeting dates
+- 40-60 words, 4-6 sentences, each on its own line with blank line between
+- Start with "Hi ${firstName}," on its own line
+- No sign off. No em dashes. No marketing jargon.
+- Sound warm and genuine, like a real person`;
+
+      try {
+        let emailBody = await callHaiku(SYSTEM_PROMPT.replace('{first_name}', firstName), welcomePrompt);
+        emailBody = cleanEmail(emailBody);
+
+        const quickIssues = quickQC(emailBody, { city, firm_name: firmName });
+        if (quickIssues.length > 0) {
+          console.log(`    ⚠️ Quick QC: ${quickIssues.join(', ')}`);
+        }
+
+        if (!emailBody || emailBody.trim().length < 20) {
+          console.log(`    ❌ Email body too short, skipping`);
+          continue;
+        }
+
+        await workerAPI('/queue-email', {
+          type: 'ooo-welcome-back',
+          to: ooo.email,
+          subject: '',
+          html: emailBody.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>'),
+          text: emailBody,
+          lead_email: ooo.email,
+          firm_name: ooo.firm_name,
+          contact_name: ooo.contact_name,
+          context: `OOO welcome-back (returned ${ooo.return_date})`
+        });
+
+        // Mark as sent so we don't re-queue
+        ooo.status = 'sent';
+        ooo.sent_at = new Date().toISOString();
+        await workerAPI('/ooo-check', { action: 'set', email: ooo.email, data: ooo });
+
+        oooQueued++;
+        console.log(`    ✅ Welcome-back email queued for Telegram approval`);
+      } catch (e) {
+        console.error(`    ❌ Failed for ${ooo.email}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.error(`  ❌ OOO check failed: ${e.message}`);
+  }
+
+  console.log(`\n📬 Done. Queued ${queued} nurture + ${oooQueued} welcome-back email(s) for approval.`);
 })();

@@ -86,10 +86,14 @@ jobs:
             CAMPAIGN_NAME=$(echo "$META_JSON" | jq -r '.campaign_name // ""')
             PHONE=$(echo "$META_JSON" | jq -r '.phone // ""')
             CLASSIFICATION=$(echo "$META_JSON" | jq -r '.classification // "INTERESTED"')
+            OOO_RETURN_DATE=$(echo "$META_JSON" | jq -r '.ooo_return_date // ""')
             echo "  📨 Reply text length: ${#REPLY_TEXT}"
             echo "  📋 Campaign: $CAMPAIGN_NAME"
             echo "  📞 Phone: $PHONE"
             echo "  🏷️ Classification: $CLASSIFICATION"
+            if [ -n "$OOO_RETURN_DATE" ]; then
+              echo "  ✈️ OOO Return Date: $OOO_RETURN_DATE"
+            fi
           fi
 
           echo "Extracted values:"
@@ -187,6 +191,7 @@ jobs:
           echo "campaign_name=$CAMPAIGN_NAME" >> $GITHUB_OUTPUT
           echo "phone=$PHONE" >> $GITHUB_OUTPUT
           echo "classification=$CLASSIFICATION" >> $GITHUB_OUTPUT
+          echo "ooo_return_date=${OOO_RETURN_DATE:-}" >> $GITHUB_OUTPUT
           # reply_text can be multiline — use delimiter syntax
           {
             echo "reply_text<<REPLY_EOF"
@@ -660,6 +665,7 @@ jobs:
           CONVERSION_VERDICT: ${{ steps.qc.outputs.conversion_verdict }}
           CONVERSION_NOTE: ${{ steps.qc.outputs.conversion_note }}
           CLASSIFICATION: ${{ steps.parse.outputs.classification }}
+          OOO_RETURN_DATE: ${{ steps.parse.outputs.ooo_return_date }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -712,7 +718,8 @@ jobs:
               },
               conversion_verdict: process.env.CONVERSION_VERDICT || '',
               conversion_note: process.env.CONVERSION_NOTE || '',
-              classification: process.env.CLASSIFICATION || 'INTERESTED'
+              classification: process.env.CLASSIFICATION || 'INTERESTED',
+              ooo_return_date: process.env.OOO_RETURN_DATE || ''
             };
             fs.writeFileSync(
               'pending-approvals/' + process.env.FIRM_FOLDER + '.json',

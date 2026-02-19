@@ -77,7 +77,8 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
       total_cases: approvalData.total_cases || '',
       practice_label: approvalData.practice_label || '',
       classification: approvalData.classification || 'INTERESTED',
-      skip_email: skipEmail ? 'true' : ''
+      skip_email: skipEmail ? 'true' : '',
+      ooo_return_date: approvalData.ooo_return_date || ''
     }
   };
 
@@ -724,7 +725,8 @@ async function queueEmail(env, { type, to, subject, html, text, lead_email, firm
   const typeHeaders = {
     'follow-up': '👀 VIEW FOLLOW-UP',
     'auto-reply': '🤖 AUTO-REPLY',
-    'nurture': '📬 NURTURE EMAIL'
+    'nurture': '📬 NURTURE EMAIL',
+    'ooo-welcome-back': '✈️ OOO WELCOME BACK'
   };
   const header = typeHeaders[type] || '📧 QUEUED EMAIL';
 
@@ -835,13 +837,15 @@ Categories:
 - OOO: Out of office auto-reply
 - IRRELEVANT: Spam, wrong person, completely unrelated
 
+If OOO: also extract the return date if mentioned (e.g. "back on January 15", "returning Monday the 20th", "out until Feb 3"). Convert to YYYY-MM-DD format. If no return date is mentioned, set return_date to null.
+
 Reply text:
 """
 ${stripped.slice(0, 500)}
 """
 
-Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary"}`,
-      150
+Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary","return_date":"YYYY-MM-DD or null"}`,
+      200
     );
 
     const parsed = JSON.parse(result);
@@ -875,7 +879,7 @@ function classifyReplyFallback(text) {
   }
 
   if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return/i.test(lower)) {
-    return { category: 'OOO', confidence: 0.9, summary: 'Out of office' };
+    return { category: 'OOO', confidence: 0.9, summary: 'Out of office', return_date: null };
   }
 
   if (text.includes('?')) {
@@ -910,17 +914,19 @@ async function generateAutoResponse(category, replyText, firmName, contactName, 
     situation = `This lead is replying to our cold outreach email. This is our first interaction.`;
   }
 
-  const userPrompt = `SITUATION: ${situation}
+  // NOT_INTERESTED gets a softer prompt — acknowledge, leave door open, no hard push
+  let guidelines;
+  if (category === 'NOT_INTERESTED') {
+    guidelines = `Write a short reply (2-3 sentences). This person said no. Respect that completely.
 
-LEAD: ${lead} from ${firm}
-${ctx.city ? `MARKET: ${ctx.city}` : ''}
-${ctx.practiceLabel ? `PRACTICE: ${ctx.practiceLabel}` : ''}
-AI CLASSIFICATION: ${category}
-
-THEIR REPLY:
-"${reply}"
-
-Write a short reply (2-5 sentences). Read their message carefully and respond like a smart, caring salesman would. Your goal is always to get them on a 15-minute call.
+Guidelines:
+- Acknowledge their response genuinely. "Totally get it" or "No worries at all" — keep it real
+- Don't push for a meeting. Don't try to change their mind. Don't reframe their objection.
+- Mention that we put together a breakdown of their market anyway, and drop the report link in case they ever want to take a look. No pressure.
+- End it there. Short, warm, respectful. Leave the door open without pushing through it.
+- If there's a report URL available, include it naturally.`;
+  } else {
+    guidelines = `Write a short reply (2-5 sentences). Read their message carefully and respond like a smart, caring salesman would. Your goal is always to get them on a 15-minute call.
 
 Guidelines:
 - Genuinely acknowledge what they said first
@@ -931,6 +937,20 @@ Guidelines:
 - If they ask a question, answer it directly then pivot to the call
 - Never reference a report or breakdown if they've already seen it
 - Sound warm, direct, and human. Short sentences. No fluff.`;
+  }
+
+  const userPrompt = `SITUATION: ${situation}
+
+LEAD: ${lead} from ${firm}
+${ctx.city ? `MARKET: ${ctx.city}` : ''}
+${ctx.practiceLabel ? `PRACTICE: ${ctx.practiceLabel}` : ''}
+${ctx.reportUrl ? `REPORT: ${ctx.reportUrl}` : ''}
+AI CLASSIFICATION: ${category}
+
+THEIR REPLY:
+"${reply}"
+
+${guidelines}`;
 
   try {
     return await callHaiku(anthropicKey, systemPrompt, userPrompt, 400);
@@ -952,11 +972,20 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
   const contactName = nurtureData.contact_name || leadData?.contact_name || '';
   const emailsSent = nurtureData.emails_sent || 0;
 
-  // OOO → auto-send casual reply, keep paused, no Telegram ping
+  // OOO → auto-send casual reply, keep paused with return date, no Telegram ping
   if (cat === 'OOO') {
+    // Extract or default return date (5 days from now)
+    let returnDate = classification.return_date || null;
+    if (!returnDate) {
+      const d = new Date();
+      d.setDate(d.getDate() + 5);
+      returnDate = d.toISOString().split('T')[0];
+    }
+
     nurtureData.status = 'paused';
     nurtureData.paused_at = new Date().toISOString();
     nurtureData.pause_reason = 'ooo';
+    nurtureData.ooo_return_date = returnDate;
     await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
 
     if (env.ANTHROPIC_API_KEY && env.INSTANTLY_API_KEY) {
@@ -998,7 +1027,8 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
       hasReport: true,
       emailsSent: emailsSent,
       city: nurtureData.city || '',
-      practiceLabel: nurtureData.practice_label || ''
+      practiceLabel: nurtureData.practice_label || '',
+      reportUrl: nurtureData.report_url || ''
     });
   }
 
@@ -1699,11 +1729,24 @@ async function listMergeDispatch(env, email, minSlots) {
     }
   }
 
-  // OOO: auto-send a casual reply, no report, no Telegram
+  // OOO: auto-send a casual reply + trigger report pipeline (fall through to forwardToGitHub)
   if (classification.category === 'OOO') {
-    console.log(`OOO from ${email}, auto-sending casual reply`);
-    await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
+    console.log(`OOO from ${email}, auto-sending casual reply + triggering report`);
 
+    // Extract or default return date (5 days from now if not specified)
+    let returnDate = classification.return_date || null;
+    if (!returnDate) {
+      const d = new Date();
+      d.setDate(d.getDate() + 5);
+      returnDate = d.toISOString().split('T')[0];
+    }
+
+    await env.WEBHOOK_KV.put(`ooo:${email}`, JSON.stringify({
+      detected_at: new Date().toISOString(),
+      return_date: returnDate
+    }), { expirationTtl: 604800 }); // 7 days
+
+    // Auto-send soft reply (no Telegram approval needed for OOO)
     if (env.ANTHROPIC_API_KEY && env.INSTANTLY_API_KEY) {
       const contactName = merged.client_payload.first_name || '';
       const company = merged.client_payload.company || '';
@@ -1721,12 +1764,16 @@ async function listMergeDispatch(env, email, minSlots) {
       }
     }
 
-    await cleanupSlots();
-    return true;
+    // Add return date to _meta for the workflow
+    meta.ooo_return_date = returnDate;
+    merged.client_payload._meta = JSON.stringify(meta);
+
+    // DON'T return — fall through to forwardToGitHub to trigger report pipeline
   }
 
-  // QUESTION or OBJECTION: generate auto-reply + queue for approval + ALSO dispatch report
-  if ((classification.category === 'QUESTION' || classification.category === 'OBJECTION') && env.ANTHROPIC_API_KEY) {
+  // QUESTION, OBJECTION, or NOT_INTERESTED: generate auto-reply + queue for approval + ALSO dispatch report
+  const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED'];
+  if (replyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
     const contactName = merged.client_payload.first_name || '';
     const company = merged.client_payload.company || '';
 
@@ -1933,6 +1980,49 @@ export default {
           for (const key of keys.keys) {
             const raw = await env.WEBHOOK_KV.get(key.name);
             if (raw) items.push({ email: key.name.replace('nurture:', ''), ...JSON.parse(raw) });
+          }
+          return new Response(JSON.stringify({ ok: true, items }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ ok: false, error: 'unknown action' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (url.pathname === '/ooo-check') {
+      // Called by nurture-sender.js to check/update OOO pending entries in KV
+      try {
+        const body = await request.json();
+        const { action, email, data } = body;
+
+        if (action === 'get') {
+          const raw = await env.WEBHOOK_KV.get(`ooo_pending:${email}`);
+          return new Response(JSON.stringify({ ok: true, data: raw ? JSON.parse(raw) : null }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'set') {
+          await env.WEBHOOK_KV.put(`ooo_pending:${email}`, JSON.stringify(data), { expirationTtl: 2592000 }); // 30 days
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'delete') {
+          await env.WEBHOOK_KV.delete(`ooo_pending:${email}`);
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'list') {
+          const keys = await env.WEBHOOK_KV.list({ prefix: 'ooo_pending:' });
+          const items = [];
+          for (const key of keys.keys) {
+            const raw = await env.WEBHOOK_KV.get(key.name);
+            if (raw) items.push({ email: key.name.replace('ooo_pending:', ''), ...JSON.parse(raw) });
           }
           return new Response(JSON.stringify({ ok: true, items }), {
             headers: { 'Content-Type': 'application/json' }
