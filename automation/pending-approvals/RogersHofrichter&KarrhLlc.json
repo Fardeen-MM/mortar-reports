@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "16784806063",
   "created_at": "2026-02-19T15:59:41.976Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -30,5 +30,6 @@
   },
   "conversion_verdict": "NEEDS_WORK",
   "conversion_note": "Add specific practice area context to the hero headline and revenue projections",
-  "classification": "IRRELEVANT"
+  "classification": "IRRELEVANT",
+  "approved_at": "2026-02-19T16:05:11.567Z"
 }
