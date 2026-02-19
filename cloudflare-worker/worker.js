@@ -1663,6 +1663,11 @@ async function listMergeDispatch(env, email, minSlots) {
 
   // Build _meta JSON with extra data (truncate reply to 500 chars)
   const replyText = collectedExtra._reply_text;
+
+  // AI-powered reply classification
+  const classification = await classifyReplyAI(replyText, env.ANTHROPIC_API_KEY);
+  console.log(`Classification for ${email}: ${classification.category} (${classification.confidence})`);
+
   const meta = {
     reply_text: replyText ? replyText.slice(0, 500) : '',
     campaign_name: collectedExtra._campaign_name,
@@ -1671,10 +1676,6 @@ async function listMergeDispatch(env, email, minSlots) {
     classification: classification.category
   };
   merged.client_payload._meta = JSON.stringify(meta);
-
-  // AI-powered reply classification
-  const classification = await classifyReplyAI(replyText, env.ANTHROPIC_API_KEY);
-  console.log(`Classification for ${email}: ${classification.category} (${classification.confidence})`);
 
   // Helper: clean up webhook slot keys before returning
   async function cleanupSlots() {
