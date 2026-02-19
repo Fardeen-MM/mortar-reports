@@ -80,13 +80,16 @@ jobs:
           FLAG_REASON=""
           CAMPAIGN_NAME=""
           PHONE=""
+          CLASSIFICATION="INTERESTED"
           if [ -n "$META_JSON" ]; then
             REPLY_TEXT=$(echo "$META_JSON" | jq -r '.reply_text // ""')
             CAMPAIGN_NAME=$(echo "$META_JSON" | jq -r '.campaign_name // ""')
             PHONE=$(echo "$META_JSON" | jq -r '.phone // ""')
+            CLASSIFICATION=$(echo "$META_JSON" | jq -r '.classification // "INTERESTED"')
             echo "  📨 Reply text length: ${#REPLY_TEXT}"
             echo "  📋 Campaign: $CAMPAIGN_NAME"
             echo "  📞 Phone: $PHONE"
+            echo "  🏷️ Classification: $CLASSIFICATION"
           fi
 
           echo "Extracted values:"
@@ -183,6 +186,7 @@ jobs:
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
           echo "campaign_name=$CAMPAIGN_NAME" >> $GITHUB_OUTPUT
           echo "phone=$PHONE" >> $GITHUB_OUTPUT
+          echo "classification=$CLASSIFICATION" >> $GITHUB_OUTPUT
           # reply_text can be multiline — use delimiter syntax
           {
             echo "reply_text<<REPLY_EOF"
@@ -655,6 +659,7 @@ jobs:
           PHONE: ${{ steps.parse.outputs.phone }}
           CONVERSION_VERDICT: ${{ steps.qc.outputs.conversion_verdict }}
           CONVERSION_NOTE: ${{ steps.qc.outputs.conversion_note }}
+          CLASSIFICATION: ${{ steps.parse.outputs.classification }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -706,7 +711,8 @@ jobs:
                 source: process.env.LEAD_SOURCE || ''
               },
               conversion_verdict: process.env.CONVERSION_VERDICT || '',
-              conversion_note: process.env.CONVERSION_NOTE || ''
+              conversion_note: process.env.CONVERSION_NOTE || '',
+              classification: process.env.CLASSIFICATION || 'INTERESTED'
             };
             fs.writeFileSync(
               'pending-approvals/' + process.env.FIRM_FOLDER + '.json',

@@ -76,6 +76,7 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
       total_range: approvalData.total_range || '',
       total_cases: approvalData.total_cases || '',
       practice_label: approvalData.practice_label || '',
+      classification: approvalData.classification || 'INTERESTED',
       skip_email: skipEmail ? 'true' : ''
     }
   };
@@ -532,7 +533,8 @@ async function handleTelegramCallback(env, update) {
         country: approvalData.country || '',
         totalRange: approvalData.total_range || '',
         totalCases: approvalData.total_cases || '',
-        practiceLabel: approvalData.practice_label || ''
+        practiceLabel: approvalData.practice_label || '',
+        classification: approvalData.classification || 'INTERESTED'
       };
       await env.WEBHOOK_KV.put(
         `edit_reply:${editMsg.result.message_id}`,
@@ -567,6 +569,7 @@ async function handleTelegramCallback(env, update) {
         total_range: session.totalRange || '',
         total_cases: session.totalCases || '',
         practice_label: session.practiceLabel || '',
+        classification: session.classification || 'INTERESTED',
         ...approvalData // overlay any data fetched from GitHub
       };
     }
@@ -585,6 +588,7 @@ async function handleTelegramCallback(env, update) {
           total_range: approvalData.total_range || '',
           total_cases: approvalData.total_cases || '',
           practice_label: approvalData.practice_label || '',
+          classification: approvalData.classification || 'INTERESTED',
           skip_email: `custom:${approvalId}`
         }
       };
@@ -948,27 +952,36 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
   const contactName = nurtureData.contact_name || leadData?.contact_name || '';
   const emailsSent = nurtureData.emails_sent || 0;
 
-  // UNSUBSCRIBE → hard stop immediately, no Telegram ping
-  if (cat === 'UNSUBSCRIBE') {
-    nurtureData.status = 'completed';
-    nurtureData.stopped_reason = 'unsubscribe';
-    await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
-    console.log(`UNSUBSCRIBE from nurture lead ${email}, stopped silently`);
-    return;
-  }
-
-  // OOO → pause silently, no auto-reply
+  // OOO → auto-send casual reply, keep paused, no Telegram ping
   if (cat === 'OOO') {
     nurtureData.status = 'paused';
     nurtureData.paused_at = new Date().toISOString();
     nurtureData.pause_reason = 'ooo';
     await env.WEBHOOK_KV.put(`nurture:${email}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
-    await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-      `✈️ *NURTURE PAUSED — Out of Office*\n\n📧 *Email:* ${email}\n📊 *Firm:* ${firmName}\n📬 Progress: ${emailsSent}/7 sent, now PAUSED\n\nResume with \`/nurture resume ${email}\``);
+
+    if (env.ANTHROPIC_API_KEY && env.INSTANTLY_API_KEY) {
+      const autoReply = await generateAutoResponse(cat, replyText, firmName, contactName, env.ANTHROPIC_API_KEY, {
+        isNurtureLead: true,
+        hasReport: true,
+        emailsSent: emailsSent,
+        city: nurtureData.city || '',
+        practiceLabel: nurtureData.practice_label || ''
+      });
+      if (autoReply) {
+        try {
+          const replyHtml = autoReply.replace(/\n/g, '<br>');
+          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', replyHtml, autoReply);
+          console.log(`OOO auto-reply sent to nurture lead ${email}`);
+        } catch (e) {
+          console.log(`OOO auto-reply send failed for nurture lead ${email}: ${e.message}`);
+        }
+      }
+    }
+
     return;
   }
 
-  // Everything else: pause nurture + generate auto-reply + Telegram buttons
+  // Everything else (including UNSUBSCRIBE): pause nurture + generate auto-reply + Telegram buttons
   nurtureData.status = 'paused';
   nurtureData.paused_at = new Date().toISOString();
   nurtureData.pause_reason = 'lead_replied';
@@ -1003,6 +1016,7 @@ async function handleNurtureReply(env, email, replyText, classification, nurture
     QUESTION: '❓ QUESTION',
     OBJECTION: '🟡 OBJECTION',
     NOT_INTERESTED: '🔴 NOT INTERESTED',
+    UNSUBSCRIBE: '⛔ UNSUBSCRIBE',
     IRRELEVANT: '⚪ IRRELEVANT'
   };
   const badge = badges[cat] || cat;
@@ -1585,7 +1599,8 @@ async function handleTelegramMessage(env, payload) {
         reply_text: '',
         campaign_name: 'manual_build',
         phone: '',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        classification: 'INTERESTED'
       })
     }
   };
@@ -1652,7 +1667,8 @@ async function listMergeDispatch(env, email, minSlots) {
     reply_text: replyText ? replyText.slice(0, 500) : '',
     campaign_name: collectedExtra._campaign_name,
     phone: collectedExtra._phone,
-    timestamp: collectedExtra._timestamp
+    timestamp: collectedExtra._timestamp,
+    classification: classification.category
   };
   merged.client_payload._meta = JSON.stringify(meta);
 
@@ -1682,50 +1698,28 @@ async function listMergeDispatch(env, email, minSlots) {
     }
   }
 
-  if (classification.category === 'UNSUBSCRIBE') {
-    console.log(`UNSUBSCRIBE from ${email}, handled silently`);
-    await cleanupSlots();
-    return true;
-  }
+  // OOO: auto-send a casual reply, no report, no Telegram
+  if (classification.category === 'OOO') {
+    console.log(`OOO from ${email}, auto-sending casual reply`);
+    await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
 
-  // NOT_INTERESTED: objection handle — generate auto-reply + queue for approval (no separate ping)
-  if (classification.category === 'NOT_INTERESTED') {
-    console.log(`NOT_INTERESTED from ${email}, generating objection response`);
-
-    if (env.ANTHROPIC_API_KEY) {
+    if (env.ANTHROPIC_API_KEY && env.INSTANTLY_API_KEY) {
       const contactName = merged.client_payload.first_name || '';
       const company = merged.client_payload.company || '';
       const autoReply = await generateAutoResponse(
-        'NOT_INTERESTED', replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
+        'OOO', replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
       );
-      if (autoReply && env.INSTANTLY_API_KEY) {
-        await queueEmail(env, {
-          type: 'auto-reply',
-          to: email,
-          subject: 'Re: Your marketing analysis',
-          html: autoReply.replace(/\n/g, '<br>'),
-          text: autoReply,
-          lead_email: email,
-          firm_name: company,
-          contact_name: contactName,
-          context: `NOT_INTERESTED objection handle: ${classification.summary || ''}`
-        });
+      if (autoReply) {
+        try {
+          const replyHtml = autoReply.replace(/\n/g, '<br>');
+          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', replyHtml, autoReply);
+          console.log(`OOO auto-reply sent to ${email}`);
+        } catch (e) {
+          console.log(`OOO auto-reply send failed for ${email}: ${e.message}`);
+        }
       }
     }
 
-    await cleanupSlots();
-    return true;
-  }
-
-  if (classification.category === 'OOO') {
-    console.log(`OOO from ${email}, handled silently`);
-    await env.WEBHOOK_KV.put(`ooo:${email}`, new Date().toISOString(), { expirationTtl: 604800 }); // 7 days
-    await cleanupSlots();
-    return true;
-  }
-
-  if (classification.category === 'IRRELEVANT') {
-    console.log(`IRRELEVANT from ${email}, logging only`);
     await cleanupSlots();
     return true;
   }
@@ -1756,7 +1750,7 @@ async function listMergeDispatch(env, email, minSlots) {
     // queueEmail already sends its own Telegram approval message — no extra ping needed
   }
 
-  // INTERESTED, QUESTION, OBJECTION all dispatch to GitHub for report generation
+  // All non-OOO, non-nurture categories dispatch to GitHub for report generation
   console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
   await forwardToGitHub(env, merged);
 

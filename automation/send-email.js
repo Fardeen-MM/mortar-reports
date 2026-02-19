@@ -153,27 +153,27 @@ function sendEmail(replyToUuid, eaccount, emailContent) {
 }
 
 /**
- * Generate a warm opener using Claude Haiku based on the lead's reply and country.
- * If the lead asked a question, briefly answers it and pivots to the report.
- * Falls back to "Glad you replied." on error or missing API key.
+ * Generate a warm opener using Claude Haiku based on the lead's reply, country, and classification.
+ * Classification-aware: different prompts for INTERESTED, QUESTION, OBJECTION/NOT_INTERESTED/UNSUBSCRIBE, IRRELEVANT.
+ * Falls back to "Appreciate you getting back to me." on error or missing API key.
  */
-function generateOpener(leadReply, leadCountry, label) {
+function generateOpener(leadReply, leadCountry, label, classification) {
   const fallback = 'Appreciate you getting back to me.';
   if (!ANTHROPIC_API_KEY) {
     console.log('⚠️  No ANTHROPIC_API_KEY - using fallback opener');
     return Promise.resolve(fallback);
   }
-  if (!leadReply && leadCountry !== 'CA') return Promise.resolve(fallback);
+  if (!leadReply && leadCountry !== 'CA' && classification === 'INTERESTED') return Promise.resolve(fallback);
 
   const replyText = leadReply || 'interested';
-  const hasQuestion = replyText.includes('?');
+  const caseType = label || 'new cases';
   let prompt;
   let maxTokens = 60;
 
-  if (hasQuestion) {
-    // Lead asked a question — answer it briefly and pivot to the report
-    console.log('❓ Question detected in lead reply, using answer-and-pivot prompt');
-    const caseType = label || 'new cases';
+  console.log(`🏷️ Classification: ${classification}, generating opener`);
+
+  if (classification === 'QUESTION') {
+    console.log('❓ QUESTION classification, using answer-and-pivot prompt');
     prompt = `You're Fardeen, founder of a legal marketing agency called Mortar Metrics. A law firm lead replied to your cold email with: "${replyText}"
 
 They asked a question. Write 1-2 short sentences (max 40 words) that:
@@ -187,7 +187,26 @@ Examples of good question-answering openers:
 
 Sound like a real person, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the 1-2 sentences.`;
     maxTokens = 120;
+  } else if (classification === 'OBJECTION' || classification === 'NOT_INTERESTED' || classification === 'UNSUBSCRIBE') {
+    console.log(`🟡 ${classification} classification, using objection-handle prompt`);
+    prompt = `You're Fardeen, founder of a legal marketing agency called Mortar Metrics. A law firm lead replied negatively to your cold email. They said: "${replyText}"
+
+Write 2-3 short sentences (max 50 words) that:
+1. Acknowledge their response warmly and without pushback
+2. Mention you already built a personalized breakdown for their firm (covering ${caseType} their competitors are getting)
+3. Frame it as no-commitment — "already done, take a look when you have a minute"
+
+Be confident but not pushy. Don't apologize. Don't grovel. Just be a pro who already did the work.
+
+Examples of good objection-handling openers:
+- "Totally understand. We actually already put together a breakdown for your firm before hearing back. Worth a quick look — shows the ${caseType} in your market:"
+- "Fair enough. We'd already built this out for you though — no commitment, just a look at what's happening in your area:"
+- "No worries at all. We put this together before your reply came in. Take a look if you're curious:"
+
+Sound like a real person, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the 2-3 sentences.`;
+    maxTokens = 150;
   } else {
+    // INTERESTED, IRRELEVANT, or unknown — warm thank-you
     prompt = `You're Fardeen, founder of a legal marketing agency. A law firm lead replied to your cold email with: "${replyText}"
 
 Write ONE short sentence (max 15 words) that thanks them for replying. Just a quick genuine thank-you, nothing else.
@@ -203,7 +222,8 @@ Examples of good openers:
     prompt += `\nThe lead is Canadian and so are you. Work in something like "always great to work with fellow Canadians" but keep it natural, not forced.`;
   }
 
-  prompt += `\nSound like a real person texting a business contact, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the sentence${hasQuestion ? 's' : ''}.`;
+  const isMultiSentence = classification === 'QUESTION' || classification === 'OBJECTION' || classification === 'NOT_INTERESTED' || classification === 'UNSUBSCRIBE';
+  prompt += `\nSound like a real person texting a business contact, not a marketing email. No corporate speak. No exclamation marks. Return ONLY the sentence${isMultiSentence ? 's' : ''}.`;
 
   return new Promise((resolve) => {
     const payload = JSON.stringify({
@@ -317,9 +337,10 @@ function plainTextToHtml(text) {
       html: plainTextToHtml(customBody)
     };
   } else {
-    // Generate AI opener from the lead's reply
+    // Generate AI opener from the lead's reply (classification-aware)
+    const classification = process.env.REPLY_CLASSIFICATION || 'INTERESTED';
     const leadReply = latestEmail ? latestEmail.leadReply : '';
-    const opener = await generateOpener(leadReply, country, practiceLabel);
+    const opener = await generateOpener(leadReply, country, practiceLabel, classification);
     // Build email with personalization data + AI opener
     emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
   }

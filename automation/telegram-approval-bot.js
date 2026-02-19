@@ -179,7 +179,20 @@ if (approvalData.reply_text) {
   const replyTruncated = approvalData.reply_text.length > 500
     ? approvalData.reply_text.slice(0, 500) + '...'
     : approvalData.reply_text;
-  replySection = `\n\n💬 *Lead's Reply:*\n\`\`\`\n${replyTruncated}\n\`\`\``;
+  // Classification badge
+  const classificationBadges = {
+    INTERESTED: '🟢 INTERESTED',
+    QUESTION: '❓ QUESTION',
+    OBJECTION: '🟡 OBJECTION',
+    NOT_INTERESTED: '🔴 NOT INTERESTED',
+    UNSUBSCRIBE: '⛔ UNSUBSCRIBE',
+    OOO: '✈️ OUT OF OFFICE',
+    IRRELEVANT: '⚪ IRRELEVANT'
+  };
+  const classBadge = approvalData.classification && approvalData.classification !== 'INTERESTED'
+    ? `\n🏷️ *Classification:* ${classificationBadges[approvalData.classification] || approvalData.classification}`
+    : '';
+  replySection = `\n\n💬 *Lead's Reply:*\n\`\`\`\n${replyTruncated}\n\`\`\`${classBadge}`;
 }
 
 // Build campaign/phone line
