@@ -55,30 +55,30 @@ Context: ${details}
 
 Report link (MUST include exactly as-is): ${reportUrl}
 
-The report covers 3 things:
-1. How many people search for their type of firm nearby and how many they could be getting
-2. How their competitors are showing up on social and what they're missing
-3. How many calls they're probably losing after hours and what that costs them
+The report shows them 3 things (frame these around money/time, not features):
+1. Cases they're leaving on the table from people searching nearby (money they could be making)
+2. What they're spending vs what they should be (money they could be saving)
+3. Calls they're missing after hours that go to competitors (cases walking out the door)
 
 Format example (match this vibe and spacing):
 Hey [name] thanks for connecting!
 
-We were doing some research in [area] for another firm and spotted a few things with yours. My team put a quick report together, it covers:
+We were doing some research in [area] for another firm and spotted a few things with yours. My team put a quick report together, it breaks down:
 
-- how many people are searching for [practice] firms near you
-- what your competitors are doing on social
-- how many calls you're probably missing after hours
+- cases you're probably leaving on the table right now
+- where you might be overspending (or underspending)
+- calls that are going to your competitors after hours
 
-Here it is if you're curious: [link]
+Here it is if you want to take a look: [link]
 
-Are you guys getting most of your clients from referrals or do you do any online stuff?
+Are you guys getting most of your clients from referrals or do you do some stuff online too?
 
 Rules:
-- Simple words. No jargon. No "digital presence" or "online visibility" or "market analysis" or "leverage" or "optimize" or "strategy"
-- The 3 bullet points should feel casual, lowercase, like you're listing things off the top of your head
+- The 3 bullets must hint at money earned, money saved, time/cases lost. But keep them short and casual, not salesy
+- Simple words. No jargon. No "revenue" "ROI" "digital presence" "visibility" "optimize" "strategy" "leverage"
 - Subtle flex: we were researching for another firm we're working with
 - End with a casual question about how they get clients
-- Sound like a real human texting, not a marketer
+- Sound like a real person texting, not a marketer
 - No em dashes, max one exclamation mark, no "I'd love to"
 - Just the DM text, nothing else`;
 
