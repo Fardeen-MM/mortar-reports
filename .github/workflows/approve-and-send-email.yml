@@ -56,12 +56,7 @@ jobs:
           RD_TOTAL_CASES: ${{ github.event.client_payload.total_cases }}
           RD_PRACTICE_LABEL: ${{ github.event.client_payload.practice_label }}
           RD_COUNTRY: ${{ github.event.client_payload.country }}
-          RD_SKIP_EMAIL: ${{ github.event.client_payload.skip_email }}
-          RD_CLASSIFICATION: ${{ github.event.client_payload.classification }}
-          RD_OOO_RETURN_DATE: ${{ github.event.client_payload.ooo_return_date }}
-          RD_CHANNEL: ${{ github.event.client_payload.channel }}
-          RD_LINKEDIN_URL: ${{ github.event.client_payload.linkedin_url }}
-          RD_PROSP_SENDER: ${{ github.event.client_payload.prosp_sender }}
+          RD_EXTRA: ${{ github.event.client_payload._extra }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -91,12 +86,14 @@ jobs:
             echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
             echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
             echo "country=$RD_COUNTRY" >> $GITHUB_OUTPUT
-            echo "skip_email=$RD_SKIP_EMAIL" >> $GITHUB_OUTPUT
-            echo "classification=$RD_CLASSIFICATION" >> $GITHUB_OUTPUT
-            echo "ooo_return_date=$RD_OOO_RETURN_DATE" >> $GITHUB_OUTPUT
-            echo "channel=${RD_CHANNEL:-instantly}" >> $GITHUB_OUTPUT
-            echo "linkedin_url=$RD_LINKEDIN_URL" >> $GITHUB_OUTPUT
-            echo "prosp_sender=$RD_PROSP_SENDER" >> $GITHUB_OUTPUT
+            # Unpack _extra JSON (classification, skip_email, ooo, channel, linkedin, prosp)
+            EXTRA_JSON="${RD_EXTRA:-{}}"
+            echo "skip_email=$(echo "$EXTRA_JSON" | jq -r '.skip_email // ""')" >> $GITHUB_OUTPUT
+            echo "classification=$(echo "$EXTRA_JSON" | jq -r '.classification // "INTERESTED"')" >> $GITHUB_OUTPUT
+            echo "ooo_return_date=$(echo "$EXTRA_JSON" | jq -r '.ooo_return_date // ""')" >> $GITHUB_OUTPUT
+            echo "channel=$(echo "$EXTRA_JSON" | jq -r '.channel // "instantly"')" >> $GITHUB_OUTPUT
+            echo "linkedin_url=$(echo "$EXTRA_JSON" | jq -r '.linkedin_url // ""')" >> $GITHUB_OUTPUT
+            echo "prosp_sender=$(echo "$EXTRA_JSON" | jq -r '.prosp_sender // ""')" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live

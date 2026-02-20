@@ -74,6 +74,7 @@ async function sendTelegramMsg(botToken, chatId, text, options = {}) {
 }
 
 async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = false) {
+  // GitHub limits client_payload to 10 properties — pack extras into _extra JSON
   const payload = {
     event_type: 'send_approved_email',
     client_payload: {
@@ -86,12 +87,14 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
       total_range: approvalData.total_range || '',
       total_cases: approvalData.total_cases || '',
       practice_label: approvalData.practice_label || '',
-      classification: approvalData.classification || 'INTERESTED',
-      skip_email: skipEmail ? 'true' : '',
-      ooo_return_date: approvalData.ooo_return_date || '',
-      channel: approvalData.channel || 'instantly',
-      linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
-      prosp_sender: approvalData.prosp_sender || ''
+      _extra: JSON.stringify({
+        classification: approvalData.classification || 'INTERESTED',
+        skip_email: skipEmail ? 'true' : '',
+        ooo_return_date: approvalData.ooo_return_date || '',
+        channel: approvalData.channel || 'instantly',
+        linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
+        prosp_sender: approvalData.prosp_sender || ''
+      })
     }
   };
 
@@ -798,8 +801,10 @@ async function handleTelegramCallback(env, update) {
       }
     } catch (err) {
       console.error('Failed to trigger workflow:', err.message);
+      // Escape markdown special chars in error message to prevent parse failure
+      const safeErr = (err.message || 'Unknown error').replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&').slice(0, 200);
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
-        `❌ *ERROR*\n\nFailed to trigger workflow: ${err.message}`);
+        `❌ *ERROR*\n\nFailed to trigger workflow: ${safeErr}`);
     }
   } else if (action === 'reject') {
     await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Rejected', false);
@@ -2837,6 +2842,43 @@ export default {
         }
 
         return new Response(JSON.stringify({ ok: false, error: 'unknown action' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Telegram webhook diagnostics — check and set webhook URL
+    if (url.pathname === '/telegram-webhook') {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const { action } = body;
+
+        if (action === 'info') {
+          // Get current webhook info
+          const resp = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getWebhookInfo`);
+          const info = await resp.json();
+          return new Response(JSON.stringify(info, null, 2), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (action === 'set') {
+          // Re-register webhook URL
+          const webhookUrl = body.url || `https://instantly-webhook-proxy.fardeen-729.workers.dev/`;
+          const resp = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/setWebhook`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: webhookUrl })
+          });
+          const result = await resp.json();
+          return new Response(JSON.stringify(result, null, 2), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ usage: 'POST with {"action":"info"} or {"action":"set"}' }), {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
