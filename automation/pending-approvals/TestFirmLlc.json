@@ -11,7 +11,7 @@
   "campaign_name": "Test Connection Campaign",
   "phone": "",
   "created_at": "2026-02-20T22:20:59.637Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -35,5 +35,6 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/test-connection-123",
   "prosp_sender": "https://www.linkedin.com/in/fardeen-test",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "approved_at": "2026-02-20T22:21:45.302Z"
 }
