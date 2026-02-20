@@ -49,21 +49,26 @@ async function generateConnectionDM(apiKey, contactName, firmName, reportUrl, co
   if (topCompetitor) details += `Top local competitor: ${topCompetitor}. `;
   if (biggestGap) details += `Biggest gap we found: ${biggestGap}. `;
 
-  const prompt = `Write a short LinkedIn DM to ${firstName} at ${firm}. They just accepted our connection request.
+  const prompt = `Write a LinkedIn DM to ${firstName} at ${firm}. They just accepted our connection request.
 
 Context: ${details}
 
 Report link (MUST include exactly as-is): ${reportUrl}
 
+Format: 3 short lines with a blank line before the question. Like how you'd actually text someone. Example structure:
+Hey [name] thanks for connecting!
+
+We were doing research in [area] for another firm and noticed a couple gaps with yours. Put together a quick breakdown: [link]
+
+[casual question]
+
 Rules:
-- Thank them for connecting
-- Subtle flex: we were researching their area for another firm we're working with and spotted some gaps with theirs
-- If you know specifics (practice area, city, gap) weave ONE in naturally, don't force all of them
-- Link the report casually
-- End with a short casual question about their marketing (word of mouth, online, etc)
-- Sound like a real person texting, not a sales bot
-- No em dashes, no exclamation marks after the first sentence, no "I'd love to" or "I'd be happy to"
-- Under 50 words before the question
+- Max 35 words before the question
+- Simple words. No jargon. No "digital presence" or "online visibility" or "market analysis" or "leverage" or "optimize"
+- Subtle flex: we were researching for another firm we're working with
+- The question should be about how they get clients (word of mouth, online, etc)
+- Sound like a real human, not a marketer
+- No em dashes, max one exclamation mark total, no "I'd love to"
 - Just the DM text, nothing else`;
 
   try {
