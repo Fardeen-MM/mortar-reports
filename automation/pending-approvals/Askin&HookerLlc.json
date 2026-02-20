@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "19737137319",
   "created_at": "2026-02-19T16:17:35.859Z",
-  "status": "pending_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "1",
@@ -30,5 +30,6 @@
   },
   "conversion_verdict": "NEEDS_WORK",
   "conversion_note": "Fix the missing practice area issue - either verify estate planning is correct or make the language more general to avoid credibility damage",
-  "classification": "NOT_INTERESTED"
+  "classification": "NOT_INTERESTED",
+  "approved_at": "2026-02-20T18:32:00.654Z"
 }
