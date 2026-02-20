@@ -10,7 +10,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { buildEmail } = require('./email-templates');
-const { buildDM } = require('./dm-templates');
+const { buildDM, buildConnectionDM } = require('./dm-templates');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -63,9 +63,11 @@ if (approvalData.firm_name) {
   }
 }
 
-// Detect channel
+// Detect channel and source
 const channel = approvalData.channel || 'instantly';
 const isProsp = channel === 'prosp';
+const source = approvalData.source || '';
+const isConnectionAccept = source === 'connection_accept';
 
 // Generate email/DM preview using the LIVE URL (what the lead will actually receive)
 const liveReportUrl = approvalData.firm_folder
@@ -75,15 +77,24 @@ const liveReportUrl = approvalData.firm_folder
 let emailPreview, dmPreview, emailQC;
 
 if (isProsp) {
-  // DM preview for Prosp leads
-  dmPreview = buildDM(
-    approvalData.contact_name,
-    approvalData.firm_name,
-    liveReportUrl,
-    approvalData.total_range || '',
-    approvalData.total_cases || '',
-    approvalData.practice_label || ''
-  );
+  // DM preview for Prosp leads — use connection template if source is connection_accept
+  if (isConnectionAccept) {
+    dmPreview = buildConnectionDM(
+      approvalData.contact_name,
+      approvalData.firm_name,
+      liveReportUrl,
+      approvalData.practice_label || ''
+    );
+  } else {
+    dmPreview = buildDM(
+      approvalData.contact_name,
+      approvalData.firm_name,
+      liveReportUrl,
+      approvalData.total_range || '',
+      approvalData.total_cases || '',
+      approvalData.practice_label || ''
+    );
+  }
   emailQC = { errors: [], warnings: [] }; // DMs are too short to need QC
 } else {
   // Email preview for Instantly leads
@@ -259,7 +270,10 @@ ${escMd(approvalData.report_url)}
     ? `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}\n\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}`
     : `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}`;
 
-  message = `${headerEmoji} *REPORT READY FOR APPROVAL*${channelBadge}${qcWarning}
+  const prospHeader = isConnectionAccept
+    ? `\ud83e\udd1d *CONNECTION ACCEPTED — REPORT READY*`
+    : `${headerEmoji} *REPORT READY FOR APPROVAL*`;
+  message = `${prospHeader}${channelBadge}${qcWarning}
 
 \ud83d\udcca *Firm:* ${escMd(displayName)}
 \ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}

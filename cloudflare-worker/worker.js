@@ -93,7 +93,8 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
         ooo_return_date: approvalData.ooo_return_date || '',
         channel: approvalData.channel || 'instantly',
         linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
-        prosp_sender: approvalData.prosp_sender || ''
+        prosp_sender: approvalData.prosp_sender || '',
+        source: approvalData.source || ''
       })
     }
   };
@@ -2684,6 +2685,73 @@ async function handleProspWebhook(env, payload, ctx) {
   return { ok: true, message: 'classified and dispatched' };
 }
 
+async function handleConnectionAccepted(env, payload) {
+  const eventData = payload.eventData || {};
+  const profileInfo = eventData.profileInfo || {};
+  const linkedinUrl = eventData.lead || '';
+  const sender = eventData.sender || '';
+  const campaignName = eventData.campaignName || payload.campaignName || '';
+
+  const contactName = [profileInfo.firstName, profileInfo.lastName].filter(Boolean).join(' ');
+  const company = profileInfo.company || '';
+  const email = profileInfo.email || '';
+  const normalizedLi = normalizeLinkedInUrl(linkedinUrl);
+
+  console.log(`Connection accepted: ${contactName} (${company}) - ${normalizedLi}`);
+
+  if (!normalizedLi) {
+    return { ok: false, error: 'missing linkedin URL' };
+  }
+
+  // Dedup: don't re-process if already handled (24h window)
+  const doneKey = `done_conn:${normalizedLi}`;
+  if (await env.WEBHOOK_KV.get(doneKey)) {
+    console.log(`Already processed connection from ${normalizedLi}, ignoring`);
+    return { ok: true, message: 'already processed connection' };
+  }
+  await env.WEBHOOK_KV.put(doneKey, 'true', { expirationTtl: 86400 });
+
+  // Build GitHub payload — same structure as handleProspWebhook
+  const meta = {
+    reply_text: '',
+    campaign_name: campaignName,
+    phone: profileInfo.phoneNumber || '',
+    timestamp: new Date().toISOString(),
+    classification: 'INTERESTED',
+    channel: 'prosp',
+    source: 'connection_accept',
+    linkedin_url: linkedinUrl,
+    prosp_sender: sender,
+    ooo_return_date: ''
+  };
+
+  const githubPayload = {
+    event_type: 'interested_lead',
+    client_payload: {
+      email: email,
+      first_name: profileInfo.firstName || '',
+      last_name: profileInfo.lastName || '',
+      website: profileInfo.websiteUrl || profileInfo.companyUrl || '',
+      location: '',
+      country: '',
+      company: company,
+      job_title: profileInfo.jobTitle || '',
+      linkedin: linkedinUrl,
+      _meta: JSON.stringify(meta)
+    }
+  };
+
+  console.log('DISPATCHING CONNECTION ACCEPT PAYLOAD:', JSON.stringify(githubPayload));
+  await forwardToGitHub(env, githubPayload);
+
+  // Notify on Telegram
+  const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+  await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+    `\ud83e\udd1d *Connection accepted*\n\n\ud83d\udc64 ${esc(contactName)}\n\ud83c\udfe2 ${esc(company)}\n\ud83d\udd17 ${esc(linkedinUrl)}\n\n_Report pipeline triggered._`);
+
+  return { ok: true, message: 'connection accepted, pipeline triggered' };
+}
+
 // ============ MAIN HANDLER ============
 
 export default {
@@ -2796,13 +2864,20 @@ export default {
     if (url.pathname === '/prosp-webhook') {
       try {
         const body = await request.json();
-        if (body.eventType !== 'has_msg_replied') {
-          return new Response(JSON.stringify({ ok: true, message: 'ignored event type' }), {
+        if (body.eventType === 'has_msg_replied') {
+          const result = await handleProspWebhook(env, body, ctx);
+          return new Response(JSON.stringify(result), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else if (body.eventType === 'connection_accepted' || body.eventType === 'has_connection_accepted') {
+          const result = await handleConnectionAccepted(env, body);
+          return new Response(JSON.stringify(result), {
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        const result = await handleProspWebhook(env, body, ctx);
-        return new Response(JSON.stringify(result), {
+        // Log unknown events so we can discover Prosp's actual event type strings
+        console.log(`Prosp webhook: unhandled eventType "${body.eventType}"`, JSON.stringify(body).slice(0, 500));
+        return new Response(JSON.stringify({ ok: true, message: 'ignored event type' }), {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {

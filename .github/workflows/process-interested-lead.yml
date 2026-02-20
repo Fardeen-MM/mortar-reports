@@ -90,6 +90,7 @@ jobs:
             CHANNEL=$(echo "$META_JSON" | jq -r '.channel // "instantly"')
             LINKEDIN_URL_META=$(echo "$META_JSON" | jq -r '.linkedin_url // ""')
             PROSP_SENDER=$(echo "$META_JSON" | jq -r '.prosp_sender // ""')
+            SOURCE=$(echo "$META_JSON" | jq -r '.source // ""')
             echo "  📨 Reply text length: ${#REPLY_TEXT}"
             echo "  📋 Campaign: $CAMPAIGN_NAME"
             echo "  📞 Phone: $PHONE"
@@ -206,6 +207,7 @@ jobs:
           echo "channel=${CHANNEL:-instantly}" >> $GITHUB_OUTPUT
           echo "linkedin_url_meta=${LINKEDIN_URL_META:-}" >> $GITHUB_OUTPUT
           echo "prosp_sender=${PROSP_SENDER:-}" >> $GITHUB_OUTPUT
+          echo "source=${SOURCE:-}" >> $GITHUB_OUTPUT
           # reply_text can be multiline — use delimiter syntax
           {
             echo "reply_text<<REPLY_EOF"
@@ -683,6 +685,7 @@ jobs:
           CHANNEL: ${{ steps.parse.outputs.channel }}
           LINKEDIN_URL: ${{ steps.parse.outputs.linkedin_url_meta || steps.parse.outputs.linkedin }}
           PROSP_SENDER: ${{ steps.parse.outputs.prosp_sender }}
+          SOURCE: ${{ steps.parse.outputs.source }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -739,7 +742,8 @@ jobs:
               ooo_return_date: process.env.OOO_RETURN_DATE || '',
               channel: process.env.CHANNEL || 'instantly',
               linkedin_url: process.env.LINKEDIN_URL || '',
-              prosp_sender: process.env.PROSP_SENDER || ''
+              prosp_sender: process.env.PROSP_SENDER || '',
+              source: process.env.SOURCE || ''
             };
             fs.writeFileSync(
               'pending-approvals/' + process.env.FIRM_FOLDER + '.json',

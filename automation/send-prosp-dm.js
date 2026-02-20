@@ -7,7 +7,7 @@
  */
 
 const https = require('https');
-const { buildDM } = require('./dm-templates');
+const { buildDM, buildConnectionDM } = require('./dm-templates');
 
 const PROSP_API_KEY = process.env.PROSP_API_KEY;
 const PROSP_SENDER = process.env.PROSP_SENDER;
@@ -84,7 +84,10 @@ function sendProspMessage(linkedinUrl, sender, message) {
   console.log(`  Sender: ${PROSP_SENDER}`);
   console.log(`  Report: ${reportUrl}`);
 
-  const dm = buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+  const source = process.env.SOURCE || '';
+  const dm = source === 'connection_accept'
+    ? buildConnectionDM(contactName, firmName, reportUrl, practiceLabel)
+    : buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
   console.log(`  DM: ${dm.body.slice(0, 100)}...`);
 
   const isDryRun = process.env.DRY_RUN === 'true';
