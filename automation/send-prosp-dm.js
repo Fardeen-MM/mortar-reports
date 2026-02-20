@@ -84,10 +84,19 @@ function sendProspMessage(linkedinUrl, sender, message) {
   console.log(`  Sender: ${PROSP_SENDER}`);
   console.log(`  Report: ${reportUrl}`);
 
+  // Use pre-generated AI DM if available (stored in approval JSON at approval time)
+  const connectionDmBody = process.env.CONNECTION_DM || '';
   const source = process.env.SOURCE || '';
-  const dm = source === 'connection_accept'
-    ? buildConnectionDM(contactName, firmName, reportUrl, practiceLabel)
-    : buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+  let dm;
+  if (connectionDmBody) {
+    dm = { body: connectionDmBody };
+    console.log(`  Using pre-generated AI connection DM`);
+  } else if (source === 'connection_accept') {
+    dm = buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+    console.log(`  Using template connection DM (AI not available)`);
+  } else {
+    dm = buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+  }
   console.log(`  DM: ${dm.body.slice(0, 100)}...`);
 
   const isDryRun = process.env.DRY_RUN === 'true';

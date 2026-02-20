@@ -94,7 +94,8 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
         channel: approvalData.channel || 'instantly',
         linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
         prosp_sender: approvalData.prosp_sender || '',
-        source: approvalData.source || ''
+        source: approvalData.source || '',
+        connection_dm: approvalData.connection_dm || ''
       })
     }
   };

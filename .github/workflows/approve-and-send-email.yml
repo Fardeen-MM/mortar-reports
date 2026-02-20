@@ -76,6 +76,7 @@ jobs:
             echo "linkedin_url=" >> $GITHUB_OUTPUT
             echo "prosp_sender=" >> $GITHUB_OUTPUT
             echo "source=" >> $GITHUB_OUTPUT
+            echo "connection_dm=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -96,6 +97,12 @@ jobs:
             echo "linkedin_url=$(echo "$EXTRA_JSON" | jq -r '.linkedin_url // ""')" >> $GITHUB_OUTPUT
             echo "prosp_sender=$(echo "$EXTRA_JSON" | jq -r '.prosp_sender // ""')" >> $GITHUB_OUTPUT
             echo "source=$(echo "$EXTRA_JSON" | jq -r '.source // ""')" >> $GITHUB_OUTPUT
+            # connection_dm can be multiline — use delimiter syntax
+            {
+              echo "connection_dm<<CONNDM_EOF"
+              echo "$EXTRA_JSON" | jq -r '.connection_dm // ""'
+              echo "CONNDM_EOF"
+            } >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -265,6 +272,7 @@ jobs:
           DRY_RUN: 'false'
           REPLY_CLASSIFICATION: ${{ steps.inputs.outputs.classification }}
           SOURCE: ${{ steps.inputs.outputs.source }}
+          CONNECTION_DM: ${{ steps.inputs.outputs.connection_dm }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📡 Channel: $CHANNEL"

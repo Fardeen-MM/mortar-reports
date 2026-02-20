@@ -10,7 +10,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { buildEmail } = require('./email-templates');
-const { buildDM, buildConnectionDM } = require('./dm-templates');
+const { buildDM, buildConnectionDM, generateConnectionDM } = require('./dm-templates');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -77,15 +77,8 @@ const liveReportUrl = approvalData.firm_folder
 let emailPreview, dmPreview, emailQC;
 
 if (isProsp) {
-  // DM preview for Prosp leads — use connection template if source is connection_accept
-  if (isConnectionAccept) {
-    dmPreview = buildConnectionDM(
-      approvalData.contact_name,
-      approvalData.firm_name,
-      liveReportUrl,
-      approvalData.practice_label || ''
-    );
-  } else {
+  // DM preview — connection_accept uses AI generation (handled in async block below)
+  if (!isConnectionAccept) {
     dmPreview = buildDM(
       approvalData.contact_name,
       approvalData.firm_name,
@@ -264,16 +257,16 @@ ${escMd(approvalData.report_url)}
 ⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
 *Soft reply already auto-sent. Deploy report now — welcome-back email will be generated when they return.*`;
+} else if (isProsp && isConnectionAccept) {
+  // Connection accept — message built in async block after AI DM generation
+  message = '';
 } else if (isProsp) {
   // Prosp (LinkedIn DM) lead
   const identityLine = approvalData.lead_email
     ? `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}\n\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}`
     : `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}`;
 
-  const prospHeader = isConnectionAccept
-    ? `\ud83e\udd1d *CONNECTION ACCEPTED — REPORT READY*`
-    : `${headerEmoji} *REPORT READY FOR APPROVAL*`;
-  message = `${prospHeader}${channelBadge}${qcWarning}
+  message = `${headerEmoji} *REPORT READY FOR APPROVAL*${channelBadge}${qcWarning}
 
 \ud83d\udcca *Firm:* ${escMd(displayName)}
 \ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}
@@ -421,20 +414,71 @@ function sendTelegramMessage(text, replyMarkup) {
 // Send approval request
 (async () => {
   try {
+    // For connection_accept: AI-generate the DM before building message
+    let finalMessage = message;
+    if (isConnectionAccept && isProsp) {
+      const apiKey = process.env.ANTHROPIC_API_KEY || '';
+      console.log(`🤖 Generating AI connection DM...`);
+
+      // Extract context from research data
+      const dmContext = {
+        city: researchData?.cityState?.split(',')[0] || researchData?.city || '',
+        practiceLabel: approvalData.practice_label || '',
+        topCompetitor: researchData?.competitors?.[0]?.name || '',
+        biggestGap: ''
+      };
+
+      dmPreview = await generateConnectionDM(
+        apiKey,
+        approvalData.contact_name,
+        approvalData.firm_name,
+        liveReportUrl,
+        dmContext
+      );
+
+      // Store generated DM in approval JSON so send-prosp-dm.js uses the exact same text
+      approvalData.connection_dm = dmPreview.body;
+
+      console.log(`✅ AI DM generated (${dmPreview.body.length} chars)`);
+
+      // Build the prosp message now that dmPreview is ready
+      const identityLine = approvalData.lead_email
+        ? `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}\n\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}`
+        : `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}`;
+
+      finalMessage = `\ud83e\udd1d *CONNECTION ACCEPTED — REPORT READY*${channelBadge}${qcWarning}
+
+\ud83d\udcca *Firm:* ${escMd(displayName)}
+\ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}
+${identityLine}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
+${contextSection}
+\ud83d\udd17 *Review Report:*
+${escMd(approvalData.report_url)}
+
+\u23f0 *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
+
+\ud83d\udcac *DM PREVIEW:*
+\`\`\`
+${dmPreview.body}
+\`\`\`
+
+*Please review the report and DM, then choose an action below:*`;
+    }
+
     console.log(`📱 Sending approval request to Telegram...`);
     console.log(`   Firm: ${approvalData.firm_name}`);
     console.log(`   Contact: ${approvalData.contact_name}`);
-    
-    const response = await sendTelegramMessage(message, keyboard);
-    
+
+    const response = await sendTelegramMessage(finalMessage, keyboard);
+
     console.log(`✅ Approval request sent!`);
     console.log(`   Message ID: ${response.result.message_id}`);
-    
+
     // Save message ID for tracking
     approvalData.telegram_message_id = response.result.message_id;
     approvalData.status = 'awaiting_approval';
     fs.writeFileSync(approvalFile, JSON.stringify(approvalData, null, 2));
-    
+
   } catch (err) {
     console.error('❌ Failed to send Telegram message:', err.message);
     process.exit(1);
