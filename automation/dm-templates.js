@@ -55,20 +55,31 @@ Context: ${details}
 
 Report link (MUST include exactly as-is): ${reportUrl}
 
-Format: 3 short lines with a blank line before the question. Like how you'd actually text someone. Example structure:
+The report covers 3 things:
+1. How many people search for their type of firm nearby and how many they could be getting
+2. How their competitors are showing up on social and what they're missing
+3. How many calls they're probably losing after hours and what that costs them
+
+Format example (match this vibe and spacing):
 Hey [name] thanks for connecting!
 
-We were doing research in [area] for another firm and noticed a couple gaps with yours. Put together a quick breakdown: [link]
+We were doing some research in [area] for another firm and spotted a few things with yours. My team put a quick report together, it covers:
 
-[casual question]
+- how many people are searching for [practice] firms near you
+- what your competitors are doing on social
+- how many calls you're probably missing after hours
+
+Here it is if you're curious: [link]
+
+Are you guys getting most of your clients from referrals or do you do any online stuff?
 
 Rules:
-- Max 35 words before the question
-- Simple words. No jargon. No "digital presence" or "online visibility" or "market analysis" or "leverage" or "optimize"
+- Simple words. No jargon. No "digital presence" or "online visibility" or "market analysis" or "leverage" or "optimize" or "strategy"
+- The 3 bullet points should feel casual, lowercase, like you're listing things off the top of your head
 - Subtle flex: we were researching for another firm we're working with
-- The question should be about how they get clients (word of mouth, online, etc)
-- Sound like a real human, not a marketer
-- No em dashes, max one exclamation mark total, no "I'd love to"
+- End with a casual question about how they get clients
+- Sound like a real human texting, not a marketer
+- No em dashes, max one exclamation mark, no "I'd love to"
 - Just the DM text, nothing else`;
 
   try {
