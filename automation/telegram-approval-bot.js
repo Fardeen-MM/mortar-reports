@@ -10,6 +10,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { buildEmail } = require('./email-templates');
+const { buildDM } = require('./dm-templates');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -62,29 +63,50 @@ if (approvalData.firm_name) {
   }
 }
 
-// Generate email preview using the LIVE URL (what the lead will actually receive)
+// Detect channel
+const channel = approvalData.channel || 'instantly';
+const isProsp = channel === 'prosp';
+
+// Generate email/DM preview using the LIVE URL (what the lead will actually receive)
 const liveReportUrl = approvalData.firm_folder
   ? `https://reports.mortarmetrics.com/${approvalData.firm_folder}/`
   : approvalData.report_url;
-const emailPreview = buildEmail(
-  approvalData.contact_name,
-  approvalData.firm_name,
-  liveReportUrl,
-  approvalData.total_range || '',
-  approvalData.total_cases || '',
-  approvalData.practice_label || ''
-);
 
-// Run email QC checks
-const { validateEmail } = require('./email-qc');
-const emailQC = validateEmail(emailPreview, {
-  contactName: approvalData.contact_name,
-  firmName: approvalData.firm_name,
-  reportUrl: liveReportUrl,
-  totalRange: approvalData.total_range || '',
-  totalCases: approvalData.total_cases || '',
-  practiceLabel: approvalData.practice_label || ''
-});
+let emailPreview, dmPreview, emailQC;
+
+if (isProsp) {
+  // DM preview for Prosp leads
+  dmPreview = buildDM(
+    approvalData.contact_name,
+    approvalData.firm_name,
+    liveReportUrl,
+    approvalData.total_range || '',
+    approvalData.total_cases || '',
+    approvalData.practice_label || ''
+  );
+  emailQC = { errors: [], warnings: [] }; // DMs are too short to need QC
+} else {
+  // Email preview for Instantly leads
+  emailPreview = buildEmail(
+    approvalData.contact_name,
+    approvalData.firm_name,
+    liveReportUrl,
+    approvalData.total_range || '',
+    approvalData.total_cases || '',
+    approvalData.practice_label || ''
+  );
+
+  // Run email QC checks
+  const { validateEmail } = require('./email-qc');
+  emailQC = validateEmail(emailPreview, {
+    contactName: approvalData.contact_name,
+    firmName: approvalData.firm_name,
+    reportUrl: liveReportUrl,
+    totalRange: approvalData.total_range || '',
+    totalCases: approvalData.total_cases || '',
+    practiceLabel: approvalData.practice_label || ''
+  });
+}
 
 // Escape underscores for Telegram Markdown (URLs contain _ which breaks italic parsing)
 function escMd(str) { return (str || '').replace(/_/g, '\\_'); }
@@ -207,6 +229,14 @@ if (approvalData.phone) {
 const isOOO = approvalData.classification === 'OOO';
 const oooReturnDate = approvalData.ooo_return_date || '';
 
+// Channel badge for Prosp leads
+let channelBadge = '';
+if (isProsp && approvalData.lead_email) {
+  channelBadge = '\n\ud83d\udcac\ud83d\udd17 *DUAL CHANNEL: LinkedIn DM + Email*';
+} else if (isProsp) {
+  channelBadge = '\n\ud83d\udcac *LINKEDIN DM ONLY*';
+}
+
 let message;
 if (isOOO) {
   // OOO-specific message — no email preview (welcome-back email generated later)
@@ -223,23 +253,46 @@ ${escMd(approvalData.report_url)}
 ⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
 *Soft reply already auto-sent. Deploy report now — welcome-back email will be generated when they return.*`;
+} else if (isProsp) {
+  // Prosp (LinkedIn DM) lead
+  const identityLine = approvalData.lead_email
+    ? `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}\n\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}`
+    : `\ud83d\udcac *LinkedIn:* ${escMd(approvalData.linkedin_url || '')}`;
+
+  message = `${headerEmoji} *REPORT READY FOR APPROVAL*${channelBadge}${qcWarning}
+
+\ud83d\udcca *Firm:* ${escMd(displayName)}
+\ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}
+${identityLine}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
+${contextSection}
+\ud83d\udd17 *Review Report:*
+${escMd(approvalData.report_url)}
+
+\u23f0 *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
+
+\ud83d\udcac *DM PREVIEW:*
+\`\`\`
+${dmPreview.body}
+\`\`\`
+
+*Please review the report and DM, then choose an action below:*`;
 } else {
   message = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
 
-📊 *Firm:* ${escMd(displayName)}
-👤 *Contact:* ${escMd(approvalData.contact_name)}
-📧 *Email:* ${escMd(approvalData.lead_email)}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
+\ud83d\udcca *Firm:* ${escMd(displayName)}
+\ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}
+\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
 ${contextSection}
-🔗 *Review Report:*
+\ud83d\udd17 *Review Report:*
 ${escMd(approvalData.report_url)}
 
-⏰ *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
+\u23f0 *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
-📧 *EMAIL PREVIEW:*
+\ud83d\udce7 *EMAIL PREVIEW:*
 \`\`\`
 ${emailPreview.body}
 \`\`\`
-${emailQC.errors.length > 0 ? `\n🔴 *EMAIL QC ERRORS (will block send):*\n${emailQC.errors.map(e => `  - ${escMd(e)}`).join('\n')}\n` : ''}${emailQC.warnings.length > 0 ? `\n🟡 *EMAIL QC WARNINGS:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : ''}${emailQC.errors.length === 0 && emailQC.warnings.length === 0 ? '✅ Email QC passed' : ''}
+${emailQC.errors.length > 0 ? `\n\ud83d\udd34 *EMAIL QC ERRORS (will block send):*\n${emailQC.errors.map(e => `  - ${escMd(e)}`).join('\n')}\n` : ''}${emailQC.warnings.length > 0 ? `\n\ud83d\udfe1 *EMAIL QC WARNINGS:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : ''}${emailQC.errors.length === 0 && emailQC.warnings.length === 0 ? '\u2705 Email QC passed' : ''}
 
 *Please review the report and email, then choose an action below:*`;
 }
@@ -250,17 +303,18 @@ const approvalId = approvalData.firm_folder;
 // Inline keyboard with Approve/Reject buttons (using short callback_data)
 // Manual builds only get Deploy + Reject (no email sending option)
 // OOO leads get Deploy (Send When Back) + Reject
+// Prosp leads get Approve & Send DM instead of Approve & Send
 const isManualBuild = approvalData.campaign_name === 'manual_build';
 let keyboard;
 if (isOOO) {
   keyboard = {
     inline_keyboard: [
       [
-        { text: '✅ Deploy (Send When Back)', callback_data: `approve_no_email:${approvalId}` },
-        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+        { text: '\u2705 Deploy (Send When Back)', callback_data: `approve_no_email:${approvalId}` },
+        { text: '\u274c Reject', callback_data: `reject:${approvalId}` }
       ],
       [
-        { text: '🔗 Open Report', url: approvalData.report_url }
+        { text: '\ud83d\udd17 Open Report', url: approvalData.report_url }
       ]
     ]
   };
@@ -268,11 +322,26 @@ if (isOOO) {
   keyboard = {
     inline_keyboard: [
       [
-        { text: '✅ Deploy Report', callback_data: `approve_no_email:${approvalId}` },
-        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+        { text: '\u2705 Deploy Report', callback_data: `approve_no_email:${approvalId}` },
+        { text: '\u274c Reject', callback_data: `reject:${approvalId}` }
       ],
       [
-        { text: '🔗 Open Report', url: approvalData.report_url }
+        { text: '\ud83d\udd17 Open Report', url: approvalData.report_url }
+      ]
+    ]
+  };
+} else if (isProsp) {
+  keyboard = {
+    inline_keyboard: [
+      [
+        { text: '\u2705 Approve & Send DM', callback_data: `approve:${approvalId}` },
+        { text: '\u274c Reject', callback_data: `reject:${approvalId}` }
+      ],
+      [
+        { text: '\ud83d\udcc4 Deploy Only', callback_data: `approve_no_email:${approvalId}` }
+      ],
+      [
+        { text: '\ud83d\udd17 Open Report', url: approvalData.report_url }
       ]
     ]
   };
@@ -280,15 +349,15 @@ if (isOOO) {
   keyboard = {
     inline_keyboard: [
       [
-        { text: '✅ Approve & Send', callback_data: `approve:${approvalId}` },
-        { text: '❌ Reject', callback_data: `reject:${approvalId}` }
+        { text: '\u2705 Approve & Send', callback_data: `approve:${approvalId}` },
+        { text: '\u274c Reject', callback_data: `reject:${approvalId}` }
       ],
       [
-        { text: '✏️ Edit Email', callback_data: `edit_email:${approvalId}` },
-        { text: '📄 No Email', callback_data: `approve_no_email:${approvalId}` }
+        { text: '\u270f\ufe0f Edit Email', callback_data: `edit_email:${approvalId}` },
+        { text: '\ud83d\udcc4 No Email', callback_data: `approve_no_email:${approvalId}` }
       ],
       [
-        { text: '🔗 Open Report', url: approvalData.report_url }
+        { text: '\ud83d\udd17 Open Report', url: approvalData.report_url }
       ]
     ]
   };

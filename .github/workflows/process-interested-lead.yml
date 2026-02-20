@@ -9,7 +9,7 @@ on:
 # with different payloads (campaign-level and workspace-level)
 # cancel-in-progress: false — runs queue instead of cancelling (prevents Telegram race condition)
 concurrency:
-  group: lead-${{ github.event.client_payload.email }}
+  group: lead-${{ github.event.client_payload.email || github.event.client_payload.linkedin }}
   cancel-in-progress: false
 
 jobs:
@@ -87,12 +87,19 @@ jobs:
             PHONE=$(echo "$META_JSON" | jq -r '.phone // ""')
             CLASSIFICATION=$(echo "$META_JSON" | jq -r '.classification // "INTERESTED"')
             OOO_RETURN_DATE=$(echo "$META_JSON" | jq -r '.ooo_return_date // ""')
+            CHANNEL=$(echo "$META_JSON" | jq -r '.channel // "instantly"')
+            LINKEDIN_URL_META=$(echo "$META_JSON" | jq -r '.linkedin_url // ""')
+            PROSP_SENDER=$(echo "$META_JSON" | jq -r '.prosp_sender // ""')
             echo "  📨 Reply text length: ${#REPLY_TEXT}"
             echo "  📋 Campaign: $CAMPAIGN_NAME"
             echo "  📞 Phone: $PHONE"
             echo "  🏷️ Classification: $CLASSIFICATION"
+            echo "  📡 Channel: $CHANNEL"
             if [ -n "$OOO_RETURN_DATE" ]; then
               echo "  ✈️ OOO Return Date: $OOO_RETURN_DATE"
+            fi
+            if [ -n "$LINKEDIN_URL_META" ]; then
+              echo "  🔗 LinkedIn (from meta): $LINKEDIN_URL_META"
             fi
           fi
 
@@ -152,7 +159,11 @@ jobs:
 
           # ALWAYS infer country from email TLD — Instantly often defaults to "US" for non-US leads
           # TLD is more reliable than webhook country field
+          # Skip TLD detection for Prosp leads without email
           TLD_COUNTRY=""
+          if [ -z "$DOMAIN" ] || [ "$DOMAIN" = "" ]; then
+            echo "  ⚠️ No email domain — skipping TLD country detection (Prosp lead)"
+          fi
           case "$DOMAIN" in
             *.co.uk|*.org.uk|*.uk)  TLD_COUNTRY="GB" ;;
             *.com.au|*.au)          TLD_COUNTRY="AU" ;;
@@ -192,6 +203,9 @@ jobs:
           echo "phone=$PHONE" >> $GITHUB_OUTPUT
           echo "classification=$CLASSIFICATION" >> $GITHUB_OUTPUT
           echo "ooo_return_date=${OOO_RETURN_DATE:-}" >> $GITHUB_OUTPUT
+          echo "channel=${CHANNEL:-instantly}" >> $GITHUB_OUTPUT
+          echo "linkedin_url_meta=${LINKEDIN_URL_META:-}" >> $GITHUB_OUTPUT
+          echo "prosp_sender=${PROSP_SENDER:-}" >> $GITHUB_OUTPUT
           # reply_text can be multiline — use delimiter syntax
           {
             echo "reply_text<<REPLY_EOF"
@@ -666,6 +680,9 @@ jobs:
           CONVERSION_NOTE: ${{ steps.qc.outputs.conversion_note }}
           CLASSIFICATION: ${{ steps.parse.outputs.classification }}
           OOO_RETURN_DATE: ${{ steps.parse.outputs.ooo_return_date }}
+          CHANNEL: ${{ steps.parse.outputs.channel }}
+          LINKEDIN_URL: ${{ steps.parse.outputs.linkedin_url_meta || steps.parse.outputs.linkedin }}
+          PROSP_SENDER: ${{ steps.parse.outputs.prosp_sender }}
         run: |
           REPORT_URL="https://reports.mortarmetrics.com/pending-reports/${FIRM_FOLDER}/"
 
@@ -719,7 +736,10 @@ jobs:
               conversion_verdict: process.env.CONVERSION_VERDICT || '',
               conversion_note: process.env.CONVERSION_NOTE || '',
               classification: process.env.CLASSIFICATION || 'INTERESTED',
-              ooo_return_date: process.env.OOO_RETURN_DATE || ''
+              ooo_return_date: process.env.OOO_RETURN_DATE || '',
+              channel: process.env.CHANNEL || 'instantly',
+              linkedin_url: process.env.LINKEDIN_URL || '',
+              prosp_sender: process.env.PROSP_SENDER || ''
             };
             fs.writeFileSync(
               'pending-approvals/' + process.env.FIRM_FOLDER + '.json',

@@ -59,6 +59,9 @@ jobs:
           RD_SKIP_EMAIL: ${{ github.event.client_payload.skip_email }}
           RD_CLASSIFICATION: ${{ github.event.client_payload.classification }}
           RD_OOO_RETURN_DATE: ${{ github.event.client_payload.ooo_return_date }}
+          RD_CHANNEL: ${{ github.event.client_payload.channel }}
+          RD_LINKEDIN_URL: ${{ github.event.client_payload.linkedin_url }}
+          RD_PROSP_SENDER: ${{ github.event.client_payload.prosp_sender }}
         run: |
           # Handle both workflow_dispatch and repository_dispatch
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
@@ -74,6 +77,9 @@ jobs:
             echo "skip_email=" >> $GITHUB_OUTPUT
             echo "classification=INTERESTED" >> $GITHUB_OUTPUT
             echo "ooo_return_date=" >> $GITHUB_OUTPUT
+            echo "channel=instantly" >> $GITHUB_OUTPUT
+            echo "linkedin_url=" >> $GITHUB_OUTPUT
+            echo "prosp_sender=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -88,6 +94,9 @@ jobs:
             echo "skip_email=$RD_SKIP_EMAIL" >> $GITHUB_OUTPUT
             echo "classification=$RD_CLASSIFICATION" >> $GITHUB_OUTPUT
             echo "ooo_return_date=$RD_OOO_RETURN_DATE" >> $GITHUB_OUTPUT
+            echo "channel=${RD_CHANNEL:-instantly}" >> $GITHUB_OUTPUT
+            echo "linkedin_url=$RD_LINKEDIN_URL" >> $GITHUB_OUTPUT
+            echo "prosp_sender=$RD_PROSP_SENDER" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy report from pending to live
@@ -217,6 +226,7 @@ jobs:
           CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
           COUNTRY: ${{ steps.inputs.outputs.country }}
+          LINKEDIN_URL: ${{ steps.inputs.outputs.linkedin_url }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
@@ -230,17 +240,20 @@ jobs:
               report_url: process.env.REPORT_URL_ENV,
               practice_label: process.env.PRACTICE_LABEL,
               country: process.env.COUNTRY,
-              firm_folder: process.env.FIRM_FOLDER
+              firm_folder: process.env.FIRM_FOLDER,
+              linkedin_url: process.env.LINKEDIN_URL || ''
             }));
           " | curl -sf -X POST "$WORKER/store-lead" \
             -H "Content-Type: application/json" \
             -d @- && echo "✅ Lead metadata stored" || echo "⚠️ Failed to store lead metadata (non-critical)"
 
-      - name: Send approved email
+      - name: Send approved message
         if: steps.inputs.outputs.skip_email != 'true'
         env:
           INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          PROSP_API_KEY: ${{ secrets.PROSP_API_KEY }}
+          PROSP_SENDER: ${{ steps.inputs.outputs.prosp_sender || secrets.PROSP_SENDER }}
           LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
           CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
           FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
@@ -248,15 +261,16 @@ jobs:
           TOTAL_CASES: ${{ steps.inputs.outputs.total_cases }}
           PRACTICE_LABEL: ${{ steps.inputs.outputs.practice_label }}
           COUNTRY: ${{ steps.inputs.outputs.country }}
+          CHANNEL: ${{ steps.inputs.outputs.channel }}
+          LINKEDIN_URL: ${{ steps.inputs.outputs.linkedin_url }}
           DRY_RUN: 'false'
           REPLY_CLASSIFICATION: ${{ steps.inputs.outputs.classification }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
-          echo "📧 Sending approved email to $LEAD_EMAIL"
+          echo "📡 Channel: $CHANNEL"
           echo "🏢 Firm: $FIRM_NAME"
           echo "🔗 Report: $LIVE_URL"
           echo "📊 Range: $TOTAL_RANGE | Cases: $TOTAL_CASES | Practice: $PRACTICE_LABEL"
-          echo "🌍 Country: $COUNTRY"
 
           # Load custom email body if available
           if [ -f /tmp/custom-email-body.txt ]; then
@@ -264,17 +278,85 @@ jobs:
             echo "📝 Using custom email body (${#CUSTOM_EMAIL_BODY} chars)"
           fi
 
-          node send-email.js \
-            "$LEAD_EMAIL" \
-            "$CONTACT_NAME" \
-            "$LIVE_URL" \
-            "" \
-            "$FIRM_NAME" \
-            "" \
-            "$TOTAL_RANGE" \
-            "$TOTAL_CASES" \
-            "$PRACTICE_LABEL" \
-            "$COUNTRY"
+          if [ "$CHANNEL" = "prosp" ]; then
+            echo "💬 Sending report via LinkedIn DM"
+            node send-prosp-dm.js \
+              "$LINKEDIN_URL" \
+              "$CONTACT_NAME" \
+              "$LIVE_URL" \
+              "$FIRM_NAME" \
+              "$TOTAL_RANGE" \
+              "$TOTAL_CASES" \
+              "$PRACTICE_LABEL"
+
+            # Also send email if we have their address (dual-channel)
+            if [ -n "$LEAD_EMAIL" ]; then
+              echo "📧 Also sending report via email (dual-channel)"
+              node send-email.js \
+                "$LEAD_EMAIL" \
+                "$CONTACT_NAME" \
+                "$LIVE_URL" \
+                "" \
+                "$FIRM_NAME" \
+                "" \
+                "$TOTAL_RANGE" \
+                "$TOTAL_CASES" \
+                "$PRACTICE_LABEL" \
+                "$COUNTRY" || echo "⚠️ Email send failed (non-fatal, DM was primary)"
+            fi
+          else
+            echo "📧 Sending report via email"
+            echo "🌍 Country: $COUNTRY"
+            node send-email.js \
+              "$LEAD_EMAIL" \
+              "$CONTACT_NAME" \
+              "$LIVE_URL" \
+              "" \
+              "$FIRM_NAME" \
+              "" \
+              "$TOTAL_RANGE" \
+              "$TOTAL_CASES" \
+              "$PRACTICE_LABEL" \
+              "$COUNTRY"
+          fi
+        working-directory: ./automation
+
+      - name: Send LinkedIn connection request via Prosp
+        if: steps.inputs.outputs.skip_email != 'true' && steps.inputs.outputs.channel != 'prosp' && steps.inputs.outputs.linkedin_url != ''
+        continue-on-error: true
+        env:
+          PROSP_API_KEY: ${{ secrets.PROSP_API_KEY }}
+          PROSP_CAMPAIGN_ID: ${{ secrets.PROSP_CAMPAIGN_ID }}
+          LINKEDIN_URL: ${{ steps.inputs.outputs.linkedin_url }}
+          CONTACT_NAME: ${{ steps.inputs.outputs.contact_name }}
+          FIRM_NAME: ${{ steps.inputs.outputs.firm_name }}
+        run: |
+          if [ -z "$PROSP_API_KEY" ] || [ -z "$PROSP_CAMPAIGN_ID" ]; then
+            echo "⚠️ PROSP_API_KEY or PROSP_CAMPAIGN_ID not set, skipping"
+            exit 0
+          fi
+
+          FIRST_NAME=$(echo "$CONTACT_NAME" | cut -d' ' -f1)
+          LAST_NAME=$(echo "$CONTACT_NAME" | cut -d' ' -f2-)
+
+          node -e "
+            (async () => {
+              const resp = await fetch('https://prosp.ai/api/v1/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.PROSP_API_KEY,
+                  campaign_id: process.env.PROSP_CAMPAIGN_ID,
+                  linkedin_url: process.env.LINKEDIN_URL,
+                  first_name: process.env.FIRST_NAME || '',
+                  last_name: process.env.LAST_NAME || '',
+                  company_name: process.env.FIRM_NAME,
+                  skip_duplicate: 'yes'
+                })
+              });
+              console.log(resp.ok ? '✅ Added to Prosp campaign' : '⚠️ Prosp add failed: ' + resp.status);
+            })();
+          "
         working-directory: ./automation
 
       - name: Extract report data for nurture emails
@@ -348,16 +430,23 @@ jobs:
           TOP_COMPETITOR: ${{ steps.report_data.outputs.top_competitor }}
           COMPETITOR_REVIEWS: ${{ steps.report_data.outputs.competitor_reviews }}
           BIGGEST_GAP: ${{ steps.report_data.outputs.biggest_gap }}
+          CHANNEL: ${{ steps.inputs.outputs.channel }}
+          LINKEDIN_URL: ${{ steps.inputs.outputs.linkedin_url }}
+          PROSP_SENDER: ${{ steps.inputs.outputs.prosp_sender }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           WORKER="${WORKER_URL:-https://instantly-webhook-proxy.fardeen-729.workers.dev}"
-          echo "📬 Adding $LEAD_EMAIL to nurture queue..."
+
+          # Nurture key: email for Instantly leads, linkedin_url for Prosp leads without email
+          NURTURE_KEY="${LEAD_EMAIL:-$LINKEDIN_URL}"
+          echo "📬 Adding $NURTURE_KEY to nurture queue (channel: $CHANNEL)..."
           echo "   City: $CITY | Competitor: $TOP_COMPETITOR ($COMPETITOR_REVIEWS reviews) | Gap: $BIGGEST_GAP"
 
           REPORT_URL_ENV="$LIVE_URL" START_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" node -e "
+            const key = process.env.LEAD_EMAIL || process.env.LINKEDIN_URL;
             console.log(JSON.stringify({
               action: 'set',
-              email: process.env.LEAD_EMAIL,
+              email: key,
               data: {
                 firm_name: process.env.FIRM_NAME,
                 contact_name: process.env.CONTACT_NAME,
@@ -373,7 +462,10 @@ jobs:
                 start_date: process.env.START_DATE,
                 emails_sent: 0,
                 last_sent: '',
-                status: 'active'
+                status: 'active',
+                channel: process.env.CHANNEL || 'instantly',
+                linkedin_url: process.env.LINKEDIN_URL || '',
+                prosp_sender: process.env.PROSP_SENDER || ''
               }
             }));
           " | curl -sf -X POST "$WORKER/nurture-check" \

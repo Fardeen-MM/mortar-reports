@@ -8,7 +8,7 @@ compatibility_date = "2024-01-01"
 # email queue with Telegram approval, AI reply classification, and nurture sequences.
 #
 # Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
-# Optional secrets: INSTANTLY_API_KEY, ANTHROPIC_API_KEY (for AI classification + email sending)
+# Optional secrets: INSTANTLY_API_KEY, ANTHROPIC_API_KEY, PROSP_API_KEY, PROSP_SENDER, PROSP_CAMPAIGN_ID
 #
 # For Telegram webhook handler, see wrangler-telegram.toml
 

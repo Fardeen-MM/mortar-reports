@@ -9,9 +9,11 @@
  * 5. POST /store-lead → store lead metadata for view-triggered emails
  * 6. POST /queue-email → queue any email for Telegram approval
  * 7. AI reply classification (QUESTION/OBJECTION auto-responses)
+ * 8. POST /prosp-webhook → Prosp LinkedIn DM webhook handling
+ * 9. LinkedIn DM sending via Prosp API + DM queue with Telegram approval
  *
  * Required secrets: GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
- * Optional secrets: INSTANTLY_API_KEY, ANTHROPIC_API_KEY
+ * Optional secrets: INSTANTLY_API_KEY, ANTHROPIC_API_KEY, PROSP_API_KEY, PROSP_SENDER, PROSP_CAMPAIGN_ID
  */
 
 const GITHUB_REPO = 'Fardeen-MM/mortar-reports';
@@ -28,7 +30,11 @@ async function answerCallback(botToken, callbackQueryId, text, showAlert = false
       show_alert: showAlert
     })
   });
-  return response.json();
+  const result = await response.json();
+  if (!result.ok) {
+    console.error('answerCallback failed:', result.description || JSON.stringify(result));
+  }
+  return result;
 }
 
 async function editMessage(botToken, chatId, messageId, newText, replyMarkup) {
@@ -44,7 +50,11 @@ async function editMessage(botToken, chatId, messageId, newText, replyMarkup) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  return response.json();
+  const result = await response.json();
+  if (!result.ok) {
+    console.error('editMessage failed:', result.description || JSON.stringify(result));
+  }
+  return result;
 }
 
 async function sendTelegramMsg(botToken, chatId, text, options = {}) {
@@ -78,7 +88,10 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
       practice_label: approvalData.practice_label || '',
       classification: approvalData.classification || 'INTERESTED',
       skip_email: skipEmail ? 'true' : '',
-      ooo_return_date: approvalData.ooo_return_date || ''
+      ooo_return_date: approvalData.ooo_return_date || '',
+      channel: approvalData.channel || 'instantly',
+      linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
+      prosp_sender: approvalData.prosp_sender || ''
     }
   };
 
@@ -236,6 +249,283 @@ async function handleTelegramCallback(env, update) {
       await env.WEBHOOK_KV.delete(`custom_queued:${approvalId}`);
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
         '❌ *Edit cancelled.* Use the original message to approve or edit again.');
+    }
+
+    return { ok: true };
+  }
+
+  // Handle queued DM callbacks (approve_dm, edit_dm, skip_dm)
+  const dmActions = ['approve_dm', 'edit_dm', 'skip_dm', 'send_dm_custom', 'cancel_dm_edit'];
+  if (dmActions.includes(action)) {
+    if (action === 'approve_dm') {
+      const dmRaw = await env.WEBHOOK_KV.get(`queued_dm:${approvalId}`);
+      if (!dmRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'DM expired', true);
+        return { ok: true };
+      }
+      const dm = JSON.parse(dmRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending DM...', false);
+
+      try {
+        if (!env.PROSP_API_KEY) throw new Error('PROSP_API_KEY not configured');
+        const sender = dm.sender || env.PROSP_SENDER;
+        if (!sender) throw new Error('No Prosp sender configured');
+        await sendProspDM(env.PROSP_API_KEY, dm.linkedin_url, sender, dm.message);
+        await env.WEBHOOK_KV.delete(`queued_dm:${approvalId}`);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u2705 *DM SENT* (${dm.type || 'dm'})\n\n\ud83d\udd17 *To:* ${dm.linkedin_url}\n\ud83d\udcca *Firm:* ${dm.firm_name || 'Unknown'}`);
+      } catch (err) {
+        console.error('Failed to send queued DM:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u274c *DM SEND FAILED*\n\n${err.message}\n\n\ud83d\udd17 *To:* ${dm.linkedin_url}`);
+      }
+
+    } else if (action === 'edit_dm') {
+      const dmRaw = await env.WEBHOOK_KV.get(`queued_dm:${approvalId}`);
+      if (!dmRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'DM expired', true);
+        return { ok: true };
+      }
+      const dm = JSON.parse(dmRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening editor...', false);
+
+      const editMsg = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `\u270f\ufe0f *Edit the DM below*\nCopy this text, edit it, and reply with your version:\n\n\`\`\`\n${(dm.message || '').slice(0, 600).replace(/`/g, "'")}\n\`\`\``,
+        { reply_markup: { force_reply: true, selective: true } }
+      );
+
+      if (editMsg.ok && editMsg.result) {
+        await env.WEBHOOK_KV.put(
+          `edit_dm_reply:${editMsg.result.message_id}`,
+          JSON.stringify({ queueId: approvalId, originalMessageId: messageId }),
+          { expirationTtl: 1800 }
+        );
+      }
+
+    } else if (action === 'skip_dm') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Skipped', false);
+      const dmRaw = await env.WEBHOOK_KV.get(`queued_dm:${approvalId}`);
+      const dm = dmRaw ? JSON.parse(dmRaw) : {};
+      await env.WEBHOOK_KV.delete(`queued_dm:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `\u23ed\ufe0f *SKIPPED*\n\nDM to ${dm.linkedin_url || 'lead'} was not sent.`);
+
+    } else if (action === 'send_dm_custom') {
+      const dmRaw = await env.WEBHOOK_KV.get(`queued_dm:${approvalId}`);
+      const customText = await env.WEBHOOK_KV.get(`custom_dm:${approvalId}`);
+      if (!dmRaw || !customText) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'DM expired', true);
+        return { ok: true };
+      }
+      const dm = JSON.parse(dmRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending custom DM...', false);
+
+      try {
+        if (!env.PROSP_API_KEY) throw new Error('PROSP_API_KEY not configured');
+        const sender = dm.sender || env.PROSP_SENDER;
+        if (!sender) throw new Error('No Prosp sender configured');
+        await sendProspDM(env.PROSP_API_KEY, dm.linkedin_url, sender, customText);
+        await env.WEBHOOK_KV.delete(`queued_dm:${approvalId}`);
+        await env.WEBHOOK_KV.delete(`custom_dm:${approvalId}`);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u2705 *CUSTOM DM SENT* (${dm.type || 'dm'})\n\n\ud83d\udd17 *To:* ${dm.linkedin_url}`);
+      } catch (err) {
+        console.error('Failed to send custom DM:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u274c *DM SEND FAILED*\n\n${err.message}`);
+      }
+
+    } else if (action === 'cancel_dm_edit') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Cancelled', false);
+      await env.WEBHOOK_KV.delete(`custom_dm:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        '\u274c *Edit cancelled.* Use the original message to approve or edit again.');
+    }
+
+    return { ok: true };
+  }
+
+  // Handle nurture DM reply callbacks (nrd_* actions — mirrors nr_* but sends via Prosp)
+  const nurtureDmActions = ['nrd_send_stop', 'nrd_send_cont', 'nrd_edit', 'nrd_skip',
+    'nrd_stop_only', 'nrd_resume', 'nrd_send_custom_stop', 'nrd_send_custom_cont', 'nrd_cancel_edit'];
+  if (nurtureDmActions.includes(action)) {
+    const nrRaw = await env.WEBHOOK_KV.get(`nurture_reply:${approvalId}`);
+
+    if (action === 'nrd_send_stop' || action === 'nrd_send_cont') {
+      if (!nrRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending DM...', false);
+
+      try {
+        if (!env.PROSP_API_KEY) throw new Error('PROSP_API_KEY not configured');
+        if (!nr.autoReply) throw new Error('No auto-reply text available');
+        const sender = nr.prosp_sender || env.PROSP_SENDER;
+        if (!sender) throw new Error('No Prosp sender configured');
+        await sendProspDM(env.PROSP_API_KEY, nr.linkedin_url, sender, nr.autoReply);
+
+        // Update nurture status — use linkedin_url as key for Prosp leads
+        const nurtureKey = nr.email || nr.linkedin_url;
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          if (action === 'nrd_send_stop') {
+            nurtureData.status = 'completed';
+            nurtureData.stopped_reason = 'replied_engaged';
+          } else {
+            nurtureData.status = 'active';
+          }
+          await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+
+        await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+        const statusLabel = action === 'nrd_send_stop' ? 'STOPPED' : 'RESUMED';
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u2705 *DM REPLY SENT* \u2014 Nurture ${statusLabel}\n\n\ud83d\udd17 *To:* ${nr.linkedin_url}\n\ud83d\udcca *Firm:* ${nr.firmName}\n\ud83d\udcec ${nr.emailsSent}/7 sent`);
+      } catch (err) {
+        console.error('Failed to send nurture DM reply:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u274c *DM SEND FAILED*\n\n${err.message}\n\n\ud83d\udd17 *To:* ${nr.linkedin_url}`);
+      }
+
+    } else if (action === 'nrd_edit') {
+      if (!nrRaw) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Opening editor...', false);
+
+      const preview = (nr.autoReply || 'Write your reply here...').slice(0, 600).replace(/`/g, "'");
+      const editMsg = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `\u270f\ufe0f *Edit the DM reply below*\nCopy this text, edit it, and reply with your version:\n\n\`\`\`\n${preview}\n\`\`\``,
+        { reply_markup: { force_reply: true, selective: true } }
+      );
+
+      if (editMsg.ok && editMsg.result) {
+        await env.WEBHOOK_KV.put(
+          `edit_nrd_reply:${editMsg.result.message_id}`,
+          JSON.stringify({ queueId: approvalId }),
+          { expirationTtl: 1800 }
+        );
+      }
+
+    } else if (action === 'nrd_skip') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Skipped reply', false);
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      const nurtureKey = nr.email || nr.linkedin_url;
+
+      if (nurtureKey) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          delete nurtureData.last_reply_text;
+          delete nurtureData.last_reply_category;
+          delete nurtureData.last_reply_at;
+          await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `\u23ed\ufe0f *DM REPLY SKIPPED* \u2014 Nurture still PAUSED\n\n\ud83d\udd17 ${nr.linkedin_url || 'lead'}\n\ud83d\udcca ${nr.firmName || ''}\n\ud83d\udcec ${nr.emailsSent || '?'}/7 sent`,
+        {
+          inline_keyboard: [
+            [
+              { text: '\ud83d\uded1 Stop Nurture', callback_data: `nrd_stop_only:${approvalId}` },
+              { text: '\u25b6\ufe0f Resume Nurture', callback_data: `nrd_resume:${approvalId}` }
+            ]
+          ]
+        }
+      );
+
+    } else if (action === 'nrd_stop_only') {
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      if (!nr.linkedin_url && callback_query.message?.text) {
+        const m = callback_query.message.text.match(/\ud83d\udd17\s*(\S+)/);
+        if (m) nr.linkedin_url = m[1];
+      }
+      const nurtureKey = nr.email || nr.linkedin_url;
+      if (nurtureKey) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          nurtureData.status = 'completed';
+          nurtureData.stopped_reason = 'manual_after_reply';
+          await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Nurture stopped', false);
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `\ud83d\uded1 *NURTURE STOPPED*\n\n\ud83d\udd17 ${nr.linkedin_url || 'lead'}\n\ud83d\udcca ${nr.firmName || ''}\nNo DM sent. Sequence terminated.`);
+
+    } else if (action === 'nrd_resume') {
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      if (!nr.linkedin_url && callback_query.message?.text) {
+        const m = callback_query.message.text.match(/\ud83d\udd17\s*(\S+)/);
+        if (m) nr.linkedin_url = m[1];
+      }
+      const nurtureKey = nr.email || nr.linkedin_url;
+      if (nurtureKey) {
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          nurtureData.status = 'active';
+          await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+      }
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Nurture resumed', false);
+      await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        `\u25b6\ufe0f *NURTURE RESUMED*\n\n\ud83d\udd17 ${nr.linkedin_url || 'lead'}\n\ud83d\udcca ${nr.firmName || ''}\nNo DM sent. Next nurture DM will continue.`);
+
+    } else if (action === 'nrd_send_custom_stop' || action === 'nrd_send_custom_cont') {
+      const customText = await env.WEBHOOK_KV.get(`custom_nrd:${approvalId}`);
+      if (!nrRaw || !customText) {
+        await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Reply expired', true);
+        return { ok: true };
+      }
+      const nr = JSON.parse(nrRaw);
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Sending custom DM...', false);
+
+      try {
+        if (!env.PROSP_API_KEY) throw new Error('PROSP_API_KEY not configured');
+        const sender = nr.prosp_sender || env.PROSP_SENDER;
+        if (!sender) throw new Error('No Prosp sender configured');
+        await sendProspDM(env.PROSP_API_KEY, nr.linkedin_url, sender, customText);
+
+        const nurtureKey = nr.email || nr.linkedin_url;
+        const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+        if (nurtureRaw) {
+          const nurtureData = JSON.parse(nurtureRaw);
+          if (action === 'nrd_send_custom_stop') {
+            nurtureData.status = 'completed';
+            nurtureData.stopped_reason = 'replied_engaged';
+          } else {
+            nurtureData.status = 'active';
+          }
+          await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+        }
+
+        await env.WEBHOOK_KV.delete(`nurture_reply:${approvalId}`);
+        await env.WEBHOOK_KV.delete(`custom_nrd:${approvalId}`);
+        const statusLabel = action === 'nrd_send_custom_stop' ? 'STOPPED' : 'RESUMED';
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u2705 *CUSTOM DM REPLY SENT* \u2014 Nurture ${statusLabel}\n\n\ud83d\udd17 *To:* ${nr.linkedin_url}\n\ud83d\udcca *Firm:* ${nr.firmName}`);
+      } catch (err) {
+        console.error('Failed to send custom nurture DM reply:', err.message);
+        await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `\u274c *DM SEND FAILED*\n\n${err.message}`);
+      }
+
+    } else if (action === 'nrd_cancel_edit') {
+      await answerCallback(env.TELEGRAM_BOT_TOKEN, callback_query.id, 'Cancelled', false);
+      await env.WEBHOOK_KV.delete(`custom_nrd:${approvalId}`);
+      await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+        '\u274c *Edit cancelled.* Use the original message buttons to respond.');
     }
 
     return { ok: true };
@@ -480,6 +770,32 @@ async function handleTelegramCallback(env, update) {
 
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId, successText);
       console.log(`Approval processed successfully (skipEmail=${skipEmail})`);
+
+      // Cross-channel: add Instantly leads to Prosp campaign for LinkedIn connection request
+      const liUrl = approvalData.linkedin_url || approvalData.linkedin || '';
+      const channel = approvalData.channel || 'instantly';
+      if (liUrl && env.PROSP_API_KEY && env.PROSP_CAMPAIGN_ID && channel !== 'prosp') {
+        try {
+          const firstName = (approvalData.contact_name || '').split(' ')[0] || '';
+          const lastName = (approvalData.contact_name || '').split(' ').slice(1).join(' ') || '';
+          await fetch('https://prosp.ai/api/v1/leads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: env.PROSP_API_KEY,
+              campaign_id: env.PROSP_CAMPAIGN_ID,
+              linkedin_url: liUrl,
+              first_name: firstName,
+              last_name: lastName,
+              company_name: approvalData.firm_name,
+              skip_duplicate: 'yes'
+            })
+          });
+          console.log('Added to Prosp campaign for LinkedIn connection');
+        } catch (e) {
+          console.log('Prosp campaign add failed (non-fatal):', e.message);
+        }
+      }
     } catch (err) {
       console.error('Failed to trigger workflow:', err.message);
       await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
@@ -706,6 +1022,37 @@ async function sendInstantlyReply(apiKey, leadEmail, subject, html, text) {
   return replyResp.json();
 }
 
+// ============ PROSP (LINKEDIN DM) HELPERS ============
+
+/**
+ * Send a LinkedIn DM via Prosp API.
+ * Plain text only (no HTML).
+ */
+async function sendProspDM(apiKey, linkedinUrl, senderUrl, message) {
+  const resp = await fetch('https://prosp.ai/api/v1/leads/send-message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: apiKey,
+      linkedin_url: linkedinUrl,
+      sender: senderUrl,
+      message: message
+    })
+  });
+  if (!resp.ok) throw new Error(`Prosp send failed: ${resp.status} ${await resp.text()}`);
+  return resp.json();
+}
+
+/**
+ * Normalize LinkedIn URLs for consistent KV keys.
+ * "https://www.linkedin.com/in/name/" -> "linkedin.com/in/name"
+ */
+function normalizeLinkedInUrl(url) {
+  if (!url) return '';
+  return url.replace(/^https?:\/\//, '').replace(/^www\./, '')
+    .replace(/\/$/, '').toLowerCase();
+}
+
 // ============ QUEUED EMAIL INFRASTRUCTURE ============
 
 /**
@@ -763,6 +1110,60 @@ ${preview}
 
   if (!result.ok) {
     console.error('Telegram send failed for queued email:', result.description || JSON.stringify(result));
+  }
+
+  return { ok: true, queue_id: queueId };
+}
+
+// ============ QUEUED DM INFRASTRUCTURE ============
+
+/**
+ * Queue a LinkedIn DM for Telegram approval.
+ * Mirrors queueEmail() but for Prosp DMs.
+ */
+async function queueDM(env, { type, linkedin_url, sender, message, contact_name, firm_name, context }) {
+  const queueId = crypto.randomUUID();
+
+  await env.WEBHOOK_KV.put(`queued_dm:${queueId}`, JSON.stringify({
+    type, linkedin_url, sender, message, contact_name, firm_name, context,
+    queued_at: new Date().toISOString()
+  }), { expirationTtl: 86400 });
+
+  const typeHeaders = {
+    'auto-reply': '\ud83e\udd16 LINKEDIN AUTO-REPLY',
+    'nurture': '\ud83d\udcac NURTURE DM',
+    'ooo-welcome-back': '\u2708\ufe0f OOO WELCOME BACK DM'
+  };
+  const header = typeHeaders[type] || '\ud83d\udcac LINKEDIN DM';
+
+  const preview = (message || '').slice(0, 2000).replace(/`/g, "'");
+  const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+
+  const msg = `${header}
+
+\ud83d\udcca *Firm:* ${esc(firm_name) || 'Unknown'}
+\ud83d\udc64 *To:* ${esc(contact_name) || 'Lead'}
+\ud83d\udd17 *LinkedIn:* ${esc(linkedin_url)}
+${context ? `\u2139\ufe0f *Context:* ${esc(context)}` : ''}
+
+\`\`\`
+${preview}
+\`\`\``;
+
+  const result = await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '\u2705 Approve & Send DM', callback_data: `approve_dm:${queueId}` },
+          { text: '\u270f\ufe0f Edit', callback_data: `edit_dm:${queueId}` },
+          { text: '\u23ed\ufe0f Skip', callback_data: `skip_dm:${queueId}` }
+        ]
+      ]
+    }
+  });
+
+  if (!result.ok) {
+    console.error('Telegram send failed for queued DM:', result.description || JSON.stringify(result));
   }
 
   return { ok: true, queue_id: queueId };
@@ -898,7 +1299,9 @@ function classifyReplyFallback(text) {
  */
 async function generateAutoResponse(category, replyText, firmName, contactName, anthropicKey, pipelineContext) {
   const ctx = pipelineContext || {};
-  const systemPrompt = `You are Fardeen from Mortar Metrics, a legal marketing agency. You're a pro salesman who genuinely cares about helping law firms grow. You write short, conversational emails. No marketing speak. No exclamation marks. No em dashes. Sound like a real person. Never include a sign-off or signature at the end. Every reply should move toward booking a meeting.`;
+  const systemPrompt = `You are Fardeen from Mortar Metrics. We help law firms find untapped revenue in their local market — we build data-driven market breakdowns that show exactly how many cases their area supports vs what they're currently getting, then we run the marketing (Google Ads, Meta Ads, intake systems) to close that gap.
+
+You're a confident, sharp salesman who genuinely cares about helping firms grow. You write short, conversational emails. No marketing speak. No exclamation marks. No em dashes. Sound like a real person texting a colleague. Never include a sign-off or signature at the end.${category !== 'NOT_INTERESTED' ? ' Every reply should move toward booking a 15-minute call.' : ''}`;
 
   // Build situation context for the AI
   const lead = contactName || 'the partner';
@@ -907,44 +1310,49 @@ async function generateAutoResponse(category, replyText, firmName, contactName, 
 
   let situation = '';
   if (ctx.isNurtureLead) {
-    situation = `This is an ENGAGED lead who was originally interested. They received a personalized marketing report for their firm and ${ctx.emailsSent ? ctx.emailsSent + ' nurture emails' : 'follow-up emails'} from us. They are replying to one of those emails. This is NOT a cold rejection.`;
+    situation = `This is an ENGAGED lead who was originally interested. They received a personalized marketing report for their firm and ${ctx.emailsSent ? ctx.emailsSent + ' nurture emails' : 'follow-up emails'} from us. They are replying to one of those emails. This is NOT a cold rejection — they've been reading our emails.`;
   } else if (ctx.hasReport) {
     situation = `This lead was originally interested and already received a personalized marketing report. They are replying after seeing the report. This is NOT a cold rejection.`;
   } else {
-    situation = `This lead is replying to our cold outreach email. This is our first interaction.`;
+    situation = `This lead replied to our outreach email where we mentioned we ran the numbers on their market and found a gap in cases they could be getting. We're building them a personalized market breakdown. They haven't seen it yet — it's being generated now.`;
   }
 
-  // NOT_INTERESTED gets a softer prompt — acknowledge, leave door open, no hard push
+  // NOT_INTERESTED: respectful but still leave a compelling door open
   let guidelines;
   if (category === 'NOT_INTERESTED') {
-    guidelines = `Write a short reply (2-3 sentences). This person said no. Respect that completely.
+    guidelines = `Write a short reply (2-3 sentences). This person said no. Respect that — but leave a compelling door open.
 
 Guidelines:
-- Acknowledge their response genuinely. "Totally get it" or "No worries at all" — keep it real
-- Don't push for a meeting. Don't try to change their mind. Don't reframe their objection.
-- Mention that we put together a breakdown of their market anyway, and drop the report link in case they ever want to take a look. No pressure.
-- End it there. Short, warm, respectful. Leave the door open without pushing through it.
-- If there's a report URL available, include it naturally.`;
+- Acknowledge their response genuinely. Keep it real, not corporate.
+- Don't hard-sell or try to change their mind.
+- Mention we're putting together a quick breakdown of their market anyway (free, no strings) and we'll send it over in case they ever want to take a look.
+- End with something like "if the numbers catch your eye, happy to walk through them on a quick call" — soft, zero-pressure CTA.
+- Sound warm, direct, human. 2-3 sentences max.`;
+  } else if (category === 'OOO') {
+    guidelines = `Write a short, casual reply (1-2 sentences). They're out of office.
+
+Guidelines:
+- Keep it light and friendly. Something like "No rush at all" or "enjoy the time off."
+- Mention we'll have something ready for them when they're back.
+- No meeting ask. No pitch. Just warm and human.`;
   } else {
-    guidelines = `Write a short reply (2-5 sentences). Read their message carefully and respond like a smart, caring salesman would. Your goal is always to get them on a 15-minute call.
+    guidelines = `Write a short reply (2-5 sentences). Read their message carefully and respond like a sharp, confident salesman. Your goal is to get them on a 15-minute call to walk through their numbers.
 
 Guidelines:
-- Genuinely acknowledge what they said first
-- Be confident in the results we deliver. We've helped many firms in similar positions
-- If they raise concerns about their market, costs, or viability, reframe it as an advantage (less competition = easier to dominate)
-- Always push for a specific meeting. Suggest 2 days (like "tomorrow or Friday") and keep the ask easy
-- If they're positive/interested, match their energy and make booking feel like the obvious next step
-- If they ask a question, answer it directly then pivot to the call
-- Never reference a report or breakdown if they've already seen it
+- Genuinely acknowledge what they said first — show you actually read it
+- Reference specific things about their market or practice area if you have the info
+- Be confident in the results we deliver. We've helped firms in similar markets and similar positions
+- If they raise concerns about their market size, costs, or competition — reframe it. Less competition = easier to dominate. Small market = lower ad costs = better ROI
+- If they ask a question, answer it directly and specifically, then pivot: "happy to walk through the full breakdown — does tomorrow or Friday work for a quick 15?"
+- If they're positive/interested, match their energy and make booking the obvious next step: "love it — let's jump on a quick call this week. Tomorrow or Thursday work?"
+- Always end with a specific meeting ask. Suggest 2 days. Make it easy and low-commitment ("15 minutes, I'll share my screen and walk you through it")
 - Sound warm, direct, and human. Short sentences. No fluff.`;
   }
 
   const userPrompt = `SITUATION: ${situation}
 
 LEAD: ${lead} from ${firm}
-${ctx.city ? `MARKET: ${ctx.city}` : ''}
-${ctx.practiceLabel ? `PRACTICE: ${ctx.practiceLabel}` : ''}
-${ctx.reportUrl ? `REPORT: ${ctx.reportUrl}` : ''}
+${ctx.city ? `MARKET: ${ctx.city}` : ''}${ctx.practiceLabel ? `\nPRACTICE: ${ctx.practiceLabel}` : ''}${ctx.reportUrl ? `\nREPORT: ${ctx.reportUrl}` : ''}${ctx.campaignName ? `\nCAMPAIGN: ${ctx.campaignName}` : ''}${ctx.jobTitle ? `\nTITLE: ${ctx.jobTitle}` : ''}
 AI CLASSIFICATION: ${category}
 
 THEIR REPLY:
@@ -1153,10 +1561,10 @@ This lead keeps coming back to their report. Consider reaching out.`;
 // ============ STORE LEAD METADATA ============
 
 async function handleStoreLead(env, body) {
-  const { email, firm_name, contact_name, report_url, practice_label, country, firm_folder } = body;
+  const { email, firm_name, contact_name, report_url, practice_label, country, firm_folder, linkedin_url } = body;
   if (!firm_folder) return { ok: false, error: 'missing firm_folder' };
 
-  const data = { email, firm_name, contact_name, report_url, practice_label, country, stored_at: new Date().toISOString() };
+  const data = { email, firm_name, contact_name, report_url, practice_label, country, linkedin_url, stored_at: new Date().toISOString() };
   await env.WEBHOOK_KV.put(`lead:${firm_folder}`, JSON.stringify(data), { expirationTtl: 2592000 }); // 30 days
 
   // Also index by email for nurture lookups
@@ -1164,7 +1572,15 @@ async function handleStoreLead(env, body) {
     await env.WEBHOOK_KV.put(`lead_by_email:${email}`, JSON.stringify(data), { expirationTtl: 2592000 });
   }
 
-  console.log(`Stored lead metadata for ${firm_folder} (${email})`);
+  // Also index by LinkedIn URL for Prosp lookups
+  if (linkedin_url) {
+    const normalizedLi = normalizeLinkedInUrl(linkedin_url);
+    if (normalizedLi) {
+      await env.WEBHOOK_KV.put(`lead_by_linkedin:${normalizedLi}`, JSON.stringify(data), { expirationTtl: 2592000 });
+    }
+  }
+
+  console.log(`Stored lead metadata for ${firm_folder} (${email || linkedin_url || 'unknown'})`);
   return { ok: true };
 }
 
@@ -1438,6 +1854,81 @@ async function handleTelegramMessage(env, payload) {
       return { ok: true };
     }
 
+    // Check for queued DM edit prompt
+    const dmEditRaw = await env.WEBHOOK_KV.get(`edit_dm_reply:${replyToId}`);
+    if (dmEditRaw) {
+      const { queueId, originalMessageId } = JSON.parse(dmEditRaw);
+      const customText = text.trim();
+
+      if (!customText) {
+        await sendTelegramReply(env, chatId, messageId, '\u26a0\ufe0f Empty reply. Please try again.');
+        return { ok: true };
+      }
+
+      await env.WEBHOOK_KV.put(`custom_dm:${queueId}`, customText, { expirationTtl: 3600 });
+      await env.WEBHOOK_KV.delete(`edit_dm_reply:${replyToId}`);
+
+      const preview = customText.length > 300 ? customText.slice(0, 300) + '...' : customText;
+      const dmRaw = await env.WEBHOOK_KV.get(`queued_dm:${queueId}`);
+      const dm = dmRaw ? JSON.parse(dmRaw) : {};
+
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `\ud83d\udcac *Custom DM preview:*\n\n\`\`\`\n${preview}\n\`\`\`\n\nSend this DM to *${dm.linkedin_url || 'lead'}*?`,
+        {
+          reply_to_message_id: messageId,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '\u2705 Send Now', callback_data: `send_dm_custom:${queueId}` },
+                { text: '\u274c Cancel', callback_data: `cancel_dm_edit:${queueId}` }
+              ]
+            ]
+          }
+        }
+      );
+
+      return { ok: true };
+    }
+
+    // Check for nurture DM reply edit prompt
+    const nrdEditRaw = await env.WEBHOOK_KV.get(`edit_nrd_reply:${replyToId}`);
+    if (nrdEditRaw) {
+      const { queueId } = JSON.parse(nrdEditRaw);
+      const customText = text.trim();
+
+      if (!customText) {
+        await sendTelegramReply(env, chatId, messageId, '\u26a0\ufe0f Empty reply. Please try again.');
+        return { ok: true };
+      }
+
+      await env.WEBHOOK_KV.put(`custom_nrd:${queueId}`, customText, { expirationTtl: 3600 });
+      await env.WEBHOOK_KV.delete(`edit_nrd_reply:${replyToId}`);
+
+      const nrRaw = await env.WEBHOOK_KV.get(`nurture_reply:${queueId}`);
+      const nr = nrRaw ? JSON.parse(nrRaw) : {};
+      const preview = customText.length > 300 ? customText.slice(0, 300) + '...' : customText;
+
+      await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, chatId,
+        `\ud83d\udcac *Custom nurture DM reply preview:*\n\n\`\`\`\n${preview}\n\`\`\`\n\nSend this DM to *${nr.linkedin_url || 'lead'}*?`,
+        {
+          reply_to_message_id: messageId,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '\u2705 Send + Stop', callback_data: `nrd_send_custom_stop:${queueId}` },
+                { text: '\u2705 Send + Continue', callback_data: `nrd_send_custom_cont:${queueId}` }
+              ],
+              [
+                { text: '\u274c Cancel', callback_data: `nrd_cancel_edit:${queueId}` }
+              ]
+            ]
+          }
+        }
+      );
+
+      return { ok: true };
+    }
+
     // Check for nurture reply edit prompt
     const nrEditRaw = await env.WEBHOOK_KV.get(`edit_nr_reply:${replyToId}`);
     if (nrEditRaw) {
@@ -1597,6 +2088,79 @@ async function handleTelegramMessage(env, payload) {
     return { ok: true };
   }
 
+  // Handle /build-li command — build report from LinkedIn URL
+  if (text.startsWith('/build-li')) {
+    const tokens = text.replace(/^\/build-li\s*/, '').trim().split(/\s+/).filter(Boolean);
+    let linkedinUrl = '';
+    let website = '';
+    const nameParts = [];
+
+    for (const token of tokens) {
+      if (token.includes('linkedin.com/in/')) {
+        linkedinUrl = token.startsWith('http') ? token : `https://${token}`;
+      } else if (/^https?:\/\//i.test(token)) {
+        website = token;
+      } else if (/^[a-z0-9-]+\.[a-z]{2,}$/i.test(token)) {
+        website = `https://${token}`;
+      } else {
+        nameParts.push(token);
+      }
+    }
+
+    if (!linkedinUrl) {
+      await sendTelegramReply(env, chatId, messageId,
+        `\u26a0\ufe0f *Usage:*\n\n\`/build-li linkedin.com/in/name [website] [First Last]\`\n\nLinkedIn URL is required.`
+      );
+      return { ok: true };
+    }
+
+    const githubPayload = {
+      event_type: 'interested_lead',
+      client_payload: {
+        email: '',
+        first_name: nameParts[0] || '',
+        last_name: nameParts.slice(1).join(' ') || '',
+        website: website,
+        location: '',
+        country: '',
+        company: '',
+        job_title: '',
+        linkedin: linkedinUrl,
+        _meta: JSON.stringify({
+          reply_text: '',
+          campaign_name: 'manual_build',
+          phone: '',
+          timestamp: new Date().toISOString(),
+          classification: 'INTERESTED',
+          channel: 'prosp',
+          linkedin_url: linkedinUrl,
+          prosp_sender: env.PROSP_SENDER || ''
+        })
+      }
+    };
+
+    try {
+      await forwardToGitHub(env, githubPayload);
+
+      const details = [
+        `\ud83d\udd17 *LinkedIn:* ${linkedinUrl}`,
+        website ? `\ud83c\udf10 *Website:* ${website}` : null,
+        nameParts.length > 0 ? `\ud83d\udc64 *Name:* ${nameParts.join(' ')}` : null
+      ].filter(Boolean).join('\n');
+
+      await sendTelegramReply(env, chatId, messageId,
+        `\u2705 *LinkedIn build triggered!*\n\n${details}\n\nYou'll get an approval request in ~5 minutes.`
+      );
+    } catch (err) {
+      console.error('Build-li dispatch failed:', err.message);
+      await sendTelegramReply(env, chatId, messageId,
+        `\u274c *Build failed:* ${err.message}`
+      );
+    }
+
+    return { ok: true };
+  }
+
   // Only handle /build commands — ignore everything else
   if (!text.startsWith('/build')) {
     return { ok: true };
@@ -1751,7 +2315,10 @@ async function listMergeDispatch(env, email, minSlots) {
       const contactName = merged.client_payload.first_name || '';
       const company = merged.client_payload.company || '';
       const autoReply = await generateAutoResponse(
-        'OOO', replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
+        'OOO', replyText, company, contactName, env.ANTHROPIC_API_KEY, {
+          hasReport: false,
+          city: merged.client_payload.location || ''
+        }
       );
       if (autoReply) {
         try {
@@ -1778,7 +2345,12 @@ async function listMergeDispatch(env, email, minSlots) {
     const company = merged.client_payload.company || '';
 
     const autoReply = await generateAutoResponse(
-      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY, { hasReport: false }
+      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY, {
+        hasReport: false,
+        city: merged.client_payload.location || '',
+        campaignName: collectedExtra._campaign_name || '',
+        jobTitle: merged.client_payload.job_title || ''
+      }
     );
 
     if (autoReply && env.INSTANTLY_API_KEY) {
@@ -1861,6 +2433,250 @@ async function handleInstantlyWebhook(env, payload, ctx) {
   );
 
   return { success: true, message: 'Stored, waiting for second webhook' };
+}
+
+// ============ PROSP WEBHOOK HANDLER ============
+
+async function handleProspWebhook(env, payload, ctx) {
+  const eventData = payload.eventData || {};
+  const profileInfo = eventData.profileInfo || {};
+  const linkedinUrl = eventData.lead || '';
+  const content = eventData.content || '';
+  const sender = eventData.sender || '';
+  const campaignName = eventData.campaignName || payload.campaignName || '';
+
+  const contactName = [profileInfo.firstName, profileInfo.lastName].filter(Boolean).join(' ');
+  const company = profileInfo.company || '';
+  const email = profileInfo.email || '';
+  const normalizedLi = normalizeLinkedInUrl(linkedinUrl);
+
+  console.log(`Prosp webhook: ${normalizedLi} (${contactName}, ${company})`);
+
+  if (!normalizedLi) {
+    return { ok: false, error: 'missing linkedin URL' };
+  }
+
+  // Dedup: skip if recently processed
+  const doneKey = `done_li:${normalizedLi}`;
+  const alreadyDone = await env.WEBHOOK_KV.get(doneKey);
+  if (alreadyDone) {
+    console.log(`Already processed ${normalizedLi}, ignoring`);
+    return { ok: true, message: 'already processed' };
+  }
+  await env.WEBHOOK_KV.put(doneKey, 'true', { expirationTtl: 300 });
+
+  // Classify reply
+  const classification = await classifyReplyAI(content, env.ANTHROPIC_API_KEY);
+  console.log(`Prosp classification for ${normalizedLi}: ${classification.category} (${classification.confidence})`);
+
+  // Send Telegram notification
+  await sendTelegramNotification(env, linkedinUrl, content, classification);
+
+  // Check if lead is in nurture sequence (by email or linkedin URL)
+  const nurtureKey = email || normalizedLi;
+  const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nurtureKey}`);
+  if (nurtureRaw) {
+    const nurtureData = JSON.parse(nurtureRaw);
+    if (nurtureData.status === 'active' || nurtureData.status === 'paused') {
+      console.log(`Prosp nurture lead replied: ${nurtureKey} (status=${nurtureData.status})`);
+      const leadRaw = email ? await env.WEBHOOK_KV.get(`lead_by_email:${email}`) : null;
+      const leadData = leadRaw ? JSON.parse(leadRaw) : null;
+
+      // Reuse handleNurtureReply but route DMs via Prosp
+      // For now, handle inline — pause nurture, generate auto-reply, Telegram with DM buttons
+      const cat = classification.category;
+      const firmName = nurtureData.firm_name || company;
+      const firstName = profileInfo.firstName || contactName.split(' ')[0] || '';
+      const emailsSent = nurtureData.emails_sent || 0;
+
+      if (cat === 'OOO') {
+        let returnDate = classification.return_date || null;
+        if (!returnDate) {
+          const d = new Date();
+          d.setDate(d.getDate() + 5);
+          returnDate = d.toISOString().split('T')[0];
+        }
+        nurtureData.status = 'paused';
+        nurtureData.paused_at = new Date().toISOString();
+        nurtureData.pause_reason = 'ooo';
+        nurtureData.ooo_return_date = returnDate;
+        await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+
+        if (env.ANTHROPIC_API_KEY && env.PROSP_API_KEY) {
+          const autoReply = await generateAutoResponse(cat, content, firmName, firstName, env.ANTHROPIC_API_KEY, {
+            isNurtureLead: true, hasReport: true, emailsSent
+          });
+          if (autoReply) {
+            try {
+              const senderUrl = sender || env.PROSP_SENDER;
+              if (senderUrl) {
+                await sendProspDM(env.PROSP_API_KEY, linkedinUrl, senderUrl, autoReply);
+                console.log(`OOO auto-DM sent to nurture lead ${normalizedLi}`);
+              }
+            } catch (e) {
+              console.log(`OOO auto-DM send failed: ${e.message}`);
+            }
+          }
+        }
+        return { ok: true, message: 'nurture OOO handled' };
+      }
+
+      // Non-OOO nurture reply — pause + generate auto-reply + Telegram with DM buttons
+      nurtureData.status = 'paused';
+      nurtureData.paused_at = new Date().toISOString();
+      nurtureData.pause_reason = 'lead_replied';
+      nurtureData.last_reply_text = (content || '').slice(0, 500);
+      nurtureData.last_reply_category = cat;
+      nurtureData.last_reply_at = new Date().toISOString();
+      await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
+
+      let autoReply = null;
+      if (env.ANTHROPIC_API_KEY) {
+        autoReply = await generateAutoResponse(cat, content, firmName, firstName, env.ANTHROPIC_API_KEY, {
+          isNurtureLead: true, hasReport: true, emailsSent,
+          city: nurtureData.city || '', practiceLabel: nurtureData.practice_label || '',
+          reportUrl: nurtureData.report_url || ''
+        });
+      }
+
+      const queueId = crypto.randomUUID();
+      await env.WEBHOOK_KV.put(`nurture_reply:${queueId}`, JSON.stringify({
+        email: email || '', linkedin_url: linkedinUrl, prosp_sender: sender,
+        firmName, contactName: firstName, replyText: (content || '').slice(0, 500),
+        category: cat, autoReply, emailsSent, channel: 'prosp'
+      }), { expirationTtl: 86400 });
+
+      const badges = {
+        INTERESTED: '\ud83d\udfe2 INTERESTED', QUESTION: '\u2753 QUESTION', OBJECTION: '\ud83d\udfe1 OBJECTION',
+        NOT_INTERESTED: '\ud83d\udd34 NOT INTERESTED', UNSUBSCRIBE: '\u26d4 UNSUBSCRIBE', IRRELEVANT: '\u26aa IRRELEVANT'
+      };
+      const badge = badges[cat] || cat;
+      const confidence = Math.round((classification.confidence || 0) * 100);
+      const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+
+      let msg = `\ud83d\udd14 *NURTURE LEAD REPLIED (LinkedIn)*\n\n${badge} (${confidence}%)\n\ud83d\udcca *Firm:* ${esc(firmName)}\n\ud83d\udd17 *LinkedIn:* ${esc(linkedinUrl)}\n\ud83d\udcec *Progress:* ${emailsSent}/7 sent, now PAUSED`;
+      msg += `\n\n*Their reply:*\n\`\`\`\n${(content || '').slice(0, 400).replace(/`/g, "'")}\n\`\`\``;
+      if (autoReply) {
+        msg += `\n\n*Suggested DM response:*\n\`\`\`\n${autoReply.slice(0, 600).replace(/`/g, "'")}\n\`\`\``;
+      }
+
+      const buttons = [];
+      if (autoReply) {
+        buttons.push([
+          { text: '\u2705 Send DM + Stop', callback_data: `nrd_send_stop:${queueId}` },
+          { text: '\u2705 Send DM + Continue', callback_data: `nrd_send_cont:${queueId}` }
+        ]);
+      }
+      buttons.push([
+        { text: '\u270f\ufe0f Edit Reply', callback_data: `nrd_edit:${queueId}` },
+        { text: '\u23ed\ufe0f Skip Reply', callback_data: `nrd_skip:${queueId}` }
+      ]);
+
+      try {
+        await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, msg, {
+          reply_markup: { inline_keyboard: buttons }
+        });
+      } catch (tgErr) {
+        console.error(`Failed to send nurture DM reply Telegram msg:`, tgErr.message);
+      }
+
+      return { ok: true, message: 'nurture reply handled via DM' };
+    }
+  }
+
+  // OOO: auto-send casual DM + trigger report pipeline
+  if (classification.category === 'OOO') {
+    console.log(`OOO from ${normalizedLi}, auto-sending casual DM + triggering report`);
+
+    let returnDate = classification.return_date || null;
+    if (!returnDate) {
+      const d = new Date();
+      d.setDate(d.getDate() + 5);
+      returnDate = d.toISOString().split('T')[0];
+    }
+
+    await env.WEBHOOK_KV.put(`ooo:${normalizedLi}`, JSON.stringify({
+      detected_at: new Date().toISOString(),
+      return_date: returnDate
+    }), { expirationTtl: 604800 });
+
+    if (env.ANTHROPIC_API_KEY && env.PROSP_API_KEY) {
+      const autoReply = await generateAutoResponse('OOO', content, company, profileInfo.firstName || '', env.ANTHROPIC_API_KEY, {
+        hasReport: false,
+        jobTitle: profileInfo.jobTitle || ''
+      });
+      if (autoReply) {
+        try {
+          const senderUrl = sender || env.PROSP_SENDER;
+          if (senderUrl) {
+            await sendProspDM(env.PROSP_API_KEY, linkedinUrl, senderUrl, autoReply);
+            console.log(`OOO auto-DM sent to ${normalizedLi}`);
+          }
+        } catch (e) {
+          console.log(`OOO auto-DM send failed: ${e.message}`);
+        }
+      }
+    }
+    // Fall through to dispatch report pipeline
+  }
+
+  // QUESTION, OBJECTION, NOT_INTERESTED: generate auto-reply DM + queue for approval
+  const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED'];
+  if (replyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
+    const autoReply = await generateAutoResponse(
+      classification.category, content, company, profileInfo.firstName || '', env.ANTHROPIC_API_KEY, {
+        hasReport: false,
+        jobTitle: profileInfo.jobTitle || '',
+        campaignName: campaignName || ''
+      }
+    );
+
+    if (autoReply && env.PROSP_API_KEY) {
+      await queueDM(env, {
+        type: 'auto-reply',
+        linkedin_url: linkedinUrl,
+        sender: sender || env.PROSP_SENDER || '',
+        message: autoReply,
+        contact_name: contactName,
+        firm_name: company,
+        context: `${classification.category}: ${classification.summary}`
+      });
+    }
+  }
+
+  // Build GitHub payload for report pipeline
+  const meta = {
+    reply_text: content ? content.slice(0, 500) : '',
+    campaign_name: campaignName,
+    phone: profileInfo.phoneNumber || '',
+    timestamp: new Date().toISOString(),
+    classification: classification.category,
+    channel: 'prosp',
+    linkedin_url: linkedinUrl,
+    prosp_sender: sender,
+    ooo_return_date: classification.return_date || ''
+  };
+
+  const githubPayload = {
+    event_type: 'interested_lead',
+    client_payload: {
+      email: email,
+      first_name: profileInfo.firstName || '',
+      last_name: profileInfo.lastName || '',
+      website: profileInfo.websiteUrl || profileInfo.companyUrl || '',
+      location: '',
+      country: '',
+      company: company,
+      job_title: profileInfo.jobTitle || '',
+      linkedin: linkedinUrl,
+      _meta: JSON.stringify(meta)
+    }
+  };
+
+  console.log('DISPATCHING PROSP PAYLOAD:', JSON.stringify(githubPayload));
+  await forwardToGitHub(env, githubPayload);
+
+  return { ok: true, message: 'classified and dispatched' };
 }
 
 // ============ MAIN HANDLER ============
@@ -1952,6 +2768,40 @@ export default {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (url.pathname === '/queue-dm') {
+      try {
+        const body = await request.json();
+        const result = await queueDM(env, body);
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: e.message }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (url.pathname === '/prosp-webhook') {
+      try {
+        const body = await request.json();
+        if (body.eventType !== 'has_msg_replied') {
+          return new Response(JSON.stringify({ ok: true, message: 'ignored event type' }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        const result = await handleProspWebhook(env, body, ctx);
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        console.error('Prosp webhook error:', e);
         return new Response(JSON.stringify({ ok: false, error: e.message }), {
           status: 200, headers: { 'Content-Type': 'application/json' }
         });

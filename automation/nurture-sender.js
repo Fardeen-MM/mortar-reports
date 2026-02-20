@@ -76,6 +76,13 @@ FORMAT:
 
 Start: "Hi {first_name}," on its own line. Then body. That's it.`;
 
+// DM system prompt — shorter, more casual for LinkedIn messages
+const DM_SYSTEM_PROMPT = `You are Fardeen from Mortar Metrics. You sent this lawyer a personalized market breakdown via LinkedIn. These are follow-up DMs.
+
+LinkedIn DMs are SHORT. 1-3 sentences max. 15-35 words. Casual, like texting a colleague. No formatting, no bullet points, no emojis. Just a quick message.
+
+NEVER name any firm. Don't say "Hi {first_name}" — just start talking. End with a question or soft CTA.`;
+
 const EMAIL_ANGLES = [
   {
     name: 'market_observation',
@@ -295,14 +302,19 @@ function cleanEmail(text) {
 
 /**
  * Basic QC: quick checks before AI scoring.
+ * @param {string} text
+ * @param {object} lead
+ * @param {{ maxWords?: number, minWords?: number }} opts
  */
-function quickQC(text, lead) {
+function quickQC(text, lead, opts = {}) {
   const issues = [];
   const lower = text.toLowerCase();
   const words = text.split(/\s+/).length;
 
-  if (words > 75) issues.push(`too long (${words} words, max 70)`);
-  if (words < 20) issues.push(`too short (${words} words)`);
+  const maxWords = opts.maxWords || 75;
+  const minWords = opts.minWords || 20;
+  if (words > maxWords) issues.push(`too long (${words} words, max ${maxWords})`);
+  if (words < minWords) issues.push(`too short (${words} words)`);
 
   const jargon = ['leverage','optimize','capture','convert','visibility','intake',
     'high-intent','pipeline','engagement','retainers','consultations','compelling',
@@ -433,43 +445,54 @@ function daysSince(dateStr) {
   for (const lead of active) {
     const days = daysSince(lead.start_date);
     const emailsSent = lead.emails_sent || 0;
+    const channel = lead.channel || 'instantly';
+    const isProsp = channel === 'prosp';
+    const leadKey = lead.email; // This is either email or linkedin_url (set during nurture-check)
 
     // Find the next send day
     const nextSendDay = SEND_DAYS[emailsSent];
     if (!nextSendDay) {
-      console.log(`✅ ${lead.email}: All 7 emails sent, marking complete`);
+      console.log(`\u2705 ${leadKey}: All 7 ${isProsp ? 'DMs' : 'emails'} sent, marking complete`);
       lead.status = 'completed';
-      const completeResp = await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
-      if (completeResp.ok === false) console.error(`  ⚠️  Failed to mark complete: ${completeResp.error || 'unknown'}`);
+      const completeResp = await workerAPI('/nurture-check', { action: 'set', email: leadKey, data: lead });
+      if (completeResp.ok === false) console.error(`  \u26a0\ufe0f  Failed to mark complete: ${completeResp.error || 'unknown'}`);
       continue;
     }
 
     if (days < nextSendDay) {
-      console.log(`⏳ ${lead.email}: Day ${days}, next send on day ${nextSendDay} (${emailsSent}/7 sent)`);
+      console.log(`\u23f3 ${leadKey}: Day ${days}, next send on day ${nextSendDay} (${emailsSent}/7 sent)${isProsp ? ' [DM]' : ''}`);
       continue;
     }
 
     const angle = EMAIL_ANGLES[emailsSent];
-    console.log(`📧 ${lead.email}: Day ${days}, sending email #${emailsSent + 1} (${angle.name})`);
+    console.log(`${isProsp ? '\ud83d\udcac' : '\ud83d\udce7'} ${leadKey}: Day ${days}, sending ${isProsp ? 'DM' : 'email'} #${emailsSent + 1} (${angle.name})`);
 
     const firstName = lead.contact_name?.split(' ')[0] || 'there';
 
     try {
       const basePrompt = angle.buildPrompt(lead, dates);
-      const systemPrompt = SYSTEM_PROMPT.replace('{first_name}', firstName);
-      let reminder = `\n\nREMINDER: 40-70 words. 4-6 sentences. Use THEIR city and dollar numbers. End with meeting dates + a money closer that ties to the email topic. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off. NEVER name any firm we work with.`;
 
-      // If this lead previously replied, inject context so the email acknowledges it
+      let systemPrompt, reminder;
+      if (isProsp) {
+        systemPrompt = DM_SYSTEM_PROMPT.replace('{first_name}', firstName);
+        reminder = `\n\nREMINDER: This is a LinkedIn DM. 15-35 words MAX. 1-3 sentences. Casual and short. Use their city or dollar numbers if relevant. End with a question or soft ask. Don't say "Hi" — just start talking. NEVER name any firm.`;
+      } else {
+        systemPrompt = SYSTEM_PROMPT.replace('{first_name}', firstName);
+        reminder = `\n\nREMINDER: 40-70 words. 4-6 sentences. Use THEIR city and dollar numbers. End with meeting dates + a money closer that ties to the email topic. Each sentence on its own line with blank line between. Start with "Hi ${firstName}," then body. NO sign off. NEVER name any firm we work with.`;
+      }
+
+      // If this lead previously replied, inject context so the message acknowledges it
       if (lead.last_reply_text) {
         const daysAgo = lead.last_reply_at ? daysSince(lead.last_reply_at) : 'a few';
-        reminder += `\n\nIMPORTANT CONTEXT: This lead replied ${daysAgo} days ago. Their reply was: "${lead.last_reply_text.slice(0, 300)}". You MUST naturally acknowledge that they replied. Something like "Glad you wrote back" or "Saw your note" or "Good to hear from you." Then continue with the email angle. Don't dwell on it, just a quick nod and move on.`;
-        console.log(`  💬 Injecting reply context (replied ${daysAgo} days ago, category: ${lead.last_reply_category || '?'})`);
+        reminder += `\n\nIMPORTANT CONTEXT: This lead replied ${daysAgo} days ago. Their reply was: "${lead.last_reply_text.slice(0, 300)}". You MUST naturally acknowledge that they replied. Something like "Glad you wrote back" or "Saw your note" or "Good to hear from you." Then continue with the ${isProsp ? 'DM' : 'email'} angle. Don't dwell on it, just a quick nod and move on.`;
+        console.log(`  \ud83d\udcac Injecting reply context (replied ${daysAgo} days ago, category: ${lead.last_reply_category || '?'})`);
       }
 
       let emailBody = '';
       let bestScore = 0;
       let bestBody = '';
       const MAX_ATTEMPTS = 3;
+      const qcOpts = isProsp ? { maxWords: 40, minWords: 10 } : {};
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         let prompt = basePrompt + reminder;
@@ -481,18 +504,25 @@ function daysSince(dateStr) {
         emailBody = cleanEmail(emailBody);
 
         // Quick QC (jargon, length, personalization)
-        const quickIssues = quickQC(emailBody, lead);
+        const quickIssues = quickQC(emailBody, lead, qcOpts);
         if (quickIssues.length > 0) {
-          console.log(`  ⚠️  Attempt ${attempt} quick QC: ${quickIssues.join(', ')}`);
+          console.log(`  \u26a0\ufe0f  Attempt ${attempt} quick QC: ${quickIssues.join(', ')}`);
           if (attempt < MAX_ATTEMPTS) {
             var lastFeedback = `Fix these: ${quickIssues.join(', ')}`;
             continue;
           }
         }
 
-        // AI QC scoring
+        // AI QC scoring (skip for DMs — they're too short)
+        if (isProsp) {
+          bestScore = 8;
+          bestBody = emailBody;
+          console.log(`  \u2705 DM QC passed (short format, skipping AI scoring)`);
+          break;
+        }
+
         const qc = await aiQC(emailBody, lead, angle.type || angle.name);
-        console.log(`  📊 Attempt ${attempt}: Score ${qc.score}/10 - ${qc.feedback}`);
+        console.log(`  \ud83d\udcca Attempt ${attempt}: Score ${qc.score}/10 - ${qc.feedback}`);
 
         if (qc.score > bestScore) {
           bestScore = qc.score;
@@ -500,57 +530,69 @@ function daysSince(dateStr) {
         }
 
         if (qc.score >= 8) {
-          console.log(`  ✅ QC passed (${qc.score}/10)`);
+          console.log(`  \u2705 QC passed (${qc.score}/10)`);
           break;
         }
 
         if (attempt < MAX_ATTEMPTS) {
           var lastFeedback = qc.feedback;
-          console.log(`  🔄 Regenerating...`);
+          console.log(`  \ud83d\udd04 Regenerating...`);
         } else {
-          console.log(`  ⚠️  Best score: ${bestScore}/10 after ${MAX_ATTEMPTS} attempts, using best version`);
+          console.log(`  \u26a0\ufe0f  Best score: ${bestScore}/10 after ${MAX_ATTEMPTS} attempts, using best version`);
         }
       }
 
       emailBody = bestBody || emailBody;
 
-      if (!emailBody || emailBody.trim().length < 20) {
-        console.log(`  ❌ Email body too short or empty, skipping this lead`);
+      if (!emailBody || emailBody.trim().length < (isProsp ? 10 : 20)) {
+        console.log(`  \u274c ${isProsp ? 'DM' : 'Email'} body too short or empty, skipping this lead`);
         continue;
       }
 
-      // Queue via Worker (no subject line needed, these are thread replies)
-      await workerAPI('/queue-email', {
-        type: 'nurture',
-        to: lead.email,
-        subject: '',
-        html: emailBody.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>'),
-        text: emailBody,
-        lead_email: lead.email,
-        firm_name: lead.firm_name,
-        contact_name: lead.contact_name,
-        context: `Nurture ${emailsSent + 1}/7 (${angle.name}) - Day ${days}`
-      });
+      // Queue via Worker — use /queue-dm for Prosp leads, /queue-email for Instantly
+      if (isProsp) {
+        await workerAPI('/queue-dm', {
+          type: 'nurture',
+          linkedin_url: lead.linkedin_url || leadKey,
+          sender: lead.prosp_sender || '',
+          message: emailBody,
+          contact_name: lead.contact_name,
+          firm_name: lead.firm_name,
+          context: `Nurture DM ${emailsSent + 1}/7 (${angle.name}) - Day ${days}`
+        });
+      } else {
+        await workerAPI('/queue-email', {
+          type: 'nurture',
+          to: leadKey,
+          subject: '',
+          html: emailBody.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>'),
+          text: emailBody,
+          lead_email: leadKey,
+          firm_name: lead.firm_name,
+          contact_name: lead.contact_name,
+          context: `Nurture ${emailsSent + 1}/7 (${angle.name}) - Day ${days}`
+        });
+      }
 
       // Update nurture entry — clear reply context after first use
       lead.emails_sent = emailsSent + 1;
       lead.last_sent = new Date().toISOString();
       if (lead.last_reply_text) {
-        console.log(`  🧹 Clearing reply context (used in this email)`);
+        console.log(`  \ud83e\uddf9 Clearing reply context (used in this ${isProsp ? 'DM' : 'email'})`);
         delete lead.last_reply_text;
         delete lead.last_reply_category;
         delete lead.last_reply_at;
       }
-      const updateResp = await workerAPI('/nurture-check', { action: 'set', email: lead.email, data: lead });
+      const updateResp = await workerAPI('/nurture-check', { action: 'set', email: leadKey, data: lead });
       if (updateResp.ok === false) {
-        console.error(`  ⚠️  Failed to update nurture data: ${updateResp.error || 'unknown'}`);
+        console.error(`  \u26a0\ufe0f  Failed to update nurture data: ${updateResp.error || 'unknown'}`);
       }
 
       queued++;
-      console.log(`  ✅ Queued for Telegram approval`);
+      console.log(`  \u2705 Queued for Telegram approval`);
 
     } catch (e) {
-      console.error(`  ❌ Failed for ${lead.email}: ${e.message}`);
+      console.error(`  \u274c Failed for ${leadKey}: ${e.message}`);
     }
   }
 
