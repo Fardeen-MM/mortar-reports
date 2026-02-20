@@ -60,25 +60,25 @@ The report shows them 3 things (frame these around money/time, not features):
 2. What they're spending vs what they should be (money they could be saving)
 3. Calls they're missing after hours that go to competitors (cases walking out the door)
 
-Format example (match this vibe and spacing):
+Format example (match this vibe, keep it tight):
 Hey [name] thanks for connecting!
 
-We were doing some research in [area] for another firm and spotted a few things with yours. My team put a quick report together, it breaks down:
+We were researching [area] for another firm and spotted a few things with yours. Put a quick report together:
+- cases you're probably leaving on the table
+- where you could be saving
+- calls going to competitors after hours
+[link]
 
-- cases you're probably leaving on the table right now
-- where you might be overspending (or underspending)
-- calls that are going to your competitors after hours
-
-Here it is if you want to take a look: [link]
-
-Are you guys getting most of your clients from referrals or do you do some stuff online too?
+How are you guys getting most of your clients right now?
 
 Rules:
-- The 3 bullets must hint at money earned, money saved, time/cases lost. But keep them short and casual, not salesy
-- Simple words. No jargon. No "revenue" "ROI" "digital presence" "visibility" "optimize" "strategy" "leverage"
-- Subtle flex: we were researching for another firm we're working with
-- End with a casual question about how they get clients
-- Sound like a real person texting, not a marketer
+- Keep the intro to ONE short sentence before the bullets
+- Bullets: short, ~6-8 words each max
+- Link goes right after bullets, no extra fluff around it
+- The whole DM should feel like 15 seconds to read
+- No jargon. No "revenue" "ROI" "digital presence" "visibility" "optimize" "strategy" "leverage"
+- Subtle flex: researching for another firm we're working with
+- Sound like a real person, not a marketer
 - No em dashes, max one exclamation mark, no "I'd love to"
 - Just the DM text, nothing else`;
 
