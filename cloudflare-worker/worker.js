@@ -2745,11 +2745,6 @@ async function handleConnectionAccepted(env, payload) {
   console.log('DISPATCHING CONNECTION ACCEPT PAYLOAD:', JSON.stringify(githubPayload));
   await forwardToGitHub(env, githubPayload);
 
-  // Notify on Telegram
-  const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
-  await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-    `\ud83e\udd1d *Connection accepted*\n\n\ud83d\udc64 ${esc(contactName)}\n\ud83c\udfe2 ${esc(company)}\n\ud83d\udd17 ${esc(linkedinUrl)}\n\n_Report pipeline triggered._`);
-
   return { ok: true, message: 'connection accepted, pipeline triggered' };
 }
 
