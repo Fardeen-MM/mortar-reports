@@ -858,7 +858,12 @@ async function handleTelegramCallback(env, update) {
         totalRange: approvalData.total_range || '',
         totalCases: approvalData.total_cases || '',
         practiceLabel: approvalData.practice_label || '',
-        classification: approvalData.classification || 'INTERESTED'
+        classification: approvalData.classification || 'INTERESTED',
+        channel: approvalData.channel || 'instantly',
+        linkedinUrl: approvalData.linkedin_url || approvalData.linkedin || '',
+        prospSender: approvalData.prosp_sender || '',
+        source: approvalData.source || '',
+        connectionDm: approvalData.connection_dm || ''
       };
       await env.WEBHOOK_KV.put(
         `edit_reply:${editMsg.result.message_id}`,
@@ -894,6 +899,11 @@ async function handleTelegramCallback(env, update) {
         total_cases: session.totalCases || '',
         practice_label: session.practiceLabel || '',
         classification: session.classification || 'INTERESTED',
+        channel: session.channel || 'instantly',
+        linkedin_url: session.linkedinUrl || '',
+        prosp_sender: session.prospSender || '',
+        source: session.source || '',
+        connection_dm: session.connectionDm || '',
         ...approvalData // overlay any data fetched from GitHub
       };
     }
@@ -912,8 +922,16 @@ async function handleTelegramCallback(env, update) {
           total_range: approvalData.total_range || '',
           total_cases: approvalData.total_cases || '',
           practice_label: approvalData.practice_label || '',
-          classification: approvalData.classification || 'INTERESTED',
-          skip_email: `custom:${approvalId}`
+          _extra: JSON.stringify({
+            classification: approvalData.classification || 'INTERESTED',
+            skip_email: `custom:${approvalId}`,
+            ooo_return_date: approvalData.ooo_return_date || '',
+            channel: approvalData.channel || 'instantly',
+            linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
+            prosp_sender: approvalData.prosp_sender || '',
+            source: approvalData.source || '',
+            connection_dm: approvalData.connection_dm || ''
+          })
         }
       };
 
