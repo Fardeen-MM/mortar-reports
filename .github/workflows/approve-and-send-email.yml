@@ -76,7 +76,7 @@ jobs:
             echo "linkedin_url=" >> $GITHUB_OUTPUT
             echo "prosp_sender=" >> $GITHUB_OUTPUT
             echo "source=" >> $GITHUB_OUTPUT
-            echo "connection_dm=" >> $GITHUB_OUTPUT
+            echo "connection_dm_b64=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -97,12 +97,13 @@ jobs:
             echo "linkedin_url=$(echo "$EXTRA_JSON" | jq -r '.linkedin_url // ""')" >> $GITHUB_OUTPUT
             echo "prosp_sender=$(echo "$EXTRA_JSON" | jq -r '.prosp_sender // ""')" >> $GITHUB_OUTPUT
             echo "source=$(echo "$EXTRA_JSON" | jq -r '.source // ""')" >> $GITHUB_OUTPUT
-            # connection_dm can be multiline — use delimiter syntax
-            {
-              echo "connection_dm<<CONNDM_EOF"
-              echo "$EXTRA_JSON" | jq -r '.connection_dm // ""'
-              echo "CONNDM_EOF"
-            } >> $GITHUB_OUTPUT
+            # connection_dm can be multiline — base64 encode to avoid delimiter issues
+            CONNECTION_DM_RAW=$(echo "$EXTRA_JSON" | jq -r '.connection_dm // ""')
+            if [ -n "$CONNECTION_DM_RAW" ]; then
+              echo "connection_dm_b64=$(echo "$CONNECTION_DM_RAW" | base64 -w0)" >> $GITHUB_OUTPUT
+            else
+              echo "connection_dm_b64=" >> $GITHUB_OUTPUT
+            fi
           fi
       
       - name: Deploy report from pending to live
@@ -272,7 +273,7 @@ jobs:
           DRY_RUN: 'false'
           REPLY_CLASSIFICATION: ${{ steps.inputs.outputs.classification }}
           SOURCE: ${{ steps.inputs.outputs.source }}
-          CONNECTION_DM: ${{ steps.inputs.outputs.connection_dm }}
+          CONNECTION_DM_B64: ${{ steps.inputs.outputs.connection_dm_b64 }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📡 Channel: $CHANNEL"
@@ -284,6 +285,12 @@ jobs:
           if [ -f /tmp/custom-email-body.txt ]; then
             export CUSTOM_EMAIL_BODY=$(cat /tmp/custom-email-body.txt)
             echo "📝 Using custom email body (${#CUSTOM_EMAIL_BODY} chars)"
+          fi
+
+          # Decode base64-encoded connection DM if present
+          if [ -n "$CONNECTION_DM_B64" ]; then
+            export CONNECTION_DM=$(echo "$CONNECTION_DM_B64" | base64 -d)
+            echo "💬 Using pre-generated connection DM (${#CONNECTION_DM} chars)"
           fi
 
           if [ "$CHANNEL" = "prosp" ]; then

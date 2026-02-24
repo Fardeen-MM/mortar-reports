@@ -245,7 +245,7 @@ async function workerAPI(path, body) {
 async function callHaiku(systemPrompt, userPrompt) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 250,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
@@ -271,7 +271,7 @@ async function callHaiku(systemPrompt, userPrompt) {
           const parsed = JSON.parse(body);
           const text = parsed.content?.[0]?.text?.trim();
           if (text) resolve(text);
-          else reject(new Error('Empty Haiku response'));
+          else reject(new Error(`Empty Haiku response: ${body.slice(0, 300)}`));
         } catch (e) {
           reject(new Error(`Haiku parse error: ${e.message}`));
         }
