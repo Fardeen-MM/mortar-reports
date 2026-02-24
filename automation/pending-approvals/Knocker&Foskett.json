@@ -1,16 +1,16 @@
 {
   "firm_name": "Knocker & Foskett",
   "firm_folder": "Knocker&Foskett",
-  "lead_email": "ng@knocker-foskett.co.uk",
-  "contact_name": "Nicola Gibbs",
+  "lead_email": "jwp@knocker-foskett.co.uk",
+  "contact_name": "James Pearson",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/Knocker&Foskett/",
-  "job_title": "Partner And Head Of Family Department",
-  "linkedin": "https://www.linkedin.com/in/nicola-gibbs-40818625",
+  "job_title": "Partner",
+  "linkedin": "https://www.linkedin.com/in/jamespearsonkf",
   "country": "GB",
-  "reply_text": "knockerfoskett: Organization: Correlated Intelligence Security Risks was triggered by choudhury.y@mortarmetricsplan.com at Tue Feb 24 18:35:44 2026 and these actions taken:  Quarantine Notification.\n\nRule: knockerfoskett: Organization: Correlated Intelligence Security Risks\nFile(s): \nAction(s):, Quarantine, Notification\nSender: choudhury.y@mortarmetricsplan.com\nRecipient(s): ng@knocker-foskett.co.uk\nSubject: Re: quick question\nTime: Tue Feb 24 18:35:44 2026\nOther: Rule knockerfoskett: Organizati",
+  "reply_text": "knockerfoskett: Organization: Correlated Intelligence Security Risks was triggered by schwende16@wsidmincpartners.com at Tue Feb 24 19:20:32 2026 and these actions taken:  Quarantine Notification.\n\nRule: knockerfoskett: Organization: Correlated Intelligence Security Risks\nFile(s): \nAction(s):, Quarantine, Notification\nSender: schwende16@wsidmincpartners.com\nRecipient(s): jwp@knocker-foskett.co.uk\nSubject: Re: quick question\nTime: Tue Feb 24 19:20:32 2026\nOther: Rule knockerfoskett: Organization:",
   "campaign_name": "Lawyer Campaign 021026",
   "phone": "",
-  "created_at": "2026-02-24T18:55:07.271Z",
+  "created_at": "2026-02-24T19:23:11.509Z",
   "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
@@ -22,8 +22,8 @@
   "total_cases": "4-8",
   "practice_label": "legal services",
   "lead_intelligence": {
-    "name": "Nicola Gibbs",
-    "title": "Partner And Head Of Family Department",
+    "name": "James Pearson",
+    "title": "Partner",
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
@@ -33,7 +33,7 @@
   "classification": "INTERESTED",
   "ooo_return_date": "",
   "channel": "instantly",
-  "linkedin_url": "https://www.linkedin.com/in/nicola-gibbs-40818625",
+  "linkedin_url": "https://www.linkedin.com/in/jamespearsonkf",
   "prosp_sender": "",
   "source": ""
 }
