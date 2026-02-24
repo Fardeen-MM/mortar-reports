@@ -2463,16 +2463,22 @@ async function handleInstantlyWebhook(env, payload, ctx) {
 // ============ PROSP WEBHOOK HANDLER ============
 
 async function handleProspWebhook(env, payload, ctx) {
-  const eventData = payload.eventData || {};
-  const profileInfo = eventData.profileInfo || {};
-  const linkedinUrl = eventData.lead || '';
-  const content = eventData.content || '';
-  const sender = eventData.sender || '';
-  const campaignName = eventData.campaignName || payload.campaignName || '';
+  const eventData = payload.eventData || payload.data || payload;
+  const profileInfo = eventData.profileInfo || eventData.profile_info || eventData.profile || eventData.lead_info || {};
+  // LinkedIn URL: try multiple field names
+  const linkedinUrl = eventData.lead || eventData.linkedin_url || eventData.linkedinUrl
+    || eventData.profile_url || profileInfo.linkedin_url || profileInfo.linkedinUrl
+    || payload.linkedin_url || payload.linkedinUrl || '';
+  const content = eventData.content || eventData.message || eventData.reply || eventData.text || payload.message || '';
+  const sender = eventData.sender || eventData.sender_url || payload.sender || '';
+  const campaignName = eventData.campaignName || eventData.campaign_name || payload.campaignName || payload.campaign_name || '';
 
-  const contactName = [profileInfo.firstName, profileInfo.lastName].filter(Boolean).join(' ');
-  const company = profileInfo.company || '';
-  const email = profileInfo.email || '';
+  // Contact fields: try camelCase, snake_case, and flat payload
+  const firstName = profileInfo.firstName || profileInfo.first_name || eventData.firstName || eventData.first_name || payload.first_name || '';
+  const lastName = profileInfo.lastName || profileInfo.last_name || eventData.lastName || eventData.last_name || payload.last_name || '';
+  const contactName = [firstName, lastName].filter(Boolean).join(' ');
+  const company = profileInfo.company || profileInfo.company_name || eventData.company || eventData.company_name || payload.company || '';
+  const email = profileInfo.email || eventData.email || payload.email || '';
   const normalizedLi = normalizeLinkedInUrl(linkedinUrl);
 
   console.log(`Prosp webhook: ${normalizedLi} (${contactName}, ${company})`);
@@ -2511,7 +2517,7 @@ async function handleProspWebhook(env, payload, ctx) {
       // For now, handle inline — pause nurture, generate auto-reply, Telegram with DM buttons
       const cat = classification.category;
       const firmName = nurtureData.firm_name || company;
-      const firstName = profileInfo.firstName || contactName.split(' ')[0] || '';
+      const nurtureFirstName = firstName || contactName.split(' ')[0] || '';
       const emailsSent = nurtureData.emails_sent || 0;
 
       if (cat === 'OOO') {
@@ -2528,7 +2534,7 @@ async function handleProspWebhook(env, payload, ctx) {
         await env.WEBHOOK_KV.put(`nurture:${nurtureKey}`, JSON.stringify(nurtureData), { expirationTtl: 2592000 });
 
         if (env.ANTHROPIC_API_KEY && env.PROSP_API_KEY) {
-          const autoReply = await generateAutoResponse(cat, content, firmName, firstName, env.ANTHROPIC_API_KEY, {
+          const autoReply = await generateAutoResponse(cat, content, firmName, nurtureFirstName, env.ANTHROPIC_API_KEY, {
             isNurtureLead: true, hasReport: true, emailsSent
           });
           if (autoReply) {
@@ -2557,7 +2563,7 @@ async function handleProspWebhook(env, payload, ctx) {
 
       let autoReply = null;
       if (env.ANTHROPIC_API_KEY) {
-        autoReply = await generateAutoResponse(cat, content, firmName, firstName, env.ANTHROPIC_API_KEY, {
+        autoReply = await generateAutoResponse(cat, content, firmName, nurtureFirstName, env.ANTHROPIC_API_KEY, {
           isNurtureLead: true, hasReport: true, emailsSent,
           city: nurtureData.city || '', practiceLabel: nurtureData.practice_label || '',
           reportUrl: nurtureData.report_url || ''
@@ -2567,7 +2573,7 @@ async function handleProspWebhook(env, payload, ctx) {
       const queueId = crypto.randomUUID();
       await env.WEBHOOK_KV.put(`nurture_reply:${queueId}`, JSON.stringify({
         email: email || '', linkedin_url: linkedinUrl, prosp_sender: sender,
-        firmName, contactName: firstName, replyText: (content || '').slice(0, 500),
+        firmName, contactName: nurtureFirstName, replyText: (content || '').slice(0, 500),
         category: cat, autoReply, emailsSent, channel: 'prosp'
       }), { expirationTtl: 86400 });
 
@@ -2626,9 +2632,10 @@ async function handleProspWebhook(env, payload, ctx) {
     }), { expirationTtl: 604800 });
 
     if (env.ANTHROPIC_API_KEY && env.PROSP_API_KEY) {
-      const autoReply = await generateAutoResponse('OOO', content, company, profileInfo.firstName || '', env.ANTHROPIC_API_KEY, {
+      const jobTitle = profileInfo.jobTitle || profileInfo.job_title || eventData.jobTitle || eventData.job_title || '';
+      const autoReply = await generateAutoResponse('OOO', content, company, firstName, env.ANTHROPIC_API_KEY, {
         hasReport: false,
-        jobTitle: profileInfo.jobTitle || ''
+        jobTitle
       });
       if (autoReply) {
         try {
@@ -2648,10 +2655,11 @@ async function handleProspWebhook(env, payload, ctx) {
   // QUESTION, OBJECTION, NOT_INTERESTED: generate auto-reply DM + queue for approval
   const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED'];
   if (replyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
+    const jobTitle = profileInfo.jobTitle || profileInfo.job_title || eventData.jobTitle || eventData.job_title || '';
     const autoReply = await generateAutoResponse(
-      classification.category, content, company, profileInfo.firstName || '', env.ANTHROPIC_API_KEY, {
+      classification.category, content, company, firstName, env.ANTHROPIC_API_KEY, {
         hasReport: false,
-        jobTitle: profileInfo.jobTitle || '',
+        jobTitle,
         campaignName: campaignName || ''
       }
     );
@@ -2670,10 +2678,15 @@ async function handleProspWebhook(env, payload, ctx) {
   }
 
   // Build GitHub payload for report pipeline
+  const phone = profileInfo.phoneNumber || profileInfo.phone_number || profileInfo.phone || eventData.phone || '';
+  const jobTitle = profileInfo.jobTitle || profileInfo.job_title || eventData.jobTitle || eventData.job_title || '';
+  const website = profileInfo.websiteUrl || profileInfo.website_url || profileInfo.website
+    || profileInfo.companyUrl || profileInfo.company_url || eventData.website || '';
+
   const meta = {
     reply_text: content ? content.slice(0, 500) : '',
     campaign_name: campaignName,
-    phone: profileInfo.phoneNumber || '',
+    phone,
     timestamp: new Date().toISOString(),
     classification: classification.category,
     channel: 'prosp',
@@ -2686,13 +2699,13 @@ async function handleProspWebhook(env, payload, ctx) {
     event_type: 'interested_lead',
     client_payload: {
       email: email,
-      first_name: profileInfo.firstName || '',
-      last_name: profileInfo.lastName || '',
-      website: profileInfo.websiteUrl || profileInfo.companyUrl || '',
+      first_name: firstName,
+      last_name: lastName,
+      website: website,
       location: '',
       country: '',
       company: company,
-      job_title: profileInfo.jobTitle || '',
+      job_title: jobTitle,
       linkedin: linkedinUrl,
       _meta: JSON.stringify(meta)
     }
@@ -2705,15 +2718,19 @@ async function handleProspWebhook(env, payload, ctx) {
 }
 
 async function handleConnectionAccepted(env, payload) {
-  const eventData = payload.eventData || {};
-  const profileInfo = eventData.profileInfo || {};
-  const linkedinUrl = eventData.lead || '';
-  const sender = eventData.sender || '';
-  const campaignName = eventData.campaignName || payload.campaignName || '';
+  const eventData = payload.eventData || payload.data || payload;
+  const profileInfo = eventData.profileInfo || eventData.profile_info || eventData.profile || eventData.lead_info || {};
+  const linkedinUrl = eventData.lead || eventData.linkedin_url || eventData.linkedinUrl
+    || eventData.profile_url || profileInfo.linkedin_url || profileInfo.linkedinUrl
+    || payload.linkedin_url || payload.linkedinUrl || '';
+  const sender = eventData.sender || eventData.sender_url || payload.sender || '';
+  const campaignName = eventData.campaignName || eventData.campaign_name || payload.campaignName || payload.campaign_name || '';
 
-  const contactName = [profileInfo.firstName, profileInfo.lastName].filter(Boolean).join(' ');
-  const company = profileInfo.company || '';
-  const email = profileInfo.email || '';
+  const firstName = profileInfo.firstName || profileInfo.first_name || eventData.firstName || eventData.first_name || payload.first_name || '';
+  const lastName = profileInfo.lastName || profileInfo.last_name || eventData.lastName || eventData.last_name || payload.last_name || '';
+  const contactName = [firstName, lastName].filter(Boolean).join(' ');
+  const company = profileInfo.company || profileInfo.company_name || eventData.company || eventData.company_name || payload.company || '';
+  const email = profileInfo.email || eventData.email || payload.email || '';
   const normalizedLi = normalizeLinkedInUrl(linkedinUrl);
 
   console.log(`Connection accepted: ${contactName} (${company}) - ${normalizedLi}`);
@@ -2731,10 +2748,15 @@ async function handleConnectionAccepted(env, payload) {
   await env.WEBHOOK_KV.put(doneKey, 'true', { expirationTtl: 86400 });
 
   // Build GitHub payload — same structure as handleProspWebhook
+  const phone = profileInfo.phoneNumber || profileInfo.phone_number || profileInfo.phone || eventData.phone || '';
+  const jobTitle = profileInfo.jobTitle || profileInfo.job_title || eventData.jobTitle || eventData.job_title || '';
+  const website = profileInfo.websiteUrl || profileInfo.website_url || profileInfo.website
+    || profileInfo.companyUrl || profileInfo.company_url || eventData.website || '';
+
   const meta = {
     reply_text: '',
     campaign_name: campaignName,
-    phone: profileInfo.phoneNumber || '',
+    phone,
     timestamp: new Date().toISOString(),
     classification: 'INTERESTED',
     channel: 'prosp',
@@ -2748,13 +2770,13 @@ async function handleConnectionAccepted(env, payload) {
     event_type: 'interested_lead',
     client_payload: {
       email: email,
-      first_name: profileInfo.firstName || '',
-      last_name: profileInfo.lastName || '',
-      website: profileInfo.websiteUrl || profileInfo.companyUrl || '',
+      first_name: firstName,
+      last_name: lastName,
+      website: website,
       location: '',
       country: '',
       company: company,
-      job_title: profileInfo.jobTitle || '',
+      job_title: jobTitle,
       linkedin: linkedinUrl,
       _meta: JSON.stringify(meta)
     }
@@ -2791,6 +2813,20 @@ export default {
         for (const key of keys.keys.slice(-10)) {
           const val = await env.WEBHOOK_KV.get(key.name);
           entries.push({ key: key.name, payload: val });
+        }
+        return new Response(JSON.stringify(entries, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Prosp debug endpoint: GET /prosp-debug - shows last raw Prosp payloads
+      if (url.pathname === '/prosp-debug') {
+        const keys = await env.WEBHOOK_KV.list({ prefix: 'raw_prosp:' });
+        const entries = [];
+        for (const key of keys.keys.slice(-20)) {
+          const val = await env.WEBHOOK_KV.get(key.name);
+          try { entries.push({ key: key.name, payload: JSON.parse(val) }); }
+          catch { entries.push({ key: key.name, payload: val }); }
         }
         return new Response(JSON.stringify(entries, null, 2), {
           headers: { 'Content-Type': 'application/json' }
@@ -2878,20 +2914,44 @@ export default {
     if (url.pathname === '/prosp-webhook') {
       try {
         const body = await request.json();
-        if (body.eventType === 'has_msg_replied') {
+
+        // Store raw payload for debugging (keep last 20, expire after 7 days)
+        const rawKey = `raw_prosp:${Date.now()}`;
+        ctx.waitUntil(env.WEBHOOK_KV.put(rawKey, JSON.stringify(body), { expirationTtl: 604800 }));
+
+        // Normalize event type — Prosp docs list display names like "LinkedIn Message Replied"
+        // but the actual API may send different formats (snake_case, camelCase, slug, etc.)
+        const rawEvent = (body.eventType || body.event_type || body.event || '').toString();
+        const eventNorm = rawEvent.toLowerCase().replace(/[\s_-]+/g, '');
+
+        // Match: "LinkedIn Message Replied" / "has_msg_replied" / "linkedin_message_replied" / etc.
+        const isMessageReply = ['linkedinmessagereplied', 'hasmsgreplied', 'messagereplied',
+          'linkedin_message_replied', 'msg_replied', 'message_replied', 'reply'].some(s => eventNorm.includes(s));
+
+        // Match: "LinkedIn Connection Accepted" / "connection_accepted" / "has_connection_accepted" / etc.
+        const isConnectionAccept = ['linkedinconnectionaccepted', 'connectionaccepted',
+          'hasconnectionaccepted', 'connection_accepted'].some(s => eventNorm.includes(s));
+
+        if (isMessageReply) {
           const result = await handleProspWebhook(env, body, ctx);
           return new Response(JSON.stringify(result), {
             headers: { 'Content-Type': 'application/json' }
           });
-        } else if (body.eventType === 'connection_accepted' || body.eventType === 'has_connection_accepted') {
+        } else if (isConnectionAccept) {
           const result = await handleConnectionAccepted(env, body);
           return new Response(JSON.stringify(result), {
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        // Log unknown events so we can discover Prosp's actual event type strings
-        console.log(`Prosp webhook: unhandled eventType "${body.eventType}"`, JSON.stringify(body).slice(0, 500));
-        return new Response(JSON.stringify({ ok: true, message: 'ignored event type' }), {
+
+        // Unknown event — alert via Telegram so we can discover the format
+        console.log(`Prosp webhook: unhandled eventType "${rawEvent}"`, JSON.stringify(body).slice(0, 500));
+        if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+          const snippet = JSON.stringify(body, null, 2).slice(0, 800).replace(/([_*`\[\]])/g, '');
+          ctx.waitUntil(sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+            `\u26a0\ufe0f *Unknown Prosp Event*\n\nEvent type: \`${rawEvent || 'MISSING'}\`\n\n\`\`\`\n${snippet}\n\`\`\``));
+        }
+        return new Response(JSON.stringify({ ok: true, message: 'unknown event type logged' }), {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
