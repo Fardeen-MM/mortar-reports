@@ -82,15 +82,27 @@ jobs:
           PHONE=""
           CLASSIFICATION="INTERESTED"
           if [ -n "$META_JSON" ]; then
-            REPLY_TEXT=$(echo "$META_JSON" | jq -r '.reply_text // ""')
-            CAMPAIGN_NAME=$(echo "$META_JSON" | jq -r '.campaign_name // ""')
-            PHONE=$(echo "$META_JSON" | jq -r '.phone // ""')
-            CLASSIFICATION=$(echo "$META_JSON" | jq -r '.classification // "INTERESTED"')
-            OOO_RETURN_DATE=$(echo "$META_JSON" | jq -r '.ooo_return_date // ""')
-            CHANNEL=$(echo "$META_JSON" | jq -r '.channel // "instantly"')
-            LINKEDIN_URL_META=$(echo "$META_JSON" | jq -r '.linkedin_url // ""')
-            PROSP_SENDER=$(echo "$META_JSON" | jq -r '.prosp_sender // ""')
-            SOURCE=$(echo "$META_JSON" | jq -r '.source // ""')
+            # Parse _meta JSON safely with node (avoids shell/jq issues with special chars in reply text)
+            cat > /tmp/parse-meta.js << 'NODESCRIPT'
+            const meta = JSON.parse(process.env.META_JSON || '{}');
+            const vars = {
+              REPLY_TEXT: meta.reply_text || '',
+              CAMPAIGN_NAME: meta.campaign_name || '',
+              PHONE: meta.phone || '',
+              CLASSIFICATION: meta.classification || 'INTERESTED',
+              OOO_RETURN_DATE: meta.ooo_return_date || '',
+              CHANNEL: meta.channel || 'instantly',
+              LINKEDIN_URL_META: meta.linkedin_url || '',
+              PROSP_SENDER: meta.prosp_sender || '',
+              SOURCE: meta.source || ''
+            };
+            for (const [k, v] of Object.entries(vars)) {
+              const escaped = v.replace(/'/g, "'\\''");
+              console.log(`${k}='${escaped}'`);
+            }
+            NODESCRIPT
+            node /tmp/parse-meta.js > /tmp/meta-vars.sh
+            . /tmp/meta-vars.sh
             echo "  📨 Reply text length: ${#REPLY_TEXT}"
             echo "  📋 Campaign: $CAMPAIGN_NAME"
             echo "  📞 Phone: $PHONE"

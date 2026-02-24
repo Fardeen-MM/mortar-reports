@@ -88,22 +88,23 @@ jobs:
             echo "total_cases=$RD_TOTAL_CASES" >> $GITHUB_OUTPUT
             echo "practice_label=$RD_PRACTICE_LABEL" >> $GITHUB_OUTPUT
             echo "country=$RD_COUNTRY" >> $GITHUB_OUTPUT
-            # Unpack _extra JSON (classification, skip_email, ooo, channel, linkedin, prosp)
-            EXTRA_JSON="${RD_EXTRA:-{}}"
-            echo "skip_email=$(echo "$EXTRA_JSON" | jq -r '.skip_email // ""')" >> $GITHUB_OUTPUT
-            echo "classification=$(echo "$EXTRA_JSON" | jq -r '.classification // "INTERESTED"')" >> $GITHUB_OUTPUT
-            echo "ooo_return_date=$(echo "$EXTRA_JSON" | jq -r '.ooo_return_date // ""')" >> $GITHUB_OUTPUT
-            echo "channel=$(echo "$EXTRA_JSON" | jq -r '.channel // "instantly"')" >> $GITHUB_OUTPUT
-            echo "linkedin_url=$(echo "$EXTRA_JSON" | jq -r '.linkedin_url // ""')" >> $GITHUB_OUTPUT
-            echo "prosp_sender=$(echo "$EXTRA_JSON" | jq -r '.prosp_sender // ""')" >> $GITHUB_OUTPUT
-            echo "source=$(echo "$EXTRA_JSON" | jq -r '.source // ""')" >> $GITHUB_OUTPUT
-            # connection_dm can be multiline — base64 encode to avoid delimiter issues
-            CONNECTION_DM_RAW=$(echo "$EXTRA_JSON" | jq -r '.connection_dm // ""')
-            if [ -n "$CONNECTION_DM_RAW" ]; then
-              echo "connection_dm_b64=$(echo "$CONNECTION_DM_RAW" | base64 -w0)" >> $GITHUB_OUTPUT
-            else
-              echo "connection_dm_b64=" >> $GITHUB_OUTPUT
-            fi
+            # Unpack _extra JSON safely with node (avoids shell/jq interpolation issues)
+            node -e "
+              const fs = require('fs');
+              const extra = JSON.parse(process.env.RD_EXTRA || '{}');
+              const lines = [
+                'skip_email=' + (extra.skip_email || ''),
+                'classification=' + (extra.classification || 'INTERESTED'),
+                'ooo_return_date=' + (extra.ooo_return_date || ''),
+                'channel=' + (extra.channel || 'instantly'),
+                'linkedin_url=' + (extra.linkedin_url || ''),
+                'prosp_sender=' + (extra.prosp_sender || ''),
+                'source=' + (extra.source || '')
+              ];
+              const dm = extra.connection_dm || '';
+              lines.push('connection_dm_b64=' + (dm ? Buffer.from(dm).toString('base64') : ''));
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, lines.join('\n') + '\n');
+            "
           fi
       
       - name: Deploy report from pending to live
