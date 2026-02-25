@@ -725,7 +725,7 @@ Return ONLY valid JSON with these exact fields:
 function generateFallbackProse(context) {
   const {
     city, country, practiceArea, practiceDescription,
-    gap1, gap2, gap3, competitors
+    gap1, gap2, gap3, competitors, firmContext
   } = context;
 
   const isUK = (country === 'GB' || country === 'UK');
@@ -735,17 +735,58 @@ function generateFallbackProse(context) {
   const locationStr = city || 'your area';
 
   const compNames = (competitors || []).slice(0, 3).map(c => sanitizeCompetitorName(c.name));
-  const compRef = compNames.length > 0
-    ? `The firms below are already doing this. We put you above all of them.`
-    : `We put your firm at the top.`;
+  const compAdsCount = (competitors || []).filter(c => c.hasGoogleAds === true).length;
+
+  // Build competitor reference using actual data
+  let compRef;
+  if (compNames.length > 0 && compAdsCount > 0) {
+    compRef = `${compAdsCount} of the firms below are already running ads in your area. We put you above all of them.`;
+  } else if (compNames.length > 0) {
+    compRef = `The firms below are your direct competitors. We put you above all of them.`;
+  } else {
+    compRef = `We put your firm at the top.`;
+  }
+
+  // Parse firm context for smarter fallback
+  const ctx = firmContext || '';
+  const hasAds = /running.*google ads|google ads.*running|active.*ads/i.test(ctx);
+  const hasBlog = /blog|content|article/i.test(ctx);
+  const hasChat = /chat|live chat|chatbot/i.test(ctx);
+
+  // Card 1: personalize based on whether firm already runs ads
+  const card1Opening = hasAds
+    ? `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> You're already running ads, which puts you ahead of most firms. The question is whether your campaigns are capturing the full volume.</p>`
+    : `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> Right now, most of that demand is going to the firms bidding on it. Without ads, you're competing for the 3 organic spots against every firm in your area.</p>`;
+
+  // Card 2: personalize based on content presence
+  const card2Transition = hasBlog
+    ? `You've already started building content, which gives you a head start. The next step is turning that content into a conversion system.`
+    : `Most firms we work with start with zero funnel infrastructure. Within 30 days they have a pipeline.`;
+
+  // Card 3: personalize based on intake setup
+  const card3Closing = hasChat
+    ? `You've got live chat, which helps during business hours. The gap is everything that happens after 6pm and on weekends.`
+    : `The biggest leak we see is after-hours. Your competitors' missed calls become your signed cases.`;
+
+  // Generate card insights from research data
+  let card1Insight = '', card2Insight = '', card3Insight = '';
+  if (compAdsCount > 0) {
+    card1Insight = `${compAdsCount} competitor${compAdsCount > 1 ? 's' : ''} in ${escapeHtml(locationStr)} ${compAdsCount > 1 ? 'are' : 'is'} already running Google Ads.`;
+  }
+  if (compNames.length > 0) {
+    card2Insight = `${escapeHtml(compNames[0])} is one of ${compNames.length} firms competing for attention in your area.`;
+  }
+  if (gap3.calls > 0) {
+    card3Insight = `An estimated <span class="stat-highlight">~${Math.round(gap3.calls * 0.35)}</span> after-hours leads per month are going unanswered in your market.`;
+  }
 
   return {
-    card1Body: `<p><strong><span class="stat-highlight">~${gap1.searches.toLocaleString()}</span> people in ${escapeHtml(locationStr)} searched for ${article} ${escapeHtml(attorneyPhrase)} last month.</strong> That's real demand, and most of it is going to the firms that show up first.</p><p>We run Performance Max campaigns to put your firm across Google Search, Display, and Maps simultaneously. Visitors who don't convert get retargeted until they do. Every click lands on a dedicated page we build to convert, not your homepage. The firms winning in your market aren't the biggest. They're the ones showing up first. ${compRef}</p>`,
-    card2Body: `<p><strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue don't start with a search. They're scrolling at 11pm, thinking about it.</p><p>There are <span class="stat-highlight">~${(gap2.audience/1000).toFixed(0)}K</span> reachable people in your area matching this profile. We build a full content-to-client funnel: webinar funnels on ${escapeHtml(funnel.topics)} that position your firm as the authority, free guides like <em>"${escapeHtml(funnel.guide)}"</em> that capture contact info, and retargeting that brings warm audiences back when they're ready. Most firms we work with started with zero funnel infrastructure. Within 30 days they had a pipeline.</p>`,
-    card3Body: `<p><strong>The first two channels drive leads. This is what makes sure none slip through.</strong> <span class="stat-highlight">35%</span> of your leads come in outside business hours, and <span class="stat-highlight">60%</span> of those won't leave a voicemail. That's signed cases walking out the door every week.</p><p>Our AI answers every call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book get dropped into automated SMS and email follow-up sequences. The biggest leak we see is after-hours. Your competitors' missed calls become your signed cases.</p>`,
-    card1Insight: '',
-    card2Insight: '',
-    card3Insight: ''
+    card1Body: `${card1Opening}<p>We run Performance Max campaigns to put your firm across Google Search, Display, and Maps simultaneously. Visitors who don't convert get retargeted until they do. Every click lands on a dedicated page we build to convert, not your homepage. ${compRef}</p>`,
+    card2Body: `<p><strong>Google only catches people who already know they need a ${isUK ? 'solicitor' : 'lawyer'}.</strong> Most people dealing with ${startsWithVowelSound(practiceDescription) ? 'an' : 'a'} ${escapeHtml(practiceDescription)} issue aren't searching yet. They see something on social media that makes them realize they need help.</p><p>There are <span class="stat-highlight">~${(gap2.audience/1000).toFixed(0)}K</span> reachable people in your area matching this profile. We build a full content-to-client funnel: webinar funnels on ${escapeHtml(funnel.topics)} that position your firm as the authority, free guides like <em>"${escapeHtml(funnel.guide)}"</em> that capture contact info, and retargeting that brings warm audiences back when they're ready. ${card2Transition}</p>`,
+    card3Body: `<p><strong>The first two channels drive leads. This is what makes sure none slip through.</strong> <span class="stat-highlight">35%</span> of your leads come in outside business hours, and <span class="stat-highlight">60%</span> of those won't leave a voicemail. That's potential signed cases walking out the door every week.</p><p>Our AI answers every call in under 60 seconds, responds to every website chat, and handles your Facebook and Instagram DMs automatically. Every lead gets qualified and booked onto your calendar. The ones that don't book get dropped into automated SMS and email follow-up sequences. ${card3Closing}</p>`,
+    card1Insight,
+    card2Insight,
+    card3Insight
   };
 }
 
@@ -876,17 +917,25 @@ async function generateReport(researchData, prospectName) {
     competitors, firmContext
   };
 
-  // Try AI prose generation, fall back to templates
+  // Try AI prose generation with 1 retry, then fall back to templates
   let prose;
   let proseSource = 'fallback';
-  try {
-    prose = await generateProseContent(proseContext);
-    proseSource = 'ai';
-    console.log('📝 Prose source: AI-generated');
-  } catch (e) {
-    console.log(`⚠️  AI prose generation failed: ${e.message}`);
-    console.log('📝 Prose source: fallback templates');
-    prose = generateFallbackProse(proseContext);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      prose = await generateProseContent(proseContext);
+      proseSource = 'ai';
+      console.log(`📝 Prose source: AI-generated (attempt ${attempt})`);
+      break;
+    } catch (e) {
+      console.log(`⚠️  AI prose generation attempt ${attempt} failed: ${e.message}`);
+      if (attempt < 2) {
+        console.log('   Retrying in 3 seconds...');
+        await new Promise(r => setTimeout(r, 3000));
+      } else {
+        console.log('📝 Prose source: fallback templates');
+        prose = generateFallbackProse(proseContext);
+      }
+    }
   }
 
   // Extract firm's own review/ads data for competitor table

@@ -2074,6 +2074,15 @@ async function perfectReport() {
     } : null
   }, null, 2));
 
+  // Override conversion critic verdict when deterministic QC fails
+  // Prevents misleading SHIP_IT on reports that scored poorly
+  const passed = qcResult.score >= 8 && qcResult.wouldBook;
+  if (!passed && conversionResult && conversionResult.verdict === 'SHIP_IT') {
+    console.log(`\n⚠️  Overriding conversion critic: SHIP_IT → NEEDS_WORK (deterministic QC score ${qcResult.score}/10 < 8)`);
+    conversionResult.verdict = 'NEEDS_WORK';
+    conversionResult.oneThing = `QC score too low (${qcResult.score}/10): ${qcResult.biggestProblem || 'multiple issues detected'}`;
+  }
+
   // Final summary
   console.log('\n' + '═'.repeat(60));
   console.log('📊 FINAL RESULT');
@@ -2093,8 +2102,6 @@ async function perfectReport() {
     console.log(`Decision-maker: ${leadIntel.isDecisionMaker ? '✅ YES' : '⚠️ NO/UNKNOWN'}`);
   }
   console.log('═'.repeat(60) + '\n');
-
-  const passed = qcResult.score >= 8 && qcResult.wouldBook;
 
   // Extract final contact name from the fixed HTML (may differ from original)
   const finalNameMatch = currentHtml.match(/Prepared for ([^·]+?) at /);

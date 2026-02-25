@@ -95,7 +95,8 @@ async function triggerGitHubWorkflow(githubToken, approvalData, skipEmail = fals
         linkedin_url: approvalData.linkedin_url || approvalData.linkedin || '',
         prosp_sender: approvalData.prosp_sender || '',
         source: approvalData.source || '',
-        connection_dm: approvalData.connection_dm || ''
+        connection_dm: approvalData.connection_dm || '',
+        reply_text: approvalData.reply_text || ''
       })
     }
   };
@@ -1261,7 +1262,7 @@ Categories:
 - NOT_INTERESTED: Polite decline — "not interested", "no thanks"
 - UNSUBSCRIBE: Wants off the list — "unsubscribe", "remove me", "stop emailing"
 - OOO: Out of office auto-reply
-- IRRELEVANT: Spam, wrong person, completely unrelated
+- IRRELEVANT: Spam, wrong person, completely unrelated, system/bounce messages (NDR, delivery failure, quarantine alerts, security notifications, "verify your account")
 
 If OOO: also extract the return date if mentioned (e.g. "back on January 15", "returning Monday the 20th", "out until Feb 3"). Convert to YYYY-MM-DD format. If no return date is mentioned, set return_date to null.
 
@@ -1291,20 +1292,35 @@ Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary
 function classifyReplyFallback(text) {
   const lower = text.toLowerCase();
 
+  // SYSTEM/BOUNCE emails — detect before anything else
+  const systemPatterns = ['mail delivery failed', 'undeliverable', 'delivery status notification',
+    'message not delivered', 'couldn\'t be delivered', 'returned to sender',
+    'non-delivery report', 'mailbox unavailable', 'mailbox not found',
+    'security alert', 'security issue', 'suspicious activity',
+    'verify your account', 'confirm your identity', 'quarantine',
+    'message quarantined', 'held for review', 'blocked by', 'spam filter',
+    'action required:', 'has been blocked', 'message rejected'];
+  if (systemPatterns.some(p => lower.includes(p))) {
+    return { category: 'IRRELEVANT', confidence: 0.95, summary: 'System/bounce/security message' };
+  }
+
   const unsubPatterns = ['unsubscribe', 'remove me from', 'stop emailing', 'opt out', 'opt-out',
     'take me off', 'remove my email', 'stop contacting', 'remove from list',
-    'remove from your list', 'cease and desist'];
+    'remove from your list', 'cease and desist', 'refrain from',
+    'further emails', 'future emails', 'stop,', 'stop.', 'please remove',
+    'don\'t contact', 'don\'t email', 'do not email'];
   if (unsubPatterns.some(p => lower.includes(p))) {
     return { category: 'UNSUBSCRIBE', confidence: 0.9, summary: 'Unsubscribe request' };
   }
 
   const notIntPatterns = ['not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
-    'do not contact'];
+    'do not contact', 'not for us', 'not for me', 'pass on this', 'we\'re good',
+    'we are good', 'no need', 'not looking', 'not in the market'];
   if (notIntPatterns.some(p => lower.includes(p))) {
     return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Not interested' };
   }
 
-  if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return/i.test(lower)) {
+  if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return|i('m| am) away/i.test(lower)) {
     return { category: 'OOO', confidence: 0.9, summary: 'Out of office', return_date: null };
   }
 
@@ -2930,7 +2946,7 @@ export default {
 
         // Match: "LinkedIn Connection Accepted" / "connection_accepted" / "has_connection_accepted" / etc.
         const isConnectionAccept = ['linkedinconnectionaccepted', 'connectionaccepted',
-          'hasconnectionaccepted', 'connection_accepted'].some(s => eventNorm.includes(s));
+          'hasconnectionaccepted', 'connection_accepted', 'acceptinvite'].some(s => eventNorm.includes(s));
 
         if (isMessageReply) {
           const result = await handleProspWebhook(env, body, ctx);

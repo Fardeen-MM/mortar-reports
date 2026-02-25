@@ -282,6 +282,122 @@ Examples of good openers:
 }
 
 /**
+ * Generate a full AI reply for QUESTION/OBJECTION leads that actually addresses what they said.
+ * Returns { subject, body, html } — replaces both generateOpener() + buildEmail() for these cases.
+ */
+function generateFullReply(replyText, classification, contactName, firmName, reportUrl, practiceLabel, totalRange, country) {
+  const firstName = (contactName || '').split(' ')[0] || 'there';
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  let meetDay1, meetDay2;
+  if (dayOfWeek >= 5 || dayOfWeek === 0) {
+    meetDay1 = 'Monday'; meetDay2 = 'Tuesday';
+  } else {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    meetDay1 = 'tomorrow'; meetDay2 = days[(dayOfWeek + 2) % 7];
+  }
+
+  const cleanRange = (totalRange || '').replace(/Â£/g, '£').replace(/Â/g, '');
+
+  let prompt = `You're Fardeen from Mortar Metrics. We help law firms find untapped revenue — data-driven market breakdowns showing how many cases their area supports vs what they're getting, then we run the marketing to close that gap.
+
+A law firm lead replied to our outreach. Read their reply and write a real, thoughtful email response.
+
+LEAD: ${firstName} from ${firmName || 'their firm'}
+THEIR REPLY: "${replyText}"
+REPORT LINK: ${reportUrl}`;
+
+  if (practiceLabel) prompt += `\nPRACTICE: ${practiceLabel}`;
+  if (cleanRange) prompt += `\nREVENUE GAP: ${cleanRange}/mo`;
+
+  prompt += `
+
+Guidelines:
+- Actually answer what they said. Address their specific points, questions, or concerns.
+- Be conversational and genuine — no marketing speak, no exclamation marks.
+- After addressing their reply, naturally transition to the report you built.
+- Include the report link naturally in the flow (not as a separate section).
+- End with a low-pressure meeting ask — "15 minutes, I'll walk you through the numbers. Does ${meetDay1} or ${meetDay2} work?"
+- Start with "Hey ${firstName}," on its own line, then a blank line before the body.
+- 4-8 sentences total. Sound like a real person, not a template.
+- No sign-off or signature.`;
+
+  if (country === 'CA') {
+    prompt += `\nThe lead is Canadian and so are you. Work in something like "always great to work with fellow Canadians" but keep it natural, not forced.`;
+  }
+
+  return new Promise((resolve) => {
+    const fallbackBody = `Hey ${firstName},\n\nAppreciate you getting back to me. We actually already put together a breakdown for your firm — here's the full report:\n${reportUrl}\n\n15 minutes and I'll walk you through it. Does ${meetDay1} or ${meetDay2} work?`;
+
+    if (!ANTHROPIC_API_KEY) {
+      console.log('⚠️  No ANTHROPIC_API_KEY - using fallback full reply');
+      return resolve({
+        subject: 'Your marketing analysis',
+        body: fallbackBody,
+        html: plainTextToHtml(fallbackBody)
+      });
+    }
+
+    const payload = JSON.stringify({
+      model: 'claude-3-5-haiku-20241022',
+      max_tokens: 400,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(payload),
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const text = parsed.content?.[0]?.text?.trim();
+          if (text) {
+            console.log(`🤖 AI full reply (${text.length} chars): "${text.substring(0, 100)}..."`);
+            resolve({
+              subject: 'Your marketing analysis',
+              body: text,
+              html: plainTextToHtml(text)
+            });
+          } else {
+            console.warn('⚠️  Empty AI response, using fallback full reply');
+            resolve({ subject: 'Your marketing analysis', body: fallbackBody, html: plainTextToHtml(fallbackBody) });
+          }
+        } catch (e) {
+          console.warn(`⚠️  Failed to parse AI response: ${e.message}`);
+          resolve({ subject: 'Your marketing analysis', body: fallbackBody, html: plainTextToHtml(fallbackBody) });
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.warn(`⚠️  AI full reply request failed: ${error.message}`);
+      resolve({ subject: 'Your marketing analysis', body: fallbackBody, html: plainTextToHtml(fallbackBody) });
+    });
+
+    req.setTimeout(15000, () => {
+      console.warn('⚠️  AI full reply timed out, using fallback');
+      req.destroy();
+      resolve({ subject: 'Your marketing analysis', body: fallbackBody, html: plainTextToHtml(fallbackBody) });
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
+/**
  * Convert plain text to simple HTML: split paragraphs, linkify URLs.
  */
 function plainTextToHtml(text) {
@@ -337,24 +453,34 @@ function plainTextToHtml(text) {
       html: plainTextToHtml(customBody)
     };
   } else {
-    // Generate AI opener from the lead's reply (classification-aware)
     const classification = process.env.REPLY_CLASSIFICATION || 'INTERESTED';
-    const leadReply = latestEmail ? latestEmail.leadReply : '';
-    const opener = await generateOpener(leadReply, country, practiceLabel, classification);
-    // Build email with personalization data + AI opener
-    emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
+    const leadReplyText = process.env.LEAD_REPLY_TEXT || '';
+    const leadReply = leadReplyText || (latestEmail ? latestEmail.leadReply : '');
+
+    // For QUESTION/OBJECTION with a real reply: generate a full contextual AI response
+    const isFullReply = (classification === 'QUESTION' || classification === 'OBJECTION') && leadReply;
+
+    if (isFullReply) {
+      console.log(`📝 ${classification} with reply text — generating full contextual AI reply`);
+      emailContent = await generateFullReply(leadReply, classification, contactName, firmName, reportUrl, practiceLabel, totalRange, country);
+    } else {
+      // Standard flow: AI opener + template
+      const opener = await generateOpener(leadReply, country, practiceLabel, classification);
+      emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
+    }
   }
 
-  // Run email QC checks (relaxed for custom emails — only check for broken content)
+  // Run email QC checks (relaxed for custom/full-reply emails — only check for broken content)
+  const isFullReplyEmail = !isCustom && (process.env.REPLY_CLASSIFICATION === 'QUESTION' || process.env.REPLY_CLASSIFICATION === 'OBJECTION') && (process.env.LEAD_REPLY_TEXT || (latestEmail && latestEmail.leadReply));
   const { validateEmail } = require('./email-qc');
-  const qcContext = isCustom
+  const qcContext = (isCustom || isFullReplyEmail)
     ? { contactName, firmName, reportUrl: reportUrl || 'https://reports.mortarmetrics.com/custom' }
     : { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel };
   const emailQC = validateEmail(emailContent, qcContext);
 
-  // For custom emails, only block on critical errors (empty body, encoding corruption)
-  // Skip personalization-related warnings
-  const blockingErrors = isCustom
+  // For custom/full-reply emails, only block on critical errors (empty body, encoding corruption)
+  // Skip personalization-related warnings (AI generates the full body, no template placeholders)
+  const blockingErrors = (isCustom || isFullReplyEmail)
     ? emailQC.errors.filter(e => !e.includes('Report URL'))
     : emailQC.errors;
 

@@ -77,6 +77,7 @@ jobs:
             echo "prosp_sender=" >> $GITHUB_OUTPUT
             echo "source=" >> $GITHUB_OUTPUT
             echo "connection_dm_b64=" >> $GITHUB_OUTPUT
+            echo "reply_text_b64=" >> $GITHUB_OUTPUT
           else
             # repository_dispatch (from Telegram webhook)
             echo "firm_name=$RD_FIRM_NAME" >> $GITHUB_OUTPUT
@@ -103,6 +104,8 @@ jobs:
               ];
               const dm = extra.connection_dm || '';
               lines.push('connection_dm_b64=' + (dm ? Buffer.from(dm).toString('base64') : ''));
+              const rt = extra.reply_text || '';
+              lines.push('reply_text_b64=' + (rt ? Buffer.from(rt).toString('base64') : ''));
               fs.appendFileSync(process.env.GITHUB_OUTPUT, lines.join('\n') + '\n');
             "
           fi
@@ -275,6 +278,7 @@ jobs:
           REPLY_CLASSIFICATION: ${{ steps.inputs.outputs.classification }}
           SOURCE: ${{ steps.inputs.outputs.source }}
           CONNECTION_DM_B64: ${{ steps.inputs.outputs.connection_dm_b64 }}
+          REPLY_TEXT_B64: ${{ steps.inputs.outputs.reply_text_b64 }}
         run: |
           LIVE_URL="${{ steps.deploy.outputs.live_report_url }}"
           echo "📡 Channel: $CHANNEL"
@@ -292,6 +296,12 @@ jobs:
           if [ -n "$CONNECTION_DM_B64" ]; then
             export CONNECTION_DM=$(echo "$CONNECTION_DM_B64" | base64 -d)
             echo "💬 Using pre-generated connection DM (${#CONNECTION_DM} chars)"
+          fi
+
+          # Decode base64-encoded lead reply text if present
+          if [ -n "$REPLY_TEXT_B64" ]; then
+            export LEAD_REPLY_TEXT=$(echo "$REPLY_TEXT_B64" | base64 -d)
+            echo "💬 Lead reply text available (${#LEAD_REPLY_TEXT} chars)"
           fi
 
           if [ "$CHANNEL" = "prosp" ]; then
