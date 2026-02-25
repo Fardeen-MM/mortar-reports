@@ -1,16 +1,16 @@
 {
   "firm_name": "Porter Wright Morris & Arthur Llp",
   "firm_folder": "PorterWrightMorris&ArthurLlp",
-  "lead_email": "munderwood@porterwright.com",
-  "contact_name": "Mike Underwood",
+  "lead_email": "wmyers@porterwright.com",
+  "contact_name": "William Myers",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/PorterWrightMorris&ArthurLlp/",
-  "job_title": "Partner, Labor And Employment",
-  "linkedin": "https://www.linkedin.com/in/mike-underwood-bb6222b",
+  "job_title": "Partner",
+  "linkedin": "https://www.linkedin.com/in/william-bill-myers-2b1b7310",
   "country": "United States",
-  "reply_text": "The following email message was not delivered to munderwood@porterwright.com:\n\nFrom:srivers@usemortarmetrics.com\nTo:munderwood@porterwright.com\nSubject:30 cases per month\nDate:2/25/2026 12:17:41 PM GMT\n\nThe email addressmunderwood@porterwright.com is not a valid email address at Porter Wright Morris and Arthur LLP\n\nIf you have any questions please contactthe nearest office:\nChicago - 312-756-8500\nCincinnati - 513.381.4700\nCleveland - 216.443.9000\nColumbus - 614.227.2000\nDayton - 937.449.6810\nNap",
+  "reply_text": "The following email message was not delivered to wmyers@porterwright.com:\n\nFrom:heidischwende3@wsidmincenterprise.com\nTo:wmyers@porterwright.com\nSubject:referral\nDate:2/25/2026 12:17:46 PM GMT\n\nThe email addresswmyers@porterwright.com is not a valid email address at Porter Wright Morris and Arthur LLP\n\nIf you have any questions please contactthe nearest office:\nChicago - 312-756-8500\nCincinnati - 513.381.4700\nCleveland - 216.443.9000\nColumbus - 614.227.2000\nDayton - 937.449.6810\nNaples - 239.593",
   "campaign_name": "Lawyer Campaign 022426",
-  "phone": "6142272000.0",
-  "created_at": "2026-02-25T17:22:16.195Z",
+  "phone": "12392721230.0",
+  "created_at": "2026-02-25T17:36:04.311Z",
   "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
@@ -22,8 +22,8 @@
   "total_cases": "5-9",
   "practice_label": "legal services",
   "lead_intelligence": {
-    "name": "Mike Underwood",
-    "title": "Partner, Labor And Employment",
+    "name": "William Myers",
+    "title": "Partner",
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
@@ -33,7 +33,7 @@
   "classification": "INTERESTED",
   "ooo_return_date": "",
   "channel": "instantly",
-  "linkedin_url": "https://www.linkedin.com/in/mike-underwood-bb6222b",
+  "linkedin_url": "https://www.linkedin.com/in/william-bill-myers-2b1b7310",
   "prosp_sender": "",
   "source": ""
 }
