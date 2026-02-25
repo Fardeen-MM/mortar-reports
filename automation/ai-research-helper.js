@@ -26,7 +26,7 @@ async function askAI(prompt, html, maxTokens = 2000) {
   
   return new Promise((resolve, reject) => {
     const requestData = JSON.stringify({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       temperature: 0,
       messages: [{

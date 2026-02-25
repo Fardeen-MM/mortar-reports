@@ -294,7 +294,7 @@ If you cannot find the location with 90%+ confidence, return null for those fiel
 
   try {
     const response = await anthropicClient.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 200,
       temperature: 0,
       messages: [{ role: 'user', content: prompt }]
