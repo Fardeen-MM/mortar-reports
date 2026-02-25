@@ -1259,7 +1259,7 @@ Categories:
 - INTERESTED: Wants to learn more, positive reply, "tell me more", "sounds good"
 - QUESTION: Asks a specific question about services, pricing, process
 - OBJECTION: Pushes back but hasn't said no — "we already have a marketing company", "not sure we need this"
-- NOT_INTERESTED: Polite decline — "not interested", "no thanks"
+- NOT_INTERESTED: Polite decline — "not interested", "no thanks", "I'm retired", "no longer practicing", "left the firm", "wrong person"
 - UNSUBSCRIBE: Wants off the list — "unsubscribe", "remove me", "stop emailing"
 - OOO: Out of office auto-reply
 - IRRELEVANT: Spam, wrong person, completely unrelated, system/bounce messages (NDR, delivery failure, quarantine alerts, security notifications, "verify your account")
@@ -1319,7 +1319,10 @@ function classifyReplyFallback(text) {
 
   const notIntPatterns = ['not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
     'do not contact', 'not for us', 'not for me', 'pass on this', 'we\'re good',
-    'we are good', 'no need', 'not looking', 'not in the market'];
+    'we are good', 'no need', 'not looking', 'not in the market',
+    'i am retired', 'i\'m retired', 'i have retired', 'i\'ve retired',
+    'no longer practic', 'no longer with', 'left the firm', 'no longer at',
+    'wrong person', 'wrong email', 'doesn\'t work here'];
   if (notIntPatterns.some(p => lower.includes(p))) {
     return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Not interested' };
   }
