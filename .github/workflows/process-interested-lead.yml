@@ -783,9 +783,9 @@ jobs:
           # Push with conflict-resilient retry
           git push origin main && echo "pushed=true" >> $GITHUB_OUTPUT || {
             echo "Push failed, pulling latest and retrying..."
-            # Save our generated files before cleaning
-            cp "pending-reports/$FIRM_FOLDER/index.html" /tmp/report.html
-            cp "automation/pending-approvals/$FIRM_FOLDER.json" /tmp/approval.json
+            # Save our generated files before cleaning (use firm-specific temp names to avoid race conditions)
+            cp "pending-reports/$FIRM_FOLDER/index.html" "/tmp/report-${FIRM_FOLDER}.html"
+            cp "automation/pending-approvals/$FIRM_FOLDER.json" "/tmp/approval-${FIRM_FOLDER}.json"
             # Undo commit and remove untracked files that block pull
             git reset HEAD~1
             git checkout -- . 2>/dev/null || true
@@ -800,8 +800,8 @@ jobs:
               echo "pushed=false" >> $GITHUB_OUTPUT
             else
               mkdir -p "pending-reports/$FIRM_FOLDER"
-              cp /tmp/report.html "pending-reports/$FIRM_FOLDER/index.html"
-              cp /tmp/approval.json "automation/pending-approvals/$FIRM_FOLDER.json"
+              cp "/tmp/report-${FIRM_FOLDER}.html" "pending-reports/$FIRM_FOLDER/index.html"
+              cp "/tmp/approval-${FIRM_FOLDER}.json" "automation/pending-approvals/$FIRM_FOLDER.json"
               git add "pending-reports/$FIRM_FOLDER/index.html" "automation/pending-approvals/$FIRM_FOLDER.json"
               git commit -m "Add pending report for $FIRM_FOLDER (awaiting approval)"
               git push origin main && echo "pushed=true" >> $GITHUB_OUTPUT || {

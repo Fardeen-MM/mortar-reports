@@ -1275,6 +1275,10 @@ Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary
       200
     );
 
+    if (!result || !result.trim()) {
+      console.warn('Empty AI classification result, using fallback');
+      return classifyReplyFallback(stripped);
+    }
     const parsed = JSON.parse(result);
     if (parsed.category && ['INTERESTED','QUESTION','OBJECTION','NOT_INTERESTED','UNSUBSCRIBE','OOO','IRRELEVANT'].includes(parsed.category)) {
       return parsed;
@@ -2351,26 +2355,10 @@ async function listMergeDispatch(env, email, minSlots) {
       return_date: returnDate
     }), { expirationTtl: 604800 }); // 7 days
 
-    // Auto-send soft reply (no Telegram approval needed for OOO)
-    if (env.ANTHROPIC_API_KEY && env.INSTANTLY_API_KEY) {
-      const contactName = merged.client_payload.first_name || '';
-      const company = merged.client_payload.company || '';
-      const autoReply = await generateAutoResponse(
-        'OOO', replyText, company, contactName, env.ANTHROPIC_API_KEY, {
-          hasReport: false,
-          city: merged.client_payload.location || ''
-        }
-      );
-      if (autoReply) {
-        try {
-          const replyHtml = autoReply.replace(/\n/g, '<br>');
-          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', replyHtml, autoReply);
-          console.log(`OOO auto-reply sent to ${email}`);
-        } catch (e) {
-          console.log(`OOO auto-reply send failed for ${email}: ${e.message}`);
-        }
-      }
-    }
+    // Don't auto-send OOO reply for non-nurture leads — let the approval workflow handle it.
+    // The report pipeline will still trigger (fall through below) with OOO flag,
+    // and the approval workflow will hold the email until their return date.
+    console.log(`OOO lead ${email} — skipping auto-reply, will use approval workflow`);
 
     // Add return date to _meta for the workflow
     meta.ooo_return_date = returnDate;
@@ -2532,7 +2520,7 @@ async function handleProspWebhook(env, payload, ctx) {
       // Reuse handleNurtureReply but route DMs via Prosp
       // For now, handle inline — pause nurture, generate auto-reply, Telegram with DM buttons
       const cat = classification.category;
-      const firmName = nurtureData.firm_name || company;
+      const firmName = nurtureData.firm_name || company || 'Unknown';
       const nurtureFirstName = firstName || contactName.split(' ')[0] || '';
       const emailsSent = nurtureData.emails_sent || 0;
 

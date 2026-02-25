@@ -6,6 +6,11 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch: {}
 
+# Prevent overlapping nurture runs (if one takes >6h, don't start another)
+concurrency:
+  group: nurture-sender
+  cancel-in-progress: false
+
 jobs:
   nurture:
     runs-on: ubuntu-latest

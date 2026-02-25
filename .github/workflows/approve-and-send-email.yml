@@ -186,7 +186,7 @@ jobs:
           # Push with conflict-resilient retry
           git push origin main || {
             echo "Push failed, pulling latest and retrying..."
-            cp "$FIRM_FOLDER/index.html" /tmp/live-report.html 2>/dev/null || true
+            cp "$FIRM_FOLDER/index.html" "/tmp/live-report-${FIRM_FOLDER}.html" 2>/dev/null || true
             git reset HEAD~1
             git checkout -- . 2>/dev/null || true
             rm -rf "$FIRM_FOLDER/" 2>/dev/null || true
@@ -195,7 +195,7 @@ jobs:
               echo "✅ Report already deployed by parallel run — nothing to do"
             else
               mkdir -p "$FIRM_FOLDER"
-              cp /tmp/live-report.html "$FIRM_FOLDER/index.html"
+              cp "/tmp/live-report-${FIRM_FOLDER}.html" "$FIRM_FOLDER/index.html"
               git add "$FIRM_FOLDER/" "automation/pending-approvals/" "pending-reports/" 2>/dev/null || true
               git diff --cached --quiet || {
                 git commit -m "Deploy approved report for $FIRM_FOLDER"
@@ -369,21 +369,25 @@ jobs:
 
           node -e "
             (async () => {
-              const resp = await fetch('https://prosp.ai/api/v1/leads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  api_key: process.env.PROSP_API_KEY,
-                  campaign_id: process.env.PROSP_CAMPAIGN_ID,
-                  linkedin_url: process.env.LINKEDIN_URL,
-                  first_name: process.env.FIRST_NAME || '',
-                  last_name: process.env.LAST_NAME || '',
-                  company_name: process.env.FIRM_NAME,
-                  skip_duplicate: 'yes'
-                })
-              });
-              console.log(resp.ok ? '✅ Added to Prosp campaign' : '⚠️ Prosp add failed: ' + resp.status);
-            })();
+              try {
+                const resp = await fetch('https://prosp.ai/api/v1/leads', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    api_key: process.env.PROSP_API_KEY,
+                    campaign_id: process.env.PROSP_CAMPAIGN_ID,
+                    linkedin_url: process.env.LINKEDIN_URL,
+                    first_name: process.env.FIRST_NAME || '',
+                    last_name: process.env.LAST_NAME || '',
+                    company_name: process.env.FIRM_NAME,
+                    skip_duplicate: 'yes'
+                  })
+                });
+                console.log(resp.ok ? '✅ Added to Prosp campaign' : '⚠️ Prosp add failed: ' + resp.status);
+              } catch (e) {
+                console.log('⚠️ Prosp campaign add error: ' + e.message);
+              }
+            })().catch(e => { console.error(e); process.exit(1); });
           "
         working-directory: ./automation
 
