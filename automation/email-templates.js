@@ -91,4 +91,56 @@ ${reportUrl}
   };
 }
 
-module.exports = { buildEmail };
+function buildConnectionEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel) {
+  const { day1, day2 } = getMeetingDays();
+  const firstName = (contactName || '').split(' ')[0] || 'there';
+  const cleanRange = cleanEncoding(totalRange);
+
+  let textBody, htmlBody;
+
+  if (cleanRange && practiceLabel) {
+    textBody = `Hey ${firstName},
+
+Thanks for connecting. We actually put together a market breakdown for ${firmName || 'your firm'} before reaching out — it shows ${cleanRange}/mo in ${practiceLabel} cases in your area that are going to other firms right now.
+
+Here's the full report:
+${reportUrl}
+
+15 minutes and I'll walk you through the numbers. Does ${day1} or ${day2} work?`;
+
+    htmlBody = `<div>Hey ${firstName},</div>
+<div><br /></div>
+<div>Thanks for connecting. We actually put together a market breakdown for ${firmName || 'your firm'} before reaching out — it shows ${cleanRange}/mo in ${practiceLabel} cases in your area that are going to other firms right now.</div>
+<div><br /></div>
+<div>Here's the full report:</div>
+<div><a href="${reportUrl}">${reportUrl}</a></div>
+<div><br /></div>
+<div>15 minutes and I'll walk you through the numbers. Does ${day1} or ${day2} work?</div>`;
+  } else {
+    textBody = `Hey ${firstName},
+
+Thanks for connecting. We put together a market breakdown for ${firmName || 'your firm'} — it shows the cases in your area that are going to other firms right now.
+
+Here's the full report:
+${reportUrl}
+
+15 minutes and I'll walk you through the numbers. Does ${day1} or ${day2} work?`;
+
+    htmlBody = `<div>Hey ${firstName},</div>
+<div><br /></div>
+<div>Thanks for connecting. We put together a market breakdown for ${firmName || 'your firm'} — it shows the cases in your area that are going to other firms right now.</div>
+<div><br /></div>
+<div>Here's the full report:</div>
+<div><a href="${reportUrl}">${reportUrl}</a></div>
+<div><br /></div>
+<div>15 minutes and I'll walk you through the numbers. Does ${day1} or ${day2} work?</div>`;
+  }
+
+  return {
+    subject: 'Your market breakdown',
+    body: textBody,
+    html: htmlBody
+  };
+}
+
+module.exports = { buildEmail, buildConnectionEmail };

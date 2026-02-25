@@ -315,9 +315,11 @@ jobs:
               "$TOTAL_CASES" \
               "$PRACTICE_LABEL"
 
-            # Also send email if we have their address (dual-channel)
-            if [ -n "$LEAD_EMAIL" ]; then
-              echo "📧 Also sending report via email (dual-channel)"
+            # Skip dual-channel email for connection accepts — they connected on LinkedIn, not email
+            if [ "$SOURCE" = "connection_accept" ]; then
+              echo "🤝 Connection accept — DM only, skipping email"
+            elif [ -n "$LEAD_EMAIL" ]; then
+              echo "📧 Also sending report via email (dual-channel, Prosp reply)"
               node send-email.js \
                 "$LEAD_EMAIL" \
                 "$CONTACT_NAME" \

@@ -6,7 +6,7 @@
  */
 
 const https = require('https');
-const { buildEmail } = require('./email-templates');
+const { buildEmail, buildConnectionEmail } = require('./email-templates');
 
 const INSTANTLY_API_KEY = process.env.INSTANTLY_API_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -456,11 +456,15 @@ function plainTextToHtml(text) {
     const classification = process.env.REPLY_CLASSIFICATION || 'INTERESTED';
     const leadReplyText = process.env.LEAD_REPLY_TEXT || '';
     const leadReply = leadReplyText || (latestEmail ? latestEmail.leadReply : '');
+    const source = process.env.SOURCE || '';
 
+    // Connection accepts: lead never replied, use different template (no "Appreciate you getting back to me")
+    if (source === 'connection_accept') {
+      console.log('🤝 Connection accept — using connection email template');
+      emailContent = buildConnectionEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
+    }
     // For QUESTION/OBJECTION with a real reply: generate a full contextual AI response
-    const isFullReply = (classification === 'QUESTION' || classification === 'OBJECTION') && leadReply;
-
-    if (isFullReply) {
+    else if ((classification === 'QUESTION' || classification === 'OBJECTION') && leadReply) {
       console.log(`📝 ${classification} with reply text — generating full contextual AI reply`);
       emailContent = await generateFullReply(leadReply, classification, contactName, firmName, reportUrl, practiceLabel, totalRange, country);
     } else {
@@ -470,17 +474,18 @@ function plainTextToHtml(text) {
     }
   }
 
-  // Run email QC checks (relaxed for custom/full-reply emails — only check for broken content)
+  // Run email QC checks (relaxed for custom/full-reply/connection emails — only check for broken content)
+  const isConnectionAccept = (process.env.SOURCE || '') === 'connection_accept';
   const isFullReplyEmail = !isCustom && (process.env.REPLY_CLASSIFICATION === 'QUESTION' || process.env.REPLY_CLASSIFICATION === 'OBJECTION') && (process.env.LEAD_REPLY_TEXT || (latestEmail && latestEmail.leadReply));
   const { validateEmail } = require('./email-qc');
-  const qcContext = (isCustom || isFullReplyEmail)
+  const qcContext = (isCustom || isFullReplyEmail || isConnectionAccept)
     ? { contactName, firmName, reportUrl: reportUrl || 'https://reports.mortarmetrics.com/custom' }
     : { contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel };
   const emailQC = validateEmail(emailContent, qcContext);
 
-  // For custom/full-reply emails, only block on critical errors (empty body, encoding corruption)
-  // Skip personalization-related warnings (AI generates the full body, no template placeholders)
-  const blockingErrors = (isCustom || isFullReplyEmail)
+  // For custom/full-reply/connection emails, only block on critical errors (empty body, encoding corruption)
+  // Skip personalization-related warnings (different template, no standard placeholders)
+  const blockingErrors = (isCustom || isFullReplyEmail || isConnectionAccept)
     ? emailQC.errors.filter(e => !e.includes('Report URL'))
     : emailQC.errors;
 
