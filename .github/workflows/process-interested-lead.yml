@@ -82,38 +82,46 @@ jobs:
           PHONE=""
           CLASSIFICATION="INTERESTED"
           if [ -n "$META_JSON" ]; then
-            # Parse _meta JSON safely with node (avoids shell/jq issues with special chars in reply text)
-            cat > /tmp/parse-meta.js << 'NODESCRIPT'
-            const meta = JSON.parse(process.env.META_JSON || '{}');
-            const vars = {
-              REPLY_TEXT: meta.reply_text || '',
-              CAMPAIGN_NAME: meta.campaign_name || '',
-              PHONE: meta.phone || '',
-              CLASSIFICATION: meta.classification || 'INTERESTED',
-              OOO_RETURN_DATE: meta.ooo_return_date || '',
-              CHANNEL: meta.channel || 'instantly',
-              LINKEDIN_URL_META: meta.linkedin_url || '',
-              PROSP_SENDER: meta.prosp_sender || '',
-              SOURCE: meta.source || ''
-            };
-            for (const [k, v] of Object.entries(vars)) {
-              const escaped = v.replace(/'/g, "'\\''");
-              console.log(`${k}='${escaped}'`);
-            }
-            NODESCRIPT
-            node /tmp/parse-meta.js > /tmp/meta-vars.sh
-            . /tmp/meta-vars.sh
-            echo "  📨 Reply text length: ${#REPLY_TEXT}"
-            echo "  📋 Campaign: $CAMPAIGN_NAME"
-            echo "  📞 Phone: $PHONE"
-            echo "  🏷️ Classification: $CLASSIFICATION"
-            echo "  📡 Channel: $CHANNEL"
-            if [ -n "$OOO_RETURN_DATE" ]; then
-              echo "  ✈️ OOO Return Date: $OOO_RETURN_DATE"
-            fi
-            if [ -n "$LINKEDIN_URL_META" ]; then
-              echo "  🔗 LinkedIn (from meta): $LINKEDIN_URL_META"
-            fi
+            # Parse _meta JSON safely with node — write directly to GITHUB_OUTPUT
+            node -e "
+              const meta = JSON.parse(process.env.META_JSON || '{}');
+              const fs = require('fs');
+              const out = process.env.GITHUB_OUTPUT;
+              const vars = {
+                campaign_name: meta.campaign_name || '',
+                phone: meta.phone || '',
+                classification: meta.classification || 'INTERESTED',
+                ooo_return_date: meta.ooo_return_date || '',
+                channel: meta.channel || 'instantly',
+                linkedin_url_meta: meta.linkedin_url || '',
+                prosp_sender: meta.prosp_sender || '',
+                source: meta.source || ''
+              };
+              const lines = Object.entries(vars).map(([k, v]) => k + '=' + v);
+              fs.appendFileSync(out, lines.join('\n') + '\n');
+              // reply_text needs delimiter syntax (can be multiline)
+              const rt = meta.reply_text || '';
+              fs.appendFileSync(out, 'reply_text<<REPLY_EOF\n' + rt + '\nREPLY_EOF\n');
+              // Debug output
+              console.log('  Reply text length: ' + rt.length);
+              console.log('  Campaign: ' + (meta.campaign_name || ''));
+              console.log('  Phone: ' + (meta.phone || ''));
+              console.log('  Classification: ' + (meta.classification || 'INTERESTED'));
+              console.log('  Channel: ' + (meta.channel || 'instantly'));
+              if (meta.ooo_return_date) console.log('  OOO Return Date: ' + meta.ooo_return_date);
+              if (meta.linkedin_url) console.log('  LinkedIn (from meta): ' + meta.linkedin_url);
+            "
+          else
+            # No _meta JSON — write defaults
+            echo "campaign_name=" >> $GITHUB_OUTPUT
+            echo "phone=" >> $GITHUB_OUTPUT
+            echo "classification=INTERESTED" >> $GITHUB_OUTPUT
+            echo "ooo_return_date=" >> $GITHUB_OUTPUT
+            echo "channel=instantly" >> $GITHUB_OUTPUT
+            echo "linkedin_url_meta=" >> $GITHUB_OUTPUT
+            echo "prosp_sender=" >> $GITHUB_OUTPUT
+            echo "source=" >> $GITHUB_OUTPUT
+            echo "reply_text=" >> $GITHUB_OUTPUT
           fi
 
           echo "Extracted values:"
@@ -212,20 +220,8 @@ jobs:
           echo "country=$COUNTRY" >> $GITHUB_OUTPUT
           echo "company=$COMPANY" >> $GITHUB_OUTPUT
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
-          echo "campaign_name=$CAMPAIGN_NAME" >> $GITHUB_OUTPUT
-          echo "phone=$PHONE" >> $GITHUB_OUTPUT
-          echo "classification=$CLASSIFICATION" >> $GITHUB_OUTPUT
-          echo "ooo_return_date=${OOO_RETURN_DATE:-}" >> $GITHUB_OUTPUT
-          echo "channel=${CHANNEL:-instantly}" >> $GITHUB_OUTPUT
-          echo "linkedin_url_meta=${LINKEDIN_URL_META:-}" >> $GITHUB_OUTPUT
-          echo "prosp_sender=${PROSP_SENDER:-}" >> $GITHUB_OUTPUT
-          echo "source=${SOURCE:-}" >> $GITHUB_OUTPUT
-          # reply_text can be multiline — use delimiter syntax
-          {
-            echo "reply_text<<REPLY_EOF"
-            echo "$REPLY_TEXT"
-            echo "REPLY_EOF"
-          } >> $GITHUB_OUTPUT
+          # NOTE: campaign_name, phone, classification, ooo_return_date, channel,
+          # linkedin_url_meta, prosp_sender, source, reply_text are written by node above
       
       - name: Check for existing pending report
         id: check_existing
