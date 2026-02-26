@@ -11,7 +11,7 @@
   "campaign_name": "DEC 19th Lead Magnet/Personalized Marketing Report Canada/USA Legal Lawyers",
   "phone": "",
   "created_at": "2026-02-26T18:26:46.189Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/robin-crauthers-j-d-9266b228",
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Robin, thanks for connecting.\n\nWe helped a business law firm in Virginia uncover about $120k/mo in cases they were losing to other firms online, and I ran the same audit on McCarter & English and found a similar gap.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/Mccarter&EnglishLlp/\n\nWant me to walk you through what's actually fixable here?",
+  "telegram_message_id": 335
 }
