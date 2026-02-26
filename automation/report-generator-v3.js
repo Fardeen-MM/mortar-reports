@@ -1752,6 +1752,8 @@ function detectPracticeArea(practiceAreas, researchData) {
   if (firmNameLower.includes('tax')) return 'tax';
   if (firmNameLower.includes('landlord') || firmNameLower.includes('eviction')) return 'landlord';
   if (firmNameLower.includes('employment') || firmNameLower.includes('labor')) return 'employment';
+  if (firmNameLower.includes('litigation') || firmNameLower.includes('trial')) return 'litigation';
+  if (firmNameLower.includes('civil rights')) return 'civil rights';
   const websiteLower = (researchData.website || '').toLowerCase();
   if (websiteLower.includes('family') || websiteLower.includes('divorce') || websiteLower.includes('prenup') || websiteLower.includes('matrimonial')) return 'divorce';
   if (websiteLower.includes('injury') || websiteLower.includes('accident')) return 'personal injury';
@@ -1784,6 +1786,9 @@ function getPracticeAreaCategory(raw) {
   if (lower.includes('ip') || lower.includes('patent') || lower.includes('trademark')) return 'ip';
   if (lower.includes('malpractice') || lower.includes('medical')) return 'medical malpractice';
   if (lower.includes('worker') || lower.includes('comp')) return 'workers comp';
+  if (lower.includes('litigation') || lower.includes('dispute') || lower.includes('trial')) return 'litigation';
+  if (lower.includes('civil rights') || lower.includes('civil liberties') || lower.includes('constitutional')) return 'civil rights';
+  if (lower.includes('general practice') || lower.includes('general law') || lower.includes('full service') || lower.includes('multi-practice') || lower.includes('multipractice')) return 'litigation';
   return 'default';
 }
 

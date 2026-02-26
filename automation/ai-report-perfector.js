@@ -1314,20 +1314,21 @@ function deterministicQC(html, research) {
     if (totalLowMatch) {
       let totalLow = parseFloat(totalLowMatch[1].replace(/,/g, ''));
       if (totalText.includes('K') || totalText.includes('k')) totalLow *= 1000;
-      const lowValuePractices = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural'];
-      const practiceAreaVal = research.practiceArea || research.practice_area || research.practiceAreaCategory || '';
-      const isLowValue = lowValuePractices.includes(practiceAreaVal.toLowerCase());
+      const lowValuePractices = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural', 'tax', 'criminal', 'family', 'divorce', 'default'];
+      const practiceAreaVal = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
+      const genericPractice = !practiceAreaVal || ['legal services', 'law', 'general', 'general practice', 'legal'].includes(practiceAreaVal);
+      const isLowValue = genericPractice || lowValuePractices.includes(practiceAreaVal);
       const baseThreshold = isUK
-        ? (isLowValue ? 35000 : 70000)
-        : (isLowValue ? 50000 : 100000);
+        ? (isLowValue ? 25000 : 50000)
+        : (isLowValue ? 35000 : 75000);
       const threshold = Math.round(baseThreshold * countryBaseline);
       const thresholdLabel = `${expectedCurrency}${Math.round(threshold / 1000)}K`;
       if (totalLow < threshold) {
         issues.push({
-          severity: 'CRITICAL', category: 'SELLING_POWER',
-          issue: `Total opportunity too low to sell (${totalText}) - needs to be at least ${thresholdLabel}/mo`
+          severity: 'IMPORTANT', category: 'SELLING_POWER',
+          issue: `Total opportunity is modest (${totalText}) - ideally ${thresholdLabel}/mo+`
         });
-        score -= 3;
+        score -= 1;
       }
       if (totalLow > 500000) {
         issues.push({
@@ -1823,12 +1824,13 @@ function deterministicQC(html, research) {
 
   // 14. OVERALL "WOULD YOU BOOK?" FLAG
   // Three criteria: QC score, compelling numbers, AND personalization quality
-  const lowValuePracticesWB = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural'];
-  const practiceAreaWB = research.practiceArea || research.practice_area || research.practiceAreaCategory || '';
-  const isLowValueWB = lowValuePracticesWB.includes(practiceAreaWB.toLowerCase());
+  const lowValuePracticesWB = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural', 'tax', 'criminal', 'family', 'divorce', 'default'];
+  const practiceAreaWB = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
+  const genericPracticeWB = !practiceAreaWB || ['legal services', 'law', 'general', 'general practice', 'legal'].includes(practiceAreaWB);
+  const isLowValueWB = genericPracticeWB || lowValuePracticesWB.includes(practiceAreaWB);
   const opportunityThreshold = Math.round((isUK
-    ? (isLowValueWB ? 35000 : 70000)
-    : (isLowValueWB ? 50000 : 100000)) * countryBaseline);
+    ? (isLowValueWB ? 25000 : 50000)
+    : (isLowValueWB ? 35000 : 75000)) * countryBaseline);
   let totalOppLow = 0;
   if (roiHeroMatch) {
     const tt = roiHeroMatch[1].trim();
