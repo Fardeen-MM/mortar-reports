@@ -1314,13 +1314,12 @@ function deterministicQC(html, research) {
     if (totalLowMatch) {
       let totalLow = parseFloat(totalLowMatch[1].replace(/,/g, ''));
       if (totalText.includes('K') || totalText.includes('k')) totalLow *= 1000;
-      const lowValuePractices = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural', 'tax', 'criminal', 'family', 'divorce', 'default'];
+      const highValuePractices = ['personal injury', 'medical malpractice', 'civil rights', 'litigation', 'ip', 'workers comp'];
       const practiceAreaVal = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
-      const genericPractice = !practiceAreaVal || ['legal services', 'law', 'general', 'general practice', 'legal'].includes(practiceAreaVal);
-      const isLowValue = genericPractice || lowValuePractices.includes(practiceAreaVal);
+      const isHighValue = highValuePractices.includes(practiceAreaVal);
       const baseThreshold = isUK
-        ? (isLowValue ? 25000 : 50000)
-        : (isLowValue ? 35000 : 75000);
+        ? (isHighValue ? 50000 : 25000)
+        : (isHighValue ? 75000 : 35000);
       const threshold = Math.round(baseThreshold * countryBaseline);
       const thresholdLabel = `${expectedCurrency}${Math.round(threshold / 1000)}K`;
       if (totalLow < threshold) {
@@ -1824,13 +1823,12 @@ function deterministicQC(html, research) {
 
   // 14. OVERALL "WOULD YOU BOOK?" FLAG
   // Three criteria: QC score, compelling numbers, AND personalization quality
-  const lowValuePracticesWB = ['estate', 'bankruptcy', 'landlord', 'immigration', 'agricultural', 'tax', 'criminal', 'family', 'divorce', 'default'];
+  const highValuePracticesWB = ['personal injury', 'medical malpractice', 'civil rights', 'litigation', 'ip', 'workers comp'];
   const practiceAreaWB = (research.practiceArea || research.practice_area || research.practiceAreaCategory || '').toLowerCase();
-  const genericPracticeWB = !practiceAreaWB || ['legal services', 'law', 'general', 'general practice', 'legal'].includes(practiceAreaWB);
-  const isLowValueWB = genericPracticeWB || lowValuePracticesWB.includes(practiceAreaWB);
+  const isHighValueWB = highValuePracticesWB.includes(practiceAreaWB);
   const opportunityThreshold = Math.round((isUK
-    ? (isLowValueWB ? 25000 : 50000)
-    : (isLowValueWB ? 35000 : 75000)) * countryBaseline);
+    ? (isHighValueWB ? 50000 : 25000)
+    : (isHighValueWB ? 75000 : 35000)) * countryBaseline);
   let totalOppLow = 0;
   if (roiHeroMatch) {
     const tt = roiHeroMatch[1].trim();
