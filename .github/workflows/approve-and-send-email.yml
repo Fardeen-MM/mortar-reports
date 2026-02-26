@@ -305,6 +305,9 @@ jobs:
           fi
 
           if [ "$CHANNEL" = "prosp" ]; then
+            DELAY=$((150 + RANDOM % 60))
+            echo "⏳ Waiting ${DELAY}s before sending DM (human-like delay)"
+            sleep $DELAY
             echo "💬 Sending report via LinkedIn DM"
             node send-prosp-dm.js \
               "$LINKEDIN_URL" \
