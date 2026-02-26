@@ -18,11 +18,18 @@ function buildDM(contactName, firmName, reportUrl, totalRange, totalCases, pract
 }
 
 // Hardcoded fallback — only used if AI generation fails
-function buildConnectionDM(contactName, firmName, reportUrl, practiceLabel) {
+function buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel) {
   const firstName = (contactName || '').split(' ')[0] || 'there';
   const firm = firmName || 'your firm';
 
-  const body = `Hey ${firstName} thanks for connecting! We were doing some research in your area for another firm we're working with and noticed a few gaps with ${firm}. My team put together a quick breakdown for you, thought it might be useful: ${reportUrl}\n\nAre you guys doing much online or mostly word of mouth?`;
+  let opener;
+  if (totalRange && practiceLabel) {
+    opener = `We helped a ${practiceLabel} firm find about ${totalRange}/mo in cases they were missing online. Ran yours and found a similar gap.`;
+  } else {
+    opener = `We help law firms find cases they're losing to competitors online. Ran an audit on yours and found a few gaps.`;
+  }
+
+  const body = `Hey ${firstName}, thanks for connecting.\n\n${opener}\n\nAlready built the whole breakdown for you:\n${reportUrl}\n\nWant me to walk you through the fixes?`;
 
   return { body };
 }
@@ -36,51 +43,61 @@ async function generateConnectionDM(apiKey, contactName, firmName, reportUrl, co
   const firm = firmName || 'your firm';
   const city = context.city || '';
   const practiceLabel = context.practiceLabel || '';
+  const totalRange = context.totalRange || '';
   const topCompetitor = context.topCompetitor || '';
-  const biggestGap = context.biggestGap || '';
 
   if (!apiKey) {
-    return buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+    return buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
   }
 
   let details = '';
-  if (city) details += `They are based in ${city}. `;
-  if (practiceLabel) details += `Main practice area: ${practiceLabel}. `;
+  if (city) details += `Based in ${city}. `;
+  if (practiceLabel) details += `Practice area: ${practiceLabel}. `;
+  if (totalRange) details += `Their report found about ${totalRange}/mo in cases they're missing. `;
   if (topCompetitor) details += `Top local competitor: ${topCompetitor}. `;
-  if (biggestGap) details += `Biggest gap we found: ${biggestGap}. `;
 
-  const prompt = `Write a LinkedIn DM to ${firstName} at ${firm}. They just accepted our connection request.
+  // Pick a random US state that isn't the lead's state for the flex
+  const flexStates = ['Ohio', 'Texas', 'Florida', 'Colorado', 'Arizona', 'Georgia', 'North Carolina', 'Virginia', 'Pennsylvania', 'Tennessee'];
+  const leadState = city.split(',').pop()?.trim() || '';
+  const available = flexStates.filter(s => s.toLowerCase() !== leadState.toLowerCase());
+  const flexState = available[Math.floor(Math.random() * available.length)] || 'Ohio';
+
+  // Scale the flex number to be believable relative to their actual gap
+  let flexAmount = '$80k';
+  if (totalRange) {
+    const numMatch = totalRange.match(/[\$£]?([\d.]+)/);
+    if (numMatch) {
+      const base = parseFloat(numMatch[0].replace(/[\$£]/g, ''));
+      // Flex should be 1.5x-2.5x their number, rounded to nearest 10k
+      const flexNum = Math.round((base * (1.5 + Math.random())) / 10) * 10;
+      const currency = totalRange.includes('£') ? '£' : '$';
+      flexAmount = `${currency}${flexNum}k`;
+    }
+  }
+
+  const prompt = `Write a short LinkedIn DM to ${firstName} at ${firm}. They just accepted our connection request. You are from Mortar Metrics, we help law firms get more cases.
 
 Context: ${details}
 
 Report link (MUST include exactly as-is): ${reportUrl}
 
-The report shows them 3 things (frame these around money/time, not features):
-1. Cases they're leaving on the table from people searching nearby (money they could be making)
-2. What they're spending vs what they should be (money they could be saving)
-3. Calls they're missing after hours that go to competitors (cases walking out the door)
+Structure (follow this closely):
 
-Format example (match this vibe, keep it tight):
-Hey [name] thanks for connecting!
-
-We were researching [area] for another firm and spotted a few things with yours. Put a quick report together:
-- cases you're probably leaving on the table
-- where you could be saving
-- calls going to competitors after hours
-[link]
-
-How are you guys getting most of your clients right now?
+1. "Hey [name], thanks for connecting."
+2. One sentence flex: we helped a [same practice area] firm in [${flexState}] find about [${flexAmount}/mo] in cases they were losing to other firms online. Keep it matter-of-fact, not braggy.
+3. One sentence: ran the same audit on yours and found a similar gap.
+4. "Already built the whole breakdown for you:" then the report link on its own line.
+5. CTA: "Want me to walk you through the fixes?" or similar. One sentence, makes replying "yes" feel effortless.
 
 Rules:
-- Keep the intro to ONE short sentence before the bullets
-- Bullets: short, ~6-8 words each max
-- Link goes right after bullets, no extra fluff around it
-- The whole DM should feel like 15 seconds to read
-- No jargon. No "revenue" "ROI" "digital presence" "visibility" "optimize" "strategy" "leverage"
-- Subtle flex: researching for another firm we're working with
-- Sound like a real person, not a marketer
-- No em dashes, max one exclamation mark, no "I'd love to"
-- Just the DM text, nothing else`;
+- 5 sentences max. The whole thing should take 10 seconds to read.
+- No em dashes. No exclamation marks. No bullets or lists.
+- No marketing jargon: no "ROI", "revenue", "digital presence", "visibility", "optimize", "strategy", "leverage", "pipeline", "funnel".
+- Frame it like we already did the work for free and we're doing them a favour.
+- Sound like a person, not a company. Casual but confident.
+- The flex must feel natural, not forced. Just stating what happened.
+- Say "cases" not "revenue". Lawyers think in cases.
+- Just output the DM text, nothing else.`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -99,7 +116,7 @@ Rules:
 
     if (!resp.ok) {
       console.warn(`AI DM generation failed (${resp.status}), using template`);
-      return buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+      return buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
     }
 
     const data = await resp.json();
@@ -108,13 +125,13 @@ Rules:
     // Sanity check: must contain the report URL
     if (!body || !body.includes(reportUrl)) {
       console.warn('AI DM missing report URL, using template');
-      return buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+      return buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
     }
 
     return { body };
   } catch (e) {
     console.warn('AI DM generation error:', e.message);
-    return buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+    return buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
   }
 }
 

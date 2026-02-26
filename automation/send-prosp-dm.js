@@ -92,7 +92,7 @@ function sendProspMessage(linkedinUrl, sender, message) {
     dm = { body: connectionDmBody };
     console.log(`  Using pre-generated AI connection DM`);
   } else if (source === 'connection_accept') {
-    dm = buildConnectionDM(contactName, firmName, reportUrl, practiceLabel);
+    dm = buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
     console.log(`  Using template connection DM (AI not available)`);
   } else {
     dm = buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);

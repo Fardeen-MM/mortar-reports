@@ -424,8 +424,8 @@ function sendTelegramMessage(text, replyMarkup) {
       const dmContext = {
         city: researchData?.cityState?.split(',')[0] || researchData?.city || '',
         practiceLabel: approvalData.practice_label || '',
+        totalRange: approvalData.total_range || '',
         topCompetitor: researchData?.competitors?.[0]?.name || '',
-        biggestGap: ''
       };
 
       dmPreview = await generateConnectionDM(
