@@ -301,25 +301,79 @@ function generateFullReply(replyText, classification, contactName, firmName, rep
 
   let prompt = `You're Fardeen from Mortar Metrics. We help law firms find untapped revenue — data-driven market breakdowns showing how many cases their area supports vs what they're getting, then we run the marketing to close that gap.
 
-A law firm lead replied to our outreach. Read their reply and write a real, thoughtful email response.
+A law firm lead replied to our outreach. Read their reply carefully and write a real, thoughtful email response. Your job is to get the report link in front of them no matter what they said.
 
 LEAD: ${firstName} from ${firmName || 'their firm'}
 THEIR REPLY: "${replyText}"
-REPORT LINK: ${reportUrl}`;
+CLASSIFICATION: ${classification}
+REPORT LINK (MUST include exactly as-is): ${reportUrl}`;
 
   if (practiceLabel) prompt += `\nPRACTICE: ${practiceLabel}`;
   if (cleanRange) prompt += `\nREVENUE GAP: ${cleanRange}/mo`;
 
-  prompt += `
+  // Classification-specific guidelines
+  let guidelines;
+  if (classification === 'UNSUBSCRIBE' || classification === 'NOT_INTERESTED') {
+    guidelines = `
+This person said no or wants off the list. Respect that completely. But we already built this report for free, so drop the link anyway.
 
 Guidelines:
-- Actually answer what they said. Address their specific points, questions, or concerns.
-- Be conversational and genuine — no marketing speak, no exclamation marks.
-- After addressing their reply, naturally transition to the report you built.
-- Include the report link naturally in the flow (not as a separate section).
-- End with a low-pressure meeting ask — "15 minutes, I'll walk you through the numbers. Does ${meetDay1} or ${meetDay2} work?"
+- Acknowledge what they said genuinely. No pushback, no guilt, no "are you sure?"
+- Mention you already built a full breakdown for their firm before hearing back. It's done, sitting there, free, no strings.
+- Drop the report link casually. Frame it as "already built it, here it is in case you ever want a look."
+- No meeting ask. No CTA. Just "if the numbers ever catch your eye, happy to chat."
+- 2-4 sentences. Short, warm, human. You're a person who respects their time.
+- If they said something aggressive ("stop spamming", "cease and desist"), be extra respectful and brief. Just "understood" + "we built this before your reply, here it is if useful" + done.`;
+  } else if (classification === 'OOO') {
+    guidelines = `
+They're out of office. Keep it light.
+
+Guidelines:
+- Keep it casual and warm. "No rush at all" type energy.
+- Mention you put together a breakdown for their firm, link it so it's ready when they're back.
+- No meeting ask. Just "take a look when you're back, happy to walk through it."
+- 2-3 sentences max.`;
+  } else if (classification === 'QUESTION') {
+    guidelines = `
+They asked a question. Answer it, then pivot to the report.
+
+Guidelines:
+- Actually answer their question directly and specifically.
+- Transition naturally to the report you built for them.
+- Include the report link in the flow.
+- End with a meeting ask: "15 minutes, I'll walk you through the numbers. Does ${meetDay1} or ${meetDay2} work?"
+- 4-6 sentences.`;
+  } else if (classification === 'OBJECTION') {
+    guidelines = `
+They pushed back but didn't fully say no. Reframe their concern, then pivot to the report.
+
+Guidelines:
+- Acknowledge their concern genuinely.
+- Reframe it if possible (small market = less competition = easier wins, already have marketing = good, this shows what's being missed, etc.)
+- Mention you already built the breakdown, link it naturally.
+- End with a soft meeting ask: "15 minutes, I'll share my screen. Does ${meetDay1} or ${meetDay2} work?"
+- 3-5 sentences. Confident but not pushy.`;
+  } else {
+    // INTERESTED or default
+    guidelines = `
+They're interested or replied positively. Match their energy and get them the report.
+
+Guidelines:
+- Acknowledge their reply warmly.
+- Transition to the report you built.
+- Include the report link naturally.
+- End with a meeting ask: "15 minutes, I'll walk you through it. Does ${meetDay1} or ${meetDay2} work?"
+- 3-5 sentences. Confident, direct.`;
+  }
+
+  prompt += `
+${guidelines}
+
+General rules:
 - Start with "Hey ${firstName}," on its own line, then a blank line before the body.
-- 4-8 sentences total. Sound like a real person, not a template.
+- Be conversational and genuine. No marketing speak. No exclamation marks. No em dashes.
+- Sound like a real person, not a template. Short sentences.
+- The report link must appear exactly as provided.
 - No sign-off or signature.`;
 
   if (country === 'CA') {
@@ -463,12 +517,12 @@ function plainTextToHtml(text) {
       console.log('🤝 Connection accept — using connection email template');
       emailContent = buildConnectionEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
     }
-    // For QUESTION/OBJECTION with a real reply: generate a full contextual AI response
-    else if ((classification === 'QUESTION' || classification === 'OBJECTION') && leadReply) {
+    // Any lead with a reply: generate a full contextual AI response that addresses what they said
+    else if (leadReply) {
       console.log(`📝 ${classification} with reply text — generating full contextual AI reply`);
       emailContent = await generateFullReply(leadReply, classification, contactName, firmName, reportUrl, practiceLabel, totalRange, country);
     } else {
-      // Standard flow: AI opener + template
+      // No reply text available — standard flow: AI opener + template
       const opener = await generateOpener(leadReply, country, practiceLabel, classification);
       emailContent = buildEmail(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel, opener);
     }
@@ -476,7 +530,7 @@ function plainTextToHtml(text) {
 
   // Run email QC checks (relaxed for custom/full-reply/connection emails — only check for broken content)
   const isConnectionAccept = (process.env.SOURCE || '') === 'connection_accept';
-  const isFullReplyEmail = !isCustom && (process.env.REPLY_CLASSIFICATION === 'QUESTION' || process.env.REPLY_CLASSIFICATION === 'OBJECTION') && (process.env.LEAD_REPLY_TEXT || (latestEmail && latestEmail.leadReply));
+  const isFullReplyEmail = !isCustom && !isConnectionAccept && (process.env.LEAD_REPLY_TEXT || (latestEmail && latestEmail.leadReply));
   const { validateEmail } = require('./email-qc');
   const qcContext = (isCustom || isFullReplyEmail || isConnectionAccept)
     ? { contactName, firmName, reportUrl: reportUrl || 'https://reports.mortarmetrics.com/custom' }

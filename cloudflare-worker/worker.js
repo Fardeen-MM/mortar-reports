@@ -1398,7 +1398,7 @@ async function generateAutoResponse(category, replyText, firmName, contactName, 
   const ctx = pipelineContext || {};
   const systemPrompt = `You are Fardeen from Mortar Metrics. We help law firms find untapped revenue in their local market — we build data-driven market breakdowns that show exactly how many cases their area supports vs what they're currently getting, then we run the marketing (Google Ads, Meta Ads, intake systems) to close that gap.
 
-You're a confident, sharp salesman who genuinely cares about helping firms grow. You write short, conversational emails. No marketing speak. No exclamation marks. No em dashes. Sound like a real person texting a colleague. Never include a sign-off or signature at the end.${category !== 'NOT_INTERESTED' ? ' Every reply should move toward booking a 15-minute call.' : ''}`;
+You're a confident, sharp salesman who genuinely cares about helping firms grow. You write short, conversational emails. No marketing speak. No exclamation marks. No em dashes. Sound like a real person texting a colleague. Never include a sign-off or signature at the end.${(category !== 'NOT_INTERESTED' && category !== 'UNSUBSCRIBE') ? ' Every reply should move toward booking a 15-minute call.' : ''}`;
 
   // Build situation context for the AI
   const lead = contactName || 'the partner';
@@ -1414,9 +1414,17 @@ You're a confident, sharp salesman who genuinely cares about helping firms grow.
     situation = `This lead replied to our outreach email where we mentioned we ran the numbers on their market and found a gap in cases they could be getting. We're building them a personalized market breakdown. They haven't seen it yet — it's being generated now.`;
   }
 
-  // NOT_INTERESTED: respectful but still leave a compelling door open
+  // NOT_INTERESTED / UNSUBSCRIBE: respectful but still leave a compelling door open
   let guidelines;
-  if (category === 'NOT_INTERESTED') {
+  if (category === 'UNSUBSCRIBE') {
+    guidelines = `Write a very short reply (1-2 sentences). This person wants off the list. Fully respect that.
+
+Guidelines:
+- Acknowledge briefly. "Understood" or "Got it, no worries."
+- Mention we already put together a breakdown for their firm before hearing back. Drop a line like "it's sitting there if you ever want a look" but don't push it.
+- No CTA. No meeting ask. Just warm and respectful.
+- If they were aggressive, be extra brief and professional.`;
+  } else if (category === 'NOT_INTERESTED') {
     guidelines = `Write a short reply (2-3 sentences). This person said no. Respect that — but leave a compelling door open.
 
 Guidelines:
@@ -2419,8 +2427,8 @@ async function listMergeDispatch(env, email, minSlots) {
     // DON'T return — fall through to forwardToGitHub to trigger report pipeline
   }
 
-  // QUESTION, OBJECTION, or NOT_INTERESTED: generate auto-reply + queue for approval + ALSO dispatch report
-  const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED'];
+  // QUESTION, OBJECTION, NOT_INTERESTED, or UNSUBSCRIBE: generate auto-reply + queue for approval + ALSO dispatch report
+  const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED', 'UNSUBSCRIBE'];
   if (replyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
     const contactName = merged.client_payload.first_name || '';
     const company = merged.client_payload.company || '';
