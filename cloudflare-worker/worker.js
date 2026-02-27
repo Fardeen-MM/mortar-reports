@@ -1110,14 +1110,21 @@ async function queueEmail(env, { type, to, subject, html, text, lead_email, firm
   // Only strip chars that actually break Telegram Markdown v1: * _ ` [ ]
   const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
 
+  // For auto-replies, split context into classification + lead's reply for better visibility
+  let contextBlock = '';
+  if (context) {
+    contextBlock = `ℹ️ *Context:* ${esc(context)}`;
+  }
+
   const msg = `${header}
 
 📊 *Firm:* ${esc(firm_name) || 'Unknown'}
 👤 *To:* ${esc(contact_name) || to}
 📧 *Email:* ${to}
 📝 *Subject:* ${esc(subject)}
-${context ? `ℹ️ *Context:* ${esc(context)}` : ''}
+${contextBlock}
 
+*Our Reply:*
 \`\`\`
 ${preview}
 \`\`\``;
@@ -1256,13 +1263,24 @@ async function classifyReplyAI(text, anthropicKey) {
       `Classify this reply into exactly one category. Reply with JSON only, no other text.
 
 Categories:
-- INTERESTED: Wants to learn more, positive reply, "tell me more", "sounds good"
-- QUESTION: Asks a specific question about services, pricing, process
-- OBJECTION: Pushes back but hasn't said no — "we already have a marketing company", "not sure we need this"
-- NOT_INTERESTED: Polite decline — "not interested", "no thanks", "I'm retired", "no longer practicing", "left the firm", "wrong person"
-- UNSUBSCRIBE: Wants off the list — "unsubscribe", "remove me", "stop emailing"
-- OOO: Out of office auto-reply
-- IRRELEVANT: Spam, wrong person, completely unrelated, system/bounce messages (NDR, delivery failure, quarantine alerts, security notifications, "verify your account")
+- INTERESTED: Genuinely wants to learn more, positive reply, "tell me more", "sounds good", "yes", "let's talk"
+- QUESTION: Asks a specific question about services, pricing, process (NOT requests to stop/remove/unsubscribe that happen to contain a question mark)
+- OBJECTION: Pushes back but hasn't firmly said no — "we already have a marketing company", "not sure we need this"
+- NOT_INTERESTED: Any form of decline — "not interested", "no thanks", "no", "I'm retired", "no longer practicing", "left the firm", "wrong person", "I must pass", "pass", "we don't market", "we don't need this", "doesn't fit our model", "we rely on word of mouth", "we are swamped"
+- UNSUBSCRIBE: Wants off the list — "unsubscribe", "remove me", "stop emailing", "stop", "STOP", "stop spamming", "cease and desist", "refrain from further emails", "remove from list", "please remove [name] from your list"
+- OOO: Out of office auto-reply, mentions working days, on vacation, on leave, returning on a date
+- IRRELEVANT: System/bounce messages, delivery failures ("was not delivered"), spam filter auto-replies ("I apologize for this automatic reply. To control spam..."), security alerts, "not a law firm", challenge-response systems
+
+IMPORTANT rules:
+- "Stop" by itself = UNSUBSCRIBE, not INTERESTED
+- "Please refrain from further emails" = UNSUBSCRIBE, not INTERESTED
+- "I am retired" = NOT_INTERESTED, not INTERESTED
+- "STOP SPAMMING ME" = UNSUBSCRIBE, not INTERESTED
+- "Please remove [someone] from your list" = UNSUBSCRIBE, not QUESTION
+- Short angry messages like "stop", "no", "leave me alone" = UNSUBSCRIBE or NOT_INTERESTED
+- Auto-reply spam filter messages = IRRELEVANT, not QUESTION
+- Delivery failure notifications = IRRELEVANT, not INTERESTED
+- Only classify as INTERESTED if the person is genuinely expressing interest in learning more
 
 If OOO: also extract the return date if mentioned (e.g. "back on January 15", "returning Monday the 20th", "out until Feb 3"). Convert to YYYY-MM-DD format. If no return date is mentioned, set return_date to null.
 
@@ -1296,6 +1314,9 @@ Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary
 function classifyReplyFallback(text) {
   const lower = text.toLowerCase();
 
+  // Extract just the lead's own text (before any quoted/forwarded content)
+  const ownText = lower.split(/\n\s*>|\n\s*-{3,}|\n\s*_{3,}|\nfrom:|on .+ wrote:/i)[0].trim();
+
   // SYSTEM/BOUNCE emails — detect before anything else
   const systemPatterns = ['mail delivery failed', 'undeliverable', 'delivery status notification',
     'message not delivered', 'couldn\'t be delivered', 'returned to sender',
@@ -1303,18 +1324,36 @@ function classifyReplyFallback(text) {
     'security alert', 'security issue', 'suspicious activity',
     'verify your account', 'confirm your identity', 'quarantine',
     'message quarantined', 'held for review', 'blocked by', 'spam filter',
-    'action required:', 'has been blocked', 'message rejected'];
+    'action required:', 'has been blocked', 'message rejected',
+    'was not delivered to', 'email message was not delivered',
+    'this message triggered', 'correlated intelligence', 'security risks'];
   if (systemPatterns.some(p => lower.includes(p))) {
     return { category: 'IRRELEVANT', confidence: 0.95, summary: 'System/bounce/security message' };
+  }
+
+  // Auto-reply / spam filter challenges — NOT real human replies
+  if (/i apologize for this automatic reply|to control spam|your message has been|challenge.?response|not on my approved/i.test(lower)) {
+    return { category: 'IRRELEVANT', confidence: 0.9, summary: 'Auto-reply spam filter' };
+  }
+
+  // Not a law firm / wrong type of company
+  if (/not a law firm|not a lawyer|not an attorney|we are not a/i.test(lower)) {
+    return { category: 'IRRELEVANT', confidence: 0.9, summary: 'Not a law firm' };
   }
 
   const unsubPatterns = ['unsubscribe', 'remove me from', 'stop emailing', 'opt out', 'opt-out',
     'take me off', 'remove my email', 'stop contacting', 'remove from list',
     'remove from your list', 'cease and desist', 'refrain from',
-    'further emails', 'future emails', 'stop,', 'stop.', 'please remove',
-    'don\'t contact', 'don\'t email', 'do not email'];
+    'further emails', 'future emails', 'please remove',
+    'don\'t contact', 'don\'t email', 'do not email', 'stop spamming',
+    'remove from your', 'remove from mailing', 'remove .+ from .+ list'];
   if (unsubPatterns.some(p => lower.includes(p))) {
     return { category: 'UNSUBSCRIBE', confidence: 0.9, summary: 'Unsubscribe request' };
+  }
+
+  // Short "stop" messages (1-2 words, just "stop" or "stop." or "stop!")
+  if (/^\s*stop[\s.!]*$/i.test(ownText)) {
+    return { category: 'UNSUBSCRIBE', confidence: 0.85, summary: 'Stop request' };
   }
 
   const notIntPatterns = ['not interested', 'no thank', 'no, thank', 'please stop', 'leave me alone',
@@ -1322,16 +1361,26 @@ function classifyReplyFallback(text) {
     'we are good', 'no need', 'not looking', 'not in the market',
     'i am retired', 'i\'m retired', 'i have retired', 'i\'ve retired',
     'no longer practic', 'no longer with', 'left the firm', 'no longer at',
-    'wrong person', 'wrong email', 'doesn\'t work here'];
+    'wrong person', 'wrong email', 'doesn\'t work here',
+    'i must pass', 'i\'ll pass', 'we don\'t market', 'we don\'t advertise',
+    'we don\'t need', 'not for our firm', 'doesn\'t fit',
+    'we rely on word of mouth', 'word of mouth', 'we are swamped',
+    'don\'t need marketing', 'don\'t need your'];
   if (notIntPatterns.some(p => lower.includes(p))) {
     return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Not interested' };
   }
 
-  if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return|i('m| am) away/i.test(lower)) {
+  // Short "no" messages (1-2 words, just "no" or "no.")
+  if (/^\s*no[\s.!]*$/i.test(ownText)) {
+    return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'No' };
+  }
+
+  if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return|i('m| am) away|normal working days|working days are/i.test(lower)) {
     return { category: 'OOO', confidence: 0.9, summary: 'Out of office', return_date: null };
   }
 
-  if (text.includes('?')) {
+  // Only mark as QUESTION if the lead's own text (before signatures/quotes) has a question mark
+  if (ownText.includes('?')) {
     return { category: 'QUESTION', confidence: 0.6, summary: 'Contains question' };
   }
 
@@ -2386,6 +2435,11 @@ async function listMergeDispatch(env, email, minSlots) {
     );
 
     if (autoReply && env.INSTANTLY_API_KEY) {
+      // Include the lead's actual reply in context so it's visible in Telegram
+      const replyPreview = replyText ? replyText.slice(0, 300).replace(/\n/g, ' ') : '';
+      const contextLine = replyPreview
+        ? `${classification.category}: "${replyPreview}"`
+        : `${classification.category}: ${classification.summary}`;
       await queueEmail(env, {
         type: 'auto-reply',
         to: email,
@@ -2395,7 +2449,7 @@ async function listMergeDispatch(env, email, minSlots) {
         lead_email: email,
         firm_name: company,
         contact_name: contactName,
-        context: `${classification.category}: ${classification.summary}`
+        context: contextLine
       });
     }
 

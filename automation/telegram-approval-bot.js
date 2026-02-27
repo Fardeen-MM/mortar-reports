@@ -215,9 +215,8 @@ if (approvalData.reply_text) {
     OOO: '✈️ OUT OF OFFICE',
     IRRELEVANT: '⚪ IRRELEVANT'
   };
-  const classBadge = approvalData.classification && approvalData.classification !== 'INTERESTED'
-    ? `\n🏷️ *Classification:* ${classificationBadges[approvalData.classification] || approvalData.classification}`
-    : '';
+  const classLabel = classificationBadges[approvalData.classification] || approvalData.classification || '🟢 INTERESTED';
+  const classBadge = `\n🏷️ *Classification:* ${classLabel}`;
   replySection = `\n\n💬 *Lead's Reply:*\n\`\`\`\n${replyTruncated}\n\`\`\`${classBadge}`;
 }
 
