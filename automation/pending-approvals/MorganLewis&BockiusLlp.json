@@ -11,7 +11,7 @@
   "campaign_name": "DEC 19th Lead Magnet/Personalized Marketing Report Canada/USA Legal Lawyers",
   "phone": "(215) 963-5575",
   "created_at": "2026-02-27T07:59:53.488Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/john-pease-5685b618",
   "prosp_sender": "https://www.linkedin.com/in/nicole-goncalves-56695638a",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey John, thanks for connecting.\n\nWe recently helped a business law firm in North Carolina discover they were missing about $100k/mo in cases to competitors online. Ran the same audit on Morgan Lewis and found a similar gap—looks like you're leaving $56.5K-77K/mo on the table each month.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/MorganLewis&BockiusLlp/\n\nWant me to walk you through what's happening and how to fix it?",
+  "telegram_message_id": 344
 }
