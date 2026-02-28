@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Gap Analysis | Ted Augustinos | Troutman Pepper Locke</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--ink-soft:#1e293b;--slate:#475569;--slate-light:#64748b;--muted:#94a3b8;--border:#e2e8f0;--border-light:#f1f5f9;--warm-white:#f8fafc;--white:#fff;--brand-primary:#1e3a5f;--brand-blue:#2563eb;--brand-light:rgba(37,99,235,0.08);--accent:#3b82f6;--accent-light:#60a5fa;--success:#059669;--success-light:#d1fae5;--danger:#dc2626;--danger-light:#fef2f2;--gold:#f59e0b;--gold-light:#fef3c7;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:var(--warm-white);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:500}
+    .bg-grid{position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(37,99,235,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}.orbs{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:0}.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.1}.orb-1{width:600px;height:600px;left:-200px;top:-100px;background:var(--brand-blue)}.orb-2{width:400px;height:400px;right:-150px;bottom:10%;background:var(--accent)}.scroll-indicator{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand-blue),var(--accent));z-index:9999;width:0%}.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px}@media(max-width:600px){.container{padding:0 20px}}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:32px 0;border-bottom:1px solid var(--border);margin-bottom:50px;flex-wrap:wrap;gap:24px}.brand-mark{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;background:var(--brand-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:white;transition:all 0.4s var(--ease-out-expo)}.logo:hover{transform:scale(1.08) rotate(3deg);box-shadow:0 12px 40px rgba(37,99,235,0.3)}.brand-text{display:flex;flex-direction:column}.brand-name{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;color:var(--ink)}.brand-sub{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:2px;font-weight:600}.prepared-for{text-align:right}.prepared-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--slate-light);margin-bottom:6px;font-weight:500}.prepared-name{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);font-weight:500}.prepared-firm{font-size:0.9rem;color:var(--brand-blue);font-weight:500}.prepared-date{font-size:0.8rem;color:var(--slate-light);margin-top:6px}
+    .hero{text-align:center;padding:50px 0 70px}.hero-badge{display:inline-flex;align-items:center;gap:10px;padding:12px 26px;background:var(--white);border:1px solid var(--border);border-radius:100px;font-size:0.75rem;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}.hero-badge-dot{width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}.hero-title{font-size:clamp(2.2rem,5.5vw,3.6rem);font-weight:500;line-height:1.15;color:var(--ink);margin-bottom:26px}.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero-subtitle{font-size:1.15rem;color:var(--slate);max-width:720px;margin:0 auto 50px;line-height:1.75}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}@media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}.hero-stat{text-align:center;padding:24px 16px;background:var(--white);border:1px solid var(--border);border-radius:16px;transition:all 0.4s var(--ease-out-expo)}.hero-stat:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--accent)}.hero-stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600;line-height:1;margin-bottom:10px}.hero-stat-value.danger{color:var(--danger)}.hero-stat-value.success{color:var(--success)}.hero-stat-value.gold{color:var(--gold)}.hero-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+    .quick-cta{display:flex;justify-content:center;gap:16px;margin:32px 0;flex-wrap:wrap}.quick-cta-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;font-weight:600;font-size:0.95rem;text-decoration:none;transition:all 0.3s var(--ease-out-expo);cursor:pointer}.quick-cta-btn.primary{background:var(--ink);color:white;border:none}.quick-cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,0.2)}.quick-cta-btn.secondary{background:var(--white);color:var(--ink);border:2px solid var(--border)}.quick-cta-btn.secondary:hover{border-color:var(--accent);transform:translateY(-2px)}
+    section{padding:80px 0}.section-header{text-align:center;margin-bottom:50px}.section-label{display:inline-block;padding:10px 22px;background:var(--ink);color:var(--white);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-bottom:22px;font-weight:600}.section-title{font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink);margin-bottom:14px}.section-subtitle{font-size:1.05rem;color:var(--slate);max-width:650px;margin:0 auto;line-height:1.7}
+    .opportunity-box{background:linear-gradient(135deg,var(--success),#047857);border-radius:24px;padding:48px;text-align:center;margin:40px 0;position:relative;overflow:hidden}.opportunity-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.opportunity-label{font-size:0.85rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}.opportunity-value{font-family:'Fraunces',serif;font-size:clamp(3.5rem,10vw,6rem);font-weight:600;color:white;line-height:1;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,0.2)}.opportunity-context{font-size:1.2rem;color:rgba(255,255,255,0.9)}
+    .gap-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.gap-summary{grid-template-columns:1fr}}.gap-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.gap-card:hover{border-color:var(--danger);transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,0.06)}.gap-icon{font-size:2.5rem;margin-bottom:16px}.gap-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:8px}.gap-impact{font-size:1.4rem;font-weight:700;color:var(--danger);margin-bottom:8px}.gap-desc{font-size:0.85rem;color:var(--slate)}
+    .story-mini{background:var(--white);border-left:4px solid var(--danger);padding:24px 28px;margin:40px 0;border-radius:0 16px 16px 0}.story-mini-text{font-size:1.05rem;color:var(--ink);margin-bottom:8px}.story-mini-outcome{font-size:0.9rem;color:var(--slate);font-style:italic}
+    .speed-highlight{background:linear-gradient(135deg,var(--gold),#d97706);border-radius:20px;padding:32px;display:flex;align-items:center;gap:28px;margin:40px 0;color:white}@media(max-width:700px){.speed-highlight{flex-direction:column;text-align:center}}.speed-highlight-stat{font-family:'Fraunces',serif;font-size:3.5rem;font-weight:700;white-space:nowrap}.speed-highlight-text{font-size:1.05rem;line-height:1.6}
+    .market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}@media(max-width:768px){.market-stats{grid-template-columns:repeat(2,1fr)}}.market-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 16px;text-align:center}.market-stat-value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;color:var(--brand-blue);margin-bottom:6px}.market-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1px;font-weight:500}
+    .competitive-table{width:100%;border-collapse:collapse;margin:32px 0;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--border)}.competitive-table th{background:var(--ink);color:var(--white);padding:16px 18px;text-align:left;font-size:0.85rem;font-weight:600}.competitive-table td{padding:16px 18px;border-bottom:1px solid var(--border);font-size:0.9rem}.competitive-table tr:last-child td{border-bottom:none}.competitive-table tr:hover td{background:var(--warm-white)}.check{color:var(--success);font-weight:700}.cross{color:var(--danger);font-weight:700}.partial{color:var(--gold);font-weight:700}.insight-box{background:var(--warm-white);border-radius:16px;padding:24px;margin-top:24px;font-size:0.95rem;color:var(--ink);line-height:1.7}
+    .calculator-section{background:var(--white);border:2px solid var(--accent);border-radius:24px;padding:50px;margin:80px 0;box-shadow:0 20px 60px rgba(0,0,0,0.04)}@media(max-width:600px){.calculator-section{padding:30px 24px}}.calc-header{text-align:center;margin-bottom:50px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}@media(max-width:900px){.calc-grid{grid-template-columns:1fr}}.calc-inputs{display:flex;flex-direction:column;gap:24px}.calc-input-group{display:flex;flex-direction:column;gap:10px}.calc-input-label{font-size:0.85rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center}.calc-input-value{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--brand-blue);font-weight:600}.calc-slider{width:100%;height:8px;border-radius:4px;background:var(--border);-webkit-appearance:none;cursor:pointer}.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)}.calc-results{display:flex;flex-direction:column;gap:16px}.calc-result-card{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.calc-result-card:hover{border-color:var(--accent);transform:translateY(-3px)}.calc-result-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600}.calc-result-value.danger{color:var(--danger)}.calc-result-value.success{color:var(--success)}.calc-result-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:6px}.calc-total{background:linear-gradient(135deg,var(--success),#047857);border-radius:18px;padding:32px;text-align:center;margin-top:8px}.calc-total-value{font-family:'Fraunces',serif;font-size:2.8rem;font-weight:600;color:var(--white)}.calc-total-label{font-size:0.75rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+    .service-toggles{margin-top:36px;padding-top:36px;border-top:1px solid var(--border)}.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border-light)}.service-toggle:last-child{border-bottom:none}.service-toggle-info{display:flex;flex-direction:column;gap:4px}.service-toggle-name{font-weight:600;color:var(--ink);font-size:0.95rem}.service-toggle-desc{font-size:0.8rem;color:var(--slate)}.toggle-switch{position:relative;width:56px;height:30px;background:var(--border);border-radius:30px;cursor:pointer;transition:all 0.3s}.toggle-switch.active{background:var(--success)}.toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:white;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}.toggle-switch.active::after{left:29px}
+    .math-section{margin-top:40px;padding:32px;background:var(--warm-white);border-radius:16px;border:1px solid var(--border)}.math-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:24px;display:flex;align-items:center;gap:10px}.math-step{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}.math-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.math-step-title{font-weight:700;color:var(--brand-blue);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}.math-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.9rem}.math-line.total{font-weight:700;color:var(--ink);font-size:1rem;padding-top:12px;border-top:1px solid var(--border);margin-top:8px}.math-line.result{color:var(--success);font-weight:700}.math-line.loss{color:var(--danger)}
+    .ai-comparison{margin:50px 0;background:var(--white);border:2px solid var(--accent);border-radius:20px;padding:32px}.ai-comparison-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:24px;text-align:center}.ai-comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:800px){.ai-comparison-grid{grid-template-columns:1fr}}.ai-option{padding:24px;border-radius:16px;text-align:center}.ai-option.voicemail{background:var(--danger-light)}.ai-option.answering{background:var(--gold-light)}.ai-option.ai{background:var(--success-light);border:2px solid var(--success)}.ai-option-title{font-weight:700;font-size:0.95rem;margin-bottom:16px;color:var(--ink)}.ai-option-features{text-align:left;display:flex;flex-direction:column;gap:8px}.ai-option-feature{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:8px}
+    .playbook-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:28px;transition:all 0.4s var(--ease-out-expo)}.playbook-card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,0.06);border-color:var(--accent)}.playbook-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px}.playbook-number{width:48px;height:48px;min-width:48px;background:linear-gradient(135deg,var(--brand-primary),var(--accent));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}.playbook-title-group{flex:1}.playbook-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}.playbook-problem{font-size:0.9rem;color:var(--slate)}.playbook-content{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:800px){.playbook-content{grid-template-columns:1fr}}.playbook-diy{background:var(--warm-white);border-radius:14px;padding:22px}.playbook-done-for-you{background:var(--brand-light);border-radius:14px;padding:22px;border:1px solid rgba(37,99,235,0.15)}.playbook-column-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}.playbook-steps{display:flex;flex-direction:column;gap:8px}.playbook-step{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:10px;line-height:1.5}.playbook-step-num{width:18px;height:18px;min-width:18px;background:var(--brand-light);color:var(--brand-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;margin-top:2px}.playbook-time{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--slate);display:flex;flex-direction:column;gap:4px}.playbook-dfy-list{list-style:none;padding:0;margin:0 0 14px 0}.playbook-dfy-list li{padding:6px 0;font-size:0.8rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px;line-height:1.4}.playbook-dfy-list li::before{content:"✓";color:var(--success);font-weight:700}.playbook-dfy-result{font-size:0.85rem;font-weight:600;color:var(--brand-primary);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .vision-box{background:linear-gradient(135deg,var(--ink),var(--brand-primary));border-radius:24px;padding:44px;color:white;text-align:center;margin:50px 0;position:relative;overflow:hidden}.vision-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.05) 0%,transparent 50%);pointer-events:none}.vision-credential{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:20px;line-height:1.7}.vision-quote{font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;margin-bottom:28px;position:relative}.vision-list{display:flex;flex-direction:column;gap:10px;max-width:500px;margin:0 auto;text-align:left}.vision-list-item{display:flex;align-items:center;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.9)}
+    .cta-section{background:var(--ink);border-radius:24px;padding:70px 50px;text-align:center;margin:80px 0;position:relative;overflow:hidden}.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(96,165,250,0.1) 0%,transparent 40%);pointer-events:none}.cta-urgency{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--danger);background:var(--white);display:inline-block;padding:14px 28px;border-radius:12px;margin-bottom:28px}.cta-title{font-family:'Fraunces',serif;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--white);margin-bottom:14px}.cta-subtitle{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:36px;max-width:550px;margin-left:auto;margin-right:auto}.cta-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:36px;text-align:left;max-width:650px;margin-left:auto;margin-right:auto}@media(max-width:700px){.cta-columns{grid-template-columns:1fr}}.cta-column{background:rgba(255,255,255,0.05);border-radius:16px;padding:22px;border:1px solid rgba(255,255,255,0.1)}.cta-column-title{font-weight:700;font-size:0.8rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}.cta-column-list{display:flex;flex-direction:column;gap:8px}.cta-column-item{font-size:0.9rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px}
+    .why-works{background:rgba(255,255,255,0.08);border-radius:16px;padding:28px;margin:36px 0;border:1px solid rgba(255,255,255,0.1)}.why-works-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--white);margin-bottom:20px}.why-works-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:600px){.why-works-grid{grid-template-columns:1fr}}.why-works-col-title{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}.why-works-col-list{display:flex;flex-direction:column;gap:8px}.why-works-col-item{font-size:0.9rem;color:rgba(255,255,255,0.85)}
+    .booking-widget-container{background:rgba(255,255,255,0.05);border-radius:20px;padding:32px;margin:32px 0;border:1px solid rgba(255,255,255,0.1)}
+    .cta-guarantee{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:24px}
+    .authority-flex{background:var(--warm-white);border-radius:12px;padding:18px 22px;font-size:0.85rem;color:var(--slate);font-style:italic;margin-top:24px;text-align:center}
+    .footer{text-align:center;padding:50px 0 30px;border-top:1px solid var(--border);margin-top:80px}.footer-brand{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:20px}.footer-logo{width:40px;height:40px;background:var(--brand-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;color:var(--white);font-weight:600}.footer-name{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink)}
+    .reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Ted Augustinos</div>
+        <div class="prepared-firm">Troutman Pepper Locke LLP</div>
+        <div class="prepared-date">February 2026</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-badge"><span class="hero-badge-dot"></span> Privacy &amp; Cybersecurity Practice</div>
+      <h1 class="hero-title"><em>$540K+/year</em> in new engagements. Sitting in search results you're not showing up for.</h1>
+      <p class="hero-subtitle">Chambers-ranked. CIPP-certified. Hartford managing partner. None of it matters when a CISO Googles "cybersecurity breach counsel" and BakerHostetler's paid ad loads first.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value danger">$45K</div>
+          <div class="hero-stat-label">Missed Opportunity / Mo</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value success">$32K</div>
+          <div class="hero-stat-label">Recoverable / Mo</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value gold">20</div>
+          <div class="hero-stat-label">State Privacy Laws Live</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" style="color:var(--brand-blue)">$248B</div>
+          <div class="hero-stat-label">Cyber Market 2026</div>
+        </div>
+      </div>
+      <p style="font-size:0.95rem;color:var(--slate);margin-top:32px;">This report shows you where. DIY playbook included — or we handle it.</p>
+      <div class="quick-cta">
+        <a class="quick-cta-btn primary" href="#calculator-section">→ See Your Numbers</a>
+        <a class="quick-cta-btn secondary" href="#cta-section">→ Book 15 Minutes</a>
+      </div>
+    </div>
+
+    <!-- OPPORTUNITY BOX -->
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Digital Visibility Gap</div>
+      <div class="opportunity-value">$540K+</div>
+      <div class="opportunity-context">In potential new engagements from GCs, CISOs, and compliance leaders who searched — and found someone else.</div>
+    </div>
+
+    <!-- GAP SUMMARY -->
+    <div class="gap-summary reveal">
+      <div class="gap-card">
+        <div class="gap-icon">🔍</div>
+        <div class="gap-title">Get Found</div>
+        <div class="gap-impact">$22K/mo</div>
+        <div class="gap-desc">No paid search or LinkedIn ads detected. Competitor firms are capturing high-intent decision-makers before they see Troutman's practice page.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">📡</div>
+        <div class="gap-title">Get Amplified</div>
+        <div class="gap-impact">$12K/mo</div>
+        <div class="gap-desc">Ted's Chambers ranking and thought leadership aren't being distributed to the right audiences at scale via LinkedIn or content syndication.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-icon">🔄</div>
+        <div class="gap-title">Get Engaged</div>
+        <div class="gap-impact">$11K/mo</div>
+        <div class="gap-desc">Webinar attendees, blog readers, and website visitors aren't being nurtured through automated follow-up sequences into conversations.</div>
+      </div>
+    </div>
+
+    <!-- STORY MINI -->
+    <div class="story-mini reveal">
+      <div class="story-mini-text">Tuesday, 2:14 AM. A Fortune 500 CISO discovers a breach. She Googles "cybersecurity breach response attorney." BakerHostetler's paid result appears first. She clicks. By 8 AM, they're engaged — and your Chambers ranking never entered the conversation.</div>
+      <div class="story-mini-outcome">This happens every week. The firms winning new business aren't always better — they're more visible at the moment of need.</div>
+    </div>
+
+    <!-- SPEED HIGHLIGHT -->
+    <div class="speed-highlight reveal">
+      <div class="speed-highlight-stat">72 hrs</div>
+      <div class="speed-highlight-text">That's the average decision window when a company experiences a data breach. The firm that shows up first in search — or already has a nurture relationship with the GC — wins the engagement. Visibility at the moment of crisis is everything.</div>
+    </div>
+
+    <!-- MARKET DATA -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Why Now</span>
+        <h2 class="section-title">The Privacy &amp; Cybersecurity Market Is Exploding</h2>
+      </div>
+      <div class="market-stats">
+        <div class="market-stat">
+          <div class="market-stat-value">$248B</div>
+          <div class="market-stat-label">Global Cyber Market 2026</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">20</div>
+          <div class="market-stat-label">State Privacy Laws Active</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">+34%</div>
+          <div class="market-stat-label">Vulnerability Exploits YoY</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">2x</div>
+          <div class="market-stat-label">Third-Party Breaches</div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--slate);max-width:650px;margin:24px auto 0;font-size:0.95rem;">Twenty states now enforce comprehensive consumer privacy laws. Data breach class actions are surviving motions to dismiss more frequently. Demand for privacy counsel has never been higher — and it's accelerating.</p>
+    </section>
+
+    <!-- COMPETITIVE TABLE -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">Competitive Landscape</span>
+        <h2 class="section-title">Who's Capturing Digital Demand</h2>
+        <p class="section-subtitle">A snapshot of digital visibility among top privacy &amp; cybersecurity practices.</p>
+      </div>
+      <table class="competitive-table">
+        <thead>
+          <tr>
+            <th>Digital Channel</th>
+            <th>BakerHostetler</th>
+            <th>Morrison Foerster</th>
+            <th>Troutman Pepper Locke</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Paid Search (Google Ads)</td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="check">✓ Active</span></td>
+            <td><span class="cross">✗ Not Detected</span></td>
+          </tr>
+          <tr>
+            <td>LinkedIn Sponsored Content</td>
+            <td><span class="check">✓ Consistent</span></td>
+            <td><span class="check">✓ Consistent</span></td>
+            <td><span class="partial">◐ Minimal</span></td>
+          </tr>
+          <tr>
+            <td>Dedicated Blog / Resource Hub</td>
+            <td><span class="check">✓ BakerHostetler Data Counsel</span></td>
+            <td><span class="check">✓ MoFo Privacy Blog</span></td>
+            <td><span class="check">✓ Privacy + Cyber + AI Blog</span></td>
+          </tr>
+          <tr>
+            <td>Content Distribution / Syndication</td>
+            <td><span class="check">✓ Multi-channel</span></td>
+            <td><span class="check">✓ Multi-channel</span></td>
+            <td><span class="partial">◐ Organic Only</span></td>
+          </tr>
+          <tr>
+            <td>Webinar Retargeting / Nurture</td>
+            <td><span class="check">✓ Automated</span></td>
+            <td><span class="check">✓ Automated</span></td>
+            <td><span class="cross">✗ Not Detected</span></td>
+          </tr>
+          <tr>
+            <td>SEO for Practice Area Pages</td>
+            <td><span class="check">✓ Optimized</span></td>
+            <td><span class="check">✓ Optimized</span></td>
+            <td><span class="partial">◐ Basic</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="insight-box">
+        <strong>What you have that they don't:</strong> Chambers Global 2026 ranking, CIPP certification, Hartford managing partner presence, and a deep bench across financial services, insurance, and healthcare. <strong>What they have that you don't:</strong> Paid digital visibility at the moment a GC or CISO is searching for counsel.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <div class="calculator-section reveal" id="calculator-section">
+      <div class="calc-header">
+        <span class="section-label">Your Numbers</span>
+        <h2 class="section-title">See the Math for Yourself</h2>
+        <p class="section-subtitle">Adjust the sliders to match your practice. Watch the revenue opportunity update in real time.</p>
+      </div>
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group">
+            <div class="calc-input-label">Monthly Website Visitors to Privacy Practice Page <span class="calc-input-value" id="visitorsValue">2,400</span></div>
+            <input type="range" class="calc-slider" id="visitors" min="500" max="10000" step="100" value="2400">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">Visitor-to-Inquiry Conversion Rate <span class="calc-input-value" id="conversionValue">0.8%</span></div>
+            <input type="range" class="calc-slider" id="conversion" min="2" max="50" step="1" value="8">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">Average Engagement Value <span class="calc-input-value" id="engagementValue">$150,000</span></div>
+            <input type="range" class="calc-slider" id="engagement" min="25000" max="500000" step="5000" value="150000">
+          </div>
+          <div class="calc-input-group">
+            <div class="calc-input-label">Pitch Win Rate <span class="calc-input-value" id="winRateValue">25%</span></div>
+            <input type="range" class="calc-slider" id="winRate" min="5" max="60" step="1" value="25">
+          </div>
+        </div>
+        <div class="calc-results">
+          <div class="calc-result-card">
+            <div class="calc-result-value danger" id="lostMonthly">$45,000</div>
+            <div class="calc-result-label">Currently Missing / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value success" id="recoverableMonthly">$32,400</div>
+            <div class="calc-result-label">Recoverable / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value" style="color:var(--brand-blue)" id="newEngagements">1.4</div>
+            <div class="calc-result-label">New Engagements / Month</div>
+          </div>
+          <div class="calc-total">
+            <div class="calc-total-value" id="annualOpportunity">$388,800</div>
+            <div class="calc-total-label">Annual Recovery Opportunity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICE TOGGLES -->
+      <div class="service-toggles">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:20px;">Service Levers — Toggle to See Impact</h3>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">Targeted Google Ads (GC/CISO Keywords)</div>
+            <div class="service-toggle-desc">Capture high-intent searches: "data breach attorney," "CCPA compliance counsel," "cybersecurity law firm"</div>
+          </div>
+          <div class="toggle-switch active" id="toggleAds" onclick="toggleService('ads')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">LinkedIn Thought Leadership Amplification</div>
+            <div class="service-toggle-desc">Promote Ted's insights, firm webinars, and practice alerts to targeted GC/CISO audiences</div>
+          </div>
+          <div class="toggle-switch active" id="toggleLinkedin" onclick="toggleService('linkedin')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">SEO &amp; Content Distribution</div>
+            <div class="service-toggle-desc">Optimize practice pages, syndicate blog content, improve organic rankings for key terms</div>
+          </div>
+          <div class="toggle-switch active" id="toggleSeo" onclick="toggleService('seo')"></div>
+        </div>
+        <div class="service-toggle">
+          <div class="service-toggle-info">
+            <div class="service-toggle-name">CRM &amp; Nurture Automation</div>
+            <div class="service-toggle-desc">Automated follow-up for webinar attendees, content readers, and website visitors</div>
+          </div>
+          <div class="toggle-switch active" id="toggleCrm" onclick="toggleService('crm')"></div>
+        </div>
+      </div>
+
+      <!-- MATH BREAKDOWN -->
+      <div class="math-section">
+        <div class="math-title">📊 How We Got Here — Full Math Breakdown</div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 1: Current Digital Baseline</div>
+          <div class="math-line"><span>Monthly visitors to Privacy + Cyber pages</span><span id="mathVisitors">2,400</span></div>
+          <div class="math-line"><span>× Current visitor-to-inquiry conversion</span><span id="mathConversion">× 0.8%</span></div>
+          <div class="math-line total"><span>Current monthly inquiries from digital</span><span id="mathInquiries">19.2</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 2: The Visibility Gap</div>
+          <div class="math-line"><span>Estimated searches you're not appearing for</span><span>~40%</span></div>
+          <div class="math-line"><span>Inquiries lost to competitors with paid visibility</span><span id="mathLostInquiries">7.7/mo</span></div>
+          <div class="math-line"><span>× Win rate × Average engagement value</span><span id="mathLostCalc">× 25% × $150K</span></div>
+          <div class="math-line loss"><span>Revenue walking past you monthly</span><span id="mathLostRevenue">$45,000</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 3: Recovery by Service</div>
+          <div class="math-line"><span>Google Ads (targeted GC/CISO terms)</span><span id="mathAds" class="result">+$14,400/mo</span></div>
+          <div class="math-line"><span>LinkedIn thought leadership amplification</span><span id="mathLinkedin" class="result">+$8,100/mo</span></div>
+          <div class="math-line"><span>SEO &amp; content distribution</span><span id="mathSeo" class="result">+$5,400/mo</span></div>
+          <div class="math-line"><span>CRM &amp; nurture automation</span><span id="mathCrm" class="result">+$4,500/mo</span></div>
+          <div class="math-line total"><span>Total Monthly Recovery</span><span id="mathTotalRecovery">$32,400</span></div>
+        </div>
+
+        <div class="math-step">
+          <div class="math-step-title">Step 4: Annual Impact</div>
+          <div class="math-line result"><span>Annual recovery opportunity</span><span id="mathAnnual">$388,800</span></div>
+          <div class="math-line"><span>New engagements per year</span><span id="mathNewEngagements">~17</span></div>
+        </div>
+      </div>
+
+      <div class="authority-flex">Projections based on B2B legal marketing benchmarks across professional services practices.</div>
+    </div>
+
+    <!-- DIGITAL VISIBILITY COMPARISON -->
+    <div class="ai-comparison reveal">
+      <div class="ai-comparison-title">Your Digital Visibility Options</div>
+      <div class="ai-comparison-grid">
+        <div class="ai-option voicemail">
+          <div class="ai-option-title">❌ Organic Only (Current)</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature"><span>❌</span> No paid capture of high-intent searches</div>
+            <div class="ai-option-feature"><span>❌</span> Thought leadership reaches existing network only</div>
+            <div class="ai-option-feature"><span>❌</span> Website visitors leave without nurture</div>
+            <div class="ai-option-feature"><span>❌</span> No retargeting of engaged prospects</div>
+            <div class="ai-option-feature"><span>❌</span> Competitor paid ads appear above organic results</div>
+            <div class="ai-option-feature"><span>⚠️</span> Relying solely on reputation and referrals</div>
+          </div>
+        </div>
+        <div class="ai-option answering">
+          <div class="ai-option-title">⚠️ Basic Digital Marketing</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature"><span>⚠️</span> Generic Google Ads — not targeted to decision-makers</div>
+            <div class="ai-option-feature"><span>⚠️</span> Occasional LinkedIn posts — no paid amplification</div>
+            <div class="ai-option-feature"><span>⚠️</span> Website live but not conversion-optimized</div>
+            <div class="ai-option-feature"><span>⚠️</span> Email newsletters but no behavioral triggers</div>
+            <div class="ai-option-feature"><span>⚠️</span> Content published but not syndicated</div>
+            <div class="ai-option-feature"><span>⚠️</span> Partial visibility — inconsistent results</div>
+          </div>
+        </div>
+        <div class="ai-option ai">
+          <div class="ai-option-title">✅ Full-Stack Visibility (Us)</div>
+          <div class="ai-option-features">
+            <div class="ai-option-feature"><span>✅</span> Precision Google Ads targeting GC/CISO searches</div>
+            <div class="ai-option-feature"><span>✅</span> LinkedIn amplification to 50K+ decision-makers</div>
+            <div class="ai-option-feature"><span>✅</span> SEO-optimized practice pages ranking for key terms</div>
+            <div class="ai-option-feature"><span>✅</span> Automated nurture for every content touchpoint</div>
+            <div class="ai-option-feature"><span>✅</span> Retargeting engaged visitors across channels</div>
+            <div class="ai-option-feature"><span>✅</span> Monthly reporting tied to pipeline, not vanity metrics</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYBOOK -->
+    <section class="reveal">
+      <div class="section-header">
+        <span class="section-label">The Playbook</span>
+        <h2 class="section-title">How to Close Each Gap (Step by Step)</h2>
+        <p class="section-subtitle">No gatekeeping. Here's exactly how to fix each gap yourself — or let us handle it.</p>
+      </div>
+
+      <!-- GAP 1: GET FOUND -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">01</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Found — Targeted Paid Visibility</div>
+            <div class="playbook-problem">The Problem: GCs and CISOs searching for privacy/cybersecurity counsel see competitor ads before your organic results.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div> Research GC/CISO-intent keywords: "data breach attorney," "CCPA compliance counsel," "cybersecurity law firm"</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div> Set up Google Ads with geographic and industry targeting for financial services, healthcare, insurance</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div> Create dedicated landing pages — not practice area pages — with clear CTAs for consultations</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div> Set up LinkedIn Sponsored Content targeting GC, CISO, CPO, DPO titles at mid-to-large enterprises</div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div> Monitor, A/B test, and refresh ad creative weekly — platforms penalize stale content</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 15-20 hours</span>
+              <span>🔄 Ongoing: 6-10 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Keyword research across 300+ B2B legal terms</li>
+              <li>Campaign architecture targeting decision-maker intent</li>
+              <li>Ad copywriting — 3-5 variations per group</li>
+              <li>Dedicated landing page design &amp; optimization</li>
+              <li>LinkedIn audience building (GC, CISO, CPO titles)</li>
+              <li>LinkedIn Sponsored Content creation &amp; management</li>
+              <li>Conversion tracking &amp; attribution setup</li>
+              <li>Weekly bid adjustments &amp; budget optimization</li>
+              <li>Fresh ad creative weekly (platforms reward this)</li>
+              <li>Competitor ad monitoring &amp; response</li>
+              <li>Monthly performance reporting</li>
+              <li>Quarterly strategy reviews</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve the budget and take the meetings. That's it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 2: GET AMPLIFIED -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">02</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Amplified — Thought Leadership at Scale</div>
+            <div class="playbook-problem">The Problem: Ted's Chambers ranking and insights reach existing connections but miss thousands of potential clients.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div> Develop a consistent LinkedIn publishing cadence — 2-3 posts/week on regulatory developments, breach trends, AI governance</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div> Repurpose webinar content into short-form posts, carousels, and article summaries</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div> Engage with GC/CISO content — comment thoughtfully on their posts to build visibility</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div> Set up a content syndication strategy — submit articles to JD Supra, Law360, Bloomberg Law</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 8-12 hours</span>
+              <span>🔄 Ongoing: 4-6 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>LinkedIn content strategy &amp; editorial calendar</li>
+              <li>Ghostwriting 2-3 posts/week in Ted's voice</li>
+              <li>Webinar-to-content repurposing pipeline</li>
+              <li>Paid amplification to targeted decision-makers</li>
+              <li>Engagement strategy &amp; community building</li>
+              <li>Article syndication to legal publications</li>
+              <li>Visual content design (carousels, infographics)</li>
+              <li>Performance tracking &amp; audience growth reporting</li>
+              <li>Competitor thought leadership monitoring</li>
+              <li>Quarterly content audits &amp; strategy refreshes</li>
+            </ul>
+            <div class="playbook-dfy-result">You share your expertise in a 15-minute call. We turn it into a month of content.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 3: GET CHOSEN -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">03</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Chosen — SEO &amp; Website Conversion</div>
+            <div class="playbook-problem">The Problem: Your Privacy + Cyber practice pages rank, but they're competing against optimized competitor pages for critical terms.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div> Audit practice area pages — optimize title tags, meta descriptions, and heading structure for key search terms</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div> Create dedicated landing pages for each sub-practice: incident response, CCPA compliance, AI governance, data privacy</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div> Add clear CTAs — "Schedule a Consultation" above the fold on every practice page</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div> Publish weekly content — blog posts, regulatory alerts, case studies targeting GC search queries</div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div> Monitor rankings weekly, update content monthly, conduct competitor analysis quarterly</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 20-30 hours</span>
+              <span>🔄 Ongoing: 6-10 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Technical SEO audit &amp; implementation</li>
+              <li>Practice page optimization for GC/CISO search terms</li>
+              <li>Dedicated sub-practice landing page creation</li>
+              <li>Conversion rate optimization (CTA placement, forms)</li>
+              <li>Weekly content publishing in Ted's area of expertise</li>
+              <li>Blog post &amp; regulatory alert creation</li>
+              <li>Google Business Profile optimization</li>
+              <li>Backlink building through legal publication outreach</li>
+              <li>Ranking monitoring &amp; competitor tracking</li>
+              <li>Monthly performance reports tied to pipeline</li>
+              <li>Quarterly competitive analysis &amp; strategy refresh</li>
+              <li>Schema markup for attorney profiles &amp; practice areas</li>
+            </ul>
+            <div class="playbook-dfy-result">Your pages climb while you advise on breaches. That's the division of labor.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 4: GET ENGAGED -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">04</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Engaged — CRM &amp; Nurture Automation</div>
+            <div class="playbook-problem">The Problem: Webinar attendees, blog readers, and website visitors engage once — then disappear without follow-up.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div> Implement a CRM or marketing automation platform (HubSpot, Salesforce Marketing Cloud)</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div> Build automated email sequences: webinar follow-up, content download nurture, re-engagement campaigns</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div> Set up lead scoring — prioritize engaged prospects showing buying signals</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div> Create retargeting audiences from website visitors and serve relevant content ads</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 15-25 hours</span>
+              <span>🔄 Ongoing: 4-6 hours/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>CRM setup &amp; configuration for legal BD</li>
+              <li>Automated webinar follow-up sequences</li>
+              <li>Content download nurture campaigns</li>
+              <li>Lead scoring model (engagement + firmographic data)</li>
+              <li>Retargeting pixel setup across Google &amp; LinkedIn</li>
+              <li>Behavioral trigger emails (page visits, downloads)</li>
+              <li>Pipeline reporting &amp; analytics dashboard</li>
+              <li>Dead lead reactivation campaigns</li>
+              <li>Monthly conversion analysis &amp; optimization</li>
+              <li>Quarterly sequence refinement &amp; A/B testing</li>
+              <li>Integration with firm BD tracking systems</li>
+            </ul>
+            <div class="playbook-dfy-result">You take the meetings. Prospects arrive already warmed up.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="authority-flex">These are the same B2B visibility frameworks we deploy across professional services practices. No secrets — just the reality of what consistent digital presence requires.</div>
+    </section>
+
+    <!-- VISION -->
+    <div class="vision-box reveal">
+      <div class="vision-credential">You've built a Chambers-ranked privacy &amp; cybersecurity practice at one of the country's largest firms. You lead the Hartford office. You're CIPP-certified. You co-chair the World Law Group's Data Protection group. We've spent a decade perfecting legal marketing.</div>
+      <div class="vision-quote">"You do what you're known for. We do what we're known for."</div>
+      <div class="vision-list">
+        <div class="vision-list-item">→ You won't manage Google Ads campaigns.</div>
+        <div class="vision-list-item">→ You won't write LinkedIn posts at midnight.</div>
+        <div class="vision-list-item">→ You won't obsess over SEO rankings.</div>
+        <div class="vision-list-item">→ You'll advise clients on breach response, CCPA compliance, and AI governance.</div>
+        <div class="vision-list-item">→ Your pipeline will grow. That's the partnership.</div>
+      </div>
+    </div>
+
+    <!-- CTA SECTION -->
+    <div class="cta-section reveal" id="cta-section">
+      <div class="cta-urgency" style="position:relative;z-index:1;">Revenue walking past you today: ~$1,500</div>
+      <h2 class="cta-title" style="position:relative;z-index:1;">15 Minutes. See If the Numbers Hold.</h2>
+      <p class="cta-subtitle" style="position:relative;z-index:1;">We'll walk through the gaps specific to Troutman Pepper Locke's privacy practice. No pitch — just math.</p>
+
+      <div class="cta-columns" style="position:relative;z-index:1;">
+        <div class="cta-column">
+          <div class="cta-column-title">What We Found</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">🔴 No paid search visibility detected</div>
+            <div class="cta-column-item">🔴 Thought leadership not amplified at scale</div>
+            <div class="cta-column-item">🔴 No nurture automation for engaged prospects</div>
+            <div class="cta-column-item">🟡 Practice page SEO has room to improve</div>
+          </div>
+        </div>
+        <div class="cta-column">
+          <div class="cta-column-title">What Changes</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">🟢 Visible when GCs/CISOs search for counsel</div>
+            <div class="cta-column-item">🟢 Ted's expertise reaches 50K+ decision-makers</div>
+            <div class="cta-column-item">🟢 Every touchpoint becomes a nurture opportunity</div>
+            <div class="cta-column-item">🟢 Practice pages rank for high-value terms</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-works" style="position:relative;z-index:1;">
+        <div class="why-works-title">Why This Works</div>
+        <div class="why-works-grid">
+          <div>
+            <div class="why-works-col-title">Ted Focuses On</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">→ Privacy &amp; cybersecurity advisory</div>
+              <div class="why-works-col-item">→ Client relationships</div>
+              <div class="why-works-col-item">→ Thought leadership</div>
+              <div class="why-works-col-item">→ Breach response &amp; compliance</div>
+            </div>
+          </div>
+          <div>
+            <div class="why-works-col-title">We Handle</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">→ Google Ads (GC/CISO targeting)</div>
+              <div class="why-works-col-item">→ LinkedIn amplification</div>
+              <div class="why-works-col-item">→ SEO &amp; content distribution</div>
+              <div class="why-works-col-item">→ CRM &amp; nurture automation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKING WIDGET -->
+      <div class="booking-widget-container" style="position:relative;z-index:1;">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:20px;color:var(--white);">Book Your Strategy Call — 15 Minutes</h3>
+        <iframe 
+          src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" 
+          style="width:100%;border:none;overflow:hidden;min-height:600px;border-radius:12px;" 
+          scrolling="no" 
+          id="mortarmetrics-booking-widget">
+        </iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:24px;">
+          No long-term contracts. Month-to-month. Results-focused.
+        </p>
+      </div>
+
+      <p class="cta-guarantee" style="position:relative;z-index:1;">We've helped professional services firms recover six figures in missed revenue — without adding a single hour to their workweek.</p>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color:var(--slate);font-size:0.85rem;">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color:var(--brand-blue);">mortarmetrics.com</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Scroll progress
+    window.addEventListener('scroll',()=>{const e=window.scrollY,t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('scrollIndicator').style.width=(e/t*100)+'%'});
+    // Reveal on scroll
+    const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add('visible')})},{threshold:0.1});document.querySelectorAll('.reveal').forEach(e=>observer.observe(e));
+
+    // Calculator Logic
+    const services={ads:true,linkedin:true,seo:true,crm:true};
+    const serviceWeights={ads:0.35,linkedin:0.25,seo:0.22,crm:0.18};
+
+    function toggleService(s){
+      services[s]=!services[s];
+      document.getElementById('toggle'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active');
+      updateCalculations();
+    }
+
+    function formatCurrency(n){
+      if(n>=1000000)return '$'+((n/1000000).toFixed(1))+'M';
+      if(n>=1000)return '$'+(Math.round(n)).toLocaleString();
+      return '$'+n.toFixed(0);
+    }
+
+    function updateCalculations(){
+      const visitors=parseInt(document.getElementById('visitors').value);
+      const conversion=parseInt(document.getElementById('conversion').value)/1000;
+      const engValue=parseInt(document.getElementById('engagement').value);
+      const winRate=parseInt(document.getElementById('winRate').value)/100;
+
+      // Display values
+      document.getElementById('visitorsValue').textContent=visitors.toLocaleString();
+      document.getElementById('conversionValue').textContent=(conversion*100).toFixed(1)+'%';
+      document.getElementById('engagementValue').textContent='$'+engValue.toLocaleString();
+      document.getElementById('winRateValue').textContent=Math.round(winRate*100)+'%';
+
+      // Current inquiries
+      const monthlyInquiries=visitors*conversion;
+      // Visibility gap (40% of potential inquiries lost due to no paid presence)
+      const gapPercent=0.40;
+      const lostInquiries=monthlyInquiries*gapPercent;
+      const lostRevenue=lostInquiries*winRate*engValue;
+
+      // Recovery by service
+      let totalWeight=0;
+      Object.keys(services).forEach(s=>{if(services[s])totalWeight+=serviceWeights[s]});
+      const recoveryRate=totalWeight/1.0*0.72; // 72% max recovery
+      const recoverable=lostRevenue*recoveryRate;
+      const newEngagements=recoverable/engValue;
+      const annualOpp=recoverable*12;
+
+      // Service-specific recovery
+      const adsRecovery=services.ads?(lostRevenue*serviceWeights.ads*0.72):0;
+      const linkedinRecovery=services.linkedin?(lostRevenue*serviceWeights.linkedin*0.72):0;
+      const seoRecovery=services.seo?(lostRevenue*serviceWeights.seo*0.72):0;
+      const crmRecovery=services.crm?(lostRevenue*serviceWeights.crm*0.72):0;
+      const actualRecoverable=adsRecovery+linkedinRecovery+seoRecovery+crmRecovery;
+
+      // Update results
+      document.getElementById('lostMonthly').textContent=formatCurrency(lostRevenue);
+      document.getElementById('recoverableMonthly').textContent=formatCurrency(actualRecoverable);
+      document.getElementById('newEngagements').textContent=(actualRecoverable/engValue).toFixed(1);
+      document.getElementById('annualOpportunity').textContent=formatCurrency(actualRecoverable*12);
+
+      // Update math
+      document.getElementById('mathVisitors').textContent=visitors.toLocaleString();
+      document.getElementById('mathConversion').textContent='× '+(conversion*100).toFixed(1)+'%';
+      document.getElementById('mathInquiries').textContent=monthlyInquiries.toFixed(1);
+      document.getElementById('mathLostInquiries').textContent=lostInquiries.toFixed(1)+'/mo';
+      document.getElementById('mathLostCalc').textContent='× '+Math.round(winRate*100)+'% × $'+engValue.toLocaleString();
+      document.getElementById('mathLostRevenue').textContent=formatCurrency(lostRevenue);
+      document.getElementById('mathAds').textContent=services.ads?('+'+formatCurrency(adsRecovery)+'/mo'):'$0 (off)';
+      document.getElementById('mathLinkedin').textContent=services.linkedin?('+'+formatCurrency(linkedinRecovery)+'/mo'):'$0 (off)';
+      document.getElementById('mathSeo').textContent=services.seo?('+'+formatCurrency(seoRecovery)+'/mo'):'$0 (off)';
+      document.getElementById('mathCrm').textContent=services.crm?('+'+formatCurrency(crmRecovery)+'/mo'):'$0 (off)';
+      document.getElementById('mathTotalRecovery').textContent=formatCurrency(actualRecoverable);
+      document.getElementById('mathAnnual').textContent=formatCurrency(actualRecoverable*12);
+      document.getElementById('mathNewEngagements').textContent='~'+Math.round(actualRecoverable*12/engValue);
+
+      // Color updates for service math
+      ['mathAds','mathLinkedin','mathSeo','mathCrm'].forEach(id=>{
+        const el=document.getElementById(id);
+        el.className=el.textContent.includes('(off)')?'loss':'result';
+      });
+    }
+
+    // Slider listeners
+    ['visitors','conversion','engagement','winRate'].forEach(id=>{
+      document.getElementById(id).addEventListener('input',updateCalculations);
+    });
+
+    // Initial calculation
+    updateCalculations();
+  </script>
+</body>
+</html>
