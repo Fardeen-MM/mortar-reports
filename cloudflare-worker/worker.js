@@ -1278,9 +1278,10 @@ IMPORTANT rules:
 - "STOP SPAMMING ME" = UNSUBSCRIBE, not INTERESTED
 - "Please remove [someone] from your list" = UNSUBSCRIBE, not QUESTION
 - Short angry messages like "stop", "no", "leave me alone" = UNSUBSCRIBE or NOT_INTERESTED
+- "I do not", "nope", "too busy", "I'm too busy" = NOT_INTERESTED, not INTERESTED
 - Auto-reply spam filter messages = IRRELEVANT, not QUESTION
 - Delivery failure notifications = IRRELEVANT, not INTERESTED
-- Only classify as INTERESTED if the person is genuinely expressing interest in learning more
+- Only classify as INTERESTED if the person is genuinely expressing interest in learning more. Any form of refusal, decline, or disinterest is NOT interested.
 
 If OOO: also extract the return date if mentioned (e.g. "back on January 15", "returning Monday the 20th", "out until Feb 3"). Convert to YYYY-MM-DD format. If no return date is mentioned, set return_date to null.
 
@@ -1374,14 +1375,15 @@ function classifyReplyFallback(text) {
     'i must pass', 'i\'ll pass', 'we don\'t market', 'we don\'t advertise',
     'we don\'t need', 'not for our firm', 'doesn\'t fit',
     'we rely on word of mouth', 'word of mouth', 'we are swamped',
-    'don\'t need marketing', 'don\'t need your'];
+    'don\'t need marketing', 'don\'t need your',
+    'too busy', 'i do not want', 'i do not need', 'i don\'t want', 'i don\'t need'];
   if (notIntPatterns.some(p => lower.includes(p))) {
     return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Not interested' };
   }
 
-  // Short "no" messages (1-2 words, just "no" or "no.")
-  if (/^\s*no[\s.!]*$/i.test(ownText)) {
-    return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'No' };
+  // Short refusal messages: "no", "no.", "I do not.", "I do not", "nope"
+  if (/^\s*(no|nope|i do not|i don't)[\s.!]*$/i.test(ownText)) {
+    return { category: 'NOT_INTERESTED', confidence: 0.8, summary: 'Short refusal' };
   }
 
   if (/out of (the )?office|auto[- ]?reply|on leave|on vacation|will return|i('m| am) away|normal working days|working days are/i.test(lower)) {
