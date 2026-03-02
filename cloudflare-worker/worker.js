@@ -1299,6 +1299,15 @@ Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary
     }
     const parsed = JSON.parse(result);
     if (parsed.category && ['INTERESTED','QUESTION','OBJECTION','NOT_INTERESTED','UNSUBSCRIBE','OOO','IRRELEVANT'].includes(parsed.category)) {
+      // Sanity check: if AI says INTERESTED but fallback detects a negative signal, trust the fallback
+      // This catches cases where AI misreads short "No." or "Stop" replies as interested
+      if (parsed.category === 'INTERESTED') {
+        const fallback = classifyReplyFallback(stripped);
+        if (['NOT_INTERESTED', 'UNSUBSCRIBE', 'IRRELEVANT'].includes(fallback.category) && fallback.confidence >= 0.8) {
+          console.warn(`AI said INTERESTED but fallback detected ${fallback.category} (${fallback.confidence}) — using fallback`);
+          return fallback;
+        }
+      }
       return parsed;
     }
     return classifyReplyFallback(stripped);
@@ -1314,8 +1323,8 @@ Respond with: {"category":"...","confidence":0.0-1.0,"summary":"one line summary
 function classifyReplyFallback(text) {
   const lower = text.toLowerCase();
 
-  // Extract just the lead's own text (before any quoted/forwarded content)
-  const ownText = lower.split(/\n\s*>|\n\s*-{3,}|\n\s*_{3,}|\nfrom:|on .+ wrote:/i)[0].trim();
+  // Extract just the lead's own text (before any quoted/forwarded/signature content)
+  const ownText = lower.split(/\n\s*>|\n\s*-{3,}|\n\s*_{3,}|\nfrom:|\non .+ wrote:|\nsincerely|\nregards|\nbest regards|\nsent from|\nget outlook|\n-- \n/i)[0].trim();
 
   // SYSTEM/BOUNCE emails — detect before anything else
   const systemPatterns = ['mail delivery failed', 'undeliverable', 'delivery status notification',
