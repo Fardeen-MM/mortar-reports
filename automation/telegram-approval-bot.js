@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { buildEmail } = require('./email-templates');
 const { buildDM, buildConnectionDM, generateConnectionDM } = require('./dm-templates');
+const { generateFullReply } = require('./ai-email-generator');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -90,7 +91,9 @@ if (isProsp) {
   }
   emailQC = { errors: [], warnings: [] }; // DMs are too short to need QC
 } else {
-  // Email preview for Instantly leads
+  // Email preview — use AI when lead has reply text, otherwise use template
+  // NOTE: AI preview is generated in the async block below (generateFullReply is async)
+  // For now, set a placeholder that the async block will replace
   emailPreview = buildEmail(
     approvalData.contact_name,
     approvalData.firm_name,
@@ -413,8 +416,51 @@ function sendTelegramMessage(text, replyMarkup) {
 // Send approval request
 (async () => {
   try {
-    // For connection_accept: AI-generate the DM before building message
+    // For leads with reply text (non-Prosp): AI-generate the email preview
     let finalMessage = message;
+    if (!isProsp && !isOOO && approvalData.reply_text) {
+      const apiKey = process.env.ANTHROPIC_API_KEY || '';
+      const classification = approvalData.classification || 'INTERESTED';
+      console.log(`🤖 Generating AI email preview for ${classification} reply...`);
+
+      const aiEmail = await generateFullReply(
+        apiKey,
+        approvalData.reply_text,
+        classification,
+        approvalData.contact_name,
+        approvalData.firm_name,
+        liveReportUrl,
+        approvalData.practice_label || '',
+        approvalData.total_range || '',
+        approvalData.country || ''
+      );
+
+      // Replace the template preview with AI-generated one
+      emailPreview = aiEmail;
+      console.log(`✅ AI email preview generated (${aiEmail.body.length} chars)`);
+
+      // Rebuild the message with the AI preview
+      finalMessage = `${headerEmoji} *REPORT READY FOR APPROVAL*${qcWarning}
+
+\ud83d\udcca *Firm:* ${escMd(displayName)}
+\ud83d\udc64 *Contact:* ${escMd(approvalData.contact_name)}
+\ud83d\udce7 *Email:* ${escMd(approvalData.lead_email)}${replySection}${campaignPhoneLine}${qcStatus}${aiVerdict}${leadIntelSection}
+${contextSection}
+\ud83d\udd17 *Review Report:*
+${escMd(approvalData.report_url)}
+
+\u23f0 *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
+
+\ud83d\udce7 *EMAIL PREVIEW:*
+\`\`\`
+${aiEmail.body}
+\`\`\`
+${emailQC.errors.length > 0 ? `\n\ud83d\udd34 *EMAIL QC ERRORS (will block send):*\n${emailQC.errors.map(e => `  - ${escMd(e)}`).join('\n')}\n` : ''}${emailQC.warnings.length > 0 ? `\n\ud83d\udfe1 *EMAIL QC WARNINGS:*\n${emailQC.warnings.map(w => `  - ${escMd(w)}`).join('\n')}\n` : ''}${emailQC.errors.length === 0 && emailQC.warnings.length === 0 ? '\u2705 Email QC passed' : ''}
+
+*Please review the report and email, then choose an action below:*`;
+    }
+
+    // For connection_accept: AI-generate the DM before building message
     if (isConnectionAccept && isProsp) {
       const apiKey = process.env.ANTHROPIC_API_KEY || '';
       console.log(`🤖 Generating AI connection DM...`);
