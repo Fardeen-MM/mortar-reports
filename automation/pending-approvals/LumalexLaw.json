@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-02T08:19:08.062Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/amanda-barton-a426a440",
   "prosp_sender": "https://www.linkedin.com/in/muntasir-choudhury-6026bb164",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Amanda, thanks for connecting. We helped a business law firm in Georgia uncover about $70k/mo in cases they were losing to other firms online, and ran the same audit on yours—found a similar gap of around $42-57.5k/mo. Already built the whole breakdown for you:\n\nhttps://reports.mortarmetrics.com/LumalexLaw/\n\nWant me to walk you through what's costing you those cases?",
+  "telegram_message_id": 389
 }
