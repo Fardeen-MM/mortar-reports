@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "269-276-8117",
   "created_at": "2026-03-03T17:47:10.688Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "2",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/rachel-j-foster-b23ab865",
   "prosp_sender": "https://www.linkedin.com/in/nafi-chaudhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Rachel, thanks for connecting.\n\nWe helped a business law firm in Tennessee find about $110k/mo in cases they were losing to other firms online, and I ran the same audit on yours and found a similar gap around $56.5K-77K/mo.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/WarnerNorcrossJudd/\n\nWant me to walk you through what's causing it and how to fix it?",
+  "telegram_message_id": 525
 }
