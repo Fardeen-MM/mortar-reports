@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Development Gap Analysis | Daniel Serota | Mayer Brown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--ink-soft:#1e293b;--slate:#475569;--slate-light:#64748b;--muted:#94a3b8;--border:#e2e8f0;--border-light:#f1f5f9;--warm-white:#f8fafc;--white:#fff;--brand-primary:#1e3a5f;--brand-blue:#2563eb;--brand-light:rgba(37,99,235,0.08);--accent:#3b82f6;--accent-light:#60a5fa;--success:#059669;--success-light:#d1fae5;--danger:#dc2626;--danger-light:#fef2f2;--gold:#f59e0b;--gold-light:#fef3c7;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:var(--warm-white);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:500}
+    .bg-grid{position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(37,99,235,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}.orbs{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:0}.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.1}.orb-1{width:600px;height:600px;left:-200px;top:-100px;background:var(--brand-blue)}.orb-2{width:400px;height:400px;right:-150px;bottom:10%;background:var(--accent)}.scroll-indicator{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand-blue),var(--accent));z-index:9999;width:0%}.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px}@media(max-width:600px){.container{padding:0 20px}}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:32px 0;border-bottom:1px solid var(--border);margin-bottom:50px;flex-wrap:wrap;gap:24px}.brand-mark{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;background:var(--brand-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:white;transition:all 0.4s var(--ease-out-expo)}.logo:hover{transform:scale(1.08) rotate(3deg);box-shadow:0 12px 40px rgba(37,99,235,0.3)}.brand-text{display:flex;flex-direction:column}.brand-name{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;color:var(--ink)}.brand-sub{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:2px;font-weight:600}.prepared-for{text-align:right}.prepared-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--slate-light);margin-bottom:6px;font-weight:500}.prepared-name{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);font-weight:500}.prepared-firm{font-size:0.9rem;color:var(--brand-blue);font-weight:500}.prepared-date{font-size:0.8rem;color:var(--slate-light);margin-top:6px}
+    .hero{text-align:center;padding:20px 0 50px}.hero-badge{display:inline-flex;align-items:center;gap:10px;padding:12px 26px;background:var(--white);border:1px solid var(--border);border-radius:100px;font-size:0.75rem;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}.hero-badge-dot{width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}.hero-title{font-size:clamp(2.2rem,5.5vw,3.6rem);font-weight:500;line-height:1.15;color:var(--ink);margin-bottom:26px}.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero-subtitle{font-size:1.1rem;color:var(--slate);max-width:720px;margin:0 auto 40px;line-height:1.75}.hero-subtitle strong{color:var(--ink);font-weight:600}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}@media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}.hero-stat{text-align:center;padding:24px 16px;background:var(--white);border:1px solid var(--border);border-radius:16px;transition:all 0.4s var(--ease-out-expo)}.hero-stat:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--accent)}.hero-stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600;line-height:1;margin-bottom:10px}.hero-stat-value.danger{color:var(--danger)}.hero-stat-value.success{color:var(--success)}.hero-stat-value.gold{color:var(--gold)}.hero-stat-value.blue{color:var(--brand-blue)}.hero-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+    .quick-cta{display:flex;justify-content:center;gap:16px;margin:32px 0;flex-wrap:wrap}.quick-cta-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;font-weight:600;font-size:0.95rem;text-decoration:none;transition:all 0.3s var(--ease-out-expo);cursor:pointer;border:none}.quick-cta-btn.primary{background:var(--ink);color:white}.quick-cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,0.2)}.quick-cta-btn.secondary{background:var(--white);color:var(--ink);border:2px solid var(--border)}.quick-cta-btn.secondary:hover{border-color:var(--accent);transform:translateY(-2px)}
+    section{padding:60px 0}.section-header{text-align:center;margin-bottom:40px}.section-label{display:inline-block;padding:10px 22px;background:var(--ink);color:var(--white);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-bottom:18px;font-weight:600}.section-title{font-size:clamp(1.6rem,4vw,2.2rem);color:var(--ink);margin-bottom:12px}.section-subtitle{font-size:1rem;color:var(--slate);max-width:600px;margin:0 auto;line-height:1.7}
+    .opportunity-box{background:linear-gradient(135deg,var(--success),#047857);border-radius:24px;padding:48px;text-align:center;margin:40px 0;position:relative;overflow:hidden}.opportunity-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.opportunity-label{font-size:0.85rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}.opportunity-value{font-family:'Fraunces',serif;font-size:clamp(3.5rem,10vw,6rem);font-weight:600;color:white;line-height:1;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,0.2)}.opportunity-context{font-size:1.2rem;color:rgba(255,255,255,0.9)}
+    .gap-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.gap-summary{grid-template-columns:1fr}}.gap-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.gap-card:hover{border-color:var(--danger);transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,0.06)}.gap-icon{font-size:2.5rem;margin-bottom:16px}.gap-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:8px}.gap-impact{font-size:1.4rem;font-weight:700;color:var(--danger);margin-bottom:8px}.gap-desc{font-size:0.85rem;color:var(--slate)}
+    .story-mini{background:var(--white);border-left:4px solid var(--danger);padding:24px 28px;margin:40px 0;border-radius:0 16px 16px 0}.story-mini-text{font-size:1.05rem;color:var(--ink);margin-bottom:8px}.story-mini-outcome{font-size:0.9rem;color:var(--slate);font-style:italic}
+    .speed-highlight{background:linear-gradient(135deg,var(--gold),#d97706);border-radius:20px;padding:32px;display:flex;align-items:center;gap:28px;margin:40px 0;color:white}@media(max-width:700px){.speed-highlight{flex-direction:column;text-align:center}}.speed-highlight-stat{font-family:'Fraunces',serif;font-size:3.5rem;font-weight:700;white-space:nowrap}.speed-highlight-text{font-size:1.05rem;line-height:1.6}
+    .market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}@media(max-width:768px){.market-stats{grid-template-columns:repeat(2,1fr)}}.market-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 16px;text-align:center}.market-stat-value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;color:var(--brand-blue);margin-bottom:6px}.market-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1px;font-weight:500}
+    .competitive-table{width:100%;border-collapse:collapse;margin:32px 0;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--border)}.competitive-table th{background:var(--ink);color:var(--white);padding:16px 18px;text-align:left;font-size:0.85rem;font-weight:600}.competitive-table td{padding:16px 18px;border-bottom:1px solid var(--border);font-size:0.9rem}.competitive-table tr:last-child td{border-bottom:none}.competitive-table tr:hover td{background:var(--warm-white)}.check{color:var(--success);font-weight:700}.cross{color:var(--danger);font-weight:700}.partial{color:var(--gold);font-weight:700}.insight-box{background:var(--warm-white);border-radius:16px;padding:24px;margin-top:24px;font-size:0.95rem;color:var(--ink);line-height:1.7}
+    .calculator-section{background:var(--white);border:2px solid var(--accent);border-radius:24px;padding:40px;margin:60px 0;box-shadow:0 20px 60px rgba(0,0,0,0.04)}@media(max-width:600px){.calculator-section{padding:28px 20px}}.calc-header{text-align:center;margin-bottom:40px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}@media(max-width:900px){.calc-grid{grid-template-columns:1fr}}.calc-inputs{display:flex;flex-direction:column;gap:24px}.calc-input-group{display:flex;flex-direction:column;gap:10px}.calc-input-label{font-size:0.85rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center}.calc-input-value{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--brand-blue);font-weight:600}.calc-slider{width:100%;height:8px;border-radius:4px;background:var(--border);-webkit-appearance:none;cursor:pointer}.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)}.calc-results{display:flex;flex-direction:column;gap:16px}.calc-result-card{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.calc-result-card:hover{border-color:var(--accent);transform:translateY(-3px)}.calc-result-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:600}.calc-result-value.danger{color:var(--danger)}.calc-result-value.success{color:var(--success)}.calc-result-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:6px}.calc-total{background:linear-gradient(135deg,var(--success),#047857);border-radius:18px;padding:28px;text-align:center;margin-top:8px}.calc-total-value{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:600;color:var(--white)}.calc-total-label{font-size:0.75rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+    .service-toggles{margin-top:36px;padding-top:36px;border-top:1px solid var(--border)}.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border-light)}.service-toggle:last-child{border-bottom:none}.service-toggle-info{display:flex;flex-direction:column;gap:4px}.service-toggle-name{font-weight:600;color:var(--ink);font-size:0.95rem}.service-toggle-desc{font-size:0.8rem;color:var(--slate)}.toggle-switch{position:relative;width:56px;height:30px;background:var(--border);border-radius:30px;cursor:pointer;transition:all 0.3s}.toggle-switch.active{background:var(--success)}.toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:white;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}.toggle-switch.active::after{left:29px}
+    .math-section{margin-top:40px;padding:32px;background:var(--warm-white);border-radius:16px;border:1px solid var(--border)}.math-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:24px;display:flex;align-items:center;gap:10px}.math-step{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}.math-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.math-step-title{font-weight:700;color:var(--brand-blue);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}.math-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.9rem}.math-line.total{font-weight:700;color:var(--ink);font-size:1rem;padding-top:12px;border-top:1px solid var(--border);margin-top:8px}.math-line.result{color:var(--success);font-weight:700}.math-line.loss{color:var(--danger)}
+    .ai-comparison{margin:50px 0;background:var(--white);border:2px solid var(--accent);border-radius:20px;padding:32px}.ai-comparison-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:24px;text-align:center}.ai-comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:800px){.ai-comparison-grid{grid-template-columns:1fr}}.ai-option{padding:24px;border-radius:16px;text-align:center}.ai-option.voicemail{background:var(--danger-light)}.ai-option.answering{background:var(--gold-light)}.ai-option.ai{background:var(--success-light);border:2px solid var(--success)}.ai-option-title{font-weight:700;font-size:0.95rem;margin-bottom:16px;color:var(--ink)}.ai-option-features{text-align:left;display:flex;flex-direction:column;gap:8px}.ai-option-feature{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:8px}
+    .playbook-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:28px;transition:all 0.4s var(--ease-out-expo)}.playbook-card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,0.06);border-color:var(--accent)}.playbook-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px}.playbook-number{width:48px;height:48px;min-width:48px;background:linear-gradient(135deg,var(--brand-primary),var(--accent));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}.playbook-title-group{flex:1}.playbook-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}.playbook-problem{font-size:0.9rem;color:var(--slate)}.playbook-content{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:800px){.playbook-content{grid-template-columns:1fr}}.playbook-diy{background:var(--warm-white);border-radius:14px;padding:22px}.playbook-done-for-you{background:var(--brand-light);border-radius:14px;padding:22px;border:1px solid rgba(37,99,235,0.15)}.playbook-column-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}.playbook-steps{display:flex;flex-direction:column;gap:8px}.playbook-step{font-size:0.8rem;color:var(--slate);display:flex;align-items:flex-start;gap:10px;line-height:1.5}.playbook-step-num{width:18px;height:18px;min-width:18px;background:var(--brand-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;margin-top:2px}.playbook-time{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--slate);display:flex;flex-direction:column;gap:4px}.playbook-dfy-list{list-style:none;padding:0;margin:0 0 14px 0}.playbook-dfy-list li{padding:6px 0;font-size:0.8rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px;line-height:1.4}.playbook-dfy-list li::before{content:"✓";color:var(--success);font-weight:700}.playbook-dfy-result{font-size:0.85rem;font-weight:600;color:var(--brand-primary);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .vision-box{background:linear-gradient(135deg,var(--ink),var(--brand-primary));border-radius:24px;padding:44px;color:white;text-align:center;margin:50px 0;position:relative;overflow:hidden}.vision-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.05) 0%,transparent 50%);pointer-events:none}.vision-credential{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:20px;line-height:1.7}.vision-quote{font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;margin-bottom:28px;position:relative}.vision-list{display:flex;flex-direction:column;gap:10px;max-width:500px;margin:0 auto;text-align:left}.vision-list-item{display:flex;align-items:center;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.9)}
+    .cta-section{background:var(--ink);border-radius:24px;padding:60px 44px;text-align:center;margin:60px 0;position:relative;overflow:hidden}.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(96,165,250,0.1) 0%,transparent 40%);pointer-events:none}.cta-urgency{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--danger);background:var(--white);display:inline-block;padding:14px 28px;border-radius:12px;margin-bottom:28px}.cta-title{font-family:'Fraunces',serif;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--white);margin-bottom:14px}.cta-subtitle{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:36px;max-width:550px;margin-left:auto;margin-right:auto}.cta-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:36px;text-align:left;max-width:650px;margin-left:auto;margin-right:auto}@media(max-width:700px){.cta-columns{grid-template-columns:1fr}}.cta-column{background:rgba(255,255,255,0.05);border-radius:16px;padding:22px;border:1px solid rgba(255,255,255,0.1)}.cta-column-title{font-weight:700;font-size:0.8rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}.cta-column-list{display:flex;flex-direction:column;gap:8px}.cta-column-item{font-size:0.9rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px}
+    .why-works{background:rgba(255,255,255,0.08);border-radius:16px;padding:28px;margin:36px 0;border:1px solid rgba(255,255,255,0.1)}.why-works-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--white);margin-bottom:20px}.why-works-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:600px){.why-works-grid{grid-template-columns:1fr}}.why-works-col-title{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}.why-works-col-list{display:flex;flex-direction:column;gap:8px}.why-works-col-item{font-size:0.9rem;color:rgba(255,255,255,0.85)}
+    .booking-widget-container{background:rgba(255,255,255,0.05);border-radius:20px;padding:28px;margin:28px 0;border:1px solid rgba(255,255,255,0.1)}.cta-guarantee{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:24px}
+    .authority-flex{background:var(--warm-white);border-radius:12px;padding:18px 22px;font-size:0.85rem;color:var(--slate);font-style:italic;margin-top:24px;text-align:center}
+    .footer{text-align:center;padding:40px 0 24px;border-top:1px solid var(--border);margin-top:60px}.footer-brand{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:16px}.footer-logo{width:40px;height:40px;background:var(--brand-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;color:var(--white);font-weight:600}.footer-name{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink)}
+    .reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+    .context-text{font-size:0.95rem;color:var(--slate);line-height:1.7;max-width:700px;margin:0 auto 20px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="container">
+
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Client Development Analysis For</div>
+        <div class="prepared-name">Daniel Serota</div>
+        <div class="prepared-firm">Mayer Brown LLP</div>
+        <div class="prepared-date">March 2026</div>
+      </div>
+    </header>
+
+    <div class="hero reveal">
+      <div class="hero-badge"><div class="hero-badge-dot"></div> Financial Services M&A</div>
+      <h1 class="hero-title"><em>$1.2M–$3.6M/year</em> in deal fees your competitors are winning on visibility alone.</h1>
+      <p class="hero-subtitle">Columbia Law. NYT "Next Generation of Dealmakers." Global Co-Head of Financial Services M&A. Amazon's outside M&A counsel for a decade. <strong>None of it registers when PE sponsors build their shortlist on LinkedIn at 7 AM.</strong></p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-value danger">$0</div><div class="hero-stat-label">LinkedIn Thought Leadership</div></div>
+        <div class="hero-stat"><div class="hero-stat-value success">$2.3T</div><div class="hero-stat-label">US M&A Volume 2025</div></div>
+        <div class="hero-stat"><div class="hero-stat-value gold">86%</div><div class="hero-stat-label">GCs Swayed by Content</div></div>
+        <div class="hero-stat"><div class="hero-stat-value blue">$3.2T</div><div class="hero-stat-label">PE Dry Powder</div></div>
+      </div>
+      <div class="quick-cta">
+        <a class="quick-cta-btn primary" href="#calculator">→ See Your Numbers</a>
+        <a class="quick-cta-btn secondary" href="#playbook">→ See the Playbook</a>
+      </div>
+    </div>
+
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Revenue Opportunity From Enhanced Visibility</div>
+      <div class="opportunity-value">$1.2M+</div>
+      <div class="opportunity-context">The fee value of 2–3 additional deal mandates per year that digital positioning would generate.</div>
+    </div>
+
+    <div class="gap-summary reveal">
+      <div class="gap-card"><div class="gap-icon">📡</div><div class="gap-title">Be Discoverable</div><div class="gap-impact">Invisible</div><div class="gap-desc">No LinkedIn thought leadership. GCs and PE deal teams can't find Daniel between referrals.</div></div>
+      <div class="gap-card"><div class="gap-icon">🎯</div><div class="gap-title">Be Top of Mind</div><div class="gap-impact">Silent</div><div class="gap-desc">Deal announcements and market insights aren't being amplified to people who hire outside counsel.</div></div>
+      <div class="gap-card"><div class="gap-icon">🔗</div><div class="gap-title">Be Chosen</div><div class="gap-impact">Reactive</div><div class="gap-desc">Without a content footprint, Daniel waits for referrals instead of generating inbound conversations.</div></div>
+    </div>
+
+    <div class="story-mini reveal">
+      <div class="story-mini-text">Tuesday, 7 AM. A PE fund's managing director opens LinkedIn before a partner meeting. They need outside counsel for a $2B financial services platform acquisition. A Kirkland partner's post on earnout mechanics in FinServ deals has 4,200 impressions. Daniel's feed is empty. Kirkland gets the call.</div>
+      <div class="story-mini-outcome">This happens every week. The mandate doesn't go to the best lawyer — it goes to the one who showed up.</div>
+    </div>
+
+    <div class="speed-highlight reveal">
+      <div class="speed-highlight-stat">86%</div>
+      <div class="speed-highlight-text">of B2B decision-makers say they're more likely to invite a firm to bid on a project if that firm consistently produces high-quality thought leadership. In BigLaw, that's the difference between making the shortlist and being an afterthought. <span style="opacity:0.8;font-size:0.85rem;">(2025 Edelman-LinkedIn B2B Report)</span></div>
+    </div>
+
+    <section class="reveal">
+      <div class="section-header">
+        <div class="section-label">The Market</div>
+        <h2 class="section-title">The M&A Market Is on Fire. Who Captures It?</h2>
+      </div>
+      <div class="market-stats">
+        <div class="market-stat"><div class="market-stat-value">$2.3T</div><div class="market-stat-label">US Deal Volume 2025</div></div>
+        <div class="market-stat"><div class="market-stat-value">+49%</div><div class="market-stat-label">YoY Increase</div></div>
+        <div class="market-stat"><div class="market-stat-value">$3.2T</div><div class="market-stat-label">PE Dry Powder</div></div>
+        <div class="market-stat"><div class="market-stat-value">+111%</div><div class="market-stat-label">$100M+ Deal Value Growth</div></div>
+      </div>
+      <p class="context-text">US M&A hit $2.3 trillion in 2025. PE firms are sitting on record dry powder. Financial services deal value surged 25% globally. The mandates are flowing — the partners who capture them are the ones who are visible when it matters.</p>
+    </section>
+
+    <section class="reveal">
+      <div class="section-header">
+        <div class="section-label">Competitive Reality</div>
+        <h2 class="section-title">Who's Showing Up When Deal Teams Search</h2>
+      </div>
+      <table class="competitive-table">
+        <thead><tr><th>Visibility Factor</th><th>Kirkland Partners</th><th>Paul Weiss Partners</th><th>You (Daniel)</th></tr></thead>
+        <tbody>
+          <tr><td>Regular LinkedIn Posts</td><td><span class="check">✓ Weekly</span></td><td><span class="check">✓ Weekly</span></td><td><span class="cross">✗ None</span></td></tr>
+          <tr><td>Deal Announcement Amplification</td><td><span class="check">✓ Firm + Partner</span></td><td><span class="check">✓ Firm + Partner</span></td><td><span class="partial">◐ Firm Only</span></td></tr>
+          <tr><td>Thought Leadership Content</td><td><span class="check">✓ Active</span></td><td><span class="check">✓ Active</span></td><td><span class="cross">✗ Last pub: 2024</span></td></tr>
+          <tr><td>Firm LinkedIn Following</td><td><span class="check">✓ 147K+</span></td><td><span class="check">✓ 90K+</span></td><td><span class="partial">◐ Growing</span></td></tr>
+          <tr><td>Personal Brand Beyond Firm Bio</td><td><span class="check">✓ Strong</span></td><td><span class="check">✓ Strong</span></td><td><span class="cross">✗ Firm Bio Only</span></td></tr>
+          <tr><td>GC/PE Targeted Content</td><td><span class="check">✓ Consistent</span></td><td><span class="check">✓ Consistent</span></td><td><span class="cross">✗ None</span></td></tr>
+        </tbody>
+      </table>
+      <div class="insight-box">
+        <strong>What you have that they don't:</strong> Two decades of FinServ M&A depth. A client list that includes Amazon, Apollo, and Athene. Global Co-Head at a $2B firm. NYT featured dealmaker.<br><br>
+        <strong>What they have that you don't:</strong> Digital visibility. When a PE fund associate researches "financial services M&A counsel," your competitors' thought leadership shows up. You don't. They're not better dealmakers — they just show up first.
+      </div>
+    </section>
+
+    <div class="calculator-section reveal" id="calculator">
+      <div class="calc-header">
+        <div class="section-label">Your Numbers</div>
+        <h2 class="section-title">The Deal Mandate Math</h2>
+        <p class="section-subtitle" style="margin-top:12px;">Adjust the sliders to match your practice. See what enhanced visibility is worth.</p>
+      </div>
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group"><div class="calc-input-label"><span>Average Fee Per Deal Mandate</span><span class="calc-input-value" id="feeDisplay">$600K</span></div><input type="range" class="calc-slider" id="feeSlider" min="200000" max="2000000" value="600000" step="50000"></div>
+          <div class="calc-input-group"><div class="calc-input-label"><span>Current Mandates Per Year</span><span class="calc-input-value" id="currentDisplay">8</span></div><input type="range" class="calc-slider" id="currentSlider" min="3" max="20" value="8" step="1"></div>
+          <div class="calc-input-group"><div class="calc-input-label"><span>Additional Shortlist Appearances From Visibility</span><span class="calc-input-value" id="additionalDisplay">3</span></div><input type="range" class="calc-slider" id="additionalSlider" min="1" max="8" value="3" step="1"></div>
+          <div class="calc-input-group"><div class="calc-input-label"><span>Mandate Win Rate on Inbound</span><span class="calc-input-value" id="winrateDisplay">40%</span></div><input type="range" class="calc-slider" id="winrateSlider" min="15" max="60" value="40" step="5"></div>
+        </div>
+        <div class="calc-results">
+          <div class="calc-result-card"><div class="calc-result-value danger" id="currentRevenue">$4.8M</div><div class="calc-result-label">Current Annual Fee Revenue</div></div>
+          <div class="calc-result-card"><div class="calc-result-value success" id="additionalRevenue">$720K</div><div class="calc-result-label">Additional Revenue From Visibility</div></div>
+          <div class="calc-result-card"><div class="calc-result-value" style="color:var(--gold)" id="newMandates">1.2</div><div class="calc-result-label">New Won Mandates / Year</div></div>
+          <div class="calc-total"><div class="calc-total-value" id="totalOpportunity">$720K</div><div class="calc-total-label">Annual Opportunity From Enhanced Visibility</div></div>
+        </div>
+      </div>
+
+      <div class="service-toggles">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:20px;">Visibility Channels</h3>
+        <div class="service-toggle"><div class="service-toggle-info"><div class="service-toggle-name">LinkedIn Thought Leadership</div><div class="service-toggle-desc">Weekly posts on deal trends, regulatory insights, market analysis</div></div><div class="toggle-switch active" id="toggleLinkedin" onclick="toggleService('linkedin')"></div></div>
+        <div class="service-toggle"><div class="service-toggle-info"><div class="service-toggle-name">Deal Announcement Amplification</div><div class="service-toggle-desc">Strategic content around every closed deal and firm win</div></div><div class="toggle-switch active" id="toggleDeals" onclick="toggleService('deals')"></div></div>
+        <div class="service-toggle"><div class="service-toggle-info"><div class="service-toggle-name">GC & PE Targeted Outreach</div><div class="service-toggle-desc">Content distribution to in-house counsel and PE deal teams</div></div><div class="toggle-switch active" id="toggleTargeted" onclick="toggleService('targeted')"></div></div>
+        <div class="service-toggle"><div class="service-toggle-info"><div class="service-toggle-name">Personal Brand Architecture</div><div class="service-toggle-desc">LinkedIn profile optimization, speaking placement, media positioning</div></div><div class="toggle-switch active" id="toggleBrand" onclick="toggleService('brand')"></div></div>
+      </div>
+
+      <div class="math-section">
+        <div class="math-title">📊 How We Got These Numbers</div>
+        <div class="math-step"><div class="math-step-title">Step 1: The Visibility Gap</div><div class="math-line"><span>Competing partners with active LinkedIn presence</span><span>Weekly posts</span></div><div class="math-line"><span>Your current LinkedIn thought leadership</span><span>None</span></div><div class="math-line"><span>Decision-makers influenced by thought leadership</span><span>86%</span></div><div class="math-line loss"><span>= Shortlists you're not on</span><span>Every week</span></div></div>
+        <div class="math-step"><div class="math-step-title">Step 2: The Mandate Pipeline</div><div class="math-line"><span>Additional shortlist appearances from visibility</span><span id="mathAdditional">3/year</span></div><div class="math-line"><span>× Win rate on visibility-driven mandates</span><span id="mathWinrate">× 40%</span></div><div class="math-line total"><span>= New mandates won per year</span><span id="mathWon">1.2</span></div></div>
+        <div class="math-step"><div class="math-step-title">Step 3: Revenue Impact</div><div class="math-line"><span>New mandates won</span><span id="mathWon2">1.2</span></div><div class="math-line"><span>× Average fee per mandate</span><span id="mathFee">× $600K</span></div><div class="math-line result"><span>= Additional annual revenue</span><span id="mathRevenue">$720K</span></div></div>
+      </div>
+      <div class="authority-flex">Based on engagement benchmarks from partners at Am Law 50 firms who actively publish thought leadership on LinkedIn.</div>
+    </div>
+
+    <div class="ai-comparison reveal">
+      <div class="ai-comparison-title">Your Visibility Options</div>
+      <div class="ai-comparison-grid">
+        <div class="ai-option voicemail"><div class="ai-option-title">❌ Current State (Passive)</div><div class="ai-option-features"><div class="ai-option-feature">❌ No LinkedIn content strategy</div><div class="ai-option-feature">❌ Rely entirely on referrals</div><div class="ai-option-feature">❌ Deal wins go unannounced</div><div class="ai-option-feature">❌ Invisible between engagements</div><div class="ai-option-feature">❌ Competitors fill the vacuum</div></div></div>
+        <div class="ai-option answering"><div class="ai-option-title">⚠️ DIY (When You Remember)</div><div class="ai-option-features"><div class="ai-option-feature">⚠️ Occasional LinkedIn post</div><div class="ai-option-feature">⚠️ Inconsistent — gaps kill momentum</div><div class="ai-option-feature">⚠️ No distribution strategy</div><div class="ai-option-feature">⚠️ Time-consuming for a partner</div><div class="ai-option-feature">⚠️ Quality varies week to week</div></div></div>
+        <div class="ai-option ai"><div class="ai-option-title">✅ Strategic Visibility (Us)</div><div class="ai-option-features"><div class="ai-option-feature">✅ Weekly thought leadership — your voice, our execution</div><div class="ai-option-feature">✅ Deal announcement amplification</div><div class="ai-option-feature">✅ Targeted distribution to GC/PE networks</div><div class="ai-option-feature">✅ LinkedIn profile optimization</div><div class="ai-option-feature">✅ Speaking & media placement</div><div class="ai-option-feature">✅ Analytics on who's engaging</div><div class="ai-option-feature">✅ 30 minutes/week of your time — max</div></div></div>
+      </div>
+    </div>
+
+    <section class="reveal" id="playbook">
+      <div class="section-header">
+        <div class="section-label">The Playbook</div>
+        <h2 class="section-title">How to Close Each Gap (Step by Step)</h2>
+        <p class="section-subtitle">Here's exactly how to build partner-level visibility. No gatekeeping. Fair warning: consistency is everything.</p>
+      </div>
+
+      <div class="playbook-card reveal">
+        <div class="playbook-header"><div class="playbook-number">01</div><div class="playbook-title-group"><div class="playbook-title">Be Discoverable — LinkedIn Thought Leadership</div><div class="playbook-problem">The Problem: GCs and PE deal teams can't find you between referrals. Your competitors post weekly — you don't.</div></div></div>
+        <div class="playbook-content">
+          <div class="playbook-diy"><div class="playbook-column-title">🛠️ DIY Fix</div><div class="playbook-steps"><div class="playbook-step"><div class="playbook-step-num">1</div><span>Identify 4–5 content pillars (FinServ M&A trends, FinTech regulatory shifts, PE deal structuring, distressed M&A, cross-border)</span></div><div class="playbook-step"><div class="playbook-step-num">2</div><span>Write 1–2 LinkedIn posts per week — 150–300 words sharing deal insights or market takes</span></div><div class="playbook-step"><div class="playbook-step-num">3</div><span>Comment on 3–5 posts daily from GCs, PE professionals, and industry contacts</span></div><div class="playbook-step"><div class="playbook-step-num">4</div><span>Repurpose your FinTech M&A publication series into LinkedIn-native content</span></div><div class="playbook-step"><div class="playbook-step-num">5</div><span>Track engagement weekly — adjust topics based on what resonates</span></div></div><div class="playbook-time"><span>⏱️ Setup: 5–8 hours</span><span>🔄 Ongoing: 4–6 hours/week FOREVER</span></div></div>
+          <div class="playbook-done-for-you"><div class="playbook-column-title">✨ We Handle All of This:</div><ul class="playbook-dfy-list"><li>Content strategy aligned to your FinServ M&A practice</li><li>Weekly post drafting in your voice — you approve in 5 minutes</li><li>Content pillar development (FinServ M&A, FinTech regulatory, PE trends)</li><li>Engagement strategy — who to comment on, what to say</li><li>Repurposing your publications for LinkedIn</li><li>Hashtag and timing optimization</li><li>Monthly analytics on impressions and profile views</li><li>Quarterly content strategy refresh</li><li>Competitor content monitoring</li></ul><div class="playbook-dfy-result">You spend 30 minutes a week reviewing drafts. We handle everything else.</div></div>
+        </div>
+      </div>
+
+      <div class="playbook-card reveal">
+        <div class="playbook-header"><div class="playbook-number">02</div><div class="playbook-title-group"><div class="playbook-title">Be Top of Mind — Deal Announcement Amplification</div><div class="playbook-problem">The Problem: You close significant deals but the wins aren't amplified beyond a firm press release.</div></div></div>
+        <div class="playbook-content">
+          <div class="playbook-diy"><div class="playbook-column-title">🛠️ DIY Fix</div><div class="playbook-steps"><div class="playbook-step"><div class="playbook-step-num">1</div><span>After every deal close, write a LinkedIn post within 48 hours with the strategic angle</span></div><div class="playbook-step"><div class="playbook-step-num">2</div><span>Tag relevant parties where appropriate</span></div><div class="playbook-step"><div class="playbook-step-num">3</div><span>Follow up with a "lessons learned" trend piece 1–2 weeks later</span></div><div class="playbook-step"><div class="playbook-step-num">4</div><span>Pitch commentary to Law360, Bloomberg Law, or The Deal</span></div></div><div class="playbook-time"><span>⏱️ Setup: 3–4 hours</span><span>🔄 Ongoing: 2–3 hours per deal close</span></div></div>
+          <div class="playbook-done-for-you"><div class="playbook-column-title">✨ We Handle All of This:</div><ul class="playbook-dfy-list"><li>Deal close announcement drafting (LinkedIn + broader distribution)</li><li>Strategic framing — "here's what this means for the market"</li><li>Media pitch development for Bloomberg Law, Law360, The Deal</li><li>Follow-up thought leadership tied to deal themes</li><li>Cross-platform amplification</li><li>Media mention tracking</li><li>Quarterly deal highlight compilations</li></ul><div class="playbook-dfy-result">You close the deal. We make sure the right people know about it.</div></div>
+        </div>
+      </div>
+
+      <div class="playbook-card reveal">
+        <div class="playbook-header"><div class="playbook-number">03</div><div class="playbook-title-group"><div class="playbook-title">Be Chosen — GC & PE Targeted Positioning</div><div class="playbook-problem">The Problem: Content isn't reaching the people who hire outside M&A counsel — GCs and PE fund operators.</div></div></div>
+        <div class="playbook-content">
+          <div class="playbook-diy"><div class="playbook-column-title">🛠️ DIY Fix</div><div class="playbook-steps"><div class="playbook-step"><div class="playbook-step-num">1</div><span>Build a target list of 200–500 GCs and PE MDs in FinServ, tech, healthcare, telecom</span></div><div class="playbook-step"><div class="playbook-step-num">2</div><span>Connect with 10–15 new targets on LinkedIn per week</span></div><div class="playbook-step"><div class="playbook-step-num">3</div><span>Engage with their content — thoughtful comments, not "Great post!"</span></div><div class="playbook-step"><div class="playbook-step-num">4</div><span>Host quarterly virtual roundtables on deal trends</span></div><div class="playbook-step"><div class="playbook-step-num">5</div><span>Pursue speaking at PE conferences (SuperReturn, ILPA, PEI)</span></div></div><div class="playbook-time"><span>⏱️ Setup: 10–15 hours</span><span>🔄 Ongoing: 3–5 hours/week FOREVER</span></div></div>
+          <div class="playbook-done-for-you"><div class="playbook-column-title">✨ We Handle All of This:</div><ul class="playbook-dfy-list"><li>Target audience identification (GCs, PE MDs in your verticals)</li><li>LinkedIn connection campaigns with personalized outreach</li><li>Engagement strategy in your voice</li><li>Speaking opportunity identification and pitch</li><li>Conference targeting aligned to your practice</li><li>Virtual roundtable logistics and promotion</li><li>Relationship tracking — who's warming up</li><li>Warm introduction facilitation through content</li><li>Quarterly pipeline review</li></ul><div class="playbook-dfy-result">You attend the meetings. We fill the pipeline.</div></div>
+        </div>
+      </div>
+
+      <div class="playbook-card reveal">
+        <div class="playbook-header"><div class="playbook-number">04</div><div class="playbook-title-group"><div class="playbook-title">Own Your Brand — Personal Brand Architecture</div><div class="playbook-problem">The Problem: Your online presence is a firm bio. When someone researches "financial services M&A attorney," you don't control the narrative.</div></div></div>
+        <div class="playbook-content">
+          <div class="playbook-diy"><div class="playbook-column-title">🛠️ DIY Fix</div><div class="playbook-steps"><div class="playbook-step"><div class="playbook-step-num">1</div><span>Rewrite LinkedIn headline — not just title, but a value proposition</span></div><div class="playbook-step"><div class="playbook-step-num">2</div><span>Expand About section from bio to narrative</span></div><div class="playbook-step"><div class="playbook-step-num">3</div><span>Request 10+ recommendations from clients and co-counsel</span></div><div class="playbook-step"><div class="playbook-step-num">4</div><span>Curate Featured section with best content</span></div></div><div class="playbook-time"><span>⏱️ Setup: 4–6 hours</span><span>🔄 Ongoing: 1 hour/month</span></div></div>
+          <div class="playbook-done-for-you"><div class="playbook-column-title">✨ We Handle All of This:</div><ul class="playbook-dfy-list"><li>Full LinkedIn profile rewrite — headline, about, experience</li><li>Professional banner design</li><li>Recommendation request strategy</li><li>SEO optimization for key search terms</li><li>Cross-platform consistency audit</li><li>Ongoing profile updates</li><li>Featured section curation</li><li>Media and awards submission support</li></ul><div class="playbook-dfy-result">Your LinkedIn becomes a client development asset, not a digital resume.</div></div>
+        </div>
+      </div>
+
+      <div class="authority-flex">These are the same frameworks we use with partners at Am Law 100 firms. No secrets, no gatekeeping — just the reality of what modern client development requires.</div>
+    </section>
+
+    <div class="vision-box reveal">
+      <div class="vision-credential">You spent 20+ years advising Fortune 500 companies and PE funds on their most complex transactions. You graduated from Columbia Law. You co-led Amazon's outside M&A counsel relationship for over a decade.</div>
+      <div class="vision-quote">"You close the deals. We make sure the right people know."</div>
+      <div class="vision-list">
+        <div class="vision-list-item">→ You won't write LinkedIn posts.</div>
+        <div class="vision-list-item">→ You won't build target lists of GCs.</div>
+        <div class="vision-list-item">→ You won't pitch speaking engagements.</div>
+        <div class="vision-list-item">→ You won't track engagement metrics.</div>
+        <div class="vision-list-item" style="color:white;font-weight:600;margin-top:8px;">You'll practice law. Your pipeline will grow. That's the partnership.</div>
+      </div>
+    </div>
+
+    <div class="cta-section reveal">
+      <div class="cta-urgency" id="dailyUrgency">$3,300/day in deal fees going to more visible competitors</div>
+      <h2 class="cta-title">15 Minutes. No Pitch. Just Data.</h2>
+      <p class="cta-subtitle">We'll walk through your positioning, show you what competitors are doing, and map out a plan — whether you execute it yourself or with us.</p>
+      <div class="cta-columns">
+        <div class="cta-column"><div class="cta-column-title">What We Found</div><div class="cta-column-list"><div class="cta-column-item">✗ Zero LinkedIn thought leadership</div><div class="cta-column-item">✗ Deal wins not being amplified</div><div class="cta-column-item">✗ No GC/PE targeted content</div><div class="cta-column-item">✗ Personal brand = firm bio only</div></div></div>
+        <div class="cta-column"><div class="cta-column-title">What Changes</div><div class="cta-column-list"><div class="cta-column-item">✓ Weekly visibility with decision-makers</div><div class="cta-column-item">✓ Every deal close drives conversations</div><div class="cta-column-item">✓ Inbound from GCs and PE sponsors</div><div class="cta-column-item">✓ Top-of-mind when mandates emerge</div></div></div>
+      </div>
+      <div class="why-works"><div class="why-works-title">Why This Works</div><div class="why-works-grid"><div><div class="why-works-col-title">You Focus On</div><div class="why-works-col-list"><div class="why-works-col-item">→ Closing deals</div><div class="why-works-col-item">→ Client relationships</div><div class="why-works-col-item">→ Complex transactions</div><div class="why-works-col-item">→ Building Mayer Brown's FinServ M&A</div></div></div><div><div class="why-works-col-title">We Handle</div><div class="why-works-col-list"><div class="why-works-col-item">→ LinkedIn thought leadership</div><div class="why-works-col-item">→ Deal amplification</div><div class="why-works-col-item">→ GC/PE targeting</div><div class="why-works-col-item">→ Personal brand management</div><div class="why-works-col-item">→ Speaking & media placement</div></div></div></div></div>
+      <div class="booking-widget-container">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:20px;color:var(--white);">Book Your Strategy Call — 15 Minutes</h3>
+        <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width:100%;border:none;overflow:hidden;min-height:600px;border-radius:12px;" scrolling="no" id="mortarmetrics-booking-widget"></iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:24px;">No long-term contracts. Month-to-month. Results-focused.</p>
+      </div>
+      <p class="cta-guarantee">We've helped partners at firms like yours build visibility that drives 2–3x more inbound conversations — without adding a single hour to their billable workweek.</p>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-brand"><div class="footer-logo">M</div><span class="footer-name">Mortar Metrics</span></div>
+      <p style="color:var(--slate);font-size:0.85rem;">Prepared by Yaseer Choudhury<br><a href="https://mortarmetrics.com/" style="color:var(--brand-blue);">mortarmetrics.com</a></p>
+    </footer>
+  </div>
+
+  <script>
+    window.addEventListener('scroll',()=>{const e=window.scrollY,t=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('scrollIndicator').style.width=e/t*100+'%'});
+    const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add('visible')})},{threshold:.1});document.querySelectorAll('.reveal').forEach(e=>observer.observe(e));
+
+    const services={linkedin:true,deals:true,targeted:true,brand:true};
+    const serviceMultipliers={linkedin:0.35,deals:0.25,targeted:0.30,brand:0.10};
+    function toggleService(s){services[s]=!services[s];document.getElementById('toggle'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active');updateCalculations()}
+    function fmt(v){if(v>=1000000)return'$'+(v/1000000).toFixed(1)+'M';if(v>=1000)return'$'+Math.round(v/1000)+'K';return'$'+Math.round(v)}
+    function updateCalculations(){
+      const fee=+document.getElementById('feeSlider').value,cur=+document.getElementById('currentSlider').value,add=+document.getElementById('additionalSlider').value,wr=+document.getElementById('winrateSlider').value/100;
+      document.getElementById('feeDisplay').textContent=fmt(fee);document.getElementById('currentDisplay').textContent=cur;document.getElementById('additionalDisplay').textContent=add;document.getElementById('winrateDisplay').textContent=Math.round(wr*100)+'%';
+      let am=0;for(const[k,a]of Object.entries(services))if(a)am+=serviceMultipliers[k];
+      const cr=fee*cur,ea=add*am,wm=ea*wr,ar=wm*fee,dl=Math.round(ar/365);
+      document.getElementById('currentRevenue').textContent=fmt(cr);document.getElementById('additionalRevenue').textContent=fmt(ar);document.getElementById('newMandates').textContent=wm.toFixed(1);document.getElementById('totalOpportunity').textContent=fmt(ar);
+      document.getElementById('mathAdditional').textContent=add+'/year';document.getElementById('mathWinrate').textContent='× '+Math.round(wr*100)+'%';document.getElementById('mathWon').textContent=wm.toFixed(1);document.getElementById('mathWon2').textContent=wm.toFixed(1);document.getElementById('mathFee').textContent='× '+fmt(fee);document.getElementById('mathRevenue').textContent=fmt(ar);
+      document.getElementById('dailyUrgency').textContent=fmt(dl)+'/day in deal fees going to more visible competitors';
+    }
+    document.querySelectorAll('.calc-slider').forEach(s=>s.addEventListener('input',updateCalculations));
+    updateCalculations();
+  </script>
+</body>
+</html>
