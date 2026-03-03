@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "740-501-1745",
   "created_at": "2026-03-03T20:15:40.681Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "2",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/sabrina-sellers-esq-mba-110a574",
   "prosp_sender": "https://www.linkedin.com/in/nafi-chaudhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Sabrina, thanks for connecting.\n\nWe helped a medical malpractice firm in Georgia find about $180k/mo in cases they were losing to other firms online, and I ran the same audit on yours and found a similar gap—looks like you're missing around $99k-134k/mo.\n\nAlready built the whole breakdown for you:\n\nhttps://reports.mortarmetrics.com/SellersLegal/\n\nWant me to walk you through what's happening and how to fix it?",
+  "telegram_message_id": 537
 }
