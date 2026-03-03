@@ -1,0 +1,114 @@
+{
+  "firmName": "James Lee Ford PC",
+  "website": "https://jlfordlaw.com",
+  "location": {
+    "city": "Atlanta",
+    "state": "GA",
+    "country": "US"
+  },
+  "credentials": [
+    "James L. Ford, Sr.",
+    "3330 Cumberland Boulevard, Suite 600, Atlanta, Georgia 30339",
+    "Practice areas: Business Law, Legal Malpractice, Personal Injury, Products Liability"
+  ],
+  "practiceAreas": [
+    "personal injury",
+    "products liability",
+    "legal malpractice",
+    "business law"
+  ],
+  "practiceAreaCategory": "personal injury",
+  "practice": {
+    "practiceAreas": ["personal injury", "products liability", "legal malpractice", "business law"],
+    "primaryArea": "personal injury"
+  },
+  "gaps": {
+    "metaAds": {
+      "hasGap": true,
+      "impact": 15000,
+      "details": "Not running Facebook/Instagram ads. Competitors are capturing clients through social media while you have zero presence.",
+      "status": "none"
+    },
+    "googleAds": {
+      "hasGap": true,
+      "impact": 12000,
+      "details": "Three competitors (The Millar Law Firm, Hahnah Williams, McLendon Law Firm) are all running Google Ads while James Lee Ford PC is not.",
+      "status": "competitor-active"
+    },
+    "support24x7": {
+      "hasGap": true,
+      "impact": 18000,
+      "details": "No 24/7 intake detected. After-hours calls are going unanswered."
+    },
+    "websiteSpeed": {
+      "hasGap": true,
+      "impact": 5000,
+      "details": "Minimal web presence — firm is extremely hard to find online."
+    },
+    "crm": {
+      "hasGap": true,
+      "impact": 8000,
+      "details": "No automated follow-up system detected. Leads are being lost."
+    }
+  },
+  "competitors": [
+    {
+      "name": "The Millar Law Firm",
+      "rating": 4.9,
+      "reviews": 184,
+      "website": "https://atlantaadvocate.com/atlanta/",
+      "hasGoogleAds": true,
+      "practiceAreas": ["personal injury"]
+    },
+    {
+      "name": "Hahnah Williams Attorney At Law",
+      "rating": 5.0,
+      "reviews": 123,
+      "website": "https://hahnahwilliams.com/",
+      "hasGoogleAds": true,
+      "practiceAreas": ["personal injury"]
+    },
+    {
+      "name": "McLendon Law Firm",
+      "rating": 4.9,
+      "reviews": 82,
+      "website": "http://www.themclendonfirm.com/",
+      "hasGoogleAds": true,
+      "practiceAreas": ["personal injury"]
+    }
+  ],
+  "competitorAds": 3,
+  "metaAdsData": {
+    "hasAds": false,
+    "hasActiveAds": false,
+    "hasInactiveAds": false,
+    "adCount": 0,
+    "activeCount": 0,
+    "inactiveCount": 0,
+    "adExamples": [],
+    "lastActiveDate": null,
+    "competitors": []
+  },
+  "googleAdsData": {
+    "hasAds": false,
+    "adCount": 0,
+    "adExamples": [],
+    "competitors": [
+      { "name": "The Millar Law Firm", "hasAds": true },
+      { "name": "Hahnah Williams Attorney At Law", "hasAds": true },
+      { "name": "McLendon Law Firm", "hasAds": true }
+    ],
+    "searchResults": []
+  },
+  "pageSpeed": 4500,
+  "pageSpeedScore": "Slow",
+  "hasChatbot": false,
+  "hasBookingWidget": false,
+  "mobileOptimized": false,
+  "websiteAnalysis": {
+    "hasMinimalPresence": true,
+    "notes": "Firm has extremely limited web presence — hard to find online"
+  },
+  "researchedAt": "2026-03-03T16:00:00.000Z",
+  "estimatedMonthlyRevenueLoss": 95000
+}

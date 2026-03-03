@@ -1,0 +1,59 @@
+name: Resend Telegram Approval
+
+on:
+  workflow_dispatch:
+    inputs:
+      firm_folder:
+        description: 'Firm folder name (e.g. JamesLeeFordPc)'
+        required: true
+
+jobs:
+  resend-telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./automation
+
+      - name: Send Telegram approval request
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC }}
+          FIRM_FOLDER: ${{ github.event.inputs.firm_folder }}
+        run: |
+          if [ ! -f "pending-approvals/${FIRM_FOLDER}.json" ]; then
+            echo "❌ No approval JSON found for ${FIRM_FOLDER}"
+            exit 1
+          fi
+          CONTACT_NAME=$(node -e "console.log(JSON.parse(require('fs').readFileSync('pending-approvals/' + process.env.FIRM_FOLDER + '.json','utf8')).contact_name)")
+          echo "Sending Telegram approval for ${FIRM_FOLDER} (contact: $CONTACT_NAME)"
+          node telegram-approval-bot.js "pending-approvals/${FIRM_FOLDER}.json"
+        working-directory: ./automation
+
+      - name: Push approval JSON updates
+        env:
+          FIRM_FOLDER: ${{ github.event.inputs.firm_folder }}
+        run: |
+          cd automation
+          if git diff --quiet "pending-approvals/${FIRM_FOLDER}.json" 2>/dev/null; then
+            echo "No approval JSON changes to push"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add "pending-approvals/${FIRM_FOLDER}.json"
+            git commit -m "Update approval JSON for ${FIRM_FOLDER} (resend Telegram)"
+            git push origin main || {
+              echo "Push conflict, retrying..."
+              git pull --rebase origin main
+              git push origin main || echo "⚠️ Push failed (non-critical)"
+            }
+          fi
