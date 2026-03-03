@@ -17,10 +17,10 @@
     "legal malpractice",
     "business law"
   ],
-  "practiceAreaCategory": "personal injury",
+  "practiceAreaCategory": "business",
   "practice": {
-    "practiceAreas": ["personal injury", "products liability", "legal malpractice", "business law"],
-    "primaryArea": "personal injury"
+    "practiceAreas": ["business law", "legal malpractice", "personal injury", "products liability"],
+    "primaryArea": "business"
   },
   "gaps": {
     "metaAds": {
