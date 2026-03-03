@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-03T18:16:26.579Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -37,5 +37,6 @@
   "prosp_sender": "https://www.linkedin.com/in/yaseer-choudhury",
   "source": "connection_accept",
   "connection_dm": "Hey Zoë, thanks for connecting.\n\nWe helped a criminal defense firm in Colorado find about $310k/mo in cases they were losing to other firms online, and ran the same audit on Center for Appellate Litigation—looks like you're sitting on a similar gap of around $187.5K-253K/mo.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/CenterForAppellateLitigation/\n\nWant me to walk you through what's happening and how to fix it?",
-  "telegram_message_id": 527
+  "telegram_message_id": 527,
+  "approved_at": "2026-03-03T18:16:58.863Z"
 }
