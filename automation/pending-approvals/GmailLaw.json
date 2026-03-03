@@ -1,17 +1,17 @@
 {
   "firm_name": "Gmail Law",
   "firm_folder": "GmailLaw",
-  "lead_email": "jlockwoodnbl@gmail.com",
-  "contact_name": "John Lockwood",
+  "lead_email": "npazgarcia@gmail.com",
+  "contact_name": "Norma Garcia",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/GmailLaw/",
   "job_title": "",
   "linkedin": "",
   "country": "United States",
-  "reply_text": "I'm glad they can't...I am retired...\n\nJohn A. \"Jack\" Lockwood\n420 S Marion Pkwy, Apt 603\nDenver, CO 80209-2500\n\n\nOn Tue, Mar 3, 2026 at 2:06 PM Heidi Schwende <\nschwende8@wsidmincoperations.com> wrote:\n\n> John\n>\n> There are probably 10-15 people in your area every 30 days who need a\n> lawyer and can't find your firm. They're hiring your competitors instead.\n> We built a breakdown showing exactly where that's happening.\n>\n> Let me know and we'll send it right over.\n>\n> Heidi Schwende\n> WSI | Mor",
+  "reply_text": "Please delete my contact info. I do not wish to receive sales messages. \nSent from my iPhone\n\n> On Mar 3, 2026, at 12:28 PM, Jessica Mitchell <jessica.m@mortarmetricsplan.com> wrote:\n> \n> ﻿Norma\n> \n> We checked your market and your competitors are picking up 10-15 retainers every 30 days that should be yours. They're easier to find and faster to answer.\n> \n> We put together your numbers. Say the word and we'll send them over.\n> \n> Jessica Mitchell\n> CMO, Mortar Metrics\n> \n> p.s A firm your size ",
   "campaign_name": "Lawyer Campaign 022426",
   "phone": "",
-  "created_at": "2026-03-03T21:18:28.252Z",
-  "status": "awaiting_approval",
+  "created_at": "2026-03-03T21:43:34.522Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -29,12 +29,11 @@
     "source": "email_inference"
   },
   "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Fill in the missing practice area and location data - these template gaps immediately signal this is generic spam rather than custom research",
-  "classification": "NOT_INTERESTED",
+  "conversion_note": "Fix the missing practice area and location errors - these template mistakes immediately signal this is generic spam rather than custom research",
+  "classification": "INTERESTED",
   "ooo_return_date": "",
   "channel": "instantly",
   "linkedin_url": "",
   "prosp_sender": "",
-  "source": "",
-  "telegram_message_id": 549
+  "source": ""
 }
