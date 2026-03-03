@@ -1,17 +1,17 @@
 {
   "firm_name": "Gmail Law",
   "firm_folder": "GmailLaw",
-  "lead_email": "npazgarcia@gmail.com",
-  "contact_name": "Norma Garcia",
+  "lead_email": "azvotingrights@gmail.com",
+  "contact_name": "Jesse Simpson",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/GmailLaw/",
   "job_title": "",
   "linkedin": "",
   "country": "United States",
-  "reply_text": "Please delete my contact info. I do not wish to receive sales messages. \nSent from my iPhone\n\n> On Mar 3, 2026, at 12:28 PM, Jessica Mitchell <jessica.m@mortarmetricsplan.com> wrote:\n> \n> ﻿Norma\n> \n> We checked your market and your competitors are picking up 10-15 retainers every 30 days that should be yours. They're easier to find and faster to answer.\n> \n> We put together your numbers. Say the word and we'll send them over.\n> \n> Jessica Mitchell\n> CMO, Mortar Metrics\n> \n> p.s A firm your size ",
+  "reply_text": "I am retired and my bar license is inactive. Kindly take me off your contact list. \n\n> On Mar 3, 2026, at 2:26 PM, Sally Rivers <rivers_sally@themortarmetrics.com> wrote:\n> \n> Jesse\n> \n> We looked into your market and your firm is probably losing 10-15 retainers every 30 days to competitors who are easier to find online and faster to pick up the phone.\n> \n> We put together your numbers. Say the word and we'll send them over.\n> \n> Sally Rivers\n> CMO, Mortar Metrics\n> \n> p.s A firm your size had t",
   "campaign_name": "Lawyer Campaign 022426",
   "phone": "",
-  "created_at": "2026-03-03T21:43:34.522Z",
-  "status": "awaiting_approval",
+  "created_at": "2026-03-03T22:01:55.934Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -29,12 +29,11 @@
     "source": "email_inference"
   },
   "conversion_verdict": "NEEDS_WORK",
-  "conversion_note": "Fix the missing practice area and location errors - these template mistakes immediately signal this is generic spam rather than custom research",
-  "classification": "INTERESTED",
+  "conversion_note": "Fill in the missing practice area and location - these template gaps immediately signal this isn't a custom analysis",
+  "classification": "UNSUBSCRIBE",
   "ooo_return_date": "",
   "channel": "instantly",
   "linkedin_url": "",
   "prosp_sender": "",
-  "source": "",
-  "telegram_message_id": 551
+  "source": ""
 }
