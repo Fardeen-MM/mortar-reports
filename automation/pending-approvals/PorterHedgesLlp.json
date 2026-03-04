@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-04T16:33:33.959Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "1",
@@ -37,5 +37,6 @@
   "prosp_sender": "https://www.linkedin.com/in/david-ciombor-17a09796",
   "source": "connection_accept",
   "connection_dm": "Hey Sarah, thanks for connecting.\n\nWe helped a business law firm find about $183K-248.5K/mo in cases they were missing online. Ran yours and found a similar gap.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/PorterHedgesLlp/\n\nWant me to walk you through the fixes?",
-  "telegram_message_id": 580
+  "telegram_message_id": 580,
+  "approved_at": "2026-03-04T16:50:47.967Z"
 }
