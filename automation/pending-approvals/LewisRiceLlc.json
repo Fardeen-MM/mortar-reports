@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 022426",
   "phone": "13144447600.0",
   "created_at": "2026-03-04T20:02:37.177Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,6 @@
   "channel": "instantly",
   "linkedin_url": "https://www.linkedin.com/in/mike-and-nancy-thiessen-70b9a115a",
   "prosp_sender": "",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 618
 }
