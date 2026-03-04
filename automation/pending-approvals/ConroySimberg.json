@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 022426",
   "phone": "17726074706.0",
   "created_at": "2026-03-04T23:43:24.333Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "2",
@@ -36,5 +36,6 @@
   "linkedin_url": "https://www.linkedin.com/in/jeffrey-rubin-a6858718",
   "prosp_sender": "",
   "source": "",
-  "telegram_message_id": 622
+  "telegram_message_id": 622,
+  "approved_at": "2026-03-04T23:47:37.178Z"
 }
