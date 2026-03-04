@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Gap Analysis | Kelley Kronenberg</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#0f172a;--ink-soft:#1e293b;--slate:#475569;--slate-light:#64748b;--muted:#94a3b8;--border:#e2e8f0;--border-light:#f1f5f9;--warm-white:#f8fafc;--white:#fff;--brand-primary:#1e3a5f;--brand-blue:#2563eb;--brand-light:rgba(37,99,235,0.08);--accent:#3b82f6;--accent-light:#60a5fa;--success:#059669;--success-light:#d1fae5;--danger:#dc2626;--danger-light:#fef2f2;--gold:#f59e0b;--gold-light:#fef3c7;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:var(--warm-white);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:500}
+    .bg-grid{position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(37,99,235,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}.orbs{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:0}.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.1}.orb-1{width:600px;height:600px;left:-200px;top:-100px;background:var(--brand-blue)}.orb-2{width:400px;height:400px;right:-150px;bottom:10%;background:var(--accent)}.scroll-indicator{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand-blue),var(--accent));z-index:9999;width:0%}.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px}@media(max-width:600px){.container{padding:0 20px}}
+
+    /* HEADER */
+    .header{display:flex;justify-content:space-between;align-items:center;padding:32px 0;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:24px}.brand-mark{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;background:var(--brand-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:white;transition:all 0.4s var(--ease-out-expo)}.logo:hover{transform:scale(1.08) rotate(3deg);box-shadow:0 12px 40px rgba(37,99,235,0.3)}.brand-text{display:flex;flex-direction:column}.brand-name{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:500;color:var(--ink)}.brand-sub{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:2px;font-weight:600}.prepared-for{text-align:right}.prepared-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--slate-light);margin-bottom:6px;font-weight:500}.prepared-name{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);font-weight:500}.prepared-firm{font-size:0.9rem;color:var(--brand-blue);font-weight:500}.prepared-date{font-size:0.8rem;color:var(--slate-light);margin-top:6px}
+
+    /* RELAY NOTE */
+    .relay-note{background:var(--gold-light);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px 22px;margin-bottom:40px;display:flex;align-items:flex-start;gap:14px}.relay-icon{font-size:1.4rem;flex-shrink:0;margin-top:1px}.relay-text{font-size:0.9rem;color:var(--ink-soft);line-height:1.6}.relay-text strong{font-weight:700;color:var(--ink)}
+
+    /* HERO */
+    .hero{text-align:center;padding:50px 0 60px}.hero-badge{display:inline-flex;align-items:center;gap:10px;padding:12px 26px;background:var(--white);border:1px solid var(--border);border-radius:100px;font-size:0.75rem;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}.hero-badge-dot{width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}.hero-title{font-size:clamp(2.2rem,5.5vw,3.6rem);font-weight:500;line-height:1.15;color:var(--ink);margin-bottom:26px}.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--brand-blue) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero-subtitle{font-size:1.1rem;color:var(--slate);max-width:760px;margin:0 auto 50px;line-height:1.75}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}@media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}.hero-stat{text-align:center;padding:24px 16px;background:var(--white);border:1px solid var(--border);border-radius:16px;transition:all 0.4s var(--ease-out-expo)}.hero-stat:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--accent)}.hero-stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:600;line-height:1;margin-bottom:10px}.hero-stat-value.danger{color:var(--danger)}.hero-stat-value.success{color:var(--success)}.hero-stat-value.gold{color:var(--gold)}.hero-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+    .quick-cta{display:flex;justify-content:center;gap:16px;margin:36px 0;flex-wrap:wrap}.quick-cta-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;font-weight:600;font-size:0.95rem;text-decoration:none;transition:all 0.3s var(--ease-out-expo)}.quick-cta-btn.primary{background:var(--ink);color:white}.quick-cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,0.2)}
+
+    /* SECTIONS */
+    section{padding:70px 0}.section-header{text-align:center;margin-bottom:48px}.section-label{display:inline-block;padding:10px 22px;background:var(--ink);color:var(--white);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-bottom:22px;font-weight:600}.section-title{font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink);margin-bottom:14px}.section-subtitle{font-size:1.05rem;color:var(--slate);max-width:650px;margin:0 auto;line-height:1.7}
+
+    /* OPPORTUNITY BOX */
+    .opportunity-box{background:linear-gradient(135deg,var(--success),#047857);border-radius:24px;padding:52px;text-align:center;margin:40px 0;position:relative;overflow:hidden}.opportunity-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.opportunity-label{font-size:0.85rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}.opportunity-value{font-family:'Fraunces',serif;font-size:clamp(3.5rem,10vw,6rem);font-weight:600;color:white;line-height:1;margin-bottom:16px;text-shadow:0 4px 30px rgba(0,0,0,0.2)}.opportunity-context{font-size:1.2rem;color:rgba(255,255,255,0.9)}
+
+    /* GAP CARDS */
+    .gap-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}@media(max-width:800px){.gap-summary{grid-template-columns:1fr}}.gap-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.gap-card:hover{border-color:var(--danger);transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,0.06)}.gap-icon{font-size:2.5rem;margin-bottom:16px}.gap-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:8px}.gap-impact{font-size:1.4rem;font-weight:700;color:var(--danger);margin-bottom:8px}.gap-desc{font-size:0.85rem;color:var(--slate)}
+
+    /* STORY */
+    .story-mini{background:var(--white);border-left:4px solid var(--danger);padding:28px 32px;margin:40px 0;border-radius:0 20px 20px 0;box-shadow:0 4px 20px rgba(0,0,0,0.04)}.story-mini-text{font-size:1.1rem;color:var(--ink);margin-bottom:10px;line-height:1.7}.story-mini-outcome{font-size:0.9rem;color:var(--slate);font-style:italic}
+
+    /* SPEED HIGHLIGHT */
+    .speed-highlight{background:linear-gradient(135deg,var(--gold),#d97706);border-radius:20px;padding:32px;display:flex;align-items:center;gap:28px;margin:40px 0;color:white}@media(max-width:700px){.speed-highlight{flex-direction:column;text-align:center}}.speed-highlight-stat{font-family:'Fraunces',serif;font-size:3.5rem;font-weight:700;white-space:nowrap}.speed-highlight-text{font-size:1.05rem;line-height:1.6}
+
+    /* MARKET */
+    .market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}@media(max-width:768px){.market-stats{grid-template-columns:repeat(2,1fr)}}.market-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 16px;text-align:center}.market-stat-value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;color:var(--brand-blue);margin-bottom:6px}.market-stat-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1px;font-weight:500}.market-context{font-size:1rem;color:var(--slate);text-align:center;margin-top:20px;line-height:1.7;max-width:700px;margin-left:auto;margin-right:auto}
+
+    /* COMPETITIVE TABLE */
+    .competitive-table{width:100%;border-collapse:collapse;margin:32px 0;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--border)}.competitive-table th{background:var(--ink);color:var(--white);padding:16px 18px;text-align:left;font-size:0.85rem;font-weight:600}.competitive-table td{padding:16px 18px;border-bottom:1px solid var(--border);font-size:0.9rem}.competitive-table tr:last-child td{border-bottom:none}.competitive-table tr:hover td{background:var(--warm-white)}.check{color:var(--success);font-weight:700}.cross{color:var(--danger);font-weight:700}.partial{color:var(--gold);font-weight:700}.insight-box{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:24px;margin-top:24px;font-size:1rem;color:var(--ink);line-height:1.7}
+
+    /* CALCULATOR */
+    .calculator-section{background:var(--white);border:2px solid var(--accent);border-radius:24px;padding:50px;margin:70px 0;box-shadow:0 20px 60px rgba(0,0,0,0.04)}@media(max-width:600px){.calculator-section{padding:28px 20px}}.calc-header{text-align:center;margin-bottom:48px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}@media(max-width:900px){.calc-grid{grid-template-columns:1fr}}.calc-inputs{display:flex;flex-direction:column;gap:26px}.calc-input-group{display:flex;flex-direction:column;gap:10px}.calc-input-label{font-size:0.85rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center}.calc-input-value{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--brand-blue);font-weight:600}.calc-slider{width:100%;height:8px;border-radius:4px;background:var(--border);-webkit-appearance:none;cursor:pointer}.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)}.calc-results{display:flex;flex-direction:column;gap:16px}.calc-result-card{background:var(--warm-white);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;transition:all 0.3s var(--ease-out-expo)}.calc-result-card:hover{border-color:var(--accent);transform:translateY(-3px)}.calc-result-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:600}.calc-result-value.danger{color:var(--danger)}.calc-result-value.success{color:var(--success)}.calc-result-label{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:6px}.calc-total{background:linear-gradient(135deg,var(--success),#047857);border-radius:18px;padding:28px;text-align:center;margin-top:8px}.calc-total-value{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:600;color:var(--white)}.calc-total-label{font-size:0.75rem;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+    .service-toggles{margin-top:36px;padding-top:36px;border-top:1px solid var(--border)}.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border-light)}.service-toggle:last-child{border-bottom:none}.service-toggle-info{display:flex;flex-direction:column;gap:4px}.service-toggle-name{font-weight:600;color:var(--ink);font-size:0.95rem}.service-toggle-desc{font-size:0.8rem;color:var(--slate)}.toggle-switch{position:relative;width:56px;height:30px;background:var(--border);border-radius:30px;cursor:pointer;transition:all 0.3s;flex-shrink:0}.toggle-switch.active{background:var(--success)}.toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:white;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}.toggle-switch.active::after{left:29px}
+    .math-section{margin-top:40px;padding:32px;background:var(--warm-white);border-radius:16px;border:1px solid var(--border)}.math-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink);margin-bottom:24px;display:flex;align-items:center;gap:10px}.math-step{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}.math-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.math-step-title{font-weight:700;color:var(--brand-blue);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}.math-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.9rem}.math-line.total{font-weight:700;color:var(--ink);font-size:1rem;padding-top:12px;border-top:1px solid var(--border);margin-top:8px}.math-line.result{color:var(--success);font-weight:700}.math-line.loss{color:var(--danger)}
+
+    /* AI COMPARISON */
+    .ai-comparison{margin:50px 0;background:var(--white);border:2px solid var(--accent);border-radius:20px;padding:36px}.ai-comparison-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:24px;text-align:center}.ai-comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:800px){.ai-comparison-grid{grid-template-columns:1fr}}.ai-option{padding:24px;border-radius:16px}.ai-option.voicemail{background:var(--danger-light)}.ai-option.answering{background:var(--gold-light)}.ai-option.ai{background:var(--success-light);border:2px solid var(--success)}.ai-option-title{font-weight:700;font-size:0.95rem;margin-bottom:16px;color:var(--ink)}.ai-option-features{text-align:left;display:flex;flex-direction:column;gap:8px}.ai-option-feature{font-size:0.82rem;color:var(--slate);display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+
+    /* PLAYBOOK */
+    .playbook-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:28px;transition:all 0.4s var(--ease-out-expo)}.playbook-card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,0.06);border-color:var(--accent)}.playbook-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px}.playbook-number{width:48px;height:48px;min-width:48px;background:linear-gradient(135deg,var(--brand-primary),var(--accent));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}.playbook-title-group{flex:1}.playbook-title{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}.playbook-problem{font-size:0.9rem;color:var(--slate)}.playbook-content{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:800px){.playbook-content{grid-template-columns:1fr}}.playbook-diy{background:var(--warm-white);border-radius:14px;padding:22px}.playbook-done-for-you{background:var(--brand-light);border-radius:14px;padding:22px;border:1px solid rgba(37,99,235,0.15)}.playbook-column-title{font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:14px}.playbook-steps{display:flex;flex-direction:column;gap:8px}.playbook-step{font-size:0.82rem;color:var(--slate);display:flex;align-items:flex-start;gap:10px;line-height:1.5}.playbook-step-num{width:18px;height:18px;min-width:18px;background:var(--brand-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;margin-top:2px}.playbook-time{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--slate);display:flex;flex-direction:column;gap:4px}.playbook-dfy-list{list-style:none;padding:0;margin:0 0 14px 0}.playbook-dfy-list li{padding:6px 0;font-size:0.82rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px;line-height:1.4;border-bottom:1px solid rgba(37,99,235,0.08)}.playbook-dfy-list li:last-child{border-bottom:none}.playbook-dfy-list li::before{content:"✓";color:var(--success);font-weight:700;flex-shrink:0}.playbook-dfy-result{font-size:0.88rem;font-weight:600;color:var(--brand-primary);margin-top:12px;padding-top:12px;border-top:1px solid rgba(37,99,235,0.15)}
+
+    /* VISION */
+    .vision-box{background:linear-gradient(135deg,var(--ink),var(--brand-primary));border-radius:24px;padding:52px;color:white;text-align:center;margin:50px 0;position:relative;overflow:hidden}.vision-box::before{content:'';position:absolute;top:-50%;right:-30%;width:80%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,0.05) 0%,transparent 50%);pointer-events:none}.vision-credential{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:20px;line-height:1.8}.vision-quote{font-family:'Fraunces',serif;font-size:1.5rem;font-style:italic;margin-bottom:32px}.vision-list{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto;text-align:left}.vision-list-item{display:flex;align-items:center;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.9)}
+
+    /* CTA */
+    .cta-section{background:var(--ink);border-radius:24px;padding:70px 50px;text-align:center;margin:80px 0;position:relative;overflow:hidden}@media(max-width:600px){.cta-section{padding:50px 28px}}.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(96,165,250,0.1) 0%,transparent 40%);pointer-events:none}.cta-urgency{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--danger);background:var(--white);display:inline-block;padding:14px 28px;border-radius:12px;margin-bottom:28px}.cta-title{font-family:'Fraunces',serif;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--white);margin-bottom:14px}.cta-subtitle{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:36px;max-width:580px;margin-left:auto;margin-right:auto}.cta-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:0 auto 36px;text-align:left;max-width:700px}@media(max-width:700px){.cta-columns{grid-template-columns:1fr}}.cta-column{background:rgba(255,255,255,0.05);border-radius:16px;padding:24px;border:1px solid rgba(255,255,255,0.1)}.cta-column-title{font-weight:700;font-size:0.8rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}.cta-column-list{display:flex;flex-direction:column;gap:8px}.cta-column-item{font-size:0.9rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px}.why-works{background:rgba(255,255,255,0.07);border-radius:16px;padding:30px;margin:36px 0;border:1px solid rgba(255,255,255,0.1)}.why-works-title{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--white);margin-bottom:20px}.why-works-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:600px){.why-works-grid{grid-template-columns:1fr}}.why-works-col-title{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}.why-works-col-list{display:flex;flex-direction:column;gap:8px}.why-works-col-item{font-size:0.9rem;color:rgba(255,255,255,0.85)}.cta-guarantee{font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:24px}.booking-widget-container{background:rgba(255,255,255,0.05);border-radius:20px;padding:32px;margin:28px 0;border:1px solid rgba(255,255,255,0.1)}.authority-flex{background:var(--warm-white);border-radius:12px;padding:18px 22px;font-size:0.85rem;color:var(--slate);font-style:italic;margin-top:28px;text-align:center}
+
+    /* FOOTER */
+    .footer{text-align:center;padding:50px 0 30px;border-top:1px solid var(--border);margin-top:70px}.footer-brand{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:16px}.footer-logo{width:40px;height:40px;background:var(--brand-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;color:var(--white)}.footer-name{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink)}
+    .reveal{opacity:0;transform:translateY(30px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator" id="scrollIndicator"></div>
+  <div class="bg-grid"></div>
+  <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-mark">
+        <div class="logo">M</div>
+        <div class="brand-text">
+          <div class="brand-name">Mortar Metrics</div>
+          <div class="brand-sub">Performance Marketing</div>
+        </div>
+      </div>
+      <div class="prepared-for">
+        <div class="prepared-label">Marketing Gap Analysis For</div>
+        <div class="prepared-name">Rob DiMarco, Esq.</div>
+        <div class="prepared-firm">Kelley Kronenberg</div>
+        <div class="prepared-date">January 2026</div>
+      </div>
+    </header>
+
+    <!-- RELAY NOTE -->
+    <div class="relay-note reveal">
+      <div class="relay-icon">📋</div>
+      <div class="relay-text">
+        <strong>Note for the Marketing / BD Team:</strong> Rob DiMarco connected with us on LinkedIn and graciously passed this along. We put this report together for Kelley Kronenberg before hearing back — figured the analysis was worth sharing regardless. Everything below is specific to the firm's current digital footprint and the gaps we found. No obligation to do anything with it.
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        Personalized Analysis · Kelley Kronenberg
+      </div>
+      <h1 class="hero-title">
+        <em>$1.7M/year</em><br>
+        walking out the door.
+      </h1>
+      <p class="hero-subtitle">
+        Kelley Kronenberg has 240+ attorneys, 18 offices, and a 45-year reputation — none of it fills the calendar when families search for estate planning, family law, or immigration help at 9 PM and find Greenberg Traurig instead. Zero paid ads. A homepage that doesn't convert. Leads slipping through after hours across every market. This report shows exactly where the gaps are and how to close them.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value danger">$143K</div>
+          <div class="hero-stat-label">Estimated Monthly Loss</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value success">$98K</div>
+          <div class="hero-stat-label">Recoverable / Month</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value gold">4.1×</div>
+          <div class="hero-stat-label">Projected ROI</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" style="color:var(--brand-blue)">18</div>
+          <div class="hero-stat-label">Offices With No Paid Ads</div>
+        </div>
+      </div>
+      <div class="quick-cta">
+        <a href="#calculator" class="quick-cta-btn primary">See the Math ↓</a>
+      </div>
+    </div>
+
+    <!-- OPPORTUNITY BOX -->
+    <div class="opportunity-box reveal">
+      <div class="opportunity-label">Annual Opportunity Left on the Table</div>
+      <div class="opportunity-value">$1.7M</div>
+      <div class="opportunity-context">Across Google Ads, after-hours intake, website conversion, and CRM — recoverable with the right systems in place.</div>
+    </div>
+
+    <!-- GAP SUMMARY -->
+    <section>
+      <div class="section-header reveal">
+        <span class="section-label">The Gaps</span>
+        <h2 class="section-title">Four Places Kelley Kronenberg Is Leaking Revenue</h2>
+        <p class="section-subtitle">The firm's credentials are strong. The acquisition infrastructure isn't keeping up.</p>
+      </div>
+      <div class="gap-summary">
+        <div class="gap-card reveal">
+          <div class="gap-icon">🔍</div>
+          <div class="gap-title">Zero Paid Ads</div>
+          <div class="gap-impact">$0 spent</div>
+          <div class="gap-desc">No Google Ads. No Meta Ads. Across 18 offices and 40+ practice areas, competitors are buying the exact searches Kelley Kronenberg should own.</div>
+        </div>
+        <div class="gap-card reveal">
+          <div class="gap-icon">📞</div>
+          <div class="gap-title">After-Hours Fallout</div>
+          <div class="gap-impact">~38% of inquiries missed</div>
+          <div class="gap-desc">38%+ of legal inquiries arrive outside business hours. With 18 offices and no AI intake layer, those leads go to voicemail — and voicemail captures about 15%.</div>
+        </div>
+        <div class="gap-card reveal">
+          <div class="gap-icon">🌐</div>
+          <div class="gap-title">Homepage Doesn't Convert</div>
+          <div class="gap-impact">Thin on content &amp; CTAs</div>
+          <div class="gap-desc">The homepage has strong credentials but weak conversion architecture — no above-the-fold CTAs, minimal practice-area content, and visuals that don't reflect the firm's national stature.</div>
+        </div>
+      </div>
+
+      <!-- STORY MINI -->
+      <div class="story-mini reveal">
+        <div class="story-mini-text">Last Tuesday, 8:44 PM. A Fort Lauderdale business owner just received an acquisition offer and needs M&A counsel fast. He Googled "business attorney Fort Lauderdale." Greenberg Traurig appeared first — sponsored. Kelley Kronenberg didn't appear at all. He booked a consultation. Greenberg's AI intake confirmed it in four minutes.</div>
+        <div class="story-mini-outcome">"This happens every week. Not because Kelley Kronenberg isn't the better firm — but because competitors show up first and respond fastest."</div>
+      </div>
+
+      <!-- SPEED HIGHLIGHT -->
+      <div class="speed-highlight reveal">
+        <div class="speed-highlight-stat">21×</div>
+        <div class="speed-highlight-text">
+          <strong>Firms that respond within 5 minutes are 21× more likely to convert a lead than those that respond within 30 minutes.</strong><br>
+          Across Kelley Kronenberg's 18 offices, after-hours inquiries are likely waiting until the next morning — if they're followed up at all.
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKET DATA -->
+    <section>
+      <div class="section-header reveal">
+        <span class="section-label">Why This Matters Now</span>
+        <h2 class="section-title">The Digital Legal Market Has Moved</h2>
+      </div>
+      <div class="market-stats reveal">
+        <div class="market-stat">
+          <div class="market-stat-value">96%</div>
+          <div class="market-stat-label">Use Search to Find Attorneys</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">62%</div>
+          <div class="market-stat-label">Search on Mobile</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">38%</div>
+          <div class="market-stat-label">Inquiries After Business Hours</div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-value">+31%</div>
+          <div class="market-stat-label">YoY Legal Search Growth in FL</div>
+        </div>
+      </div>
+      <p class="market-context reveal">Kelley Kronenberg operates in 18 markets — Florida, New York, Illinois, Indiana, Louisiana, Texas — all high-demand, high-competition regions where digital acquisition is already table stakes. The firms winning new individual and mid-market business aren't necessarily better. They're just easier to find.</p>
+    </section>
+
+    <!-- COMPETITIVE TABLE -->
+    <section>
+      <div class="section-header reveal">
+        <span class="section-label">Competitive Reality</span>
+        <h2 class="section-title">Who's Winning the Digital Race Right Now</h2>
+      </div>
+      <div class="reveal" style="overflow-x:auto">
+        <table class="competitive-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Greenberg Traurig</th>
+              <th>Holland &amp; Knight</th>
+              <th>Kelley Kronenberg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Google Ads (Individual/Consumer)</strong></td>
+              <td><span class="check">✓ Active</span></td>
+              <td><span class="check">✓ Active</span></td>
+              <td><span class="cross">✗ None</span></td>
+            </tr>
+            <tr>
+              <td><strong>Meta / Facebook Ads</strong></td>
+              <td><span class="check">✓ Running</span></td>
+              <td><span class="partial">◐ Limited</span></td>
+              <td><span class="cross">✗ None</span></td>
+            </tr>
+            <tr>
+              <td><strong>After-Hours Intake</strong></td>
+              <td><span class="check">✓ Automated</span></td>
+              <td><span class="check">✓ Automated</span></td>
+              <td><span class="cross">✗ Voicemail</span></td>
+            </tr>
+            <tr>
+              <td><strong>Homepage Conversion Design</strong></td>
+              <td><span class="check">✓ Strong CTAs</span></td>
+              <td><span class="check">✓ Optimized</span></td>
+              <td><span class="partial">◐ Weak</span></td>
+            </tr>
+            <tr>
+              <td><strong>CRM / Lead Follow-Up</strong></td>
+              <td><span class="check">✓ Automated</span></td>
+              <td><span class="check">✓ Automated</span></td>
+              <td><span class="cross">✗ Manual</span></td>
+            </tr>
+            <tr>
+              <td><strong>National Reputation &amp; Reach</strong></td>
+              <td><span class="check">✓ Strong</span></td>
+              <td><span class="check">✓ Strong</span></td>
+              <td><span class="check">✓ Strong</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="insight-box reveal">
+        <strong>What Kelley Kronenberg has that they don't:</strong> A multi-jurisdictional footprint, a "Fraud Fighters" brand, 45 years of institutional depth, and Justice for Kids® — differentiated stories that paid campaigns could amplify.<br><br>
+        <strong>What they have that Kelley Kronenberg doesn't:</strong> A digital acquisition engine running 24/7 across every market. That's the gap — and it's entirely closable.
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <div class="calculator-section reveal" id="calculator">
+      <div class="calc-header">
+        <span class="section-label">Your Numbers</span>
+        <h2 class="section-title" style="margin-top:16px">See the Math for Yourself</h2>
+        <p class="section-subtitle">Adjust the inputs to match Kelley Kronenberg's actual inquiry volume and case mix.</p>
+      </div>
+      <div class="calc-grid">
+        <div class="calc-inputs">
+          <div class="calc-input-group">
+            <label class="calc-input-label">
+              <span>Weekly Consumer Inquiries (Firm-Wide)</span>
+              <span class="calc-input-value" id="valInquiries">38</span>
+            </label>
+            <input type="range" class="calc-slider" id="sliderInquiries" min="10" max="150" value="38" oninput="updateCalc()">
+          </div>
+          <div class="calc-input-group">
+            <label class="calc-input-label">
+              <span>After-Hours Inquiry %</span>
+              <span class="calc-input-value" id="valAfterHours">38%</span>
+            </label>
+            <input type="range" class="calc-slider" id="sliderAfterHours" min="20" max="60" value="38" oninput="updateCalc()">
+          </div>
+          <div class="calc-input-group">
+            <label class="calc-input-label">
+              <span>Average Case Value</span>
+              <span class="calc-input-value" id="valCaseValue">$9,500</span>
+            </label>
+            <input type="range" class="calc-slider" id="sliderCaseValue" min="3000" max="25000" step="500" value="9500" oninput="updateCalc()">
+          </div>
+          <div class="calc-input-group">
+            <label class="calc-input-label">
+              <span>Current Close Rate</span>
+              <span class="calc-input-value" id="valCloseRate">27%</span>
+            </label>
+            <input type="range" class="calc-slider" id="sliderCloseRate" min="10" max="60" value="27" oninput="updateCalc()">
+          </div>
+
+          <!-- SERVICE TOGGLES -->
+          <div class="service-toggles">
+            <div style="font-weight:700;font-size:0.85rem;color:var(--ink);margin-bottom:16px">Include in Recovery Estimate:</div>
+            <div class="service-toggle">
+              <div class="service-toggle-info">
+                <span class="service-toggle-name">Google Ads</span>
+                <span class="service-toggle-desc">Capture searches Kelley Kronenberg currently misses entirely</span>
+              </div>
+              <div class="toggle-switch active" id="toggleGoogle" onclick="toggleService('google')"></div>
+            </div>
+            <div class="service-toggle">
+              <div class="service-toggle-info">
+                <span class="service-toggle-name">Meta Ads</span>
+                <span class="service-toggle-desc">Target demographics across 18 markets — estate planning, family law, immigration</span>
+              </div>
+              <div class="toggle-switch active" id="toggleMeta" onclick="toggleService('meta')"></div>
+            </div>
+            <div class="service-toggle">
+              <div class="service-toggle-info">
+                <span class="service-toggle-name">AI Intake (24/7)</span>
+                <span class="service-toggle-desc">Capture after-hours leads before they find a competitor</span>
+              </div>
+              <div class="toggle-switch active" id="toggleAI" onclick="toggleService('ai')"></div>
+            </div>
+            <div class="service-toggle">
+              <div class="service-toggle-info">
+                <span class="service-toggle-name">Website Optimization</span>
+                <span class="service-toggle-desc">Homepage CTAs, mobile conversion, practice-area landing pages</span>
+              </div>
+              <div class="toggle-switch active" id="toggleWebsite" onclick="toggleService('website')"></div>
+            </div>
+            <div class="service-toggle">
+              <div class="service-toggle-info">
+                <span class="service-toggle-name">CRM &amp; Follow-Up Automation</span>
+                <span class="service-toggle-desc">Automated nurture sequences — stop leads from going cold</span>
+              </div>
+              <div class="toggle-switch active" id="toggleCRM" onclick="toggleService('crm')"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="calc-results">
+          <div class="calc-result-card">
+            <div class="calc-result-value danger" id="resultLost">$143K</div>
+            <div class="calc-result-label">Currently Losing / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value success" id="resultRecover">$98K</div>
+            <div class="calc-result-label">Could Recover / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value" style="color:var(--brand-blue)" id="resultClients">14</div>
+            <div class="calc-result-label">New Clients / Month</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-value gold" id="resultROI">4.1×</div>
+            <div class="calc-result-label">Projected ROI</div>
+          </div>
+          <div class="calc-total">
+            <div class="calc-total-value" id="resultAnnual">$1.18M</div>
+            <div class="calc-total-label">Annual Recovery Opportunity</div>
+          </div>
+          <div style="font-size:0.82rem;color:var(--slate);text-align:center;padding:8px;font-style:italic">
+            While Kelley Kronenberg deliberates, Greenberg Traurig takes the next consultation.
+          </div>
+        </div>
+      </div>
+
+      <!-- MATH BREAKDOWN -->
+      <div class="math-section">
+        <div class="math-title">📊 How We Got Here</div>
+        <div class="math-step">
+          <div class="math-step-title">Step 1: Monthly Inquiry Volume</div>
+          <div class="math-line"><span>Weekly inquiries (firm-wide consumer)</span><span id="m-weekly">38</span></div>
+          <div class="math-line"><span>× Weeks per month</span><span>× 4.3</span></div>
+          <div class="math-line total"><span>= Monthly consumer inquiries</span><span id="m-monthly">163</span></div>
+        </div>
+        <div class="math-step">
+          <div class="math-step-title">Step 2: The After-Hours Gap</div>
+          <div class="math-line"><span>Monthly inquiries</span><span id="m-monthly2">163</span></div>
+          <div class="math-line"><span>× After-hours %</span><span id="m-ah-pct">× 38%</span></div>
+          <div class="math-line"><span>= After-hours inquiries / month</span><span id="m-ah">62</span></div>
+          <div class="math-line"><span>Current voicemail capture rate</span><span>~15%</span></div>
+          <div class="math-line loss total"><span>= After-hours leads LOST / month</span><span id="m-lost">53</span></div>
+        </div>
+        <div class="math-step">
+          <div class="math-step-title">Step 3: Revenue Impact of Lost Leads</div>
+          <div class="math-line"><span>Lost leads / month</span><span id="m-lost2">53</span></div>
+          <div class="math-line"><span>× Close rate</span><span id="m-close">× 27%</span></div>
+          <div class="math-line"><span>× Average case value</span><span id="m-cv">× $9,500</span></div>
+          <div class="math-line loss total"><span>= Monthly revenue lost (after-hours alone)</span><span id="m-ah-loss">$135K</span></div>
+        </div>
+        <div class="math-step">
+          <div class="math-step-title">Step 4: Total Recovery (All Active Services)</div>
+          <div class="math-line"><span id="googleLine">Google Ads — new inquiries captured</span><span id="googleVal">+$32K</span></div>
+          <div class="math-line"><span id="metaLine">Meta Ads — demographic targeting</span><span id="metaVal">+$18K</span></div>
+          <div class="math-line"><span id="aiLine">AI Intake — after-hours recovery (80%)</span><span id="aiVal">+$31K</span></div>
+          <div class="math-line"><span id="websiteLine">Website optimization — conversion lift</span><span id="websiteVal">+$12K</span></div>
+          <div class="math-line"><span id="crmLine">CRM automation — close rate improvement</span><span id="crmVal">+$5K</span></div>
+          <div class="math-line result total"><span>= TOTAL MONTHLY RECOVERY</span><span id="m-total">$98K</span></div>
+        </div>
+      </div>
+      <p style="font-size:0.8rem;color:var(--slate);text-align:center;margin-top:16px;font-style:italic">Projections based on industry benchmarks from professional services marketing. Actual results vary by market and campaign execution.</p>
+    </div>
+
+    <!-- AI COMPARISON -->
+    <section>
+      <div class="section-header reveal">
+        <span class="section-label">After-Hours Options</span>
+        <h2 class="section-title">What Happens When Someone Calls at 9 PM</h2>
+      </div>
+      <div class="ai-comparison reveal">
+        <div class="ai-comparison-grid">
+          <div class="ai-option voicemail">
+            <div class="ai-option-title">❌ Voicemail (Current)</div>
+            <div class="ai-option-features">
+              <div class="ai-option-feature">⏰ Response: Next business day (if at all)</div>
+              <div class="ai-option-feature">📉 Lead capture: ~15%</div>
+              <div class="ai-option-feature">🌐 Languages: 1</div>
+              <div class="ai-option-feature">🎯 Qualification: None</div>
+              <div class="ai-option-feature">📅 Booking: Manual, next day</div>
+              <div class="ai-option-feature">💀 Caller experience: Hang up and call someone else</div>
+            </div>
+          </div>
+          <div class="ai-option answering">
+            <div class="ai-option-title">⚠️ Answering Service</div>
+            <div class="ai-option-features">
+              <div class="ai-option-feature">⏰ Response: 30–90 seconds</div>
+              <div class="ai-option-feature">📉 Lead capture: ~60%</div>
+              <div class="ai-option-feature">🌐 Languages: 1–2</div>
+              <div class="ai-option-feature">🔄 Turnover: Every 3–6 months</div>
+              <div class="ai-option-feature">📋 Training: Weeks + ongoing</div>
+              <div class="ai-option-feature">⚠️ Quality: Inconsistent</div>
+            </div>
+          </div>
+          <div class="ai-option ai">
+            <div class="ai-option-title">✅ AI Intake (Us)</div>
+            <div class="ai-option-features">
+              <div class="ai-option-feature">⚡ Response: Under 5 minutes, always</div>
+              <div class="ai-option-feature">📈 Lead capture: 90%+</div>
+              <div class="ai-option-feature">🌐 Languages: 30+</div>
+              <div class="ai-option-feature">🔒 Turnover: Never</div>
+              <div class="ai-option-feature">📅 Booking: Direct calendar integration</div>
+              <div class="ai-option-feature">🤖 Quality: Consistent, improving over time</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--slate);text-align:center;margin-top:20px;font-style:italic">Across our portfolio, AI intake recovers an average of 35% of previously lost after-hours leads.</p>
+      </div>
+    </section>
+
+    <!-- PLAYBOOK -->
+    <section>
+      <div class="section-header reveal">
+        <span class="section-label">The Playbook</span>
+        <h2 class="section-title">How to Close Each Gap — Step by Step</h2>
+        <p class="section-subtitle">No gatekeeping. Here's exactly what it takes — DIY or done-for-you. Fair warning: marketing isn't a one-time project. These steps don't stop.</p>
+      </div>
+
+      <!-- GAP 1: PAID ADS -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">01</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Found — Google &amp; Meta Paid Advertising</div>
+            <div class="playbook-problem">The Problem: 18 offices. Zero paid ads. Competitors are buying searches Kelley Kronenberg should own in every single market.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div>Create Google Ads account at ads.google.com — set up conversion tracking (calls, form fills, bookings)</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div>Research keywords for each practice area × each market: "estate planning attorney Fort Lauderdale," "family law Miami," etc.</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div>Build campaign structure — separate campaigns per office + practice area cluster (potentially 50+ campaigns)</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div>Write 3–5 ad variations per group, create dedicated landing pages per practice</div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div>Set up Meta Business Manager, install pixel, build audience segments by demographics and geography</div>
+            </div>
+            <div style="font-weight:600;font-size:0.8rem;color:var(--slate);margin-top:14px;margin-bottom:8px">WEEKLY (Every Week, Forever):</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">6</div>Review search terms — add negative keywords, pause waste</div>
+              <div class="playbook-step"><div class="playbook-step-num">7</div>Create new ad creative — stale ads lose performance within 7–14 days</div>
+              <div class="playbook-step"><div class="playbook-step-num">8</div>Monitor competitor ads in all 18 markets</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 30–50 hrs (scale of 18 markets)</span>
+              <span>🔄 Ongoing: 10–15 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Full keyword research across all 18 markets</li>
+              <li>Campaign architecture for every office + practice area</li>
+              <li>Ad copywriting — 3–5 variations per ad group</li>
+              <li>Dedicated landing pages per practice area</li>
+              <li>Conversion tracking setup and monitoring</li>
+              <li>Negative keyword management (weekly)</li>
+              <li>Budget optimization and bid adjustments (weekly)</li>
+              <li>Fresh ad creative every week — no stale ads</li>
+              <li>A/B testing headlines, CTAs, images across all campaigns</li>
+              <li>Competitor monitoring across all markets</li>
+              <li>Meta audience builds — demographics, lookalikes, retargeting</li>
+              <li>Cross-market performance reporting</li>
+              <li>Quarterly strategy reviews and budget reallocation</li>
+            </ul>
+            <div class="playbook-dfy-result">You approve the budget. We run the system. That's it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 2: INTAKE -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">02</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Answered — 24/7 AI Intake</div>
+            <div class="playbook-problem">The Problem: 38%+ of inquiries arrive after hours across 18 offices. Voicemail captures about 15% of them. The rest call Greenberg Traurig.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div>Research and vet answering services — Ruby, Smith.ai, LEX Reception</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div>Write intake scripts for every practice area — estate planning, family law, immigration, business, etc.</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div>Configure call routing rules per office, per time zone</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div>Train staff on intake protocols — expect 2–4 weeks</div>
+            </div>
+            <div style="font-weight:600;font-size:0.8rem;color:var(--slate);margin-top:14px;margin-bottom:8px">WEEKLY + Ongoing:</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">5</div>Monitor call recordings for quality and script adherence</div>
+              <div class="playbook-step"><div class="playbook-step-num">6</div>Retrain after every staff turnover (expect every 3–6 months)</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 15–20 hrs</span>
+              <span>🔄 Ongoing: 3–5 hrs/week FOREVER + retraining cycles</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>AI receptionist setup and configuration for all 18 offices</li>
+              <li>Custom intake scripts per practice area</li>
+              <li>Qualification logic — urgency, case type, budget</li>
+              <li>Direct calendar booking integration</li>
+              <li>CRM integration for instant lead delivery</li>
+              <li>30+ language support — critical for South Florida and NYC markets</li>
+              <li>Under 5-minute response time, 24/7/365</li>
+              <li>Call recording and transcription</li>
+              <li>Lead scoring and prioritization</li>
+              <li>Ongoing optimization — no retraining required</li>
+              <li>Never quits, never gets sick, never turns over</li>
+            </ul>
+            <div class="playbook-dfy-result">You take qualified appointments. Nothing else to manage.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 3: WEBSITE -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">03</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Chosen — Homepage &amp; Website Conversion</div>
+            <div class="playbook-problem">The Problem: The Kelley Kronenberg homepage has solid credentials but weak conversion architecture. Thin content, limited CTAs, and visuals that underrepresent a 240-attorney national firm.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div>Run PageSpeed Insights — fix critical load time issues (important for paid ad quality scores)</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div>Add above-the-fold CTAs on homepage and all practice pages</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div>Build dedicated landing pages per practice area and major market</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div>Install heatmap tracking (Hotjar or Clarity) — understand where visitors drop off</div>
+              <div class="playbook-step"><div class="playbook-step-num">5</div>Refresh homepage visuals to reflect national firm scale</div>
+            </div>
+            <div style="font-weight:600;font-size:0.8rem;color:var(--slate);margin-top:14px;margin-bottom:8px">WEEKLY:</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">6</div>Publish new content — Google rewards fresh content, this never stops</div>
+              <div class="playbook-step"><div class="playbook-step-num">7</div>Monitor rankings and competitor content output</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 25–40 hrs</span>
+              <span>🔄 Ongoing: 7–10 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>Full conversion audit of homepage and key practice pages</li>
+              <li>Homepage redesign — above-the-fold CTAs, visual hierarchy</li>
+              <li>Dedicated landing pages per practice area and major market</li>
+              <li>Mobile experience optimization (62% of searches are mobile)</li>
+              <li>Trust signal placement — awards, credentials, case wins</li>
+              <li>Page speed optimization (critical for ad quality scores)</li>
+              <li>Google Business Profile management across all 18 offices</li>
+              <li>Weekly content publishing — blogs, FAQs, case studies</li>
+              <li>Heatmap analysis and monthly CRO recommendations</li>
+              <li>Quarterly competitive content analysis</li>
+              <li>Review generation and management</li>
+            </ul>
+            <div class="playbook-dfy-result">Your site works harder while the team practices law.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAP 4: CRM -->
+      <div class="playbook-card reveal">
+        <div class="playbook-header">
+          <div class="playbook-number">04</div>
+          <div class="playbook-title-group">
+            <div class="playbook-title">Get Closed — CRM &amp; Follow-Up Automation</div>
+            <div class="playbook-problem">The Problem: Leads from 18 offices and 40+ practice areas are likely landing in a mix of inboxes, spreadsheets, and phone calls. Without automation, follow-up is inconsistent and leads go cold.</div>
+          </div>
+        </div>
+        <div class="playbook-content">
+          <div class="playbook-diy">
+            <div class="playbook-column-title">🛠️ DIY Fix</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">1</div>Select and configure a legal CRM — Clio Grow, Lawmatics, or HubSpot</div>
+              <div class="playbook-step"><div class="playbook-step-num">2</div>Map intake workflow from first contact through consultation booked</div>
+              <div class="playbook-step"><div class="playbook-step-num">3</div>Build email sequences: immediate acknowledgment → 24hr → 72hr → 7-day nurture</div>
+              <div class="playbook-step"><div class="playbook-step-num">4</div>Set up task reminders and pipeline stages for each office</div>
+            </div>
+            <div style="font-weight:600;font-size:0.8rem;color:var(--slate);margin-top:14px;margin-bottom:8px">DAILY + WEEKLY:</div>
+            <div class="playbook-steps">
+              <div class="playbook-step"><div class="playbook-step-num">5</div>Monitor lead pipeline across all offices — respond within 5 minutes during business hours</div>
+              <div class="playbook-step"><div class="playbook-step-num">6</div>Run dead-lead reactivation campaigns monthly</div>
+            </div>
+            <div class="playbook-time">
+              <span>⏱️ Setup: 20–30 hrs</span>
+              <span>🔄 Ongoing: 6–9 hrs/week FOREVER</span>
+            </div>
+          </div>
+          <div class="playbook-done-for-you">
+            <div class="playbook-column-title">✨ We Handle All of This:</div>
+            <ul class="playbook-dfy-list">
+              <li>CRM setup and full workflow configuration</li>
+              <li>Intake workflow mapping across practice areas and offices</li>
+              <li>Automated email sequences — instant through 30-day nurture</li>
+              <li>SMS follow-up automation for high-intent leads</li>
+              <li>Task and reminder system per office and attorney</li>
+              <li>Lead source tracking — know what's working and what isn't</li>
+              <li>Pipeline reporting and analytics dashboard</li>
+              <li>Dead lead reactivation campaigns (monthly)</li>
+              <li>Sequence optimization based on open/click data</li>
+              <li>Monthly conversion analysis and recommendations</li>
+            </ul>
+            <div class="playbook-dfy-result">Leads get nurtured automatically. Attorneys show up to warm consultations.</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:0.95rem;color:var(--slate);text-align:center;max-width:800px;margin:20px auto 0;line-height:1.75">You can do this entirely in-house — many firms do. But be honest about the scale: across 18 offices and 40+ practice areas, this is 30–50 hours/week of ongoing work, forever. That's a full-time marketing operations role on top of whatever you're already running. If the bandwidth isn't there, that's exactly why we exist.</p>
+    </section>
+
+    <!-- VISION -->
+    <div class="vision-box reveal">
+      <div class="vision-credential">
+        Kelley Kronenberg has spent 45 years building something exceptional — 240+ attorneys, 18 offices, a nationally recognized reputation, and practice depth most firms can't match. We've spent a decade building the digital systems that get firms like yours in front of the right people at exactly the right moment.
+      </div>
+      <div class="vision-quote">"You do what you're known for. We do what we're known for."</div>
+      <div class="vision-list">
+        <div class="vision-list-item">→ Your attorneys won't be managing Google campaigns</div>
+        <div class="vision-list-item">→ Your BD team won't be running weekly ad creative</div>
+        <div class="vision-list-item">→ Your intake won't miss another 9 PM call</div>
+        <div class="vision-list-item">→ Your pipeline won't rely on manual follow-up</div>
+        <div class="vision-list-item">→ Your firm will show up first, respond fastest, and close more.</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section reveal">
+      <div class="cta-urgency" id="dailyLoss">$4,767 lost today</div>
+      <h2 class="cta-title">Ready to Close the Gap?</h2>
+      <p class="cta-subtitle">15 minutes. No pressure. We'll walk through what we found and what the highest-ROI move is for Kelley Kronenberg right now.</p>
+
+      <div class="cta-columns">
+        <div class="cta-column">
+          <div class="cta-column-title">What We Found</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">✗ Zero paid ads across 18 offices</div>
+            <div class="cta-column-item">✗ After-hours leads going to voicemail</div>
+            <div class="cta-column-item">✗ Homepage not converting traffic</div>
+            <div class="cta-column-item">✗ No lead nurture automation visible</div>
+            <div class="cta-column-item">✗ Competitors running ads in every market</div>
+          </div>
+        </div>
+        <div class="cta-column">
+          <div class="cta-column-title">What Changes</div>
+          <div class="cta-column-list">
+            <div class="cta-column-item">✓ Paid campaigns across key markets — live in 2 weeks</div>
+            <div class="cta-column-item">✓ AI intake capturing 90%+ after-hours leads</div>
+            <div class="cta-column-item">✓ Homepage rebuilt to convert, not just inform</div>
+            <div class="cta-column-item">✓ Automated nurture from first inquiry to consultation</div>
+            <div class="cta-column-item">✓ Firm-wide dashboard showing what's working</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-works">
+        <div class="why-works-title">Why This Works</div>
+        <div class="why-works-grid">
+          <div>
+            <div class="why-works-col-title">Your Team Focuses On:</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">— Practicing law at the highest level</div>
+              <div class="why-works-col-item">— Client relationships and outcomes</div>
+              <div class="why-works-col-item">— Business development and referrals</div>
+              <div class="why-works-col-item">— Growing the firm's reputation</div>
+            </div>
+          </div>
+          <div>
+            <div class="why-works-col-title">We Handle:</div>
+            <div class="why-works-col-list">
+              <div class="why-works-col-item">— Google &amp; Meta Ads across all markets</div>
+              <div class="why-works-col-item">— AI intake, 24/7/365</div>
+              <div class="why-works-col-item">— Website conversion optimization</div>
+              <div class="why-works-col-item">— CRM automation and lead nurture</div>
+              <div class="why-works-col-item">— Everything else</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-widget-container">
+        <h3 style="font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:20px;color:var(--white)">Book a 15-Minute Strategy Call</h3>
+        <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width:100%;border:none;overflow:hidden;min-height:600px;border-radius:12px;" scrolling="no" id="mortarmetrics-booking-widget"></iframe>
+        <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
+      </div>
+
+      <div class="cta-guarantee">No long-term contracts. Month-to-month. Results-focused.</div>
+      <div class="authority-flex">We've helped firms like yours recover six figures in missed revenue — without adding a single hour to the team's workweek.</div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <div class="footer-logo">M</div>
+        <span class="footer-name">Mortar Metrics</span>
+      </div>
+      <p style="color:var(--slate);font-size:0.85rem">
+        Prepared by Yaseer Choudhury<br>
+        <a href="https://mortarmetrics.com/" style="color:var(--brand-blue)">mortarmetrics.com</a>
+      </p>
+    </footer>
+
+  </div><!-- end container -->
+
+  <script>
+    // SCROLL PROGRESS
+    window.addEventListener('scroll',()=>{
+      const s=window.scrollY,h=document.documentElement.scrollHeight-window.innerHeight;
+      document.getElementById('scrollIndicator').style.width=(s/h*100)+'%';
+    });
+
+    // REVEAL
+    const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.08});
+    document.querySelectorAll('.reveal').forEach(e=>obs.observe(e));
+
+    // SERVICES STATE
+    const svc={google:true,meta:true,ai:true,website:true,crm:true};
+    function toggleService(s){
+      svc[s]=!svc[s];
+      document.getElementById('toggle'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active');
+      updateCalc();
+    }
+
+    function fmt(n){
+      if(n>=1000000) return '$'+Math.round(n/100000)/10+'M';
+      if(n>=1000) return '$'+Math.round(n/1000)+'K';
+      return '$'+Math.round(n);
+    }
+
+    function updateCalc(){
+      const inq=+document.getElementById('sliderInquiries').value;
+      const ah=+document.getElementById('sliderAfterHours').value/100;
+      const cv=+document.getElementById('sliderCaseValue').value;
+      const cr=+document.getElementById('sliderCloseRate').value/100;
+
+      document.getElementById('valInquiries').textContent=inq;
+      document.getElementById('valAfterHours').textContent=Math.round(ah*100)+'%';
+      document.getElementById('valCaseValue').textContent='$'+cv.toLocaleString();
+      document.getElementById('valCloseRate').textContent=Math.round(cr*100)+'%';
+
+      const monthly=Math.round(inq*4.3);
+      const ahMonth=Math.round(monthly*ah);
+      const lostLeads=Math.round(ahMonth*0.85);
+      const monthlyLoss=lostLeads*cr*cv;
+
+      // Recovery per service
+      const googleRec=svc.google ? Math.round(inq*0.6)*cv*cr : 0; // ~60% more inquiries from ads
+      const metaRec=svc.meta ? Math.round(inq*0.35)*cv*cr : 0;
+      const aiRec=svc.ai ? lostLeads*0.80*cr*cv : 0; // recover 80% of lost after-hours
+      const websiteRec=svc.website ? monthly*0.03*cr*cv : 0; // 3% conversion lift
+      const crmRec=svc.crm ? monthly*cr*cv*0.05 : 0; // 5% close rate lift
+
+      const totalRecover=googleRec+metaRec+aiRec+websiteRec+crmRec;
+      const newClients=Math.round((totalRecover/cv));
+      const roi=totalRecover>0 ? (totalRecover/24000).toFixed(1) : '—'; // $24K/mo cost estimate
+      const annual=totalRecover*12;
+
+      document.getElementById('resultLost').textContent=fmt(monthlyLoss);
+      document.getElementById('resultRecover').textContent=fmt(totalRecover);
+      document.getElementById('resultClients').textContent=newClients;
+      document.getElementById('resultROI').textContent=roi+'×';
+      document.getElementById('resultAnnual').textContent=fmt(annual);
+
+      // Math breakdown
+      document.getElementById('m-weekly').textContent=inq;
+      document.getElementById('m-monthly').textContent=monthly;
+      document.getElementById('m-monthly2').textContent=monthly;
+      document.getElementById('m-ah-pct').textContent='× '+Math.round(ah*100)+'%';
+      document.getElementById('m-ah').textContent=ahMonth;
+      document.getElementById('m-lost').textContent=lostLeads;
+      document.getElementById('m-lost2').textContent=lostLeads;
+      document.getElementById('m-close').textContent='× '+Math.round(cr*100)+'%';
+      document.getElementById('m-cv').textContent='× $'+cv.toLocaleString();
+      document.getElementById('m-ah-loss').textContent=fmt(monthlyLoss);
+
+      document.getElementById('googleVal').textContent=svc.google ? fmt(googleRec) : '—';
+      document.getElementById('metaVal').textContent=svc.meta ? fmt(metaRec) : '—';
+      document.getElementById('aiVal').textContent=svc.ai ? fmt(aiRec) : '—';
+      document.getElementById('websiteVal').textContent=svc.website ? fmt(websiteRec) : '—';
+      document.getElementById('crmVal').textContent=svc.crm ? fmt(crmRec) : '—';
+      document.getElementById('m-total').textContent=fmt(totalRecover);
+
+      // Daily loss ticker
+      const daily=Math.round(monthlyLoss/30);
+      document.getElementById('dailyLoss').textContent=fmt(daily)+' lost today';
+    }
+
+    updateCalc();
+  </script>
+</body>
+</html>
