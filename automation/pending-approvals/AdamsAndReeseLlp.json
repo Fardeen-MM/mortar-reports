@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "713-308-0133",
   "created_at": "2026-03-04T14:59:04.059Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -37,5 +37,6 @@
   "prosp_sender": "https://www.linkedin.com/in/fardeen-choudhury",
   "source": "connection_accept",
   "connection_dm": "Hey Cassandra, thanks for connecting. We helped a business law firm in Arizona uncover about $90k/mo in cases they were losing to other firms online. Ran the same audit on Adams and Reese and found a similar gap—looks like you're missing somewhere between $56.5K-77K per month. Already built the whole breakdown for you:\n\nhttps://reports.mortarmetrics.com/AdamsAndReeseLlp/\n\nWant me to walk you through what's happening and how to fix it?",
-  "telegram_message_id": 576
+  "telegram_message_id": 576,
+  "approved_at": "2026-03-04T15:11:33.788Z"
 }
