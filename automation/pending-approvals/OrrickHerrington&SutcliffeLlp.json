@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-05T09:03:26.258Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -37,5 +37,6 @@
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
   "source": "connection_accept",
   "connection_dm": "Hey Sven, thanks for connecting.\n\nWe helped a business law firm in Florida find about $310k in cases per month they were losing to other firms online. Ran the same audit on yours and found a similar gap.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/OrrickHerrington&SutcliffeLlp/\n\nWant me to walk you through what's causing it and how to fix it?",
-  "telegram_message_id": 635
+  "telegram_message_id": 635,
+  "approved_at": "2026-03-05T10:38:05.611Z"
 }
