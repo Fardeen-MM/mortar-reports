@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 030426",
   "phone": "",
   "created_at": "2026-03-05T14:16:24.412Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,6 @@
   "channel": "instantly",
   "linkedin_url": "https://www.linkedin.com/in/jeremy-rosenberg-54713031",
   "prosp_sender": "",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 659
 }
