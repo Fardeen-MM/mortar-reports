@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-05T08:45:29.728Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/kellysiobhanlaffey",
   "prosp_sender": "https://www.linkedin.com/in/nafi-chaudhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Kelly, thanks for connecting.\n\nWe helped an IP firm in Virginia realize they were missing about $410k/mo in cases that were going to competitors online.\n\nRan the same audit on Pryor Cashman and found you're sitting on a similar gap—looks like around $170K-230K/mo based on your practice area.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/PryorCashman/\n\nWant me to walk you through what's happening and how to fix it?",
+  "telegram_message_id": 633
 }
