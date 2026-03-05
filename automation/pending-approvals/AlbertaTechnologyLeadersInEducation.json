@@ -11,7 +11,7 @@
   "campaign_name": "Lawyer Campaign 030426",
   "phone": "",
   "created_at": "2026-03-05T02:22:12.277Z",
-  "status": "awaiting_approval",
+  "status": "approved",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "2",
@@ -36,5 +36,6 @@
   "linkedin_url": "https://www.linkedin.com/in/lea-mackenzie-director-of-operations-19818a325",
   "prosp_sender": "",
   "source": "",
-  "telegram_message_id": 632
+  "telegram_message_id": 632,
+  "approved_at": "2026-03-05T10:38:57.254Z"
 }
