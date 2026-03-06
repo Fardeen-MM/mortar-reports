@@ -11,7 +11,7 @@
   "campaign_name": "Real Estate 030526",
   "phone": "12242347150",
   "created_at": "2026-03-06T18:55:52.844Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "3",
@@ -35,5 +35,6 @@
   "channel": "instantly",
   "linkedin_url": "https://www.linkedin.com/in/walker-hairston-6858894",
   "prosp_sender": "",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 787
 }
