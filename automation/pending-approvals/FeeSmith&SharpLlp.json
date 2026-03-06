@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-06T16:32:30.231Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "1",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/anthony-lascalea-7160091b",
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Anthony, thanks for connecting.\n\nWe worked with a business law firm in Colorado last month and found about $430k/mo in cases they were losing to competitors online. Ran the same audit on Fee, Smith, & Sharp and spotted a similar gap—looks like you're missing roughly $183K-248.5K/mo worth.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/FeeSmith&SharpLlp/\n\nWorth a quick call to walk through what's actually happening?",
+  "telegram_message_id": 744
 }
