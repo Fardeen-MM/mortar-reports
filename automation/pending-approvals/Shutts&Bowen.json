@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-06T09:02:25.324Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/olga-pina-5524a97",
   "prosp_sender": "https://www.linkedin.com/in/fardeen-choudhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Olga, thanks for connecting.\n\nWe helped a business law firm in Ohio find about $280K/mo in cases they were losing to other firms online. Ran the same audit on yours and found a similar gap—looks like you're missing around $139.5K-189K/mo.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/Shutts&Bowen/\n\nWant me to walk you through what's costing you those cases?",
+  "telegram_message_id": 714
 }
