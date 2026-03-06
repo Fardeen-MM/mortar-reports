@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-06T20:39:29.739Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "3",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/ehansenw",
   "prosp_sender": "https://www.linkedin.com/in/nafi-chaudhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Erik, thanks for connecting. We helped a legal services firm in Arizona find about $90k/mo in cases they were losing to other firms online, and when I ran the same audit on Allocate, we found a similar gap—looks like you're missing somewhere around $36-48.5k/mo. Already built the whole breakdown for you:\n\nhttps://reports.mortarmetrics.com/Allocate/\n\nWant me to walk you through what's happening and how to fix it?",
+  "telegram_message_id": 788
 }
