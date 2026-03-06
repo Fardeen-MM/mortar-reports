@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-06T11:19:37.040Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "true",
   "qc_issues": "0",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/scott-resnik-03a5696",
   "prosp_sender": "https://www.linkedin.com/in/muntasir-choudhury-6026bb164",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Scott, thanks for connecting. We helped a business law firm in Virginia uncover about $110k/mo in cases they were losing to other firms online, and we ran the same audit on Katten and found a similar gap—looks like you're missing around $56.5-77K/mo worth. Already built the whole breakdown for you:\n\nhttps://reports.mortarmetrics.com/KattenMuchinRosenmanLlp/\n\nWant me to walk you through what's actually fixable here.",
+  "telegram_message_id": 720
 }
