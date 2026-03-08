@@ -2610,9 +2610,13 @@ async function listMergeDispatch(env, email, minSlots) {
           });
         }
       }
+    } else {
+      // AI reply generation failed — still notify on Telegram so no lead is missed
+      console.log(`Quick reply failed for ${email} (${classification.category}), sending Telegram notification`);
+      await sendTelegramNotification(env, email, replyText, classification);
     }
-  } else if (!['OOO'].includes(classification.category)) {
-    // NOT_INTERESTED/UNSUBSCRIBE/IRRELEVANT — just send Telegram notification, no reply
+  } else {
+    // NOT_INTERESTED/UNSUBSCRIBE/IRRELEVANT or no API key — just send Telegram notification, no reply
     await sendTelegramNotification(env, email, replyText, classification);
   }
 
