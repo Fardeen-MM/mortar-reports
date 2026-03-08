@@ -8,7 +8,7 @@
  * 4. POST /view → report view tracking + follow-up triggers
  * 5. POST /store-lead → store lead metadata for view-triggered emails
  * 6. POST /queue-email → queue any email for Telegram approval
- * 7. AI reply classification (QUESTION/OBJECTION auto-responses)
+ * 7. AI reply classification + quick-reply system (website research + personalized AI replies)
  * 8. POST /prosp-webhook → Prosp LinkedIn DM webhook handling
  * 9. LinkedIn DM sending via Prosp API + DM queue with Telegram approval
  *
@@ -1484,6 +1484,118 @@ ${guidelines}`;
   }
 }
 
+// ============ QUICK REPLY SYSTEM ============
+
+/**
+ * Quick research: fetch website homepage + Haiku extraction.
+ * Returns { practiceAreas, firmType, location, summary }.
+ * Falls back gracefully if website is unavailable.
+ */
+async function quickResearch(websiteUrl, company, anthropicKey) {
+  const context = { practiceAreas: '', firmType: '', location: '', summary: '' };
+  if (!websiteUrl) return context;
+
+  // Ensure URL has protocol
+  let url = websiteUrl;
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MortarBot/1.0)' },
+      signal: AbortSignal.timeout(5000),
+      redirect: 'follow'
+    });
+    if (!resp.ok) return context;
+    const html = await resp.text();
+
+    // Strip to text (no library needed in CF Workers)
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 4000);
+
+    if (!text || text.length < 50) return context;
+
+    const extraction = await callHaiku(anthropicKey,
+      'Extract firm details from website text. Return a short JSON object only, no other text.',
+      `Website text from ${company || 'a firm'}:\n\n${text}\n\nReturn JSON: {"practice_areas":"comma-separated list","firm_type":"law firm/agency/consultancy/etc","city":"city if found","one_liner":"one sentence what this firm does"}`,
+      200
+    );
+
+    const jsonMatch = extraction.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      context.practiceAreas = parsed.practice_areas || '';
+      context.firmType = parsed.firm_type || '';
+      context.location = parsed.city || '';
+      context.summary = parsed.one_liner || '';
+    }
+  } catch (e) {
+    console.log(`Quick research failed for ${websiteUrl}: ${e.message}`);
+  }
+  return context;
+}
+
+/**
+ * Generate a quick, personalized reply using research context + webhook data.
+ * Not hardcoded to law firms — AI figures out what the business does.
+ */
+async function generateQuickReply(category, replyText, firmName, contactName, anthropicKey, opts = {}) {
+  const { research = {}, jobTitle = '', location = '' } = opts;
+
+  // Smart day logic: suggest a specific day for the call
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  let meetDay;
+  if (dayOfWeek >= 5 || dayOfWeek === 0) { // Fri, Sat, Sun
+    meetDay = 'Monday';
+  } else { // Mon-Thu
+    meetDay = 'tomorrow';
+  }
+
+  const firstName = contactName || '';
+  const firm = firmName || 'your firm';
+  const reply = (replyText || '').slice(0, 500);
+
+  // Build context block from research
+  let aboutBusiness = '';
+  if (research.summary) aboutBusiness += `\nABOUT THEIR BUSINESS: ${research.summary}`;
+  if (research.practiceAreas) aboutBusiness += `\nWHAT THEY DO: ${research.practiceAreas}`;
+  if (location) aboutBusiness += `\nLOCATION: ${location}`;
+
+  const systemPrompt = `You're Fardeen from Mortar Metrics. We're a marketing agency that helps businesses get more clients.
+
+A lead replied to our cold email. Write a short reply that gets them on a call.
+
+Here's what we actually do: we build and manage their entire marketing — ads, website, funnels, intake — so new clients are booking directly on their calendar. They don't do anything differently. We handle everything.
+
+Rules:
+- Start with "Hey ${firstName}," on its own line.
+- If they asked a question, answer it directly in 1-2 sentences. Reference what their business actually does if you know it.
+- If they said they're interested, match their energy. Don't over-explain.
+- If they pushed back, acknowledge it genuinely, then pivot to the call.
+- End with a specific call ask: "Easiest way is a quick chat. Are you free ${meetDay} for 15 minutes?"
+- 3-4 sentences max. Sound like a real person texting a colleague.
+- No exclamation marks. No marketing speak. No em dashes.
+- No sign-off or signature (the email system adds that).`;
+
+  const titleLine = jobTitle ? `, ${jobTitle}` : '';
+  const userPrompt = `LEAD: ${firstName}${titleLine} from ${firm}
+THEIR REPLY: "${reply}"
+AI CLASSIFICATION: ${category}${aboutBusiness}`;
+
+  try {
+    return await callHaiku(anthropicKey, systemPrompt, userPrompt, 300);
+  } catch (e) {
+    console.error('Quick reply generation failed:', e.message);
+    return null;
+  }
+}
+
 // ============ NURTURE REPLY HANDLER ============
 
 /**
@@ -2409,11 +2521,10 @@ async function listMergeDispatch(env, email, minSlots) {
     }
   }
 
-  // OOO: auto-send a casual reply + trigger report pipeline (fall through to forwardToGitHub)
+  // OOO: store return date, send Telegram notification, don't reply
   if (classification.category === 'OOO') {
-    console.log(`OOO from ${email}, auto-sending casual reply + triggering report`);
+    console.log(`OOO from ${email}, storing return date`);
 
-    // Extract or default return date (5 days from now if not specified)
     let returnDate = classification.return_date || null;
     if (!returnDate) {
       const d = new Date();
@@ -2424,60 +2535,88 @@ async function listMergeDispatch(env, email, minSlots) {
     await env.WEBHOOK_KV.put(`ooo:${email}`, JSON.stringify({
       detected_at: new Date().toISOString(),
       return_date: returnDate
-    }), { expirationTtl: 604800 }); // 7 days
+    }), { expirationTtl: 604800 });
 
-    // Don't auto-send OOO reply for non-nurture leads — let the approval workflow handle it.
-    // The report pipeline will still trigger (fall through below) with OOO flag,
-    // and the approval workflow will hold the email until their return date.
-    console.log(`OOO lead ${email} — skipping auto-reply, will use approval workflow`);
-
-    // Add return date to _meta for the workflow
-    meta.ooo_return_date = returnDate;
-    merged.client_payload._meta = JSON.stringify(meta);
-
-    // DON'T return — fall through to forwardToGitHub to trigger report pipeline
+    await sendTelegramNotification(env, email, replyText, classification);
+    await cleanupSlots();
+    return true;
   }
 
-  // QUESTION, OBJECTION, NOT_INTERESTED, or UNSUBSCRIBE: generate auto-reply + queue for approval + ALSO dispatch report
-  const replyCategories = ['QUESTION', 'OBJECTION', 'NOT_INTERESTED', 'UNSUBSCRIBE'];
-  if (replyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
+  // Quick-reply system: INTERESTED/QUESTION/OBJECTION get fast AI replies
+  // NOT_INTERESTED/UNSUBSCRIBE/IRRELEVANT — send Telegram notification only, no reply
+  const quickReplyCategories = ['INTERESTED', 'QUESTION', 'OBJECTION'];
+  if (quickReplyCategories.includes(classification.category) && env.ANTHROPIC_API_KEY) {
     const contactName = merged.client_payload.first_name || '';
     const company = merged.client_payload.company || '';
+    const website = merged.client_payload.website || '';
+    const jobTitle = merged.client_payload.job_title || '';
+    const locationRaw = merged.client_payload.location || '';
 
-    const autoReply = await generateAutoResponse(
-      classification.category, replyText, company, contactName, env.ANTHROPIC_API_KEY, {
-        hasReport: false,
-        city: merged.client_payload.location || '',
-        campaignName: collectedExtra._campaign_name || '',
-        jobTitle: merged.client_payload.job_title || ''
-      }
+    // Quick research: fetch website + Haiku extraction (~2-3s)
+    const research = await quickResearch(website, company, env.ANTHROPIC_API_KEY);
+
+    // Use research location if webhook didn't provide one
+    const location = locationRaw || research.location || '';
+
+    // Generate personalized reply using research + webhook context (~2s)
+    const autoReply = await generateQuickReply(
+      classification.category, replyText, company, contactName,
+      env.ANTHROPIC_API_KEY, { research, jobTitle, location }
     );
 
     if (autoReply && env.INSTANTLY_API_KEY) {
-      // Include the lead's actual reply in context so it's visible in Telegram
-      const replyPreview = replyText ? replyText.slice(0, 300).replace(/\n/g, ' ') : '';
-      const contextLine = replyPreview
-        ? `${classification.category}: "${replyPreview}"`
-        : `${classification.category}: ${classification.summary}`;
-      await queueEmail(env, {
-        type: 'auto-reply',
-        to: email,
-        subject: 'Re: Your marketing analysis',
-        html: autoReply.replace(/\n/g, '<br>'),
-        text: autoReply,
-        lead_email: email,
-        firm_name: company,
-        contact_name: contactName,
-        context: contextLine
-      });
-    }
+      if (classification.category === 'INTERESTED') {
+        // INTERESTED: Telegram approval — human reviews before send
+        const replyPreview = replyText ? replyText.slice(0, 300).replace(/\n/g, ' ') : '';
+        const contextLine = replyPreview
+          ? `INTERESTED: "${replyPreview}"`
+          : `INTERESTED: ${classification.summary}`;
+        await queueEmail(env, {
+          type: 'auto-reply',
+          to: email,
+          subject: 'Re: Your marketing analysis',
+          html: autoReply.replace(/\n/g, '<br>'),
+          text: autoReply,
+          lead_email: email,
+          firm_name: company,
+          contact_name: contactName,
+          context: contextLine
+        });
+      } else {
+        // QUESTION/OBJECTION: auto-send immediately via Instantly
+        try {
+          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', autoReply.replace(/\n/g, '<br>'), autoReply);
+          console.log(`Quick reply auto-sent to ${email} (${classification.category})`);
 
-    // queueEmail already sends its own Telegram approval message — no extra ping needed
+          // Telegram notification (info only, already sent)
+          const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
+          const replyPreview = (replyText || '').slice(0, 150).replace(/\n/g, ' ').replace(/`/g, "'");
+          const autoPreview = autoReply.slice(0, 300).replace(/`/g, "'");
+          await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
+            `\u2705 *AUTO-SENT* (${classification.category})\n\n\ud83c\udfe2 *Firm:* ${esc(company)}\n\ud83d\udc64 *To:* ${esc(contactName)} (${email})\n\n\ud83d\udcac *They said:*\n\`\`\`\n${replyPreview}\n\`\`\`\n\n\ud83d\udce7 *We replied:*\n\`\`\`\n${autoPreview}\n\`\`\``);
+        } catch (sendErr) {
+          console.error(`Quick reply send failed for ${email}: ${sendErr.message}`);
+          // Fall back to Telegram approval if auto-send fails
+          await queueEmail(env, {
+            type: 'auto-reply',
+            to: email,
+            subject: 'Re: Your marketing analysis',
+            html: autoReply.replace(/\n/g, '<br>'),
+            text: autoReply,
+            lead_email: email,
+            firm_name: company,
+            contact_name: contactName,
+            context: `${classification.category} (auto-send failed: ${sendErr.message})`
+          });
+        }
+      }
+    }
+  } else if (!['OOO'].includes(classification.category)) {
+    // NOT_INTERESTED/UNSUBSCRIBE/IRRELEVANT — just send Telegram notification, no reply
+    await sendTelegramNotification(env, email, replyText, classification);
   }
 
-  // All non-OOO, non-nurture categories dispatch to GitHub for report generation
-  console.log('DISPATCHING MERGED PAYLOAD:', JSON.stringify(merged));
-  await forwardToGitHub(env, merged);
+  // No forwardToGitHub() — no report pipeline
 
   // Clean up slot keys
   await cleanupSlots();
