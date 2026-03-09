@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-09T14:19:34.352Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/christopher-lyon-5929b411",
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "Hey Christopher, thanks for connecting.\n\nWe helped a legal services firm find about $31K-41.5K/mo in cases they were missing online. Ran yours and found a similar gap.\n\nAlready built the whole breakdown for you:\nhttps://reports.mortarmetrics.com/CohenVaughanLlp/\n\nWant me to walk you through the fixes?",
+  "telegram_message_id": 824
 }
