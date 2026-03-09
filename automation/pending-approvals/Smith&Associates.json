@@ -11,7 +11,7 @@
   "campaign_name": "PI Firms Q1",
   "phone": "",
   "created_at": "2026-03-09T20:15:14.882Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,6 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/test-lawyer-123/",
   "prosp_sender": "https://www.linkedin.com/in/fardeen-mm/",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 878
 }
