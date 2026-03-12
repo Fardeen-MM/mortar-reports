@@ -11,7 +11,7 @@
   "campaign_name": "",
   "phone": "",
   "created_at": "2026-03-12T21:43:47.765Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,6 @@
   "channel": "prosp",
   "linkedin_url": "https://linkedin.com/in/ai-classification-test",
   "prosp_sender": "test-sender",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 19
 }
