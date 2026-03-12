@@ -281,7 +281,7 @@ ${escMd(approvalData.report_url)}
 
 \ud83d\udcac *DM PREVIEW:*
 \`\`\`
-${dmPreview.body}
+${dmPreview.messages ? dmPreview.messages.map((m, i) => `[${i+1}] ${m}`).join('\n\n') : dmPreview.body}
 \`\`\`
 
 *Please review the report and DM, then choose an action below:*`;
@@ -482,9 +482,14 @@ ${emailQC.errors.length > 0 ? `\n\ud83d\udd34 *EMAIL QC ERRORS (will block send)
       );
 
       // Store generated DM in approval JSON so send-prosp-dm.js uses the exact same text
-      approvalData.connection_dm = dmPreview.body;
+      if (dmPreview.messages) {
+        approvalData.connection_dm = JSON.stringify(dmPreview.messages);
+      } else {
+        approvalData.connection_dm = dmPreview.body;
+      }
 
-      console.log(`✅ AI DM generated (${dmPreview.body.length} chars)`);
+      const dmChars = dmPreview.messages ? dmPreview.messages.join('').length : dmPreview.body.length;
+      console.log(`✅ AI DM generated (${dmChars} chars)`);
 
       // Build the prosp message now that dmPreview is ready
       const identityLine = approvalData.lead_email
@@ -502,9 +507,9 @@ ${escMd(approvalData.report_url)}
 
 \u23f0 *Generated:* ${new Date(approvalData.created_at).toLocaleString()}
 
-\ud83d\udcac *DM PREVIEW:*
+\ud83d\udcac *DM PREVIEW (${dmPreview.messages ? dmPreview.messages.length + ' messages' : 'single'}):*
 \`\`\`
-${dmPreview.body}
+${dmPreview.messages ? dmPreview.messages.map((m, i) => `[${i+1}] ${m}`).join('\n\n') : dmPreview.body}
 \`\`\`
 
 *Please review the report and DM, then choose an action below:*`;

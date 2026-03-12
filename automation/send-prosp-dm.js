@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Send report link via LinkedIn DM using Prosp API
- * Parallel to send-email.js but for LinkedIn DMs.
+ * Supports both single-body DMs and multi-message sequences.
  *
  * Usage: node send-prosp-dm.js <linkedin_url> <contact_name> <report_url> <firm_name> [total_range] [total_cases] [practice_label]
  */
@@ -78,38 +78,86 @@ function sendProspMessage(linkedinUrl, sender, message) {
   });
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 (async () => {
   console.log(`Sending report DM via LinkedIn`);
   console.log(`  To: ${linkedinUrl}`);
   console.log(`  Sender: ${PROSP_SENDER}`);
   console.log(`  Report: ${reportUrl}`);
 
-  // Use pre-generated AI DM if available (stored in approval JSON at approval time)
-  const connectionDmBody = process.env.CONNECTION_DM || '';
+  // Check for pre-generated multi-message sequence (JSON array)
+  const connectionDmRaw = process.env.CONNECTION_DM || '';
   const source = process.env.SOURCE || '';
   let dm;
-  if (connectionDmBody) {
-    dm = { body: connectionDmBody };
-    console.log(`  Using pre-generated AI connection DM`);
+
+  if (connectionDmRaw) {
+    try {
+      const parsed = JSON.parse(connectionDmRaw);
+      if (Array.isArray(parsed)) {
+        dm = { messages: parsed };
+        console.log(`  Using pre-generated ${parsed.length}-message sequence`);
+      } else {
+        dm = { body: connectionDmRaw };
+        console.log(`  Using pre-generated single DM`);
+      }
+    } catch {
+      dm = { body: connectionDmRaw };
+      console.log(`  Using pre-generated single DM`);
+    }
   } else if (source === 'connection_accept') {
     dm = buildConnectionDM(contactName, firmName, reportUrl, totalRange, practiceLabel);
-    console.log(`  Using template connection DM (AI not available)`);
+    console.log(`  Using template ${dm.messages ? dm.messages.length + '-message sequence' : 'single DM'}`);
   } else {
     dm = buildDM(contactName, firmName, reportUrl, totalRange, totalCases, practiceLabel);
   }
-  console.log(`  DM: ${dm.body.slice(0, 100)}...`);
 
   const isDryRun = process.env.DRY_RUN === 'true';
-  if (isDryRun) {
-    console.log('DRY RUN - DM NOT sent');
-    console.log(`  Body: ${dm.body}`);
-    return;
-  }
 
-  try {
-    await sendProspMessage(linkedinUrl, PROSP_SENDER, dm.body);
-  } catch (err) {
-    console.error('Failed to send DM:', err.message);
-    process.exit(1);
+  // Multi-message sequence
+  if (dm.messages) {
+    console.log(`  Sending ${dm.messages.length} messages with delays...`);
+    for (let i = 0; i < dm.messages.length; i++) {
+      const msg = dm.messages[i];
+      console.log(`  [${i + 1}/${dm.messages.length}] ${msg.slice(0, 80)}...`);
+
+      if (isDryRun) {
+        console.log(`  DRY RUN - message ${i + 1} NOT sent`);
+        continue;
+      }
+
+      try {
+        await sendProspMessage(linkedinUrl, PROSP_SENDER, msg);
+      } catch (err) {
+        console.error(`Failed to send message ${i + 1}:`, err.message);
+        process.exit(1);
+      }
+
+      // Wait 3-6 seconds between messages to look natural
+      if (i < dm.messages.length - 1) {
+        const delay = 3000 + Math.floor(Math.random() * 3000);
+        console.log(`  Waiting ${(delay / 1000).toFixed(1)}s before next message...`);
+        await sleep(delay);
+      }
+    }
+    console.log(`  All ${dm.messages.length} messages sent!`);
+  } else {
+    // Single message
+    console.log(`  DM: ${dm.body.slice(0, 100)}...`);
+
+    if (isDryRun) {
+      console.log('DRY RUN - DM NOT sent');
+      console.log(`  Body: ${dm.body}`);
+      return;
+    }
+
+    try {
+      await sendProspMessage(linkedinUrl, PROSP_SENDER, dm.body);
+    } catch (err) {
+      console.error('Failed to send DM:', err.message);
+      process.exit(1);
+    }
   }
 })();
