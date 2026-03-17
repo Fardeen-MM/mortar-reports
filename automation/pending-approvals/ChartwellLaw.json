@@ -1,17 +1,17 @@
 {
   "firm_name": "Chartwell Law",
   "firm_folder": "ChartwellLaw",
-  "lead_email": "mona.sarmadi24@gmail.com",
-  "contact_name": "Mona Sarmadi",
+  "lead_email": "malleyph@gmail.com",
+  "contact_name": "Paula H.",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/ChartwellLaw/",
-  "job_title": "Partner",
-  "linkedin": "https://www.linkedin.com/in/mona-sarmadi-90039363",
+  "job_title": "Director of Billing & Compliance",
+  "linkedin": "https://www.linkedin.com/in/paula-h-5bab7342",
   "country": "US",
   "reply_text": "",
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
-  "created_at": "2026-03-13T08:15:09.871Z",
-  "status": "awaiting_approval",
+  "created_at": "2026-03-17T07:56:40.360Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -22,8 +22,8 @@
   "total_cases": "5-9",
   "practice_label": "legal services",
   "lead_intelligence": {
-    "name": "Mona Sarmadi",
-    "title": "Partner",
+    "name": "Paula H.",
+    "title": "Director of Billing & Compliance",
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
@@ -33,9 +33,7 @@
   "classification": "INTERESTED",
   "ooo_return_date": "",
   "channel": "prosp",
-  "linkedin_url": "https://www.linkedin.com/in/mona-sarmadi-90039363",
-  "prosp_sender": "https://www.linkedin.com/in/umer-faheem-gtme",
-  "source": "connection_accept",
-  "connection_dm": "[\"Hey Mona appreciate the connect 🙏\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at Chartwell Law, or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in Florida find about $70k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on Chartwell Law and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/ChartwellLaw/\",\"Want me to walk you through how to close the gap?\"]",
-  "telegram_message_id": 23
+  "linkedin_url": "https://www.linkedin.com/in/paula-h-5bab7342",
+  "prosp_sender": "https://www.linkedin.com/in/juhi-a-19b736134",
+  "source": "connection_accept"
 }
