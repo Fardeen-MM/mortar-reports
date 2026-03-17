@@ -42,7 +42,7 @@ function buildConnectionDM(contactName, firmName, reportUrl, totalRange, practic
   }
 
   const messages = [
-    `Hey ${firstName} appreciate the connect \u{1F64F}`,
+    `Hey ${firstName} appreciate the connect`,
     `I know you get these all the time so I'll be straight to the point. Are you more client-facing at ${firm}, or do you also oversee intake/follow-up on new inquiries?`,
     `The reason why I'm asking is because we helped a ${practiceLabel || 'legal'} firm in ${flexState} find about ${flexAmount}/mo in cases they were losing to other firms online`,
     `I had my team run the same audit on ${firm} and found a similar gap`,
