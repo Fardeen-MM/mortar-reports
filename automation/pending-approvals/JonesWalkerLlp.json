@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "5045828226",
   "created_at": "2026-03-18T10:26:09.687Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/edward-dirk-wegmann-6230431b",
   "prosp_sender": "https://www.linkedin.com/in/umer-faheem-gtme",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "[\"Hey Edward appreciate the connect\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at Jones Walker LLP, or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in Texas find about $50k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on Jones Walker LLP and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/JonesWalkerLlp/\",\"Want me to walk you through how to close the gap?\"]",
+  "telegram_message_id": 81
 }
