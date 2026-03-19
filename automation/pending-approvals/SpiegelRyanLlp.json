@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "",
   "created_at": "2026-03-19T16:02:05.469Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/natalie-goulard-12a8a8a7",
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "[\"Hey Natalie appreciate the connect\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at Spiegel Ryan LLP, or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in Ohio find about $70k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on Spiegel Ryan LLP and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/SpiegelRyanLlp/\",\"Want me to walk you through how to close the gap?\"]",
+  "telegram_message_id": 101
 }
