@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "786-775-5910",
   "created_at": "2026-03-20T13:52:23.084Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/john-j-goran-a9052a29",
   "prosp_sender": "https://www.linkedin.com/in/nicole-goncalves-56695638a",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "[\"Hey John appreciate the connect\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at Hall Booth Smith, P.C., or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in Virginia find about $70k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on Hall Booth Smith, P.C. and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/HallBoothSmithPc/\",\"Want me to walk you through how to close the gap?\"]",
+  "telegram_message_id": 121
 }
