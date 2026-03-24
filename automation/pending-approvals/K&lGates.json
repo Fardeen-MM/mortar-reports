@@ -1,17 +1,17 @@
 {
   "firm_name": "K&L Gates",
   "firm_folder": "K&lGates",
-  "lead_email": "tuckeridol@gmail.com",
-  "contact_name": "Tucker Idol",
+  "lead_email": "dlacarrubba@gmail.com",
+  "contact_name": "Derek Lacarrubba",
   "report_url": "https://reports.mortarmetrics.com/pending-reports/K&lGates/",
-  "job_title": "M&A Partner - Construction, Building Products & Infrastructure Services",
-  "linkedin": "https://www.linkedin.com/in/tuckeridol",
+  "job_title": "Partner",
+  "linkedin": "https://www.linkedin.com/in/dlacarrubba",
   "country": "US",
   "reply_text": "",
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
-  "phone": "(919) 280-0613",
-  "created_at": "2026-03-20T10:28:43.141Z",
-  "status": "awaiting_approval",
+  "phone": "212-536-4082",
+  "created_at": "2026-03-24T20:52:03.854Z",
+  "status": "pending_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -22,8 +22,8 @@
   "total_cases": "5-9",
   "practice_label": "legal services",
   "lead_intelligence": {
-    "name": "Tucker Idol",
-    "title": "M&A Partner - Construction, Building Products & Infrastructure Services",
+    "name": "Derek Lacarrubba",
+    "title": "Partner",
     "seniority": "senior",
     "is_decision_maker": true,
     "source": "instantly_webhook"
@@ -33,9 +33,7 @@
   "classification": "INTERESTED",
   "ooo_return_date": "",
   "channel": "prosp",
-  "linkedin_url": "https://www.linkedin.com/in/tuckeridol",
+  "linkedin_url": "https://www.linkedin.com/in/dlacarrubba",
   "prosp_sender": "https://www.linkedin.com/in/nicole-goncalves-56695638a",
-  "source": "connection_accept",
-  "connection_dm": "[\"Hey Tucker appreciate the connect\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at K&L Gates, or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in North Carolina find about $70k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on K&L Gates and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/K&lGates/\",\"Want me to walk you through how to close the gap?\"]",
-  "telegram_message_id": 118
+  "source": "connection_accept"
 }
