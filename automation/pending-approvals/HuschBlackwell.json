@@ -11,7 +11,7 @@
   "campaign_name": "FEB 26th AUTOMATED BOT Lead Magnet/Personalized Marketing Report for Lawyers",
   "phone": "314-308-3515",
   "created_at": "2026-03-31T11:10:11.707Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,6 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/rudytelscher",
   "prosp_sender": "https://www.linkedin.com/in/juhi-a-19b736134",
-  "source": ""
+  "source": "",
+  "telegram_message_id": 179
 }
