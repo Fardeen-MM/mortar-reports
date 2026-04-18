@@ -238,47 +238,22 @@ async function listMergeDispatch(env, email, minSlots) {
     );
 
     if (autoReply && env.INSTANTLY_API_KEY) {
-      if (classification.category === 'INTERESTED') {
-        const replyPreview = replyText ? replyText.slice(0, 300).replace(/\n/g, ' ') : '';
-        const contextLine = replyPreview
-          ? `INTERESTED: "${replyPreview}"`
-          : `INTERESTED: ${classification.summary}`;
-        await queueEmail(env, {
-          type: 'auto-reply',
-          to: email,
-          subject: 'Re: Your marketing analysis',
-          html: autoReply.replace(/\n/g, '<br>'),
-          text: autoReply,
-          lead_email: email,
-          firm_name: company,
-          contact_name: contactName,
-          context: contextLine
-        });
-      } else {
-        try {
-          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', autoReply.replace(/\n/g, '<br>'), autoReply);
-          console.log(`Quick reply auto-sent to ${email} (${classification.category})`);
-
-          const esc = s => (s || '').replace(/([_*`\[\]])/g, '');
-          const replyPreview = (replyText || '').slice(0, 150).replace(/\n/g, ' ').replace(/`/g, "'");
-          const autoPreview = autoReply.slice(0, 300).replace(/`/g, "'");
-          await sendTelegramMsg(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID,
-            `\u2705 *AUTO-SENT* (${classification.category})\n\n\ud83c\udfe2 *Firm:* ${esc(company)}\n\ud83d\udc64 *To:* ${esc(contactName)} (${email})\n\n\ud83d\udcac *They said:*\n\`\`\`\n${replyPreview}\n\`\`\`\n\n\ud83d\udce7 *We replied:*\n\`\`\`\n${autoPreview}\n\`\`\``);
-        } catch (sendErr) {
-          console.error(`Quick reply send failed for ${email}: ${sendErr.message}`);
-          await queueEmail(env, {
-            type: 'auto-reply',
-            to: email,
-            subject: 'Re: Your marketing analysis',
-            html: autoReply.replace(/\n/g, '<br>'),
-            text: autoReply,
-            lead_email: email,
-            firm_name: company,
-            contact_name: contactName,
-            context: `${classification.category} (auto-send failed: ${sendErr.message})`
-          });
-        }
-      }
+      // All quick replies go through Telegram approval. Nothing auto-sends.
+      const replyPreview = replyText ? replyText.slice(0, 300).replace(/\n/g, ' ') : '';
+      const contextLine = replyPreview
+        ? `${classification.category}: "${replyPreview}"`
+        : `${classification.category}: ${classification.summary}`;
+      await queueEmail(env, {
+        type: 'auto-reply',
+        to: email,
+        subject: 'Re: Your marketing analysis',
+        html: autoReply.replace(/\n/g, '<br>'),
+        text: autoReply,
+        lead_email: email,
+        firm_name: company,
+        contact_name: contactName,
+        context: contextLine
+      });
     } else {
       console.log(`Quick reply failed for ${email} (${classification.category}), sending Telegram notification`);
       await sendTelegramNotification(env, email, replyText, classification);

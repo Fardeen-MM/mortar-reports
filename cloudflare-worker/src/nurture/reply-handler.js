@@ -1,6 +1,6 @@
 import { generateAutoResponse } from '../ai/auto-response.js';
-import { sendInstantlyReply } from '../channels/instantly.js';
 import { sendTelegramMsg } from '../telegram/api.js';
+import { queueEmail } from '../queues/email-queue.js';
 
 // ============ NURTURE REPLY HANDLER ============
 
@@ -39,13 +39,18 @@ export async function handleNurtureReply(env, email, replyText, classification, 
         practiceLabel: nurtureData.practice_label || ''
       });
       if (autoReply) {
-        try {
-          const replyHtml = autoReply.replace(/\n/g, '<br>');
-          await sendInstantlyReply(env.INSTANTLY_API_KEY, email, 'Re: Your marketing analysis', replyHtml, autoReply);
-          console.log(`OOO auto-reply sent to nurture lead ${email}`);
-        } catch (e) {
-          console.log(`OOO auto-reply send failed for nurture lead ${email}: ${e.message}`);
-        }
+        // Route OOO reply through Telegram approval. Nothing auto-sends.
+        await queueEmail(env, {
+          type: 'auto-reply',
+          to: email,
+          subject: 'Re: Your marketing analysis',
+          html: autoReply.replace(/\n/g, '<br>'),
+          text: autoReply,
+          lead_email: email,
+          firm_name: firmName,
+          contact_name: contactName,
+          context: `OOO (nurture lead, return ${returnDate})`
+        });
       }
     }
 
