@@ -3,7 +3,6 @@
  */
 
 import { sendTelegramMsg } from '../telegram/api.js';
-import { queueEmail } from '../queues/email-queue.js';
 
 export async function handleViewTrack(env, body) {
   const { email, firm, ts } = body;
@@ -28,27 +27,7 @@ export async function handleViewTrack(env, body) {
   const leadRaw = await env.WEBHOOK_KV.get(`lead:${firm}`);
   const lead = leadRaw ? JSON.parse(leadRaw) : null;
 
-  if (count === 1 && lead) {
-    const followUpText = `Hi ${lead.contact_name || 'there'},
-
-Just noticed you had a chance to look at the report we put together for ${lead.firm_name || 'your firm'}.
-
-Happy to walk through any of the numbers \u2014 the competitor data and the gap estimates are the parts most firms find most useful.
-
-No pitch, just context. Let me know if you want 15 minutes this week.`;
-
-    await queueEmail(env, {
-      type: 'follow-up',
-      to: lead.email,
-      subject: 'Re: Your marketing analysis',
-      html: followUpText.replace(/\n/g, '<br>'),
-      text: followUpText,
-      lead_email: lead.email,
-      firm_name: lead.firm_name,
-      contact_name: lead.contact_name,
-      context: `First report view detected`
-    });
-  } else if ((count === 3 || count === 5 || count === 10) && lead) {
+  if ((count === 3 || count === 5 || count === 10) && lead) {
     const emoji = count >= 10 ? '\ud83d\udd25\ud83d\udd25\ud83d\udd25' : count >= 5 ? '\ud83d\udd25\ud83d\udd25' : '\ud83d\udd25';
     const msg = `${emoji} *HOT LEAD ALERT*
 

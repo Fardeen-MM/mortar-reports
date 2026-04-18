@@ -1,9 +1,9 @@
 name: Nurture Follow-up Emails
 
 on:
-  schedule:
-    # Run every 6 hours
-    - cron: '0 */6 * * *'
+  # Nurture sequence disabled — cron commented out. Manual trigger only.
+  # schedule:
+  #   - cron: '0 */6 * * *'
   workflow_dispatch: {}
 
 # Prevent overlapping nurture runs (if one takes >6h, don't start another)

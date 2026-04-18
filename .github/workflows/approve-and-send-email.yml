@@ -451,7 +451,8 @@ jobs:
           " >> $GITHUB_OUTPUT
 
       - name: Add lead to nurture queue
-        if: steps.inputs.outputs.skip_email != 'true' && steps.inputs.outputs.classification != 'OOO'
+        # Nurture sequence disabled — do not enroll new leads.
+        if: false && steps.inputs.outputs.skip_email != 'true' && steps.inputs.outputs.classification != 'OOO'
         env:
           WORKER_URL: ${{ secrets.WORKER_URL }}
           LEAD_EMAIL: ${{ steps.inputs.outputs.lead_email }}
