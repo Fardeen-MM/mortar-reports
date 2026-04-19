@@ -8,7 +8,13 @@ import { quickResearch, generateQuickReply } from '../ai/quick-reply.js';
 import { queueEmail } from '../queues/email-queue.js';
 import { handleNurtureReply } from '../nurture/reply-handler.js';
 
-export async function sendInstantlyReply(apiKey, leadEmail, subject, html, text) {
+export async function sendInstantlyReply(apiKey, leadEmail, subject, html, text, approvalContext) {
+  // SAFETY GUARD: every outbound reply must carry a Telegram callback_query_id,
+  // proving a human tapped Approve/Edit/Send in Telegram. Any caller that forgets
+  // this fails loudly instead of auto-sending. Do not remove without deliberate review.
+  if (!approvalContext || typeof approvalContext.callback_query_id !== 'string' || !approvalContext.callback_query_id) {
+    throw new Error('sendInstantlyReply blocked: missing Telegram approval context. Sends are only allowed from a Telegram button press (callback_query).');
+  }
   const lookupUrl = `https://api.instantly.ai/api/v2/emails?lead=${encodeURIComponent(leadEmail)}`;
   const lookupResp = await fetch(lookupUrl, {
     headers: { 'Authorization': `Bearer ${apiKey}` }

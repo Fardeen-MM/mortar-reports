@@ -51,7 +51,7 @@ export async function handleTelegramCallback(env, update) {
 
       try {
         if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
-        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, queued.html, queued.text);
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, queued.html, queued.text, { callback_query_id: callback_query.id });
         await env.WEBHOOK_KV.delete(`queued_email:${approvalId}`);
         await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
           `✅ *SENT* (${queued.type || 'email'})\n\n📧 *To:* ${queued.to}\n📝 *Subject:* ${queued.subject}`);
@@ -104,7 +104,7 @@ export async function handleTelegramCallback(env, update) {
       try {
         if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
         const customHtml = customText.replace(/\n/g, '<br>');
-        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, customHtml, customText);
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, queued.to, queued.subject, customHtml, customText, { callback_query_id: callback_query.id });
         await env.WEBHOOK_KV.delete(`queued_email:${approvalId}`);
         await env.WEBHOOK_KV.delete(`custom_queued:${approvalId}`);
         await editMessage(env.TELEGRAM_BOT_TOKEN, chatId, messageId,
@@ -420,7 +420,7 @@ export async function handleTelegramCallback(env, update) {
         if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
         if (!nr.autoReply) throw new Error('No auto-reply text available');
         const replyHtml = nr.autoReply.replace(/\n/g, '<br>');
-        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', replyHtml, nr.autoReply);
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', replyHtml, nr.autoReply, { callback_query_id: callback_query.id });
 
         // Update nurture status
         const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
@@ -549,7 +549,7 @@ export async function handleTelegramCallback(env, update) {
       try {
         if (!env.INSTANTLY_API_KEY) throw new Error('INSTANTLY_API_KEY not configured');
         const customHtml = customText.replace(/\n/g, '<br>');
-        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', customHtml, customText);
+        await sendInstantlyReply(env.INSTANTLY_API_KEY, nr.email, 'Re: Your marketing analysis', customHtml, customText, { callback_query_id: callback_query.id });
 
         const nurtureRaw = await env.WEBHOOK_KV.get(`nurture:${nr.email}`);
         if (nurtureRaw) {
