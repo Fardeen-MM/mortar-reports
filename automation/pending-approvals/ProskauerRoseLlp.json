@@ -11,7 +11,7 @@
   "campaign_name": "June 4th Re-Launch of Paid Consultations/Webinar Funnel Campaign",
   "phone": "732-915-0625",
   "created_at": "2026-07-09T21:56:16.300Z",
-  "status": "pending_approval",
+  "status": "awaiting_approval",
   "report_version": "V3",
   "qc_passed": "false",
   "qc_issues": "4",
@@ -35,5 +35,7 @@
   "channel": "prosp",
   "linkedin_url": "https://www.linkedin.com/in/jacqlyn-aloisi-pmp",
   "prosp_sender": "https://www.linkedin.com/in/nahin-chowdhury",
-  "source": "connection_accept"
+  "source": "connection_accept",
+  "connection_dm": "[\"Hey Jacqlyn appreciate the connect\",\"I know you get these all the time so I'll be straight to the point. Are you more client-facing at Proskauer Rose LLP, or do you also oversee intake/follow-up on new inquiries?\",\"The reason why I'm asking is because we helped a legal services firm in Florida find about $70k/mo in cases they were losing to other firms online\",\"I had my team run the same audit on Proskauer Rose LLP and found a similar gap\",\"We already built the whole report for you: https://reports.mortarmetrics.com/ProskauerRoseLlp/\",\"Want me to walk you through how to close the gap?\"]",
+  "telegram_message_id": 223
 }
