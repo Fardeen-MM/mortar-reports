@@ -1426,6 +1426,12 @@ function deterministicQC(html, research) {
     }
   }
 
+  // 11b. NO UNSUBSTANTIATED CLAIMS (claims-guard.js — fake guarantee, ROI claim, invented case study or scenes)
+  for (const hit of require('./claims-guard').scanText(html)) {
+    issues.push({ severity: 'CRITICAL', category: 'CLAIMS', issue: `Banned claim: ${hit}` });
+    score -= 5;
+  }
+
   // 12. ALL SECTIONS HAVE REAL CONTENT (V7 structure)
   const requiredSections = [
     { name: 'hero', pattern: /class="hero"/i },
@@ -1434,7 +1440,6 @@ function deterministicQC(html, research) {
     { name: 'revenue card 1', pattern: /class="revenue-card/i },
     { name: 'cost of inaction', pattern: /class="cost-inaction/i },
     { name: 'guarantee section', pattern: /class="guarantee-section/i },
-    { name: 'case study', pattern: /class="case-study/i },
     { name: 'deliverables', pattern: /class="deliverables-group/i },
     { name: 'only job', pattern: /class="only-job/i },
     { name: 'footer', pattern: /class="footer"/i }
@@ -1780,12 +1785,6 @@ function deterministicQC(html, research) {
   // 32. COST OF INACTION PRESENT
   if (!/class="cost-inaction/.test(html)) {
     issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing cost-of-inaction section' });
-    score -= 0.5;
-  }
-
-  // 33. CASE STUDY TIMELINE
-  if (!/class="case-study-timeline/.test(html)) {
-    issues.push({ severity: 'MINOR', category: 'STRUCTURE', issue: 'Missing case study timeline milestones' });
     score -= 0.5;
   }
 

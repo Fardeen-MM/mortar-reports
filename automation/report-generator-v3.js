@@ -1093,7 +1093,7 @@ function generateFaqSection(practiceArea) {
     { q: 'How long before I see results?', a: 'Most firms see booked consultations within 14 days. Paid ads drive immediate traffic, while SEO and content compound over months. You\'ll have a full pipeline within 60-90 days.' },
     { q: 'What if I\'ve tried marketing before and it didn\'t work?', a: 'Most firms we talk to had agencies that ran ads but didn\'t build the full system: landing pages, intake, follow-up, tracking. We build the entire pipeline so nothing leaks.' },
     { q: 'How do you know these numbers are realistic?', a: 'Every number in this report comes from a formula with visible assumptions. We show our math and the conversion rates we use. If your market is smaller, the numbers adjust.' },
-    { q: 'What\'s the catch with month-to-month?', a: 'No catch. We keep clients by delivering results, not by locking them in. You keep everything we build if you cancel.' },
+    { q: 'Is there a long contract?', a: 'A 3-month commitment, because the first month is diagnosis and build, and you can\'t judge a fix in four weeks. After that it\'s month to month, and you keep everything we build if you leave.' },
     { q: 'Do I need to do anything?', a: 'Show up to consultations and sign cases. We handle ads, website, funnels, intake, follow-up, reporting. Your team gets a weekly report and a Slack channel for questions.' },
   ];
 
@@ -1190,11 +1190,11 @@ ${css}
 
       <h1>
         <span class="highlight">\u2248 ${totalCases} new signed cases</span><br>every month.
-        <span class="hero-revenue-sub">That's ${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)} in new revenue.</span>
+        <span class="hero-revenue-sub">That's an estimated ${currency}${formatMoney(totalLow)}\u2013${currency}${formatMoney(totalHigh)} in new revenue, based on market averages, not your firm's own records.</span>
       </h1>
 
       <p class="hero-sub">
-        We build your website, run your ads, create your funnels, answer every lead, and book consultations on your calendar. 30 qualified leads in 30 days or we work for free until you get them.
+        We build your website, run your ads, create your funnels, answer every lead, and book consultations on your calendar. Your ads, page and tracking go live within 14 days, or that month's fee is credited.
       </p>
 
       <div class="scroll-hint">
@@ -1384,44 +1384,11 @@ ${prose.card3Insight ? `        <div class="revenue-card-insight">\u2192 ${prose
 
     <!-- GUARANTEE -->
     <div class="guarantee-section fade-in">
-      <div class="guarantee-label">Our guarantee</div>
-      <div class="guarantee-headline">You risk nothing. We risk everything.</div>
-      <div class="guarantee-sub">30 qualified leads in 30 days or we work for free until you get them. If we don't deliver, we keep working at no cost until we hit it.</div>
+      <div class="guarantee-label">What we put in writing</div>
+      <div class="guarantee-headline">We guarantee what we control.</div>
+      <div class="guarantee-sub">Your ads, landing page and tracking go live within 14 days of kickoff, or that month's fee is credited. Every new lead gets a reply within 60 seconds and a call within 5 minutes during covered hours, or that week's fee is credited. Every account and asset stays in your firm's name.</div>
     </div>
 
-    <!-- CASE STUDY -->
-    <div class="case-study fade-in">
-      <div class="case-study-label">We've done this before</div>
-      <div class="case-study-content">
-        <div class="case-study-firm">Mandall Law</div>
-        <div class="case-study-context">Personal injury firm, mid-size market</div>
-        <div class="case-study-stats">
-          <div class="case-study-stat">
-            <div class="case-study-number">${currency}4K</div>
-            <div class="case-study-desc">monthly ad spend</div>
-          </div>
-          <div class="case-study-arrow">\u2192</div>
-          <div class="case-study-stat">
-            <div class="case-study-number">${currency}92K/mo</div>
-            <div class="case-study-desc">in new signed cases</div>
-          </div>
-        </div>
-        <div class="case-study-timeline">
-          <div class="case-study-milestone">
-            <div class="case-study-milestone-time">Week 2</div>
-            <div class="case-study-milestone-text">Ads live, website launched, AI intake active</div>
-          </div>
-          <div class="case-study-milestone">
-            <div class="case-study-milestone-time">Month 1</div>
-            <div class="case-study-milestone-text">18 booked consultations, 6 signed cases</div>
-          </div>
-          <div class="case-study-milestone">
-            <div class="case-study-milestone-time">Month 3</div>
-            <div class="case-study-milestone-text">Full pipeline \u2014 ${currency}92K/month in signed cases</div>
-          </div>
-        </div>
-      </div>
-    </div>
 
 
     <!-- WHAT WE BUILD -->
@@ -1488,8 +1455,8 @@ ${deliverableItem('Dedicated account manager', 'One point of contact. Not a tick
     <div class="confidence-grid fade-in">
       <div class="confidence-item">
         <div class="confidence-icon">\uD83E\uDD1D</div>
-        <strong>Month to month</strong>
-        <p>No long-term contracts. Cancel anytime. Keep everything we built.</p>
+        <strong>3 months, then month to month</strong>
+        <p>A 3-month commitment, then cancel anytime. Keep everything we built.</p>
       </div>
       <div class="confidence-item">
         <div class="confidence-icon">\uD83D\uDEE1\uFE0F</div>
@@ -1509,8 +1476,8 @@ ${generateFaqSection(practiceArea)}
     <div class="divider"></div>
 
     <div id="booking" class="cta fade-in">
-      <h2>30 qualified leads in 30 days or we work for free. Let's talk.</h2>
-      <p>15 minutes. We'll walk you through the numbers and show you exactly how we'd deliver ${totalCases} new cases to your firm every month. Our clients typically see ${currency}5\u2013${currency}10 back for every ${currency}1 they invest.</p>
+      <h2>Let's walk through your numbers.</h2>
+      <p>15 minutes. We'll walk you through the numbers and show you exactly how we'd deliver ${totalCases} new cases to your firm every month.</p>
       <iframe src="https://api.mortarmetrics.com/widget/booking/7aCMl8OqQAOE3NfjfUGT" style="width: 100%; border: none; overflow: hidden; min-height: 600px;" scrolling="no" id="mortar-booking-widget"></iframe>
       <script src="https://api.mortarmetrics.com/js/form_embed.js" type="text/javascript"></script>
     </div>
@@ -2002,8 +1969,6 @@ function validateReportHTML(html, firmName) {
     ['revenue-card', /class="revenue-card/i],
     ['cost-inaction', /class="cost-inaction/i],
     ['guarantee', /class="guarantee-section/i],
-    ['case-study', /class="case-study/i],
-    ['case-study-timeline', /class="case-study-timeline/i],
     ['deliverables', /class="deliverables-group/i],
     ['only-job', /class="only-job/i],
     ['faq-section', /class="faq-section/i],
